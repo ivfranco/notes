@@ -1,0 +1,2060 @@
+2.2.6
+For any reflexive R'' that R < R''
+1. (s, s) in R'' for all s in R
+2. (s, t) in R'' for all (s, t) in R
+so R' = 1. + 2. included by R''  
+
+2.2.7
+let R'' be transitive and R < R''
+if Ri < R, then must have Ri+1 < R by transitivity
+so R' = U(Ri) < R''
+
+by definition, R+ don't include elements not in R
+if (s, t) in Ri, (t, u) in Ri, then (s, u) will be in Ri+1
+i -> infinite, so R+ is transitive
+
+2.2.8
+R* = (R')+
+P preserved by R' (intuitive)
+P preserved by R+: if P is preserved by Ri, then P is preserved by Ri+1 by transitivity
+-> P is preserved by U(Ri) = R+
+
+3.2.4
+|Si+1| = 3|Si| + A(|Si|, 3) + 3
+|S1| = 3
+|S2| = 18
+|S3| = 4953
+
+3.2.5
+denote the evolve process as F :: Set -> Set
+Si+1 = F(Si)
+A < B -> F(A) < F(B), F preserves <
+so F^n(A) < F^n(B) naturally
+S1 = { true, false, 0 }
+S0 < S1
+Si = F^i(S0) < Si+1 = F^i(S1)
+
+3.3.4
+Structural induction is proven above
+since the depth and size of subterms are strictly smaller than the derived term
+Induction on depth and Induction on size are just stronger version of Structural induction
+
+3.5.5
+induction on subterms
+
+3.5.10
+->* is a relation that
+(t, t') in ->* for all (t, t') in ->
+(t, t) in ->* for all t
+(t, t'') in ->* if some (t, t') and (t', t'') in ->
+
+3.5.13
+3.5.7
+3.5.8
+3.5.12
+a counter example of 3.5.4:
+def t := if true then true else false
+t -> true by E-IFTRUE
+t -> false by E-FUNNY1
+and 3.5.11 is stronger than 3.5.4
+3.5.4 no longer true since now 
+if t1 then t2 else t3 for some t1 -> t1' and t2 -> t2' has two evaluation rules
+3.5.7 and 3.5.12 holds
+3.5.8 holds with minor change in proof
+3.5.11 needs a new proof
+
+3.5.14
+case E-SUCC:
+	t has form succ t1 for some t1 -> t1', t' = succ t1'
+	it's the only rule for (succ t) so t' = t''
+case E-PREDZERO:
+	t has form pred 0
+	then t' = t' = 0
+case E-PREDSUCC:
+	t has form pred(succ nv1)
+	another rule for pred(t') doesn't apply
+	"succ nv1" is value and have no succ nv1 -> t1'
+	so t' = t'' = nv1
+case E-PRED:
+	similar to E-SUCC
+	E-PREDSUCC doesn't apply as stated above
+case E-ISZEROZERO:
+	similar to E-PREDZERO
+case E-ISZEROSUCC:
+	t' = t'' = false
+case E-ISZERO:
+	similar to E-PREDSUCC
+
+3.5.16
+For all s that evaluate to stuck in the first treatment, t ->* wrong in treatment 2
+exist t that s ->* t and t is stuck, only have to prove t ->* wrong then s ->* wrong by transitivity
+case t = if t1 then t2 else t3:
+	fot it to be stuck, t1 != true, t1 != false, no t1 -> t1'
+	so t1 = nv or t1 is stuck (so t1 ->* wrong with subterm induction)
+	so t ->* wrong by E-IF-WRONG
+case t = succ t1:
+	for it to be stuck, no t1 -> t1', and succ t1 is not a value -> t1 is not nv
+	so t1 is stuck (so t1 ->* wrong) or t1 = true or t1 = false
+	so succ t1 ->* wrong by E-SUCC-WRONG
+case t = pred t1:
+	for it to be stuck, t1 != 0, t1 != succ nv, no t1 -> t1'
+	any nv other than 0 can be written as succ nv', so t1 is not nv
+	so t1 is stuck (so t1 ->* wrong) or t1 = true or t1 = false
+	so pred t1 ->* wrong by E-PRED-WRONG
+case t = iszero t1:
+	for it to be stuck, no t1 -> t1' and t1 != 0 and t1 != succ nv
+	(t1 != 0 and t1 != succ nv) -> t1 is not nv
+	so t1 is stuck (t1 ->* wrong) or t1 = true or t1 = false
+	so t1 ->* wrong  by E-ISZERO-WRONG
+
+3.5.17
+since arithmetic is deterministic, t ->* v , by 3.5.11 for any t ->* v' where v' is in normal form, then v' is a value and v' = v
+so t will be evaluated to v and not stuck
+the other direction of iff is straight forward by subterms induction
+
+3.5.18
+E-IFTRUE and E-IFELSE only apply when "if (true | false) then v2 else v3"
+E-IF only applys then and else clause are values
+a new rule E-IFTHEN
+	t2 -> t2'
+	--------
+	if t1 then t2 else t3 -> if t1 then t2' else t3
+a new rule E-IFELSE
+	t3 -> t3'
+	--------
+	if t1 then t2 else t3 -> if t1 then t2 else t3'
+
+4.2.2
+evalB :: Term -> Either NoRuleApplies Term
+evalB t | isVal t = return t
+evalB (TmIf t1 t2 t3) = do
+    v1 <- evalB t1
+    case v1 of
+        TmTrue  -> evalB t2
+        TmFalse -> evalB t3
+        _       -> noRuleApplies
+evalB (TmSucc t) = do
+    v <- evalB t
+    if isNumerical v
+        then return $ TmSucc v
+        else noRuleApplies
+evalB (TmPred t) = do
+    v <- evalB t
+    case v of
+        TmZero    -> return TmZero
+        TmSucc v' | isNumerical v' -> return v'
+        _         -> noRuleApplies
+evalB (TmIsZero t) = do
+    v <- evalB t
+    case v of
+        TmZero    -> return TmTrue
+        TmSucc v' | isNumerical v' -> return TmFalse
+        _         -> noRuleApplies
+
+4.2.1
+it's hard for the compiler to optimize recursive function with lots of exits
+the error handling can be encoded as an Either monad:
+
+data NoRuleApplies = NoRuleApplies
+    deriving (Show, Eq)
+
+noRuleApplies :: Either NoRuleApplies a
+noRuleApplies = Left NoRuleApplies
+
+eval1 :: Term -> Either NoRuleApplies Term
+eval1 (TmIf TmTrue t2 _) = return t2
+eval1 (TmIf TmFalse _ t3) = return t3
+eval1 (TmIf t1 t2 t3) = do
+    t1' <- eval1 t1
+    return $ TmIf t1' t2 t3
+eval1 (TmSucc t) = do
+    t' <- eval1 t
+    return $ TmSucc t'
+eval1 (TmPred TmZero) = return TmZero
+eval1 (TmPred (TmSucc nv)) | isNumerical nv = return nv
+eval1 (TmPred t) = do
+    t' <- eval1 t
+    return $ TmPred t'
+eval1 (TmIsZero TmZero) = return TmTrue
+eval1 (TmIsZero (TmSucc nv)) | isNumerical nv = return TmFalse
+eval1 (TmIsZero t) = do
+    t' <- eval1 t
+    return $ TmIsZero t'
+eval1 _ = noRuleApplies
+
+eval :: Term -> Term
+eval t = case eval1 t of
+    Left _   -> t
+    Right t' -> eval t'
+
+5.2.1
+not: (or "swap")
+	\t. \x. \y. t y x
+or:
+	\b. \c. b tru (c tru fls)
+
+5.2.2
+scc' = \n. \s. \z. n s (s z)
+
+5.2.3
+times' = \m. \n. \s. \z. m (n s) z
+
+5.2.4
+power = \m. \n. n (time m) c1
+
+5.2.5
+sub = \m. \n. n prd m
+
+5.2.6
+O(n)
+
+5.2.7
+equal = \m. \n. and (isZro (sub m n)) (isZro (sub m n))
+
+5.2.8
+nil = \c. \n. n
+cons = \h. \t. \c. \n. c h (t c n)
+isnil = \l. l (\x. \y. fls) tru
+head = \l. l (\x. \y. x) id
+zz = pair nil nil
+ss = \x. \p. pair (snd p) (cons x (snd p))
+tail = \l. fst (l ss zz)
+
+5.2.9
+by call-by-value the arguments are always evaluated, so the expression diverges
+
+5.2.10
+g = \nat. \n. if n = 0 then c0 else (suc (nat (pred n))
+churchnat = fix g
+
+5.2.11
+sum = \l. l plus c0
+
+5.3.3
+define size(t) as 
+size(x) = 1 for all x in V
+size(\x. t) = size(t) + 1
+size(t1 t2) = size(t1) + size(t2)
+
+then |FV(x)| <= size(x) = 1
+|FV(\x. t)| <= FV(t) <= size(t) by induction
+|FV(t1 t2)| = |FV(t1) U FV(t2)| <= |FV(t1)| + |FV(t2)| <= size(t1) + size(t2) = size(t1 t2) by induction
+
+5.3.6
+full beta reduction: (reduce anything anytime)
+t1 -> t1'
+--------
+t1 t2 -> t1' t2
+
+t2 -> t2'
+---------
+t1 t2 -> t1 t2'
+
+t -> t'
+-------
+\x. t -> \x. t'
+
+\x.t1 t2 -> [x -> t2]t1
+
+normal-order: 
+call by value with one more rule
+t -> t'
+-------
+\x. t -> \x. t'
+
+lazy evaluation:
+t1 -> t1'
+---------
+t1 t2 -> t1' t2
+
+\x. t1 t2 -> [x -> t2]t1
+
+5.3.7
+bacfunc ::=
+	wrong
+	true
+	false
+	nv
+
+badfunc t -> wrong
+
+5.3.8
+v ->* v
+
+t1 -> \x. t12, t2 -> v2, [x -> v2]t12 -> v
+------------------
+t1 t2 -> v
+
+6.1.1
+c0 =\. \. 0
+c2 =\. \. 1 (1 0)
+plus = \. \. \. \. 3 1 (2 0 1)
+fix = \. (\. 1 (\. (1 1) 0)) (\. 1 (\. (1 1) 0))
+foo = (\. (\. 0)) (\. 0)
+
+6.1.5
+removenames(R, x) = index of the right most x in R
+removenames(R, (t1 t2)) = (removenames(R, t1) removenames(R, t2))
+removenames(R, \x. t) = \. removenames(R, t)
+
+restorenames(R, n) = R(n)
+restorenames(R, (t1 t2)) = restorenames(R, t1) restorenames(R, t2)
+restorenames(R, \. t) = pick an new x in V \ R, \x. restorenames(t)
+
+actually have to shift indexes when going into a lambda abstraction, both my and the offical answer ignored that part
+
+6.2.2
+\. \. 1 (0 4)
+\. 0 2 (\. 0 1 4)
+
+6.2.3
+assume t in Tn
+case k:
+	k in { 0 .. n-1 }
+	then shift(c, d, k) <= d + k in Tn+d
+case (t1, t2):
+	shift(c, d, k) = shift(c, d, t1) shift(c, d, t2) in Tn+d by induction
+case \. t1:
+	t1 in Tn+1
+	by induction shift(c+1, d, t1) in Tn+d+1
+	so \. t1 in Tn+d
+
+6.2.5
+[0 -> 1] 0 (\. \. 2)
+	= 1 (\. \. 3)
+	= a (\x. \y. a)
+[\0 -> 1 (\. 2)] 0 (\. 1)
+	= (1 (\. 2)) (\. (2 (\. 3)))
+	= (a (\x. a)) (\x. (a (\y. a)))
+[0 -> 1] \. 0 2
+	= \. 0 2
+	= \x. x a
+[0 -> 1] \. 1 0
+	= \. 2 0
+	= \x. a x
+
+6.2.6
+case k:
+	[j -> s]k = s or k, k in Tn and s in Tn
+case (t1 t2):
+	[j -> s](t1 t2) = [j -> s]t1 [j -> s]t2 in Tn by induction
+case \. t1:
+	[j -> s](\. t1) = \. [j + 1 -> shift(0, 1, s)] t1
+	as t1 in Tn+1, shift(0, 1, s) in Tn+1 -> [j + 1 -> shift(0, 1, s)] t1 in Tn+1 by induction
+	so \. [j + 1 -> shift(0, 1, s)] t1 in Tn
+	
+6.3.1
+let s = [0 -> shift(0, 1, v2)]t12
+case s = \. t:
+	shift(0, -1, s) = shift(1, -1, t)
+	0 already smaller than the bound
+case s = k:
+	k cannot be zero, since that means shift(0, 1, v2) will be 0 which is impossible
+case s = (t1 t2):
+	induction
+
+7.3.1
+evalB :: Context -> Term -> Term
+evalB ctx t@TmApp{..} = case evalB ctx func of
+    TmAbs _ t12 -> evalB ctx $ termSubstTop (evalB ctx para) t12
+    _           -> t
+evalB _ t = t
+
+8.2.3
+immediate from the generation lemma
+
+8.3.4
+All value case: not possible
+
+case if t1 then t2 else t3:
+	then (if t1 then t2 else t3): T, so t1: Bool, t2: T, t3: T
+	case E-IF:
+		t1 -> t1': Bool by induction
+		(if t1' then t2 else t3): T by T-IF
+	case E-IFTRUE:
+		(if true then t2 else t3) -> t2: T
+case Succ t1:
+	then t = (Succ t1): Nat, t1: Nat
+	the only rule may apply is E-SUCC
+	t1 -> t1': Nat by induction
+	so (Succ t1'): Nat by T-SUCC
+case IsZero t1:
+	then (IsZero t1): Bool and t1: Nat
+	case E-ISZEROZERO or E-ISZEROSUCC:
+		t' = true: Bool
+		or
+		t' = false: Bool
+	case E-ISZERO:
+		t1 -> t1': Nat by induction
+		(IsZero t1'): Bool by T-ISZERO	
+
+8.3.5
+no. T-PRED no longer hold.
+
+8.3.6
+no. E-IF is lazy in its clauses, so this term is will typed after an evaluation step but not before:
+
+stuck := succ false
+
+t := if false then stuck else 0
+t' := 0 (E-IF)
+
+t': Bool and t is not well typed
+
+8.3.7
+induction by evaluation rules
+
+case v: T
+	v -> v, v: T
+
+case if t1 then t2 else t3: T
+	t1: Bool, t2: T, t3: T
+	t1 -> v1, t2 -> v2, t3 -> v3
+	t -> v2 or t -> v3: T
+
+....
+
+8.3.8
+add a new type Wrong
+
+wrong: Wrong
+
+if badbool then t2 else t3: Wrong
+
+succ badnat: Wrong
+pred badnat: Wrong
+
+isZero badnat: Wrong
+
+the other rules unaffected, all the forms above evaluates to wrong 
+
+9.2.1
+the base case T-VAR depends on a context
+
+9.2.3
+Empty, f: Bool -> Bool -> Bool, x: Bool, y: Bool
+
+for any context that contains
+f: T1 -> T2 -> Bool
+x: T1
+y: T2
+for any T1 and T2
+
+9.3.2
+R |- x x: T
+by inversion lemma, x: T1 -> T2 and x: T1, makes T1 = T1 -> T2
+T1 	= T1 -> T2
+	= (T1 -> T2) -> T2
+	= ((T1 -> T2) -> T2) -> T2
+	= ...
+
+9.3.9
+case \x: T1. t2
+	impossible, abstraction is value
+case x: T
+	impossible, free variables don't appear in closed terms
+csae (t1 t2): T
+	R |- (t1 t2): T
+	R |- t1: T1 -> T
+	R |- t2: T1
+	t1 -> t1': T1 -> T by induction
+	so (t1' t2): T by T-ABB
+case (v1 t2): T
+	similar
+case (v1 v2): T
+	v1 = (\x: T1. t2)
+	R |- v1: T1 -> T
+	R, x: T1 |- t2: T
+	R |- v2: T1
+	t' = [x -> v2]t2
+	by substitution lemma, R |- t': T
+
+9.3.10
+case (t1 t2)
+	t' = (t1' t2)
+	R |- t': T
+	R |- t1': T1 -> T
+	R |- t2: T1
+	by induction, R |- t1: T1 -> T
+	by T-APP, R |- (t1 t2): T
+case (v1 t2)
+	similar
+case (v1 v2)
+	v1 = \x. t2
+	t' = [x -> v2]t2
+	R |- t': T
+	// no way to go from here
+
+let const = \x: Bool. \y: Bool. x
+(const true id) is not well typed
+(const true id) -> true which is well typed
+
+9.4.1
+introduction rules:
+	T-TRUE, T-FALSE, T-ISZERO
+elimination rules:
+	T-IF
+
+11.2.1
+f: (Unit -> Unit) -> Unit -> Unit
+f = \f x. f (f x)
+
+f0: Unit -> Unit
+f0 = id
+
+fi+1 = f fi
+
+ti = fi unit
+
+11.3.2
+type
+R |- t: T
+--------
+R |- (\_: S. t): S -> T
+
+value
+v ::= 	...
+	\_: S. t
+
+(\_: S. t) v -> t
+
+for (\x: S. t) v where x not in FV(t)
+[x -> v]t = t
+
+11.4.1
+t as T expands to
+(\x: T. x) t
+
+type: trivial
+value:
+t -> t'
+(\x: T. x) t -> (\x: T. x) t'
+(\x: T. x) v -> v
+
+with eager rule, t as T expands to 
+(\x: Unit. t) unit for some x not in FV(t)
+
+type: trivial
+value:
+(\x: Unit. t) unit -> [x -> unit]t = t
+
+11.5.1
+typeof ctx (TmLet x t1 t2) = do
+    tyT1 <- typeof ctx t1
+    typeof (addBinding ctx x (VarBind tyT1)) t2
+
+eval1 ctx (TmLet x v1 t2) | isVal ctx v1 = return $ termSubst (find x ctx) v1 t2
+eval1 ctx (TmLet x t1 t2) = do
+    t1' <- eval1 ctx t1
+    return $ TmLet x t1' t2
+
+11.5.2
+no. it's no longer a derived form in small step semantics as the evaluation rules do not match
+the resulting language will not be call by value anymore
+
+11.9.1
+values
+true ::= inl unit
+false ::= inr unit
+if t1 then t2 else t3 ::= case t1 of
+	inl unit => t2
+	inr unit => t3
+
+11.11.1
+and = \b: Bool. \b': Bool. if b then b' else false
+or = \b: Bool. \b': Bool. if b then true else b'
+
+===================
+
+ff = \eq: Nat -> Nat -> Bool
+	\m: Nat. \n: Nat.
+		if or (iszero m) (iszero n)
+			then if and (iszero m) (iszero n)
+				then true
+				else false
+			else eq (pred m) (pred n)
+
+equal = fix ff
+
+=========
+
+ff = \pl: Nat -> Nat -> Nat. \m: Nat. \n: Nat.
+	if (iszero m)
+		then n
+		else pl (pred m) (succ n)
+
+plus = fix ff
+
+================
+
+one = succ 0
+
+ff = \ti: Nat -> Nat -> Nat. \m: Nat. \n: Nat.
+	if or (iszero m) (iszero n)
+		then 0
+		else if equal one m
+			then n
+			else ti (pred m) (plus m n)
+
+times = fix ff
+
+=================
+
+ff = \fa: Nat -> Nat. \n: Nat.
+	if (iszero n)
+		then (succ 0)
+		else times n (fa (pred n))
+
+factorial = fix ff
+
+11.12.1
+progress
+induction on new forms
+case nil[T]:
+	is a vaule
+case t = cons[T] t1 t2, R |- t: S
+	by inversion rules, R |- t: List T, t1: T, t2: List T
+	by induction t1 -> t1' or t2 -> t2' or t1, t2 are values
+	then E-CONS1, E-CONS2 applies or t is a value
+case t = isnil[T1]t1, R |- t: S
+	by inversion rules, S = Bool, R |- t1: List T1
+	by induction t1 -> t1' or t1 = true or t1 = false
+	then one of E-ISNIL, E-ISNILNIL or E-ISNILCONS applies
+case t = head[T1] t1, R |- t: S
+	by inversion rules, S = T1, R |- t1: List T1
+	then t1 -> t1' or t1 = nil[T] or t1 = cons[T] v11 v12
+	E-HEAD or E-HEADCONS may apply, but progress rule fails here if t1 = nil[T]
+case t = tail[T1] t1, R |- t: S
+	similar to head
+
+preserve
+case E-CONS1
+	t = cons[T1] t1 t2, R |- t: List T1, R |- t1: T1, R |- t2: List T1
+	t1 -> t1', by induction R |- t1': T1
+	apply T-CONS then R |- t': List T1
+case E-CONS2
+	similar
+case E-ISNILNIL
+	t = isnil[S](nil[T]), R |- t: Bool
+	t' = true, R |- t': Bool
+case E-ISNILCONS
+	similar
+case E-ISNIL
+	t = isnil[T1] t1, R |- t: Bool, R |- t1: List T1
+	t1 -> t1', by induction R |- t1': List T1
+	t' = isnil[T1] t1', by T-ISNIL R |- t': Bool
+....
+
+11.12.2
+the type annotation of nil is necessary
+
+12.1.1
+substitution may increase the size of a term, e.g.
+
+f: \g: Nat -> Nat. \m: Nat. g (g m)
+g: Nat -> Nat, and size(g) very big
+size(f g) roughly size(g)
+\m: Nat. g (g m) roughly 2 * size(g)
+
+12.1.4
+since all well typed |- t: T can be evaluated to a value
+t ->* v, |- v: T
+if T = A, then by iff RA(v) -> RA(t)
+and RA(v) is trivial
+otherwise T = T1 -> T2
+v = \x: T1. t2, x: T1 |- t2: T2
+for all |- s: T1 and RT1(s), (v s) = [x -> s]t and RT2([x -> s]t) by 12.1.5
+then RT(v), by 12.1.4 RT(t)
+
+12.1.7
+case T-IF
+	t = if t1 then t2 else t3
+	forall i. xi: Ti |- t: T
+	forall i. xi: Ti |- t1: Bool
+	forall i. xi: Ti |- t2: T
+	forall i. xi: Ti |- t3: T
+	by induction, RBool([xi -> vi]t1), RT([xi -> vi]t2), RT([xi -> vi]t3)
+	since RBool([xi -> vi]t1), [xi -> vi]t1 ->* v1
+	by E-IFTRUE and E-IFFALSE
+	t ->* t1 or t ->* t2, RT(t'), by 12.1.3 RT(t)
+case T-PAIR
+	denote o = [x1 -> v1, x2 -> v2, ... ,xn -> vn]
+	denote A = x1: T1, x2: T2, ... ,xn: Tn
+	t = {t1, t2}
+	A |- t: T1 x T2
+	A |- t1: T1
+	A |- t2: T2
+	by induction, RT1(o t1), RT2(o t2)
+	so o t1 ->* v1, o t2 ->* v2 in finite steps
+	t ->* {v1, v2} in finite steps, t is normalizable
+	
+13.1.1
+a is a tuple of two different references, b is a tuple of two copys of the same reference
+
+13.1.2
+no. in call by value the body of a lambda abstraction won't be reduced
+
+13.1.3
+through aliasing, some part of the program may still have a reference to the memory cell with type Ref Nat, while it no longer holds a Nat
+
+13.3.1
+reference counting
+scope
+
+13.4.1
+(\l1: Ref (Nat -> Nat).
+	(\l2: Ref (Nat -> Nat).
+		l1 := \x: Nat. (!l2) x
+	) (ref \x: Nat. (!l1) x)
+) (ref \x: Nat. x)	 
+
+13.5.2
+permutations
+
+14.1.1
+while propagating to the top, the type of an error has to change according to the context
+
+15.2.1
+---------------- S-RCDPERM                             ---------------- S-RCDWIDTH
+{x :Nat, y: Nat, z: Nat } <: {y: Nat, x: Nat, z: Nat}   {y: Nat, x: Nat, z: Nat} <: {y: Nat}
+----------------------------------------------------------------- S-RCDTRANS
+{x: Nat, y: Nat, z: Nat} <: {y: Nat}
+
+15.2.2
+can go from S-ARROW
+
+15.2.3
+1. {a: Top}, {b: Top}, {b: Top, a: Top}, {} and Top
+2. 	Si | i is even = {a: Top, b: Top}
+   	Si | i is odd = {b: Top, a: Top}
+3. the same of 2.
+
+15.2.4
+not now.
+
+15.2.5
+no. type T1 do not have projection
+
+15.3.1
+now the inversion rule is not deterministic, a term may have multiple possible types
+
+15.3.2
+by induction on type derivations
+1.
+if the final step is S-REFL, immediately S = T1 -> T2, T1 <: T1 and T2 <: T2
+if the final step is S-ARROW, S = S1 -> S2 and T1 <: S1, S2 <: T
+if the final step is S-TRANS, S <: U that U <: T1 -> T2, by induction on the both:
+U1 <: T1, T2 <: U2
+S1 <: U1, U2 <: S2
+by S-TRANS, S1 <: T1, T2 <: S2
+2.
+if the final step is S-RCDWIDTH, S = { li: Ti i in l..n+k }, ki = li for i in 1..n, Ti <: T1
+if the final step is S-RCDDEPTH, S = { li: Si for i in l..n }, ki = li for i in l..n, Si <: T1
+if the final step is S-RCDPERM, S = { kj: Sj for j in l..n } is a permutation of { li: Ti i in 1..n }
+by definition of permutation, for every li: Ti there is a kj: Sj such that li = kj and Ti = Sj
+
+15.3.6
+by typing derivation
+1.
+if the final step is T-ABS, the proof is immediate
+if the final step is T-SUB, then |- v: S, S <: T1 -> T2, by 15.3.2 S = S1 -> S2, by induction v = \x:S1. t2
+2.
+if the final step is T-RCD, then ki = li for i in 1..n, {li for i in 1..n} = {ka for a in 1..n}
+if the final step is T-SUB, then |- v:S, S <: {li: Ti for i in 1..n}
+by 15.3.2 S = {kj: Sj for j in 1..m} and {li for i in 1..n} subs {kj for j = 1..m}
+by induction v has the form {wn = vz for z in 1..r} that {kj for j = 1..m} subs {wz for z in 1..r}
+by transtivity {li for i in 1..n} subs {wz for z in 1..r}
+
+15.5.1
+if type of parameters doesn't match, the evaluation will stuck
+
+15.5.2
+f1 = \r: Ref {a: Bool}. r := {a: true}; r
+f2 = \r: Ref {a: Bool}. r := {}; r
+g1 = \r: Ref {a: Bool, b: Bool}. (!r).b
+g2 = \r: Ref {a: Bool}. (!r).a
+
+1. g2 (f2 (ref true))
+2. g1 (f1 (ref true))
+
+16.1.2
+by induction on subtyping derivations
+1.
+if S is a record type, S <: S by S-RCD
+if S is Top, Top <: Top by S-TOP
+if S is an arrow type, S = T1 -> T2
+by induction T1 <: T1 and T2 <: T2
+by S-ARROW S <: S
+2.
+if S is a record type and the final step in subtyping deriving is S-TRANS
+then there exists some record type U that S <: U and U <: T
+by induction the final step in S <: U and U <: T are not S-TRANS
+so the final step in S <: U and U <: T are either S-TOP or S-RCD
+if S-TOP:
+	U = T = Top
+	S <: T by S-TOP
+if S-RCD:
+	the prerequisite of S-RCD by itself is transitive
+	so S <: T by S-RCD
+
+if S is an arrow type and the final step in subtyping deriving is S-TRANS
+then there exists some arrow type U that S <: U and U <: T
+by induction the final step in S <: U and U <: T are S-TOP or S-ARROW
+if S-TOP:
+	similar
+if S-ARROW:
+	S1 -> S2 <: U1 -> U2 <: T1 -> T2
+	S1 <: U1 <: T1, T2 <: U2 <: S2
+	so S1 <: T1, T2 <: S2 can be derived from T-TRANS
+	by induction S1 <: T1 and T2 <: S2 can be derived without T-TRANS
+	so S <: T
+
+16.1.3
+needs a new subtype rule
+Bool <: Bool S-BOOL
+
+16.2.3
+f = \x: Top. x
+R |- f {}: Top
+f {} ->* {}
+R |- {}: {}
+
+16.2.5
+by induction on type derivations
+if the final step is T-VAR, trivial with S = T
+if the final step is T-ABS:
+	R |- t: T1 -> T2
+	t = \x: T1, t2 and R |- x: T1, R, x: T1 |- t2: T2
+	by TA-ABS R |-> t: T1 -> T2, S = T
+if the final step is T-APP:
+	R |- t: T = T
+	t = (t1 t2), R |- t1: T11 -> T, R |- t2: T11
+and most rules are stronger in R |-> except T-SUB
+if the final step is T-SUB:
+	R |- t: T for some S <: T
+	R |- t: S before T-SUB
+	by induction R |-> t: S
+	since R |-> doesn't have T-SUB, S with S <: T will be the final type of t
+
+16.2.6
+the meaning of minimal typing depends on rules so yes
+
+16.3.2
+1. if S is a record type and T is a arrow type, then J = Top is the only common super type i.e. the join.
+if both S and T are arrow types
+	S = S1 -> S2, T = T1 -> T2
+	if (S1, T1) is not bounded, there's no type J1 such that J1 <: S1 and J1 <: T1
+	while for any type J to be subtype of S or T, J = J1 -> J2, J1 <: S1 or J1 <: T1
+	so S and T have no common supertype except Top, S V T = Top
+	if (S1, T1) is bounded:
+		define J1 = S1 ^ T1
+		define J2 = S2 V T2
+		for any J' that J' <: S and J' <: T, J'1 <: S1, J'1 <: T1, S2 <: J'2, T2 <: J'2
+		by definition of join and meet, J'1 <: J1 and J2 <: J'2
+		so J <: J' = J1 -> J2, J = S V T
+if both S and T are record types:
+	S = {li: Si, i = 1..n}, T = {pi: Ti, i = 1..m}
+	define J = {ki: Ji, i = 1..r | for all ki in both {li} and {pi}, r = size({li} ^ {pi}, Ji = Si V Ti)
+	for any J' that S <: J' and T <: J'
+	J' may only contain labels from {li} ^ {pi}, and for any j'i: J'i, Si <: J'i and T <: J'i
+	so J <: J' and J = S V T
+
+2. if S is a record and T is a arrow type, they have no bound
+if both S and T are arrow types:
+	similar argument to join
+if both S and T are records:
+	if there exists some si in S and tj in T that si: Si, tj: Tj, (Si, Tj) not bounded
+	every subtype of both S and T must have jk: Jk that jk = si = tj, Jk <: Si and Jk <: Tj
+	thus S and T have no common subtype, (S, T) not bounded
+	otherwise similar argument to the join
+
+16.3.3
+Top
+usually not, it should be a type error
+
+16.3.4
+every ref type doesn't have subtype and has a single supertype which is Top
+so if either S or T is a ref type, then
+	S ^ T doesn't exist
+	S V T = Top
+
+with Source and Sink:
+	by the definition of covariance and contravariance
+	(Source A) V (Source B) = Source (A V B)
+	(Source A) V (Source B) = Source (A ^ B)
+	Sink the other way
+
+16.4.1
+R |- t1: Bot, t2: T, t2: T
+-------------------------
+R |- if t1 then t2 else t3: Bot
+
+17.3.1
+join :: Type -> Type -> Type
+join tyS tyT | tyS == tyT = tyS
+join (TyRecord fS) (TyRecord fT) = TyRecord $ Map.intersectionWith join fS fT
+join (TyArr s1 s2) (TyArr t1 t2) = case meet s1 t1 of
+    Just j1 -> TyArr j1 (join s2 t2)
+    Nothing -> TyTop
+join _ _ = TyTop
+
+meet :: Type -> Type -> Maybe Type
+meet tyS tyT | tyS == tyT = Just tyS
+meet (TyRecord fS) (TyRecord fT) = do
+    fJ <- sequence (Map.unionWith meet' fS' fT')
+    return $ TyRecord fJ
+    where
+        fS' = fmap Just fS
+        fT' = fmap Just fT
+        meet' (Just s) (Just t) = meet s t
+        meet' _ _               = Nothing
+meet (TyArr s1 s2) (TyArr t1 t2) = do
+    j2 <- meet s2 t2
+    return $ TyArr (join s1 t1) j2
+meet _ _ = Nothing
+
+typeof ctx (TmIf t1 t2 t3) = do
+    ty1 <- typeof ctx t1
+    case ty1 of
+        TyBool -> do
+            ty2 <- typeof ctx t2
+            ty3 <- typeof ctx t3
+            return $ join ty2 ty3
+        _ -> typeError "Expected boolean"
+
+17.3.2
+subtype _ TyTop = True
+
+typeof ctx (TmProj t1 l) = do
+    rcd <- typeof ctx t1
+    case rcd of
+        TyRecord fields -> case Map.lookup l fields of
+            Nothing -> typeError (printf "label %s not found" l)
+            Just t2 -> return t2
+        TyBot -> return TyBot
+        _ -> typeError "Expected record type"
+
+typeof ctx (TmApp t1 t2) = do
+    tyT1 <- typeof ctx t1
+    tyT2 <- typeof ctx t2
+    case tyT1 of
+        TyArr tyT11 tyT12 -> if subtype tyT2 tyT11
+            then return tyT12
+            else typeError "parameter type mismatch"
+        TyBot -> return TyBot
+        _ -> typeError "arrow type expected in application"
+
+typeof ctx (TmIf t1 t2 t3) = do
+    ty1 <- typeof ctx t1
+    case ty1 of
+        TyBool -> do
+            ty2 <- typeof ctx t2
+            ty3 <- typeof ctx t3
+            return $ join ty2 ty3
+        TyBot -> return TyBot
+        _ -> typeError "Expected boolean"
+
+18.6.1
+subtractCounterClass = \r: CounterRep.
+	let super = resetCounterClass in
+		{ get = super.get
+		, inc = super.inc
+		, reset = super.reset
+		, dec = \_: Unit. r.x := pred(!(r.x)) }
+
+18.6.2
+t1 with t2
+
+t1 -> t1'
+----------
+t1 with t2 -> t1' with t2
+
+t2 -> t2'
+-----------
+v1 with t2 -> v1 with t2'
+
+(\r: R. t11) with v2 -> \r: R. merge t11 v2
+
+R |- t1: Rep -> {li: Ti}, R |- t2: {kj: Sj}
+------------------------------------
+R |- t1 with t2: Rep -> {li: Ti} V {kj: Sj}
+
+18.11.1
+\r:InstrCounterRep.
+	\self: Unit -> InstrCounter.
+		\_:Unit.
+			let super = setCounterClass r self unit in
+				{get = \_: Unit. (r.a := succ(!(r.a)); super.get unit)
+				set = \i:Nat. (r.a:=succ(!(r.a)); super.set i),
+				inc = super.inc,
+				accesses = \_:Unit. !(r.a)
+				reset = \_: Unit. (r.a := 0)};
+
+18.13.1
+At the very base class (Object in Java for example)
+insert a method that will return the address of the underlying Rep reference
+compare equality by calling this method of both objects and compare the addresses
+
+19.4.1
+since the "extends" clause in class declaration is mandatory
+a class must extend from Object if not from some other class that has Object as its supertype.
+
+19.4.2
+eliminate "super" in constructor and down casting
+
+19.4.3
+add an assignment clause that will in fact return a new instance
+
+t0.f := t1
+
+evaluation:
+t0 -> t0'
+---------
+t0.f := t1 -> t0'.f := t1
+
+t1 -> t1'
+---------
+v0.f := t1 -> v0.f := t1'
+
+fields(C) = _C _f
+------------------
+(new C(_v)).f := v1 -> new C(_v0, v1, _v1)
+
+type:
+R |- t0: C, fields(C) = _C _f, R |- t1: C1, (C1 f) in _C _f
+-----------------------------
+R |- (t0.f := t1): C
+
+19.4.4
+analog to the raise and try in Chapter 14
+
+only difference is the interaction with subtyping:
+
+R |- t1: C1, R |- t2: C2
+--------------------------------------
+R |- try t1 with t2: C1 V C2
+
+19.4.5
+downcast still have to mension the subtyping rules explicitly
+T-INK, T-NEW, T-UCAST can be formulated without the explicit prerequisite to subtyping sa the presence of T-SUB
+
+19.4.6
+1. the term of interface declaration is:
+
+interface I { _AM }
+where MD stands for abstract method declaration
+AM = C m (_C _x)
+
+since the only difference between an interface and a class without fields is an interface doesn't have method implementation
+which is indistinguishable at type level, so some type rules like C OK just works
+
+but interface cannot be instantiated, i.e. terms like "new I(...)" stuck.
+
+2. when the type set is not automatically populated with intersection types 
+3. ?
+
+19.5.1
+induction on evaluation rules:
+case E-PROJNEW:
+	t = (new C(_v)).f
+	T = C1 
+	new C(_v): C, fields(C) = _C _f, R |- _v: _C by T-NEW
+	then t' = v', R |- v': C1
+case E-INVKNEW:
+	t = (new C(_v)).m(_u)
+	t' = [_x -> _u, this -> new C(_v)]t0
+	T = C
+	R |- (new C(_v)): C0, mtype(m, C0) = _D -> C, R |- _u: _C, _C <: _D by T-INVK
+	R, _x: _C, this: C |- t0: E0 for some E0 <: C0 by M OK in C
+	then R |- t': B that B <: C by substitution lemma
+	** FJ doesn't have a substitution type rule yet, but it's easy to derive:
+		R |- x: C1, R |- t1: C2, C2 <: C1, R, x: C1 |- t0: C0								
+        ---------------------------------------
+		R |- [x -> t1]t0: S for some S <: C0
+		for variable:
+			[x -> v}x = v, S = C2, C0 = C1
+			[x -> v]y = y, S = C0 = C1 = C2
+		for other terms induction on subterms:
+		for field:
+			[x -> v](t0.f) = ([x -> v]t0).f, R |- t0: C, R |- t0.f: S
+			R |- ([x -> v]t0): C' that C' <: C
+			** lemma: if C <: D, fields(C) is a superset of fields(D)
+			thus R |- ([x -> v]t0).f: S by T-Field
+		for invoke:
+			t' = [x -> v](t0.m(_t) = [x -> v]t0.m(_[x -> v]t)
+			R |- _t: _D, R |- t0.m(_t): C, R |- t0: D0, mtype(m, D0) = _D -> C
+			R |- [x -> v]t0: C0 <: D0, R |- _[x -> v]t: _C <: _D by induction
+			** lemma: if mtype(m, D) = _D -> S, then mtype(m, C) = _D -> S for C <: D
+			then R |- t': C by T-INVK
+		for new:
+			t = new C(_t), R |- _t: _D, R |- t: C
+			t' = [x -> v](new C(_t)) = new C(_[x -> v]t)
+			R |- _[x -> v]t: _C that _C <: _D
+			then R |- t': C by T-NEW
+		for cast:
+			t' = [x -> v](C)t0 = (C)[x -> v]t0, R |- t0: E
+			R |- [x -> v]t0: D that D <: E
+			result type will always be C, one of T-DCAST, T-UCAST, T-SCAST will match
+	case E-CASTNEW:
+		t = (D)(new C(_v))
+		t' = new C(_v)
+		T = D, R |- new C(_v): B by any cast rules
+		R |- t': C by T-NEW, C <: D in prerequisite
+	case E-FIELD ~ case E-CAST: induction
+		
+20.1.1
+Tree = uX. <leaf: Unit, node: {Nat, X, X}>
+
+isleaf = \t: Tree.
+	case t of <leaf=u> -> true
+	case t of <node=n> -> false
+
+left = \t: Tree.
+	case t of <leaf=u> -> 1
+	case t of <node=n> -> n.1
+
+right = \t: Tree.
+	case t of <leaf=u> -> 1
+	case t of <node=n> -> n.2
+
+label = \t: Tree.
+	case t of <leaf=u> -> 1
+	case t of <node=n> -> n.0
+
+dfs = \f: Tree -> NatList. \t: Tree.
+	if isleaf t
+		then nil
+		else (cons (label t) (++ (f (left t)) (f (right t)))
+
+20.1.2
+fib = fix (\f: Nat -> Stream. \ab: {Nat, Nat}. \_: Unit.
+	{a, f {ab.2, plus ab.1 ab.2}) {1, 1}
+
+20.1.4
+D = \uX. <bool: Bool, nat fn: X -> X>
+
+cond = \b:D. \t:D. \f: D.
+	case b of
+		<bool=true> -> t
+		<bool=false> -> f
+		_ -> diverge
+
+both then and else clause is strict so it will diverge surprisingly
+
+20.1.5
+emptyrcd = \n: Nat. diverge
+addfield = \n: Nat. \d: D. \r: Nat -> D
+	\n': Nat.
+		if equal n n'
+			then d
+			else r n'
+
+proj = \n: Nat. \r: Nat -> D.
+	r n
+
+addfieldD = \n: Nat. \d: D. \r: D
+	case r of 
+		<rcd=r'> -> <rcd=addfield n d r'>
+		_ -> diverge
+
+projD = \n: Nat. \r: D
+	case r of 
+		<rcd=r'> -> proj n r'
+		_ -> diverge
+
+20.2.1
+R = uX. X -> T
+TR = R -> T
+
+fixT = \f: T -> T. 
+	(\x: uX. X -> T.  f ((unfold [uX. X -> T] x) x))
+	fold [uX. X -> T] (\x: uX. X -> T.  f ((unfold [uX. X -> T] x) x))
+
+20.2.2
+progress
+case fold [T] t:
+	if t = v, fold [T] t is a value
+	otherwise t -> t' by induction, and fold [T] t -> fold [T] t' by E-FLD
+case unfold [U] t1:
+	if exist t1 -> t1', then unfold [U] t1 -> unfold [U] t1' by E-UNFLD
+	otherwise t1 = v1
+	R |- t: [X -> U]T1, U = uX. T1, R |- t1: U by T-UNFLD
+	since fold [U] v11 is the only form to have type uX. T1
+	t = unfold [U] (fold [U] v11), and t -> v11
+
+preservation:
+case E-FLD:
+	t = fold [T] t1
+	t' = fold [T] t1'
+	R |- t: U, U = uX. T1, R |- t1: [X -> U]T1 by T-FLD
+	by induction R |- t1': [X -> U]T1
+	R |- t': U by T-FLD
+case E-UNFLD:
+	similar
+case E-UNFLDFLD:
+	t = unfold [S] (fold [T] v1)
+	t' = v1
+	R |- t: [X -> S]T1, S = uX. T1, R |- fold [T] v1: S by T-UNFLD
+	T = S = uX. T1, R |- v1: [X -> U]T1 by T-FLD	
+
+21.1.7
+E(empty) = {a}
+E({a}) = {a}
+E({b}) = {a]
+E({c}) = {a, b}
+E({a, b}) = {a, c}
+E({a, c}) = {a, b}
+E({b, c}) = {a, b}
+E({a, b, c}) = {a, b, c}
+
+closed: {a}, {a, b, c}
+consistent: empty, {a}, {a, b, c}
+uE2 = {a}
+vE2 = {a, b, c}
+
+21.1.9
+1.for a predicate P, let Ps denote the set of elements in N that satisfies P, then F is the generator function defined by the rules:
+a
+--------
+succ(a)
+
+----
+0
+
+then the only F-closed subset of N is N itself
+i.e. uF = N (proof: if uF < N, then there is some x in N that x is not in uF, but 0 is in F(uF) and x is in F^x(uF). 
+by definition of uF F(uF) <= uF, by monotony F^(n+1)(uF) <= F^n(uF) <= uF, contradiction)
+so if Ps is F-closed (Ps implies F(Ps), F(Ps) <= Ps) then N = Ps, P is true for all natural numbers
+
+2. the generator function in lexicographic set is defined by rules:
+F(X) = { (m, n) | for all (m', n') < (m, n), (m', n') in X }
+then again the least fixed point uF is N X N itself. 
+proof: assume uF is not N X N, then there is (m,n) not in uF. 
+let (m, n) be the smallest element not in uF (i.e. for all (m', n') < (m, n), (m', n') in uF)
+then (m, n) will be in F(uF), uF is not closed, contradiction.
+
+21.2.2
+U is all functions {1, 2}* -> {->, X, Top} such that
+	T(*) is defined
+	if T(q, p) is defined then T(q) is defined
+F(S) =
+	  Top
+	U { s1 X s2, s1 and s2 in S }
+	U { s1 -> s2, s1 and s2 in S }
+
+_T is all functions (1, 2)* -> {->, X, Top} in U with addtional properties:
+	if T(q) = Top then T(q, 1) and T(q, 2) are undefined
+	if T(q) = -> or X then T(q, 1) and T(q, 2) are defined
+_Tf are all functions T in _T that dom(T) is finite.
+
+for T in _T
+	T(*) is defined, if T(*) = - >
+		then two new functions  L(q) = T(1, q) and R(q) = T(2, q) is in _T
+		and (L -> R)(q) = T(q)
+	 	then T is in F(_T)
+	if T(*) = X: similar
+	if T(*) = Top: Top in F(X) for all X
+thus _T is F-consistent, _T <= vF
+for any T from a set X that is F-consistent:
+T is in F(X) means T is either Top, T1 X T2 or T1 -> T2
+by induction on size of T, T is in _T
+so _T is the union of all F-consistent sets, _T = vF
+
+21.3.3
+(Top, Top X Top)
+vS is a fixed point of S so vS = S(vS)
+(Top, Top X Top) is not in any S(X) so it's not in vS
+
+
+21.3.4
+1. (T, T) for any infinite type T
+let R = { (T, T) | T in _T }
+S(R)	= { (T, Top) | T in _T } // (Top, Top) here
+	U { (T1 X T2, T1 X T2) | (T1, T1), (T2, T2) in R } // all product types
+	U { (T1 -> T2, T1 -> T2) | (T1, T1), (T2, T2) in R } // all arrow types
+easily R <= S(R), R is S-consistent, R <= vS
+
+let R be the set of valid subtype relations of all finite types
+easily S(R) <= R cause S1 X S2 for finite type S1 and S2 is still finite
+thus uS <= R, uS only contains finite relations, (T, T) not in uS
+
+2. for any relation (S, T) in vSf, 
+the (S, T) is from some Sf-consistent set X, X <= Sf(X), (S, T) in X and Sf(X)
+(S, T) is one of
+	(S, Top) // in uSf naturally since uSf = Sf(uSf)
+	(S1 X S2, T1 X T2) for (S1, T1) and (S2, T2) in X // by induction (S, T) in uSf
+	(S1 -> S2, T1 -> T2) for (T1, S1) and (S2, T2) in X // similar
+so (S, T) in uSf, vSf = uSf
+
+21.3.8
+already proved in 21.3.4
+
+21.4.2
+FTR(U x U) = F(U x U) U TR(U x U)
+
+for any (T1, T2) in U x U
+if there is any another T3 then (T1, T3) (T3, T2) in U x U -> (T1, T2) in TR(Ux U)
+if there is not such T3 then
+case U = {T1, T2}
+	UxU = {(T1, T1), (T2, T2), (T1, T2), (T2, T1)}
+	(T1, T2) (T2, T1) -> (T1, T1) in TR(UxU)
+	similar for other three
+case U = {T1}
+	UxU = {(T1, T1)}
+	(T1, T1) (T1, T1) -> (T1, T1) in TR(UxU)
+so UxU <= TR(UxU), UxU is FTR-consistent, UxU <= vFTR
+
+21.5.2
+for any (T1, T2) in UxU
+case T2 = Top
+	(T1, T2) in S(empty), empty is a subset of all
+case T2= T21xT22
+	then T1 = T11xT12 or G is empty
+	if T1 = T11xT12
+	X must contain (T11, T21) (T12, T22) for (T1, T2) in S(X)
+	then X = {(T11, T21), (T12, T22)} is the minimal generator set
+case T2 = T21 -> T22
+	similar
+
+21.5.4
+i	a	b	c	e	d	b	g	f	
+--------------------------------------------------------------------------
+h	h	a d	a	b	e	d	c f	c	g
+
+21.5.13
+if  support(X) is not defined, thus X not subset of uF by 21.5.8
+if X is empty, then of course X <= uF
+if X != empty, by induction
+	if lfp(X) is true, then support(X) <= uF. for any x in X, X in F(support(X)) by definition and F(support(X)) <= F(uF) = uF by monotony
+	if lfp(X) is false, support(X) is not a subset of uF, by 21.5.8 X is not a subset of uF.
+
+21.8.5
+replace the last with U {(uX.S, T) | ([X -> uX.S]S, T) in R}
+then for a pair (uX. S, uX. T), there are two generator sets
+(([X -> uX. S]S, T)} and {(S, [X -> uX. T]T}, neither is a subset of the other
+thus Sm is not invertible
+
+for any X that X <= Sd(X), for any x in X
+(only the last rule differs so) assume x = (uX. S, T) for some ([X -> uX.S]S, T) in X
+if T != Top and T != uY.T1
+	directly x in Sm(X)
+if T = Top
+	directly x in Sm(X) or in fact Sm(Y) for any Y
+if T = uY. T1
+	([X -> uX. S]S, uY.T1) in X (and vSd)
+	by induction ([X -> uX. S]S, uY. T1) in Sm(vSd), it can be derived from vSd by Sm
+	([X -> uX. S]S, [Y -> uY. T1]T1) in vSd
+	(uX. S, [Y -> uY. T1]T1) in Sd(vSd) or simply vSd
+	apply Sm then (uX. S, T) in Sm(vSd)
+thus vSd <= Sm(vSd) and vSd is Sm-consistent, vSd <= vSm
+the other direction is trivial since Sd is stronger than Sm
+
+21.9.2
+    (S, T1)			(S, T2)			(S, [X -> uX.T]T)
+---------------------------------------------------------------------
+(T, T)	(S, T1XT2) (S, T1 -> T2)	(S, T1xT2) (S, T1 -> T2)	(S, uX.T)
+
+21.11.1
+for any (uX. S, T) that ([X -. uX. S]S, T), T != Top and T != uY. T1
+the last rule in generator Sm
+
+22.2.3
+([X -> (T -> T -> T), Y -> (T -> T), Z -> T], T) for any concrete type T
+
+22.3.3
+S is fresh
+X = {S1, S2, S}, the size of X must match the number of applications
+C = {X = Z -> S1, Y = Z -> S2, S1 = S2 -> S}
+
+22.3.9
+only CT-APP changes notably (others just sequencing F from some term to another)
+as F-generated variable names are guaranteed to be different than previously generated variables (in X1, X2) and all explicit type annotations (T1 and T2) 
+therefore anything possible in either sides of the constraints (C1 and C2), the constraints on the newly picked X is unnecessary.
+
+22.3.10
+recon :: Context -> [String] -> Term -> Either String (Type, [String], Constraint)
+recon ctx nextvars (TmVar x) = do
+    ty <- queryContext x ctx
+    return (ty, nextvars, Map.empty)
+recon ctx nextvars (TmAbs x ty1 t2) = do
+    (ty2, nextvars', c) <- recon (popContext (x, ty1) ctx) nextvars t2
+    return (TyArr ty1 ty2, nextvars', c)
+recon ctx nextvars (TmApp t1 t2) = do
+    (ty1, nextvars', c1) <- recon ctx nextvars t1
+    (ty2, nextvars'', c2) <- recon ctx nextvars' t2
+    let
+        (x : nextvars''') = nextvars''
+        ty = TyId x
+        c = c1 `Map.union` c2 `Map.union` Map.singleton ty1 (TyArr ty2 ty)
+    return (ty, nextvars''', c)
+recon _ nextvars TmZero = return (TyNat, nextvars, Map.empty)
+recon _ nextvars TmTrue = return (TyBool, nextvars, Map.empty)
+recon _ nextvars TmFalse = return (TyBool, nextvars, Map.empty)
+recon ctx nextvars (TmSucc t1) = do
+    (ty1, nextvars', c) <- recon ctx nextvars t1
+    return (TyNat, nextvars', Map.insert ty1 TyNat c)
+recon ctx nextvars (TmPred t1) = do
+    (ty1, nextvars', c) <- recon ctx nextvars t1
+    return (TyNat, nextvars', Map.insert ty1 TyNat c)
+recon ctx nextvars (TmIsZero t1) = do
+    (ty1, nextvars', c) <- recon ctx nextvars t1
+    return (TyBool, nextvars', Map.insert ty1 TyNat c)
+recon ctx nextvars (TmIf t1 t2 t3) = do
+    (ty1, v1, c1) <- recon ctx nextvars t1
+    (ty2, v2, c2) <- recon ctx v1 t2
+    (ty3, v3, c3) <- recon ctx v2 t3
+    let c = Map.unions [c1, c2, c3, Map.fromList [(ty2, ty3), (ty1, TyBool)]]
+    return (ty2, v3, c)
+
+22.3.11
+t := 	...
+	fix t
+
+R |- t1: T1 |x1 C1
+pick fresh X not in x1, T1 and C1
+x = x1 U {X}
+C = C1 U {T1 = X -> X}
+--------------------------------
+R |- fix t1: X|x C
+
+22.4.3
+[X |-> Nat, Y |-> Nat -> Nat}
+{X |-> Nat, Y |-> Nat}
+{X |-> U -> W, Y |-> U -> W}
+none
+none
+{}
+
+proof for 1.
+p = [X |-> Nat, Y |-> Nat -> Nat}
+for any o that o(X) = Nat, o(Y) = o(X) -> o(X)
+then o(X) = Nat, o(Y) = Nat -> Nat
+let y(T) =	o(T) for T not in dom(p)
+		p(T) for T in dom(p)
+then yp = o
+
+22.4.6
+
+fv :: String -> Type -> Bool
+fv s t = case t of
+    TyId x      -> s == x
+    TyArr t1 t2 -> fv s t1 && fv s t2
+    _           -> False
+
+subT :: String -> Type -> Type -> Type
+subT x s t = case t of
+    TyId x'     | x == x' -> s
+    TyArr t1 t2 -> TyArr (subT x s t1) (subT x s t2)
+    _           -> t
+
+subC :: String -> Type -> Constraints -> Constraints
+subC x s = fmap (subT x s *** subT x s)
+
+type Substitution = [(String, Type)]
+
+unify :: Constraints -> Maybe Substitution
+unify [] = return []
+unify (c:cs) = case c of
+    (s, t) | s == t -> unify cs
+    (TyId x, t) | not (fv x t) -> do
+        subst <- unify (subC x t cs)
+        return $ (x, t) : subst
+    (s, TyId x) | not (fv x s) -> do
+        subst <- unify (subC x s cs)
+        return $ (x, s) : subst
+    (TyArr s1 t1, TyArr s2 t2) -> unify ((s1, t1) : (s2, t2) : cs)
+    _ -> Nothing
+
+22.5.2
+C = { X = Z -> S1, Y = Z -> S2, S1 = S2 -> S }
+from unify
+[S1 |-> S2 -> S, Y |-> Z -> S2, X |-> Z -> S1]
+
+22.5.5
+liftMaybe :: b -> Maybe a -> Either b a
+liftMaybe b Nothing  = Left b
+liftMaybe _ (Just a) = Right a
+
+typeof :: Context -> Term -> Either String (Substitution, Type)
+typeof ctx t = do
+    (ty, _, c) <- recon ctx genvars t
+    subst <- liftMaybe "Solution doesn't exist for constraints" $ unify c
+    return (subst, subS subst ty)
+
+22.7.1
+elemContext :: Context -> String -> Bool
+elemContext = undefined
+
+collectVars :: Type -> [String]
+collectVars (TyId x)        = [x]
+collectVars (TyArr ty1 ty2) = collectVars ty1 ++ collectVars ty2
+collectVars _               = []
+
+generalize :: Context -> Type -> Binding
+generalize ctx ty = SchemeBind (filter (not . elemContext ctx) (collectVars ty)) ty
+
+recon :: Context -> [String] -> Term -> Either String (Type, [String], Constraints)
+recon ctx nextvars (TmLet x t1 t2) = do
+    (ty1, nextvars', c1) <- recon ctx nextvars t1
+    subst <- liftMaybe "" $ unify c1
+    let
+        ctx' = substContext subst ctx
+        pty1 = subS subst ty1
+    recon (popContext (x, generalize ctx' pty1) ctx') nextvars' t2
+recon ctx nextvars (TmVar x) = do
+    binding <- queryContext x ctx
+    case binding of
+        VarBind ty -> return (ty, nextvars, [])
+        SchemeBind xs ty -> do
+            let
+                subst = zipWith (curry (second TyId)) xs nextvars
+                nextvars' = drop (length xs) nextvars
+            return (subS subst ty, nextvars', [])
+
+23.4.1
+R, X |- double[X]: [X |-> X]((X -> X) -> X -> X) = (X -> X) -> X -> X
+R, X |- double[X -> X]: [X |-> X -> X](X -> X) -> X -> X
+	= ((X -> X) -> X -> X) -> (X -> X) -> X -> X
+so R, X |- double[X -> X] (double[X]): (X -> X) -> X -> X and
+R |- \x. double[X -> X] (double{X]): VX. (X -> X) -> X -> X
+
+23.4.3
+foldl = \X. \Y.
+	\f: Y -> X -> Y.
+	fix (\m: (Y -> List X -> Y).
+		\y: Y. \xs: List X.
+			if isnil[X] xs
+				then y
+				else m (f y (head xs)) (tail xs)
+
+reverse = \X.
+	\xs: List X.
+		foldl[X][X] (\x: X. \xs': List X. cons[X] x xs') nil xs				
+
+23.4.4
+filter = \X.
+	\f: (X -> Bool). \xs: List X
+		foldr[X][X] (\x: X. \xs': List X.
+			if f x then xs' else cons[X] x xs)
+			nil[X] xs
+
+concat = \X.
+	\xs: List X. \xs': List X.
+		foldr[X][X] cons[X] xs' xs
+
+sort = \X.
+	\p: X -> X -> Bool.
+	fix (\m: List X -> List X.
+	\xs: List X.
+		if isnil xs
+			then nil[X]
+		else concat[X]
+			(m (filter[X] (p (head xs)) (tail xs))
+			(cons[X] 
+				(head xs) 
+				(m (filter[X] (\x: X. not (p (head x) x)) (tail x))))
+		
+23.4.5
+and = \b: CBool. \g: CBool.
+	b[CBool] tru (g[CBool] tru fls)
+
+23.4.6
+iszero = \c: CNat.
+	c[CBool] (\_: CBool. fls) tru
+
+23.4.8
+pairNat = \n: CNat. \m: CNat.
+	\X.
+	\f: CNat -> CNat -> X. f n m
+
+fstNat = \p: PairNat. p[CNat] tru[CNat]
+sndNat = \p: PairNat. p[CNat] fls[CNat]
+	
+23.4.9
+f = \p: PairNat.
+	pairNat (sndNat p) (succ (sndNat p))
+
+pred = \n: CNat.
+	fstNat (n[PairNat] f (pairNat c0 c0))
+
+23.4.11
+head = \X.
+	\d: X. \l: List X. l[X] (\hd:X. \_: X. hd) d
+
+23.4.12
+insert :: (x -> x -> Bool) -> [x] -> x -> [x]
+insert le xs x = snd $ foldr f ([], [x]) xs
+    where
+        f hd (l, l')
+            | le x hd = (hd : l, x : hd : l)
+            | otherwise = (hd : l, hd : l')
+
+sort :: (x -> x -> Bool) -> [x] -> [x]
+sort le = foldr (flip (insert le)) []
+
+23.5.1
+first, inversion lemma:
+if t = \X. t1 is typed, the last rules must be T-TABS
+then R |- t: VX. T1 where R, X |- t1: T1
+if t = t1[T] is typed, the last rule must be T-TAPP
+then R |- t: [X -> T]T1 for R |- t1: VX. T1
+
+case E-TAPP:
+	t = t1[T2], R |- t: [X -> T2]T1, R |- t1: VX. T1
+	by induction R |- t1': VX. T1
+	then R |- t1'[T2]: [X -> T2]T1 by T-TAPP
+case E-TAPPTABS:
+	t = (\X. t12)[T2]
+	t' = [X -> T2]t12
+	R, X |- t12: T12, R |- \X. t12: VX. T12, R |- t: [X -> T2]T12
+	R |- t': [X -> T2]T12
+
+substitution rule:
+R |- t: T
+--------
+R |- [X -> T1]t: [X -> T1]T
+
+only case a type variable will have any effect on terms is type application:
+t = t11[X], where R |- t: [Y -> X]T11, R |- t11: VY. T11
+then [X -> T1]t = t11[T1], R |- [X -> T1]t: [Y -> T1]T11
+and [X -> T1]T = [X -> T1][Y -> X]T11 = [Y -> T1]T11 by induction
+
+23.5.2
+straight forward induction 
+variable is not closed
+
+23.6.3
+1. for TABS
+	t = \X. t1
+	erase(\X. t1) = m
+	erase(t1) = m, by induction
+for TAPP
+	t = t1[T]
+	erase(t1[T]) = m
+	erase(t1) = m, by induction
+
+2. ...
+
+24.2.1
+stackADT = \X.
+    {*List X,
+        {new = nil[X],
+         push = cons[X],
+         top = head[X],
+         pop = tail[X]}}
+    as {E(Stack),
+        {new: Stack,
+         push: X -> Stack -> Stack, 
+         top: Stack -> X,
+         pop: Stack -> Stack}}
+
+24.2.2
+mut =
+    {*Ref Nat.
+        {new = \_: Unit. ref 0,
+         get = \r: Ref Nat. !r,
+         inc = \r: Ref Nat. r := succ(!r)}}
+    as {E(Mut),
+        {new: Unit -> Mut,
+         get: Mut -> Nat,
+         inc: Mut -> Unit}}
+
+24.2.5
+the existential types of two NatSet won't match
+
+25.4.1
+v12 and t2 is at the same level of the whole terms and tyT11
+but in tmmap it assumes t2 is two level deeper in abstraction, i.e. transforming unpack into
+
+let {tyX, x} = v12 in \x. \X. t2
+
+to avoid manipulating the context
+
+26.2.1
+X <: B in R     Y <: X in R
+------------------------------ S-TVAR
+R |- X <: B     R |- Y <: X             X <: B in R
+------------------------------ S-TRANS  ----------- S-TVAR
+R |- Y <: B                             R |- X <: B
+--------------------------------------------------- S-ARROW
+R |- B -> X <: Y -> B
+
+26.2.2
+VX <: {a: Nat}. Nat
+VX <: {}. Nat
+
+26.3.1
+definition of Pair T1 T2 with co/contravariation noted:
+
+Pair T1 T2 = V-X. (+T1 -> +T2 -> -X) -> +X
+
+so T1 and T2 are at covariant position
+
+Pair S1 S2 <: Pair T1 T2
+VX. (S1 -> S2 -> X) -> X <: VX. (T1 -> T2 -> X) -> X
+requires
+X <: X (S-REFL)
+(S1 -> S2 -> X) -> X <: (T1 -> T2 -> X) -> X
+requires
+X <: X (S-REFL)
+T1 -> T2 -> X <: S1 -> S2 -> X
+requires
+S1 <: T1 (in assumption)
+T2 -> X <: S2 -> X
+requires
+S2 <: T2 (in assumption)
+X <: X (T-REFL)
+
+26.3.4
+exactly identical except the type annotation on n and m
+
+26.3.5
+SBool = VX. VT <: X. VF <: X. T -> F -> X
+STrue = VX. VT <: X. VF <: X. T -> F -> T 
+SFalse = VX. VT <: X. VF <: X. T -> F -> F 
+
+notft = \f: SFalse.
+    VX. VT <: X. VF <: X.
+        \t: T. \f: F. t
+
+nottf = \t: STrue.
+    VX. VT <: X. VF <: X. 
+        \t: T. \f: F. f
+
+26.4.3
+In the proof of T-ABS and T-TABS
+
+induction only gives
+R, x: T1, y: U |- t2: T2
+have to get
+R. y: U, x: T1 |- t2: T2
+
+26.4.5
+1. S-REFL and S-TOP is trivial
+S-TRANS, S-ARROW is straight forward induction
+case S-TVAR:
+    S <: T in R, X <: Q, D
+    if S <: T in R or D, certainly S <: T in R, X <: P, D
+    otherwise S <: T is X <: Q, S = X, T = Q
+    then R, X <: P, D |- X <: P (S-TVAR)
+    also R |- P <: Q (assumption)
+    then R |- X <: Q (T-TRANS)
+case S-ALL:
+    R, x<:Q, D |- VX<:U1. S2 <: VX<:U1. T2
+    R, x<:Q, D, X<:U1 |- S2 <: T2 by S-ALL
+    R, x<:P, D, X<:U1 |- S2 <: T2 by induction
+    R, x<:P, D |- VX<:U1. S2 <: VX<:U1. T2
+
+2. similar. only T-VAR matters
+
+26.4.11
+Since they don't manipulate the environment
+proving the induction on rules S-ARROW, S-REFL or T-TOP are identical to subtype rules on chapter 15 
+
+1. the last rule can be S-TRANS, S-TOP or S-ARROW, not interesting
+2. the last rule can be S-TRANS, S-TOP or S-ALL
+case S-ALL: immediate
+case S-TOP: immediate
+case S-TRANS:
+    R |- VX<:U. S2 <: K, R |- K <: T
+    by induction, K = T = Top or K = VX<:U. K2
+    induction again, T = VX<:U. T2
+3. the last rule can be S-TRANS, S-TOP or S-TVAR
+case S-TOP: immediate 
+case S-TVAR: S = T, X <: T in R, by S-REFL R |- S <: T
+case S-TRANS:
+    R |- X <: U, R |- U <: T
+    by induction, U = T = Top or R |- S <: U with X <: S in R
+    then R |- S <: T (by S-TRANS) and X <: S in R
+4. immediately
+
+26.4.16
+S-ALL in full F sub:
+    R, X<:T1 |- S2 <: T2, R |- T1 <: S1
+    -----------------------------------
+    R |- VX<:S1. S2 <: VX<:T1. T2
+
+WEAKENING, last rule S-ALL:
+    R |- VX<:S1. S2 <: VX<:T1. T2 
+    R, X<:T1 |- S2 <: T2, R |- T1 <: S1 by S-ALL 
+    R, X<:T1, x:U |- S2 <: T2, R, x:U |- T1 <: S1 by induction 
+        where R, x:U is well-formed, R, X<:S1 is well-formed
+        => R, X<:S1, x:U is well-formed since neither new clause introduced new type variable
+        => especially, U may not contain X
+    R, x:U, X<:T1 |- S2 <: T2 by permutation
+    ---------------------------------------- S-ALL
+    R, x:U |- VX<:S1. S2 <: VX<:T1. T2 
+
+NARROWING, last rule S-ALL:
+    R, x<:Q, D |- VX<:S1. S2 <: VX<:T1. T2 
+    R, x<:Q, D, X<:T1 |- S2 <: T2, R, x<:Q, D |- T1 <: S1
+    R, x<:P, D, X<:T1 |- S2 <: T2, R, x<:P, D |- T1 <: S1 by induction 
+    R, x<:Q, D |- VX<:S1. S2 <: VX<:T1. T2 by S-ALL
+
+TYPE SUBSTITUTION, last rule S-ALL:
+    S = VZ<:S1. S2, T = VZ<:T1. T2 
+    R, X<:Q, D |- S <: T
+    R, X<:Q, D, Z<:T1 |- S2 <: T2, R, X<:Q, D |- T1 <: S1 by S-ALL
+    R, D, Z<:[X |-> P]T1 |- [X |-> P]S2 <: [X |-> P]T2
+    R, D |- [X |-> P]T1 <: [X |-> P]S1 by induction
+    R, D |- VZ<:[X |-> P]S1. [X |-> P]S2 <: VZ:[X |-> P]T1. [X |-> P]T2
+    R, D |- [X |-> P](VZ<:S1. S2) <: [X |-> P](VZ<:T1. T2)
+
+INVERSION, last rule S-ALL:
+    3. if R |- S <: VX<:T1. T2, then either S is a type variable or 
+        S = VX<:S1. S2 with R, X<:T1 |- S2 <: T2 and R |- T1 <: S1
+        (straight forward)
+
+26.4.12:
+    2. if R |- \X<:S1. s2: T and R |- T <: VX<:U1. U2 then 
+        R |- U1 <: S1 and there is some S2 that
+        R, X<:S1 |- s2: S2 and R, X<:U1 |- S2 <: U2
+
+PRESERVATION, T-TAPP:
+    t = t1[T2], t1 = \X<:S11. s12, t' = [X |-> T2]s12
+    R |- t: [X |-> T2]U12
+    R |- t1: VX<:U11. U12, R |- T2 <: U11 by T-TAPP
+    R |- U11 <: S11 and there is some S12 that 
+    R, X<:S11 |- s12: S12 and R, X<:U11 |- S12 <: U12
+    R |- T2 <: S11 by S-TRANS
+    R |- [X |-> T2]s12: [X |-> T2]S12 and 
+    R |- [X |-> T2]S12 <: [X |-> T2]U12
+    thus R |- [X |-> T2]s12: [X |-> T2]U12
+
+27.1
+setCounterClass = 
+    \R<:CounterRep.
+    \M<:SetCounter.
+    \self: Ref (R -> M)
+        \r: R.
+            {get = \_: Unit. !(r.x),
+             set = \i: Nat. r.x := Nat,
+             inc = \_: Unit. (!self r).set (succ((!self r).get unit))}
+
+28.2.3
+part 1: similar
+part 2, case TA-TAPP:
+    t = t1[T2]
+    R |- t1: VX<:T11. T12 
+    R |- T2 <: T11
+    R |- t: [X |-> T2]T12
+
+    by induction
+    R |-> t1: M1
+    R |- M1 <: VX<:T11. T12
+    for N1 in R |- M1 || N1, N1 is not a type variable
+    R |- N1 <: VX<:T11. T12 
+    N1 = VX<:N11. N12 that 
+        R |- T11 <: N11
+        R |- N12 <: T12
+    then R |- T2 <: N11 by S-TRANS
+    R |-> M1 || VX<:N11. N12 
+    R |-> t1[T2]: [X |-> T2]N12 by TA-TAPP
+    reminders: similar
+
+28.5.1
+SA-ALL in full F sub, the weight of presumptions are higher than the conclusion
+
+28.5.2
+R |- not(S) <: not(T), by
+R |- VX<:S. X <: VX<:T. X by S-ALL
+R |- T <: S, R, X<:T |- X <: X
+=> and <= trivial
+
+28.5.4
+since algorithmic SA rules are sound and complete, |- and |-> is interchangable
+
+case SA-TOP: trivial, both ways
+case SA-REFL-TVAR: trivial, both ways 
+case SA-ARROW, =>:
+    X <: U |- S1 -> S2 <: T1 -> T2 
+    X only occurs positively in S2 and T1
+                  negatively in S1 and T2 by definition
+    X <: U |-> T1 <: S1, X <: U |- S2 <: T2 by SA-ARROW 
+    |-> [X |-> U]T1 <: [X |-> U]S1
+    |-> [X |-> U]S2 <: [X |-> U]T2 by induction
+    |-> [X |-> U](S1 -> S2) <: [X |-> U](T1 -> T2) by SA-ARROW 
+    <=: similar 
+case SA-ALL full: similar to SA-ARROW 
+case SA-TRANS-TVAR, =>:
+    X <: U |- S <: T
+    S <: Q in X <: U, X <: U |-> Q <: T by SA-TRANS-TVAR 
+    so S = X, Q = U
+    since X <: U is well formed, X do not occur in U
+    thus X only occurs positively in U (does not occur at all)
+    |-> [X |-> U]Q <: [X |-> U]T
+    |-> U <: [X |-> U]T and [X |-> U]S = U
+case SA-TRANS-TVAR, <=:
+    cannot happen since context is empty
+
+28.6.3
+1.M = VX<:M1. M2 
+M1 = Y' -> Z, Y' -> Top, Top 
+M2 = Y -> Z', Top -> Z', X
+|{(M1, M2)}| = |M1| x |M2| = 9
+
+3. S -> Top and T -> Top
+
+29.1.1
+VX. X -> X is a universal type of kind *, type application of it happens at term level
+\X. X -> X is a type operator of kind * => *, type application of it happens at type level
+
+29.1.2
+it has corresponding terms of that type, while any kinds other than * doesn't have corresponding terms
+
+30.3.3
+30.3.1
+T-ABS
+30.3.2
+anywhere manipulates context
+
+30.3.5
+let [S :=: T] be such a sequence that 
+S = S0 :=: S1 :=: ... :=: Sn = T, 
+no Q-TRANS in subderivations, Q-SYMM only at end of a subderivation
+
+by indcution on Q-derivations:
+Q-REFL: intuitive
+Q-SYMM:
+    S :=: T
+    exist [T :=: S] by induction
+    add to or cancel Q-SYMM from the end of subderivations to build
+    [S :=: T]
+Q-TRANS:
+    exist [S :=: U] and [U :=: T] by induction 
+    add U :=: U in the middle by Q-REFL
+    get [S :=: T]
+Q-ARROW:
+    exist [S1 :=: T1] and [S2 :=: T2] by induction
+    for every subderivation in [S1 :=: T1]
+    add S2 :=: S2 by S-REFL at both side, get
+    [S1 -> S2 :=: T1 -> S2], S2 fixed in subderivations
+    similarly get [T1 -> S2 :=: T1 -> T2]
+    put T1 -> S2 :=: T1 -> S2 at middle by Q-REFL 
+    get [S1 -> S2 :=: T1 -> T2]
+Q-ALL:
+    exist [S2 :=: T2] by induction 
+    map every subderivation to VX::K1. Si :=: VX::K1. Sj
+    get [VX::K1. S2 :=: VX::K1. T2]
+Q-ABS: similar to Q-ALL 
+Q-APP: similar to Q-ARROW 
+Q-APPABS: intuitive
+
+30.3.8
+if one of the derivations is QR-REFL:
+    S => T, T = S and S => U 
+    then T => U and U => U (by QR-REFL)
+    V = U
+if S = S1 -> S2, QR-REFL eliminated:
+    T = T1 -> T2, S1 => T1, S2 => T2 
+    U = U1 -> U2, S1 => U1, S2 => U2
+    by induction,
+        T1 => V1, U1 => V1 
+        T2 => V2, U2 => V2 
+    T1 -> T2 => V1 -> V2 
+    U1 -> U2 => V1 -> V2 by QR-ARROW 
+if S = VX::K1. S2:
+    T = VX::K1. T2, S2 => T2 
+    U = VX::K1. U2, S2 => U2 
+    by induction, 
+        T2 => V2 
+        U2 => V2 
+    V = VX::K1. V2
+    T => V and U => V by QR-ALL
+if S = \X::K1. S2: similar to QR-ALL 
+if S = S1 S2 and both derivation is QR-APP:
+        similar to QR-ARROW 
+if S = S1 S2, S1 = (\X::K1. S12), one of the derivation is QR-APPABS:
+    T = [X |-> T2]T12, S12 => T12, S2 => T2 
+    U = U1 U2, S1 => U1, S2 => U2
+    by induction:
+        T2 => V2, U2 => V2 
+    if S1 = U1 (QR-REFL):
+        U = (\X::K1. S12) U2, S12 => T12, U2 => V2 
+        U => [X |-> V2]T12
+        and T => [X |-> V2]T12 (by T12 => T12 and 30.3.7)
+    if U1 = \X::K1. U12 with S12 => U12
+        U = (\X::K1. U12) U2
+        by induction:
+            U12 => V12
+            T12 => V12
+        U => [X |-> V2]V12
+        T => [X |-> V2]V12 (by 30.3.7)
+        
+30.3.17
+1. canonical form property fails, thus progress
+2. parallel reduction fails
+
+30.4.2
+The type operator of Monad in Haskell has kind (* => *) => *, which is a kind only in K4 and above
+
+30.5.1
+nil : VT. List T 0
+cons : VT. Hn:Nat. T -> List T n -> List T (succ n)
+hd : VT. Hn:Nat. List T (succ n) -> T 
+tl : VT. Hn:Nat. List T (succ n) -> List T n
+
+31.2.1
+Kinding:
+    R |- Top :: * (K-TOP)
+        R |- B <: Top (S-TVAR)
+    R |- B :: * (K-TVAR)
+        R |- A <: B (S-TVAR)
+    R |- A :: * (K-TVAR)
+        R, X<:Top |- X <: Top (S-TVAR)
+        R, X<:Top |- X :: * (K-TVAR)
+    R |- \X. X :: * => * (K-ABS)
+        R |- F <: Id (S-TVAR)
+    R |- F :: * => * (K-TVAR)
+
+1.  R |- Id B :=: [X |-> B]X = B (Q-APPABS)
+    R |- B <: Id B (S-EQ)
+    R |- A <: Id B (S-TRANS)
+2.  similar
+3.  R, X<:Top |- X <: Top (S-TVAR)
+    R |- \X. X <: \X. Top (S-ABS)
+4.  not in kernel system
+5.  R, X<:Top |- X :: * (K-TOP, S-TVAR, K-TVAR)
+    R, X<:Top, Y<:X |- Y <: X (S-TVAR)
+    R, X<:Top |- VY<:X. Y <: VY<:X. X (S-ALL)
+    R |- \X. VY<:X. Y <: \X. VY<:X. Y (S-ABS)
+6.  R |- F B <: Id B (S-TVAR, S-APP)
+    R |- Id B <: B (Q-APPABS, S-EQ)
+    R |- F B <: B (S-TRANS)
+7.  no way
+8.  F :=: F (Q-REFL)
+    R |- F <: F (S-EQ)
+    R |- F B <: F B (Q-REFL, S-EQ, S-APP)
+9.  R |- \Y. Top -> Y :: * => * (K-Top, K-ABS)
+    R, F <: (\Y. Top -> Y) |- F A <: (\Y. Top -> Y) A (S-TVAR, S-APP)
+    R, F <: (\Y. Top -> Y) |- (\Y. Top -> Y) A <: Top -> A (Q-APPABS, S-EQ)
+    R, F <: (\Y. Top -> Y) |- Top -> A <: Top -> B (Q-REFL, S-EQ, S-ARROW)
+    R, F <: (\Y. Top -> Y) |- F A <: Top -> B (S-TRANS)
+    R |- VF<:(\Y. Top -> Y). F A <: VF<:(\Y. Top -> Y). Top -> B (S-ALL)
+10. no way
+    when F held abstract Q-APPABS doesn't apply
+    also S-APP doesn't apply when type parameter is different
+11. expand both side:
+    R |- \X. Top <: R |- \X. Top[* => *]
+    R, X<:Top |- Top <: Top[* => *]
+    R, X<:Top |- Top <: \X. Top (Stuck here)
+
+32.5.1
+the existential type has been abstracted to Object type operator thus visible in the context
+the new typing rule in this system must involve type equivalence somehow.
+
+32.5.2
+sendget = \M<:CounterM. \c: Object M.
+    let {X, body} = c in
+        body.methods.get body.state
+
+sendget : \M<:CounterM. Object M -> Nat
+
+sendreset = \M<:ResetCounterM. \c: Object M. 
+    let {X, body} = c in 
+        {*X,
+            {state = body.reset body.state,
+             methods = body.methods}}
+        as Object M
+
+sendreset : \M<:ResetCounterM. Object M -> Object M

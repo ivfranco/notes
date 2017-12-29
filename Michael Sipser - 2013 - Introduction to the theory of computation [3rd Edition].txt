@@ -1,0 +1,307 @@
+Chapter 6
+6.1
+in Haskell:
+main = putStrLn $ q ++ show q; q = "main = putStrLn $ show q ++ q; "
+
+6.2
+being a subset of MINtm do not affect the proof in Theorem 6.7
+since it's infinite, a machine D still can be picked that |<D>| > |<C>|
+
+6.3
+by B <t C, there is a machine M that in presence of oracle of C decides language B
+similarly there is a machine N that decides language A in presence of oracle of B
+define machine M' that for any input x:
+    M' has M and N hardcoded, but runs M when the oracle of B is queried in N
+    run N on input x, accept or reject according to N
+
+6.4
+Theorem 6.3 is not affected by oracles (just make T be an oracle machine TL and reuse the proof)
+so oracle machines can produce their own descriptions as well
+assume A'tm <=t Atm, there is an oracle machine T relative to Atm that decides A'tm 
+define another oracle machine R with an oracle for Atm that for any input w:
+    produce its own description <R> and prepend w, get <R, w>
+    run <R, w> on T, possible since both R and T is oracle for Atm
+    accepts if T rejects, rejects if T accepts 
+then if <R, w> is accepted by A'tm, by definiition R accepts w and T rejects <R, w>
+if <R, w> is rejected by A'tm, R rejects w and T accepts <R, w>
+
+6.5
+a.  since 0 is a unit of +, ∀y 0 + y = y
+b.  + doesn't has an annihilator so false
+
+6.6
+thanks http://msl.cs.uiuc.edu/~btovar/cs475/hw/hw5sol.pdf
+since q(w) is a TM, define M as:
+    obtain <M> by recursion theorem
+    compute and output <q(<M>)>
+define N = q(<M>)
+
+6.7
+a TM that loops on any input
+
+6.8
+?
+
+6.9
+assume for a predicate P that is not trivial, {M | P(M)} is decidable
+since P is not trivial, there exists TM A and B that 
+    P(A) and ~P(B)
+and a machine T that decides {<M> | P(M)}
+then define a TM M that for any input w:
+    get recursion to get <M>
+    compute <M> on machine T
+    if T accepts, simulate B on w
+    if T rejects, simulate A on w 
+so if P(M), M simulates B for all input, makes M equivalent to B and ~P(M), vice versa
+
+6.10
+any equivalence relation on N
+
+6.11
+(N, =, <)
+
+6.12
+padded with leading zeros, whether one number is greater is only decided by the most significant different digit
+so x < y can be computed by a DFA just like equality
+by closure properties of DFA, the union, complement and intersection of x < y is still computable by a DFA
+proof of the qualifications need no change
+
+6.13
+since |Zm| is finite, define the alphabet ∑ = Q = Zm ∪ {s} 
+then there are only finite transitions for either * and +, namely |Zm| * |Zm| many
+hard code all the transitions to the machine and the result of arbitrarily composed * and + can be stored in state
+then equality again can be decided by DFA
+qualifications: similar
+
+6.14
+let J = {(w, L) | w ∈ A} ∪ {(w, R) | w ∈ B}, L and R not in alphabet of A or B
+then for language A and input w, test (w, L) in J
+for langue B, test (w, R) in J
+
+6.15
+J from the previous problem
+
+Chapter 7
+7.1
+a.  true 
+b.  false 
+c.  false
+d.  true 
+e.  true, 2^O(n) = 2^kn = (2^k)^n for some k, let k = log2(3) then lhs = rhs
+f.  true
+
+7.2
+a.  false 
+b.  true 
+c.  true 
+d.  true 
+e.  false 
+f.  false
+
+7.3
+a.  true 
+b.  false, gcd(7289, 8029) = 37
+
+7.4
+T 
+T, R    R 
+T, R    -       T 
+S, T, R T, R    T, R    R
+
+7.5
+no, exactly one clause will be false
+
+7.6
+union: run T1 and T2 on the input, accept iff either accepts, runtime O(n^k1) + O(n^k2) = O(n^max(k1, k2))
+intersection: run T1 and T2 on the input, accept iff both accept, same run time with union
+concatenation: for input w, for all ways to cut w into two strings w = xy
+    run T1 on x and run T2 on y, accept iff both accepts
+    at most |z| = n ways to cut, x and y run for at most O(n^k1) and O(n^k2)
+    complexity O(n^(max(k1, k2)+1)) combined
+complement: run T on input, accept iff T rejects
+
+7.7
+union: a certificate can be verified for both problem in polynomial time
+concatination: the same argument for P
+
+7.8
+step 1. once, scan the whole input and mark a single node, O(n)
+step 2. each loop must mark a new node, number of node no more than length of input, O(n) iteration
+step 3. for each node scans every edge, both O(n), results O(n^2)
+step 4. scans every node, O(n), executed once
+polynomial steps with polynomial complexity => CONNECTED ∈ P
+
+7.9
+there are C(n, 3) ways to select three different nodes from a graph, where n is the number of nodes
+C(n, 3) = n * (n-1) * (n-2) / 3! is polynomial
+verifying a 3-clique in a graph with n edges by scanning every edge is O(n)
+TRIANGLE can be decided by brute-force search any combination of three nodes, which has polynomial complexity
+thus TRIANGLE ∈ P
+
+7.10
+DFA is closed under complement, so for M ∈ ALLdfa, L(~M) = ∅
+build a graph from transitions and states of ~M, the problem reduces to 
+    nodes denoting final states not reachable from the node denoting start state
+which is in P, and the graph transforming is easily P, building ~M from M also in P
+
+7.11
+a.  by verifying the language of symmatric difference:
+        M' = (M ∩ ~N) ∪ (~M ∩ N)
+    is empty, which reduces to CONNECT
+    union and intersection of DFAs results in a new DFA with |Q1| * |Q2| states, which is polynomial
+    building M' is easily polynomial to the combined length of <M> and <N>
+b.  sub language can be verified with M ∪ N = N iff M ⊆ N
+    for A = (Q, ∑, δ, s, F)
+    let Aq = (Q, ∑, δ, q, F)
+    if A ⊆ Aq ∀q ∈ F and q is reachable,
+        ∀x, y ∈ L(A), reading x puts A in some reachable final state q 
+        since L(A) ⊆ L(Aq), reading y starting from state q ends again in some final state q'
+        which means xy ∈ L(A)
+    if ∀x,y ∈ L(A) => xy ∈ L(A),
+        x puts A in any reachable final state q
+        for arbitrary y ∈ L(A), A starting from state q have to end in final state again, so L(A) ⊆ L(Aq)
+    thus A ⊆ Aq <=> ∀x,y ∈ L(A) => xy ∈ L(A) <=> AA ⊆ A
+    and if ε ∈ L(A) and AA ⊆ A, A^n for n ∈ N is in A, makes A* ⊆ A, and A ⊆ A* by definition => A = A*
+    |F| = O(n), A ⊆ Aq decidable in polynomial time, ε ∈ L(A) requires run A for once
+            
+7.12
+assuming graph representation of adjacency matrix
+the certificate is a permutation of the node indexes
+for every cell in matrix of H
+    1. find the s-th element s' in the certificate
+    2. find the t-th element t' in the certificate
+    3. check if cell (s', t') in graph matrix G has the same 0-1 value
+step 1, 2 or 3 requires at most a scan over the whole graph G which is O(n)
+doing that for every edge is at most O(n) steps
+O(n^2) combined
+verifiable in polynomial time => NP
+    
+7.13
+addition of two n bit number on a three-taple deterministic TM is O(n)
+multiplication of two n bit number on the same machine is O(n^2), by shifting and addition
+modular operation by long division O(n^2)
+by reading b from most significant bit, starting with a number on tape c = 1:
+    if the next bit in b is 0, calculate c <- c^2 mod p 
+    if the next bit in b is 1, calculate c <- c^2 * a mod p
+at the end of b, c ≡ a^b mod p
+loop executes at most O(n) time, every step is a combination of polynomial operations on O(n) bit numbers
+
+Chapter 8
+8.1
+two-tape read-only input TM can simulate one-tape TM by first copying the input to the working tape
+space complexity will be identical this direction
+a one-tape TM can simulate a two-tape read-only input TM by running with a tape alphabet ΓxΓ
+then every symbol in the new machine will take twice the space of the original machine
+divide the tape to top and bottom part, strict transitions not to change top part of the tape
+for a two-tape read-only input TM with O(f(n)) space complexity, the space complexity of the new machine will be:
+    O(max(2n, 2O(f(n))))
+for f(n) >= n, that's just O(f(n))
+
+8.2
+(0,2), if opponent plays (0,1) then (1,2) else (0,1)
+
+8.3
+Player 2 has a winning strategy:
+Player 1 have to pick 2
+Player 2 then pick 4
+Player 1 have to pick 5
+Player 2 then pick 6, nowhere to go
+
+8.4
+union: divide the tape to top and bottom parts, run on tape alphabet ΓxΓ
+    copy input to the bottom part, simulate first machine on the top part, second machine on the bottom
+    space complexity 2O(f(n)) + 2O(g(n)) in PSPACE if f(n) and g(n) are polynomial
+complementation: PSPACE problems are decidable, simulate M, accept if M rejects
+star: NPSPACE = PSPACE
+    nondeterministically insert seperators into the input, divide input to several segments, run M for each segment
+    if w ∈ A*, one of such seperations will be accepted
+
+8.5
+a DFA have two state:
+    1. the state it's currently in 
+    2. the portion of input been read
+1. is constant space, 2. can be stored as a pointer into the input string which is O(log(n))
+
+8.6
+if a problem is PSPACE-hard, then TQBF can be reduced to it in polynomial time
+also SAT is just TQBF with no quantification, so SAT is polynomial time reducible to that problem
+which makes the problem NP-hard
+
+8.7
+union: run both machine, erase the working tape before running the second one 
+concatenation: combine the two machines, nondeterministically decide a bound that seperates input into two segments
+    add transitions from accept state of the first machine to the start state of the second machine
+    if entered the second machine, skip to the second segment
+    check the bound every time it moves the reading head left
+    if it's attempting to move into the first segment, act if it read the leftmost symbol
+    accept if the second machine accepts
+    stores two pointers in addtion to the two machines' memory
+    complexity max(f(n), g(n)) + 2log(n), log space if both f and g is log space
+star: ?
+
+8.8
+from a regular expression R, a NFA M can be built in polynomial time
+Example 8.4 says the emptyness test of NFA is in PSPACE
+by the same argument of EQdfa, EQnfa is in PSPACE => EQrex is in PSPACE
+
+9.1
+2^(n+1) = 2 * 2^n
+for any machine that runs in k2^(n+1) time, take j = 2k and the machine runs in j2^n time too
+so k2^(n+1) = O(2^n) and TIME(2^(n+1)) = TIME(2^n)
+
+9.2
+2^2n / log(2^2n) = 2^2n / 2n = (2^n)^2 / 2n
+lim(2^n / (2^n)^2 / 2n) = lim(2n / 2^n) = 0, so 2^n = o(2^2n / log(2^2n))
+by hirarchy theorem TIME(2^n) ⊂ TIME(2^2n)
+
+9.3
+NTIME(n) ⊆ NSPACE(n) ⊆ SPACE(n^2) ⊂ SPACE(n^k, k > 2) ⊆ PSPACE
+
+9.4
+routine
+
+9.5
+(x1 xor x2) xor x3
+where x1 xor x2 = ((not x1) and x2) or (x1 and (not x2))
+
+9.6
+=>  P ⊆ PA obviously
+<=  assume a machine M with an oracle of A runs in polynomial time f(n)
+    then it can at most query the oracle f(n) times
+    since A ⊆ P, simulate A for an input |w| = n also runs in polynomial time, say g(n)
+    then replace all the query to the oracle with a real machine that computes membership of A
+    all these computations consume at most g(f(n)) time, composition of polynomial is still a polynomial
+    other operation not involving the oracle consume at most f(n) time
+    thus the total running time without a oracle is f(n) + g(f(n)), which is polynomial
+
+9.7
+using syntax of regular expression common in nowaday programming languages
+a.  (0|1){500}
+b.  (0|1|ε){500}
+c.  (0|1){500}(0|1)*
+d.  (0|1|ε){499}|(0|1){501}(0|1)*
+e.  (0*10*){500}
+f.  (0*10*){500}(0|1)* 
+g.  (0*(1|ε)0*){500}
+h.  (0|1){499}0(0|1)* 
+i.  (0|1)*0(0|1){500}(0|1)*0(0|1)*
+
+9.8
+R{m, n} = R{m}(R|ε){n-m}
+
+9.9
+if L ∈ coNP, then ¬L ∈ NP ⊆ P_SAT
+since P_SAT is deterministic, it's closed under complementation, thus L ∈ P_SAT and coNP ⊆ P_SAT
+by NP = P_SAT, P_SAT ⊆ NP and coNP ⊆ NP, which means L ∈ NP <=> ¬L ∈ NP
+coNP = {L | ¬L ∈ NP}, so coNP = NP
+
+9.10
+a.  since NL ⊂ PSPACE, if A_LBA ∈ NL that will make NL = PSPACE
+b.  we don't. 
+    if A_LBA ∈ P can be proved, that will make P = NP = PSPACE
+    if A_LBA ∉ P can be proved, that will make P ⊂ PSPACE
+
+9.11
+the input of MAX-CLIQUE <g, k> contains a description of the graph, and the number of nodes is at most O(n)
+for every number p between k and the number of nodes, test <g, p> ∈ CLIQUE, compare the biggest accepted p to k
+since SAT is NP-complete, CLIQUE ∈ P_SAT, and the above algorithm runs O(n) CLIQUE so is still in P_SAT

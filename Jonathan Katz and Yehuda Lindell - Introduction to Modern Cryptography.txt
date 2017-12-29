@@ -1,0 +1,966 @@
+Chapter 1 
+1.1
+JGRMQOYGHMVBJWRWQFPWHGFFDQGFPFZRKBEEBJIZQQOCIBZKLFAFGQVFZFWWE
+OGWOPFGFHWOLPHLRLOLFDMFGQWBLWBWQOLKFWBYLBLYLFSFLJGRMQBOLWJVFP
+FWQVHQWFFPQOQVFPQOCFPOGFWFJIGFQVHLHLROQVFGWJVFPFOLFHGQVQVFILE
+OGQILHQFQGIQVVOSFAFGBWQVHQWIJVWJVFPFWHGFIWIHZZRQGBABHZQOCGFHX
+QVF -> the
+cryptographicsystemsareextremelydifficulttobuildneverthelessf
+orsomereasonmanynonexpertsinsistondesigningnewencryptionschem
+esthatseemtothemtobemoresecurethananyotherschemeonearththeunf
+ortunatetruthhoweveristhatsuchschemesareusuallytrivialtobreak
+
+1.2
+mono-alphabetic:
+    Gen: gives a random bijection f: Z26 -> Z26
+    Enc: a homomorphism (Z26)* -> (Z26)* based on f 
+    Dec: a homomorphism (Z26)* -> (Z26)* based on the inversion of f
+Vigenere:
+    Gen: gives a random string in (Z26)*
+    Enc: a length preserving function (Z26)* -> (Z26)* that for input w = w1w2...wn and key k:
+         output is x = x1x2...xn that
+         xi = (wi + k[i mod |k|]) mod 26
+    Dec: the same as Enc except
+         xi = (wi - k[i mod |k|]) mod 26
+
+1.3
+characters in position i, i+t, i+2t is in a mono-alphabetic permutation, and t can be tested with statistics
+then the problem reduces to breaking t mono-alphabetic permutation
+
+1.4
+a.  substract ki + j modulo 26
+b.  the repeating bi or trigram is 26 times less frequent
+    since they have to occur in the (modulo 26) same position in the key and jth block
+    requires longer ciphertext to determine the period
+c.  since the encryption method is open
+    substract j for characters in jth block modulo 26 and it's now an ordinary Vigenere cipher
+
+1.5
+shift:  all it needed is a single character to calculate the shift
+substitution:   a segment containing all 26 characters then the permutation is known
+Vigenere:   any text with length at least t, then the key can be calculated
+
+1.6
+shift:  a single character
+substitution:   a string of length 25, "ab..y"
+Vigenere:   a length t string of repeating "a", when t unknown just any reasonable length < 100
+
+Chapter 2 
+2.1
+if Π = (Gen, Enc, Dec) is perfectly secret
+    Pr[M = m | C = c] = Pr[M = m]
+    Pr[M = m ∧ C = c] / Pr[C = c] = Pr[M = m]
+multiply both sides with Pr[C = c] / Pr[M = m]
+    Pr[M = m ∧ C = c] / Pr[M = m] = Pr[C = c]
+    Pr[C = c | M = m] = Pr[C = c]
+
+2.2
+by perfect secrecy
+    Pr[M = m | C = c] = Pr[M = m]
+    Pr[M = m' | C = c] = Pr[M = m']
+so if Pr [M = m | C = c] = Pr[M = m' | C = c], then
+    Pr[M = m] = Pr[M = m']
+what only holds if the distribution over M is uniform, so refute
+
+2.3
+by outruling k = 0^l, |K| = |M| - 1 < |M|, so this encryption is no longer perfectly secret
+first, it's a very low possibility of choosing k = 0^l, namely 1/2^l
+second, for all possible m ∈ M and c ∈ C, there exists a key encrypts m to c
+that means any meaningful sentence can be the ciphertext of any other plaintext
+an adversary seeing some meaningful ciphertext cannot tell the difference between:
+    1. the key is 0^l
+    2. the plaintext is encrypted to meaningful ciphertext by chance
+the probability of the two event are roughly the same
+
+2.4
+a.  |C| = |M| = |K| = 26, and for any character x and any cipher character y, there exists a unique key that:
+        x + k ≡ y (mod 26)
+    so by Shannon's theorem, if k is chosen uniformly from Z26 this encryption method is perfectly secret
+b.  let M = strings of length 26 with non-repeating characters
+    then |M| = |K| = 26!
+    also |C| = |M| = 26!, in fact C = M
+    for any c ∈ C and m ∈ M, define a function k that maps every character in m to every character in c in order
+    then k is an bijection Z26 -> Z26, k ∈ K, Enc(k, m) = c
+    by Shannon's theorem, if k is chosen uniformly from K, then this encryption is perfectly secret
+    since |K| >= |M| for any perfectly secret encryption, this is the biggest |M| possible
+c.  for M = {w | w is a word of length t}, |M| = |K| = t^26 
+    since Vigenere cipher is length preserving, and for any string c of length t 
+        Enc(c, a^26) = c
+    so C = M and |C| = |M| = |K|
+    also for any c, m ∈ C = M, define k = k1k2..kt that
+        ki = (ci - mi) mod 26
+    then Enc(k, m) = c
+    by Shannon's theorem, if k is chosen uniformly from K, then this cipher is perfectly secret
+all attacks in Chapter 1 relies on some form of statistics, which is infeasible with so small data
+only exception be the exhausting search for shift cipher, which doesn't make sense with only one character
+
+2.5
+refute. Modify shift cipher with a message space of one character strings that 
+    discard generated key and always shift the plaintext by 3
+then
+    Pr[C = d | M = a] = 1
+    Pr[C = e | M = a] = 0 != 1
+so this cipher is not perfectly secret, but it meets all requirements the problem states 
+
+2.6
+thanks https://cstheory.stackexchange.com/questions/11476#answer-11479
+try doing it in some different setup
+let M' = {m | Pr[M = m] > 0}, N = M - M', define a new distribution Pr' that
+    Pr'[M = m] = Pr[M = m] / 2 for m ∈ M'
+    Pr'[M = m] = some arbitrary non-zero real number for m ∈ N and make
+    ∑m∈N Pr'[M = m] = 1/2
+then ∑m∈M Pr'[M = m] = 1 is a proper distribution
+and since Pr' assigns non-zero probability to all m, the scheme under Pr' is perfectly secret
+for m ∈ M',
+    Pr'[M = m, C = c]   = Pr'[C = c | M = m] * Pr'[M = m]
+when m fixed, the probability Pr'[C = c | M = m] only affected by the randomness of Gen and Enc, not Pr or Pr' so
+    Pr'[C = c | M = m] = Pr[C = c | M = m]
+and
+    Pr'[C = c | M = m] * Pr'[M = m] = Pr[C = c | M = m] * Pr[M = m] / 2
+                                    = Pr[M = m, C = c] / 2
+while ∑m∈N Pr'[C = c, M = m]    = ∑m∈N Pr'[C = c | M = m] * Pr'[M = m]
+                                = ∑m∈N Pr'[C = c] * Pr'[M = m]  // by perfect secrecy
+                                = Pr'[C = c](∑m∈N Pr'[M = m])
+                                = Pr'[C = c] / 2
+combined with Pr'[C = c] = ∑m∈M Pr'[C = c, M = m] and M = M' + N, it makes
+    ∑m∈M' Pr'[C = c, M = m] = Pr'[C = c] - ∑m∈N Pr'[C = c, M = m]
+                            = Pr'[C = c] / 2
+that means
+    Pr'[C = c] / 2  = ∑m∈M' Pr'[C = c, M = m]
+                    = ∑m∈M' Pr[M = m, C = c] / 2
+                    = Pr[C = c] / 2
+so the distribution of ciphertext is the same with either Pr or Pr' and for m ∈ M':
+Pr[M = m | C = c]   = Pr[M = m, C = c] / Pr[C = c]
+                    = 2Pr'[M = m, C = c] / Pr'[C = c]
+                    = 2Pr'[M = m | C = c]
+                    = 2Pr'[M = m]   // by perfect secrecy
+                    = 2 * Pr[M = m] / 2
+                    = Pr[M = m]
+for m ∈ N, Pr[M = m | C = c] = Pr[M = m] = 0
+so the encryption scheme is still perfectly secret with some m assigned zero probability
+for any M' ⊂ M, define Pr[M = m] = 0 for m ∈ M - M' then the distribution has been extended to M
+for all m ∈ M, perfect secrecy holds
+
+2.7
+Since perfect secrecy is true for all distribution, it is also true for a distribution that
+    Pr[M = m0] = Pr[M = m1] = 1/2
+and a message space M = {m0, m1}
+then Pr[C = c | M = m0] = Pr[C = c | M = m1]
+no matter what m0, m1 the adversary has chosen, the ciphertext is totally indifferent to the adversary
+
+2.8
+if Π is not a scheme of perfect secrecy, then for some message m0, m1 and some ciphertext c:
+    Pr[C = c | M = m0] != Pr[C = c | M = m1]
+assume Pr[C = c | M = m0] > Pr[C = c | M = m1] (otherwise symmetric)
+then
+    Pr[C = c, M = m0] / Pr[M = m0] > Pr[C = c, M = m1] / Pr[M = m1]
+if Pr[C = c] = 0, Pr[C = c | M = m0] = Pr[C = c | M = m1] = 0, so Pr[C = c] != 0
+since Pr[M = m0] = Pr[M = m1] = 1/2, multiply both sides with Pr[C = c] / 2:
+    Pr[C = c, M = m0] / Pr[C = c] > Pr[C = c, M = m1] / Pr[C = c]
+    Pr[M = m0 | C = c] > Pr[M = m1 | C = c]
+as M = {m0, m1}, Pr[M = m0 | C = c] + Pr[M = m1 | C = c] = 1, which means
+    Pr[M = m0 | C = c] > 1/2
+let the adversary outputs m0 and m1 at step 1
+at step 3, if the ciphertext is c, A outputs 0, otherwise A outputs either 0 or 1 with equal probability
+    Pr[PrivK(eav, A, Π) = 1]    = Pr[b' = b]
+                                = Pr[b' = b | C = c] * Pr[C = c] + Pr[b' = b | C != c] * Pr[C != c]
+obviously Pr[b' = b | C != c] = 1/2, as b' is chosen randomly that case
+since A outputs 0 when C = c,
+    Pr[b' = b | C = c]  = Pr[b = 0 | C = c]
+                        = Pr[M = m0 | C = c]
+                        > 1/2
+    Pr[PrivK(eav, A, Π) = 1]    = Pr[b' = b | C = c] * Pr[C = c] + (1/2) * Pr[C != c]
+                                = 1/2 + (Pr[b' = b | C = c] - 1/2) * Pr[C = c]
+since Pr[b' = b | C = c] > 1/2, Pr[C = c] > 0, Pr[PrivK(env, A, Π) = 1] > 1/2
+
+2.9
+when m != m', c = c', Pr[C = c] > 0, Pr[M = m] > 0, Pr[M' = m'] > 0
+Pr[C = c, C' = c'] = Pr[C = c]^2 > 0, Pr[M = m, M' = m'] = Pr[M = m] * Pr[M' = m'] > 0
+but Pr[M = m, M' = m' | C = c = C'] = 0
+otherwise the encryption scheme encrypts two different plaintext to the same ciphertext with the same key
+that makes effective decryption impossible
+
+2.10
+use mono-alphabetic cipher on the message space of a single character
+then the key is effectively a bijection k: Z26 -> Z26,
+    Gen = choose such a bijection from all |K| = 26! bijections
+    Enc(k, m) = k(m)
+    Dec(k, m) = k^-1(m)
+    M = C = Z26
+then 
+    Pr[M = m, M' = m' | M != M']    = Pr[M = m, M' = m', M != M'] / Pr[M != M']
+                                    = Pr[M = m, M' = m'] / Pr[M != M']  // M != M' is trivial when m != m'
+    Pr[M = m, M' = m' | C = c, C' = c'] = Pr[M = m, M' = m', C = c, C' = c'] / Pr[C = c, C' = c']
+
+2.11
+since Gen needs no input except the uniformly chosen random tape r, k <- Gen outputs k ∈ K with a probability p(k)
+make d_Gen the deterministic algorithm that take a random tape r as the input and outputs a k ∈ K
+now define a new encryption scheme with key generating algorithm Gen' that take a random tape r and output it directly
+    R <- Gen'
+the new encryption algorithm Enc'(r, m) = Enc(d_Gen(r), m) to encrypt the message, Dec' similarly defined
+now Gen' is uniformly distributed, and Pr[d_Gen(R) = k] = Pr[K = k] since it's the definition of K
+Pr[C = c | M = m] is only determined by the randomness of key thus unchanged for the new scheme
+so Pr[C = c | M = m0] = Pr[C = c | M = m1] ∀m0, m1 ∈ M, the new scheme is still perfectly secret
+and the new encryption scheme has a uniformly distributed key space now
+
+2.12
+consider a message space {0, 1} and t = 1
+the key space is empty: Gen outputs nothing, or identically Gen always outputs the same k which is unused
+Enc discards the input and randomly output 0 or 1
+Dec discards the input and randomly output 0 or 1
+then Pr[M = m | C = c] = Pr[M = m], since ciphertext is totally independent to the message 
+also Pr[Enc(Dec(m))] = Pr[Enc = m] = 1/2
+the lower bound of |K| maybe |M| / 2^t
+
+2.13
+consider a message space M that follows uniform distribution
+for a fixed c, M(c) <= |K|
+assume |K| < |M| * (1 - ε), then for more than ε|M| messages c may not decrypt to them
+since ∑m∈M(c) Pr[M = m | C = c] = 1, there exists at least one m0 such that 
+    Pr[M = m0 | C = c]  >= 1 / |M(c)|
+                        >= 1 / |K|
+                        > 1 / (1 - ε)|M|
+where Pr[M = m0] = 1 / |M|, so
+    Pr[M = m0 | C = c] - Pr[M = m0] > 1 / (1 - ε)|M| - 1 / |M|
+                                    = ε / (1 - ε)|M|
+also for some m1 ∉ M(c):
+    Pr[M = m0] - Pr[M = m1 | C = c] = Pr[M = m0]
+                                    = 1 / |M|
+take |M| = 2, for the scheme to be almost perfectly secret with a margin ε, it must has 
+    ε > 1 / 2
+but also
+    ε / 2(1 - ε) < ε
+    1 / 2(1 - ε) < 1
+    (1 - ε) > 1/2
+which is not possible, so |K| must >= |M| * (1 - ε)
+
+Chapter 3
+3.1
+a.  if negl1 and negl2 are negligible functions, then for some n1 and n2:
+        for any polynomial p, negl1(n) < 1/p(n) and negl2(n) < negl2(n) for n >= max(n1, n2)
+    let negl3(n) = negl1(n) + negl2(n)
+    for any polynomial p and n >= max(n1, n2):
+        negl3(n)    < 1/(2 * p(n)) + 1/(2 * p(n))  // since 2 * p(n) still a polynomial
+                    = 1/p(n)
+    so negl3 is negligible
+b.  for negl4(n) = p(n) * negl1(n) and any polynomial q:
+        negl4(n)    < p(n) / p(n)q(n)   // since p(n)q(n) still a polynomial
+                    = 1 / q(n) for n >= n1
+
+3.2
+n > 3767.76
+
+3.3
+for a random plaintext m chosen from {0,1}^n, Pr[|Enc(m)| <= n - i] <= 1/2^(i-1)
+since Dec is deterministic and there are 2^(n-i+1) - 1 strings in {0,1}^(n-i), at most
+    2^(n-i+1) - 1 / 2^n < 1/2^(i-1)
+fraction of strings in {0,1}^n can ever be encrypted to a shorter ciphertext, or Dec(Enc(m)) != m for some |m| = n
+the encryption scheme is assumed to be efficient, so there is a polynomial upper bound q that
+    |Enc(m)| <= q(|m|+|k|)
+both |k| = n, |m| and the encryption method are known to the adversary, so q(|k|+|m|) can be computed efficiently
+let A outputs two message, m0 ∈ {0, 1} and m1 uniformly sampled from {0, 1}^(q(n+1) + 2)
+A output 0 if the ciphertext c has length |c| <= q(n+1) and 1 otherwise
+then
+    Pr[PrivKeav(A, Π) = 1]  = Pr[b' = b]
+                            = Pr[b' = b | b = 0] / 2 + Pr[b' = b | b = 1] / 2
+when m0 is encrypted, |c| <= q(n+1) and A will output 0, makes b' = b 
+when m1 is encrypted, Pr[|Enc(m1)| <= q(n+1)] <= 1/2 by the previous argument
+    Pr[b' = b | b = 1] = Pr[|Enc(m1)| > q(n+1)] > 1/2
+    Pr[PrivKeav(A, Π) = 1]  > 1/2 + (1/2)/2
+                            = 3/4
+so Definition 3.8 cannot be satisfied
+
+3.4
+define Π = (Gen, Enc, Dec) that
+    Gen: uniformly sample k from {0, 1}^n on input 1^n
+    Enc: for input m,
+        pad m to length l(n) with leading 0s
+        prepend b(|m|), the binary presentation of |m|, also padded to |b(l(n))| with leading 0s
+        encrypt m' defined above with k and a legit stream cipher
+    Dec: for input c,
+        decrypt c with k to m'
+        read first |b(l(n))| bit to get the length of the real message
+        truncate m' to the specified length to recover m
+then an experiment in this encryption scheme is more powerful than an experiment in the stream cipher
+since for any m0, m1 outputed by A, m0', m1' are of the same length
+and if A may succeed with m0 and m1 in this scheme with non-negligible probability
+A also may succeed with m0' and m1' in the stream cipher, thus contradicts with the assumption
+
+3.5
+Pr[PrivKeav(A, Π, n) = 1]   = Pr[output(PrivKeav(A, Π, n, b)) = b]
+                            = Pr[output(PrivKeav(A, Π, n, b)) = b | b = 0] * Pr[b = 0] +
+                              Pr[output(PrivKeav(A, Π, n, b)) = b | b = 1] * Pr[b = 1]
+                            = Pr[output(PrivKeav(A, Π, n, 0)) = 0] * 1/2 +
+                              Pr[output(PrivKeav(A, Π, n, 1)) = 1] * 1/2
+                            = (1/2) * (1 - Pr[output(PrivKeav(A, Π, n, 0)) = 1] + Pr[output(PrivKeav(A, Π, n, 1)) = 1])
+                            = 1/2 + (Pr[output(PrivKeav(A, Π, n, 1)) = 1] - Pr[output(PrivKeav(A, Π, n, 0)) = 1])
+                            = 1/2 + (Pr[output(PrivKeav(A, Π, n, 1)) = 1] - Pr[output(PrivKeav(A, Π, n, 0)) = 1])
+shorthands: Priv(A, n) and Priv(A, n, b)
+1.  if Pr[output(Priv(A, n, 1)) = 1] - Pr[output(Priv(A, n, 0)) = 1] = f(n) for some positive non-negligible function f,
+    Pr[Priv(A, n) = 1] = 1/2 + f(n) and Π is not indistinguishable
+2.  if Pr[output(Priv(A, n, 0)) = 1] - Pr[output(Priv(A, n, 0)) = 1] = f(n) for some positive non-negligible function f,
+    define A' that outputs 1 when A outputs 0 and vice versa
+    then Pr[Priv(A', n, 0) = 1] = Pr[Priv(A, n, 0) = 0] = 1 - Pr[Priv(A, n, 0) = 1]
+    Pr[output(Priv(A', n, 1)) = 1] - Pr[output(Priv(A', n, 0)) = 1] = f(n)
+    Pr[Priv(A', n) = 1] = 1/2 + f(n), Π is not indistinguishable
+since |Pr[output(Priv(A, n, 0)) = 1] - Pr[output(Priv(A, n, 1)) = 1]| = f(n) implies 1 or 2, Def 3.8 => Def 3.9
+reversely, if Pr[Priv(A, n) = 1] = 1/2 + f(n) for some non-negligible function f,
+Pr[output(Priv(A, n, 1)) = 1] - Pr[output(Priv(A, n, 0)) = 1] = f(n)
+so Def 3.9 => Def 3.8
+
+3.6
+a.  if there is a distinguisher D can distinguish r from G'(s) with non-negligible probability,
+    it can also tell the difference between r and G(s') when the s' = s0^|s| for some s
+    but Pr[s' = s0^|s|] = 1/2^(|s|/2) and such case is itself negligible
+    so G can still be a proper pseudorandom generator even though G' is not
+b.  if there is a distinguisher D can tell the difference between r and G'(s) with non-negligible probability,
+        |Pr[D(r) = 1] - Pr[D(G'(s)) = 1]| = f(n), s uniformly picked from {0, 1}^n
+        |Pr[D(r) = 1] - Pr[D(G(s')) = 1]| = f(n), s' = s1..sn/2
+    so equivalently s' is uniformly picked from {0, 1}^(n/2), and D is a distinguisher for G as well
+    thus indistinguishability of G implies indistinguishability of G'
+
+3.7
+define Π = (Gen, Enc, Dec) identical to construction 3.24 except:
+    1.  it prepends F(k, k) to every ciphertext
+    2.  Enc(F(k, k)) = k, Dec(k) = F(k, k) as special cases
+        not ambiguous since Enc(F(k, k)) will be the only ciphertext of length n (2n otherwise)
+    3.  otherwise Dec(c) strips the first n bits from the ciphertext and decrypts the remaining as construction 3.24
+since F is a pseudorandom function, it's polynomial time indistinguishable from a random function f <- Func(n)
+F(k, k) appearently is just some random string from {0, 1}^n, not predictable from the encryption scheme without the key
+an adversary in a multiple-message experiment have to prepare sequences of messages before receiving any ciphertext
+it may send F(k, k) as one of the messages by chance, but not with non-negligible probability (by name, 1/2^n)
+however a adversary with an encryption oracle can take the first n bits from any previous ciphertext and get F(k, k)
+and query the oracle with F(k, k) to get k, the only hidden part in the encryption scheme
+
+3.8
+F(m) = F(k, m) maps strings in {0, 1}^d -> {0, 1}^d, where d = O(log(n)) and |k| = O(p(n)) for some polynomial p
+as 3.6.1, strings of length d * 2^d are in one-to-one correspondence with functions in Func(d)
+d = O(log(n)) => d * 2^d    = O(log(n)) * 2^O(log(n))
+                            < c1(log(n)) * 2^c2(log(n))
+                            = c1(log(n)) * n^c2
+                            = O(n^c2log(n)) for some c2
+so the key required to build a truely random function in Func(d) has length polynomial in n
+and the scheme permits a key of polynomial length, thus permits truely random functions
+
+3.9
+Given a pseudorandom function F that requires a key k of length n, for any polynomial l:
+    uniformly sample a random string s ∈ {0, 1}^n
+    uniformly sample another random string ctr ∈ {0, 1}^n, regard ctr as a number in binary
+    for i from 0 to l(n) / n, compute F(s, (ctr + i) mod 2^n)
+    a single F(s, ctr') have length n, combined has length l(n) in total
+    concatenate and truncate the result to get G(s, 1^l(|s|))
+if F is a pseudorandom function, from the perspect of a polynomial time adversary:
+    F(s, ctr + i) and F(s, ctr + j) for any different i, j should be totally random and independent
+since l is a polynomial, l(n) / n < 2^n, all (ctr+i) mod 2^n will be pairwise different
+if a distinguisher D can distinguish r from G(s, 1^|r|) for |r| = l(|s|),
+    |Pr[D(r) = 1] - Pr[D(Gl(s)) = 1]| = ε(n) 
+where ε is non-negligible and s <- {0, 1}^n, r <- {0, 1}^l(n)
+then another distinguisher D' can distinguish Fk from f <- Func(n), constructed as:
+    uniformly sample a random string ctr ∈ {0, 1}^n
+    query O(ctr + i) for i = 0 to l(n) / n
+    concatenate the result and feed it to D, output 1 if D outputs 1, vice versa
+if the oracle of D' is f <- Func(n), then O(ctr), O(ctr+1), .., O(ctr + l(n) / n) is equivalent to r <- {0, 1}^l(n)
+    Pr[D'(f, n) = 1] = Pr[D(r) = 1]
+if the given oracle is F(s) = F(k, s), then D' is equivalent to G and
+    Pr[D'(Fk, n) = 1] = Pr[D(G(k)) = 1], k <- {0, 1}^n
+that means
+    |Pr[D'(f, n) = 1] - Pr[D'(Fk, n) = 1]| = ε(n)
+so by contradiction, such a distinguisher D cannot exist, G is a variable-length pseudorandom generator
+
+3.10
+define a distinguisher D as:
+    query O(0^n), get c1
+    query O(1^n), get c2
+    if c1 = ~c2, output 1; otherwise output 0
+for any Fk, G'(k) is fixed and 
+    G'(k) xor 0^n = G'(k)
+    G'(k) xor 1^n = ~G'(k)
+so D will always output 1, Pr[D(Fk, n) = 1] = 1
+for f <- Func(n), f(1^n) and f(0^n) are independent strings in {0, 1}^n
+so Pr[D(f, n) = 1] = Pr[f(0^n) = ~f(1^n)] = 1/2^n
+|Pr[D(Fk, n) = 1] - Pr[D(f, n) = 1]| = 1 - 1/2^n is non-negligible, F is not pseudorandom
+
+3.11
+for a pseudorandom permutation F and a random permutation f <- Perm(n)
+for any polynomial time distinguisher D, there exists a negligible function ε that
+    |Pr[D(f, n) = 1] - Pr[D(Fk, n) = 1]| <= ε1(n)
+the only way to distinguish a random permutation and a random function is to find some x, y that f(x) = f(y)
+but for q different queries, the probability of finding such x and y is:
+    coll(q, |{0,1}^n|) <= q^2 / 2^(n+1)
+when q is polynomial, this probability is negligible, that means for any polynomial time distinguisher D:
+    |Pr[D(f, n) = 1] - Pr[D(g, n) = 1]| <= ε2(n)
+where f <- Func(n), g <- Perm(n), ε2 is a negligible function
+thus f, g sampled as above:
+    |Pr[D(f, n) = 1] - Pr[D(Fk, n) = 1]|    <= |Pr[D(f,n) = 1] - Pr[D(g,n) = 1]| + |Pr[D(g,n) = 1] - Pr[D(Fk,n) = 1]|
+                                            <= ε1(n) + ε2(n), which is negligible
+so Fk is also indistinguishable from a random function, Fk is a pesudorandom function
+
+3.12
+a encryption scheme Π = (Gen, Enc, Dec) has perfect CPA secrecy if for any adversary with unlimited computation power:
+    Pr[PrivK(A, Π, n) = 1] = 1/2
+while A has access to an oracle Enck, so this condition is stronger than normal perfect secrecy
+construct an adversary that
+    1. output two messages m0 = 0^n and m1 = 1^n
+    2. on receiving the challenge ciphertext c, encrypt m0 with the oracle once and compare the result to c
+    3. if the query in step 2 results c, output 0; otherwise output 1
+assume b = 1:
+    since the key is fixed in the experiment, 
+    result of step 2 cannot be c or m0, m1 encrypts to the same ciphertext with the same key
+    so A always successfully output b' = b = 1, Pr[b' = 1 | b = 1] = 1
+assume b = 0:
+    the challenge ciphertext and the oracle query is encrypted independently
+    with probability Pr[C = c | M = m0]^2 = Pr[C = c]^2 (by normal perfect secrecy) they will be the same ciphertext
+    as c is given as the challenge ciphertext, Pr[C = c] > 0 => Pr[b' = 0 | b = 0] = Pr[C = c]^2 > 0 
+accordingly:
+    Pr[PrivK(A, Π, n) = 1]  = Pr[b' = b]
+                            = Pr[b' = 0 | b = 0] * Pr[b = 0] + Pr[b' = 1 | b = 1] * Pr[b = 1]
+                            = Pr[b' = 0 | b = 0] / 2 + 1/2
+                            > 1/2
+thus no encryption scheme can be perfectly CPA secret
+
+3.13
+let F be a pseudorandom permutation, define F' to be
+    F'(k, k) = 0^|k|
+    F'(k, F^-1(0^|k|)) = F(k, k)
+    F'(k, m) = F(k, m) otherwise
+then F' is still a permutation as F' just swapped the corresponding value between k and F^-1(0^|k|)
+if F is indistinguishable, so is F'
+because F' and F only differ at 2/2^n unknown fraction of their domain (both k and F^(0^|k|) unknown to some D)
+that makes F and F' indistinguishable in polynomial time
+by the transitivity of indistinguishability (in problem 3.11), F' and a random permutation are indistinguishable
+but with oracle access of F'^-1, the key can be easily got by F'k^-1(0^|k|) = k
+with the key, compare the oracle O(m) with F(k, m) for some input m
+F' and f <- Perm(n) are distinguishable with probability 1 - ε(n) for some negligible ε
+
+3.14
+Dec: compute F^-1(k, c) and take the last n/2 bits
+define an alternative scheme Π' by replacing Fk with a random permutation f
+in scheme Π', f(rm) for any m is totally random, and for an adversary A that querys the oracle g(n) times:
+a.  if no query result equals to the challenge ciphertext, D gained no information about f^-1(c), A can only guess
+b.  if any query O(m) = c, m is the plaintext been encrypted in the experiment, A then compare it to m0 and m1 for b'
+    this only happens when m = mb and the two encryption used the same r, with probability p(n) <= 1/2^|r| = 1/2^(n-1)
+accordingly, 
+    Pr[PrivK(A, Π', n) = 1] <= Pr[b' = b | no O(m) = c] * (1 - p(n)) + Pr[b' = b | some O(m) = c] * p(n)
+                            = 1/2 * (1 - p(n)) + 1 * p(n)
+                            = 1/2 + p(n) / 2
+                            <= 1/2 + 1/2^n
+if an adversary can succeed with non-negligible probability with scheme Π, it can distinguish Fk and f
+this scheme do not perform the xor operation in construction 3.24, but requires F to be a keyed permutation
+
+3.15
+a.  assuming G(k) being a pseudorandom generator, G'(k) = G(k)G(k+1) is not necessarily a pseudorandom generator
+    let G be a pseudorandom generator {0, 1}^n -> {0, 1}^l(n), l(n) >= n + 2, define G': {0, 1}^(n+1) -> {0, 1}^l(n):
+        G'(s||0) = G(s)
+        G'(s||1) = G(s)
+    if some D can distinguish G'(s) and r <- {0, 1}^l(n), s <- {0, 1}^n+1
+        Pr[D(G'(s)) = 1]    = Pr[D(G'(s)) = 1 | s = s'||0]*Pr[s = s'||0] + Pr[D(G'(s)) = 1 | s = s'||1]*Pr[s = s'||1]
+                            = Pr[D(G(s')) = 1] / 2 + Pr[D(G(s')) = 1] / 2
+                            = Pr[D(G(s')) = 1] for s' <- {0, 1}^n
+        |Pr[D(r) = 1] - Pr[D(G'(s)) = 1]| = |Pr[D(r) = 1] - Pr[D(G'(s')) = 1]|
+    D is also a distinguisher of G, by contradiction, D may not exist => G' is a pseudorandom generator
+    but for every even s, G'(s) = G'(s + 1)
+    if the adversary output m0 = 0^(2n+2), m1 = 0^(n+1)1^(n+1)
+    by comparing the first and last half of the ciphertext, it may succeed with probability nearly 3/4
+b.  key space is empty, no way to be secure
+c.  indistinguishable, for f <- Func(n), f(0^n) is random, makes the scheme analog to one time pad
+    if an adversary can break the scheme, it can distinguish Fk and f
+    not CPA-secure, Enc is not probabilistic
+d.  analog to CTR mode of operation, thus CPA-secure
+
+3.16
+from the second encryption, the scheme is no longer probabilistic, thus cannot be CPA-secure
+namely let the adversary calculate m2 = (IV+1) xor (IV xor m0) and query it, get c', compare c' with c
+if mb = m0, c' = c
+if mb = m1, c' != c
+the adversary can break the scheme with certainty
+
+3.17
+ECB:    mi = F^-1(k, ci)
+CBC:    m1 = F^-1(k, c1) xor IV
+        mi = F^-1(k, ci) xor ci-1
+OFB:    m1 = F(k, IV) xor c1
+        mi = F(k, IVi-1) xor c1, IVi = F(k, IVi-1)
+CTR:    mi = F(k, ctr + i) xor ci
+ECB and CTR are fully parallelizable, OFB partially
+
+3.18
+if an adversary A can break this scheme, define a distinguisher D that:
+    give A 1^n, A outputs m0 and m1
+    sample b <- {0, 1}, sample ctr <- {0, 1}^n
+    encrypt mb as CTR mode of operation but replace Fk with queries to O with ctr+i
+    if A queries Enck, sample a new ctr' <- {0, 1}^n and do the encryption with O(ctr'+i)
+    A outputs b'
+    outputs 1 if b = b'; 0 otherwise
+if O = Fk, A is running PrivK(A, Π, n), Pr[D(n) = 1] = Pr[PrivK(A, Π, n) = 1] = 1/2 + ε(n)
+if O = f, A is running PrivK(A, Π', n), Pr[D(n) = 1] = Pr[PrivK(A, Π', n) = 1] <= 1/2 + 2q(n)^2 / 2^n
+then |Pr[D(Fk, n) = 1] - Pr[D(f, n) = 1]|   = |ε(n) - 2q(n)^2 / 2^n|
+if ε(n) is non-negligible, there is a distinguisher of F, by contradiction Π must be CPA-secure
+
+3.19
+a.  for Fk to be a pseudorandom function, 
+    Fk should be indistinguishable from a random function f: {0, 1}^lin(n) -> {0, 1}^lout(n) in polynomial time
+    again assume the adversary's running time is bounded by a polynomial q
+        q(n)/max(lin(n), lout(n)) is an upper bound of the number of queries
+        q(n) is an upper bound of the length of any query string
+    ctr* <- {0, 1}^lin(n) for the encryption of m0 and m1, ctri <- {0, 1}^lin(n) for ith query to the encryption oracle
+    lin(n) may not be logarithm, or 2^lin(n) will be polynomial and for big enough q overlap is guarenteed
+        Pr[Overlapi] = (2q(n) - 1) / 2^lin(n)
+        Pr[Overlap] <= ∑Pr[Overlapi]
+                    = (q(n) / max(lin(n), lout(n))) * (2q(n) - 1) / 2^lin(n)
+                    <= 2q(n)^2 / (max(lin(n), lout(n)) * 2^lin(n))
+    if Π is CPA-secure, Pr[Overlap] have to be negligible
+    thus 1 / (lout(n) * 2^lin(n)) has to be negligible, lin(n) may not be logarithm
+    it doesn't matter how small lout(n) is: 
+    even lout(n) = 1 it's a totally random bit, can be concatenated to totally random stream assuming no overlap of ctr
+b.  for fixed length message of length l(n), for a adversary whose running time is bounded by a polynomial q(n):
+        l(n) is an upper bound of the length of any query string 
+        q(n) / max(lin(n), l(n)) is an upper bound of the number of queries
+    if l(n) / lout(n) >= 2^lin(n), an overlap is guaranteed to happen during a single encryption
+    for two choices of ctr1 and ctr2, there is an overlap iff:
+        ctr2 - l(n) / lout(n) <= ctr1 <= ctr2 + l(n) / lout(n)
+        Pr[Overlapi]    <= 2l(n) / (lout(n) * 2^lin(n))
+        Pr[Overlap]     <= (q(n) / max(lin(n), l(n))) * (2l(n) / (lout(n) * 2^lin(n)))   
+                        = 2q(n)l(n) / (max(lin(n), l(n)) * lout(n) * 2^lin(n)) 
+    if Π is indistinguishable encryption, l(n) / lout(n) < 2^lin(n) for every n > 1
+    if Π is CPA-secure, Pr[Overlap] is negligible, lin(n) cannot be logarithm
+
+3.20
+a.  if there is a D that distinguishes Fk and f with oracle Fk$ and f$, construct D' as:
+        D' runs D as a subroutine
+        every time D queries g$:
+            sample r <- {0, 1}^n
+            query g(r)
+            output <r, g(r)> to D
+        if D outputs 1, output 1; otherwise output 0
+    then 
+        Pr[D'(Fk, n) = 1] = Pr[D(Fk$, n) = 1]
+        Pr[D'(f, n) = 1] = Pr[D(f$, n) = 1]
+        |Pr[D'(Fk, n) = 1] - Pr[D'(f, n) = 1]| = |Pr[D(Fk$, n) = 1] - Pr[D(f$, n) = 1]|
+    if D' can distinguish Fk$ and f$, then D can distinguish Fk and f
+    if F is a pseudorandom function, F is also a weakly pseudorandom function
+b.  F is not pseudorandom, since for any odd seed x
+        F(k, x) = F(k, x+1) 
+    which only happens with negligible probability for a real random function f
+    with a weaker oracle Fk$, the difference is only noticeable when ri = rj + 1 for some ri, rj <- {0, 1}^n
+    consider x = x + 1 for odd x, then the problem reduced to the birthday problem and 
+        coll(q, N) <= q^2 / 2N <= q^2 / 2^n, q is the total number of queries
+    since D is efficient, q is polynomial and coll(q, N) is negligible
+    thus F is weakly pseudorandom
+c.  consider the weak pseudorandom function F from part b
+    F(k, x) = F(k, x+1) for every odd x
+    define an adversary A that:
+        outputs m0 = 0^2n, m1 = 0^n1^n
+        on receiving the challenge ciphertext c, parse c = c1 || c2, compare c1 and c2
+        if ctr is odd:
+            if c1 = c2, output 0, otherwise 1
+        if ctr is even:
+            output b <- {0, 1}
+    if ctr is odd and b = 0, c1 = F(k, ctr) xor 0^n = F(k, ctr+1) xor 0^n = c2, b' = 0
+    if ctr is odd and b = 1, c1 != c2
+    if ctr is even, Pr[b' = b] = 1/2
+    so A succeeds with probability 3/4, this scheme does not have indistinguishable encryptions
+d.  OFB mode with a weak pseudorandom function is CPA-secure, if the message length is fixed as n
+    a distinguisher D can 
+        sample IV <- {0, 1}^n
+        output <IV, F(k, IV) xor m>
+    i.e. supply all it needs to break the scheme for some adversary A
+    then if A can break the scheme, D can distinguish Fk with the weaker oracle
+
+3.21
+define a new scheme Π that:
+Gen:    sample k1, k2 <- {0, 1}^n, set k1, k2 as the key for Π1 and Π2, k = <k1, k2>
+Enc:    for |m| = n:
+        sample r <- {0, 1}^n 
+        encrypt m1 = r, m2 = m xor r seperately with Π1 and Π2, get c1 and c2
+        (which one encrypted by which scheme doesn't matter)
+        output <c1, c2> as the ciphertext 
+Dec:    
+        on receiving <c1, c2>, decrypt seperately with Π1 and Π2, get m1 and m2
+        calculate m = m1 xor m2
+an encryption oracle of Enck is equivalent to two encryption oracle Enc1k1 and Enc2k2 combined
+if some adversary A1 can break Π1 with an oracle Enc1k1
+    Pr[PrivK(A1, Π1, n) = 1] = 1/2 + ε1(n) and ε1 is non-negligible
+and Π2 is CPA-secure
+if any adversary A can break Π with oracle Enck,
+    Pr[PrivK(A, Π, n) = 1] = 1/2 + ε(n) and ε is non-negligible
+define an adversary A2 that, with an oracle Enc2k2:
+    sample k1 <- {0, 1}^n
+    simulate an oracle Enc1k1 and run A to get m0', m1' (Enck equivalent to Enc1k1 and Enc2k2 combined)
+    sample r <- {0, 1}^n, define m0 = r xor m0', m1 = r xor m1', output m0 and m1
+    on receiving the challenge ciphertext c, give A <Enc1(k1, r), c> and <Enc1(k1, r), Enc2(k2, m0)>
+    answer following queries of A as before, until A outputs b'
+    outputs b' as well 
+if b = 0, c and Enc2(k2, m0) is completely indistinguishable and Pr[b' = b] = 1/2 for any A
+if b = 1, A is running in experiment PrivK(A, Π, n), Pr[b' = b] = 1/2 + ε(n)
+so Pr[PrivK(A2, Π2, n) = 1] = 1/2 + ε(n)/2, Π2 is not CPA-secure, by contradiction Π is CPA-secure
+by a symmetric argument, if Π is not CPA-secure, neither of Π1 nor Π2 can be CPA-secure
+so if one of Π1 and Π2 is CPA-secure, Π is CPA-secure
+
+3.22
+all of them are block ciphers with plain IV
+an adversary can require the decryption of <IV, c1> to get the first n bits of the message mb, thus determine b
+
+Chapter 4
+4.1
+if t(n) = O(log(n)), there are only 2^t(n) = O(n^c) possible tags
+if an adversary outputs (m, t) for random m <- {0,1}^n and t' <- {0,1}^t(n)
+    Pr[Mac-forge(A, Π, n) = 1]  = ∑t Pr[Mac(k, m) = t ∧ t = t' | M = m]
+                                = ∑t Pr[Mac(k, m) = t | M = m] * Pr[t = t' | M = m] // independent events
+                                = ∑t Pr[Mac(k, m) = t | M = m] * Pr[t = t'] // t' independent from m
+Pr[t = t'] = 1 / 2^t(n) for any t
+∑t Pr[Mac(k, m) = t | M = m] = 1 implies there must be some t that Pr[Mac(k, m) = t | M = m] >= 1 / 2^t(n)
+    Pr[Mac-forge(A, Π, n) = 1]  >= 1 / (2^t(n))^2
+since 2^t(n) is polynomial, 1 / 2(2^t(n))^2 is non-negligible and Π is not secure
+
+4.2
+by authenticate two message m0||m1 and m2||m3, an adversary can get tags of m2||m1 and m0||m3
+
+4.3
+can break with exactly the same method in problem 4.2
+
+4.4
+a.  for any message m = m0||m1, m0 = m1, |m0| = |m1| = n 
+    the computed tag will be F(k, m0) xor F(k, m1) = 0^n
+b.  define an adversary that:
+        sample m0 <- {0,1}^n
+        query m0||m0, get <r, t0>
+        define m1 = ~m0 
+        output <m1||m1, <r, t0>>
+    F(k, r) xor F(k, m0) xor F(k, m0) = F(k, r), so t0 = F(k, r)
+    replace m0 with m1 won't change the tag
+c.  it's still easy to forge messages that <1>||m0 = <2>||m1
+    choose different m0, m1 <- {0,1}^(n/2 - 2) and query for <<1>||m0||01, <2>||m0||10> to recover some F(k, r)
+    then the adversary in part b can be reused
+
+4.5
+a.  analog to CCA-security
+    define this stronger message authentication experiment Mac-forge-vrfy(A, Π, n) as:
+        1.  a random key k is generated by running Gen(1^n)
+        2.  the adversary A is given input 1^n and oracle accesses to Mac(k, _) and Vrfy(k, _, _)
+            the adversary eventually outputs a pair (m, t)
+            let Q denote the set of all messages that A asked to either oracle
+        3.  the output of the experiment is defined to be 1 iff Vrfy(m, t) = 1 and m ∉ Q
+    A message authentication code Π is secure if for all polynomial-time adversary A there is some negligible function
+        Pr[Mac-forge-vrfy(A, Π, n) = 1] <= negl(n)
+    a real-world application may be the receiving party acts visibly differently on receiving valid and invalid tags
+    like the recent attack on shadowsocks
+b.  assume an adversary A with two oracles can break Π with probability ε(n)
+    the number of queries it makes to vrfy oracle is bounded by a polynomial q
+    define a new adversary A' with access to only Mac oracle that:
+        run A as a subroutine 
+        pass input 1^n to A
+        sample i <- {1 .. q(n)}
+        when A queries the Mac oracle, query its own Mac oracle and forward the result to A
+        when A queries the Vrfy oracle with (m, t):
+            if m is previously queried in Mac oracle and the result is t, return 1 to A
+            if m is never queried before and this is the ith query to the vrfy oracle, output (m, t)
+            otherwise pass 0 to A
+        output whatever A outputs
+    define event Vrfy as A will ever query vrfy oracle with a fresh message and get positive answer
+    then A' simulates A correctly if i is the first time Vrfy occurs and Π has unique tags
+        negl(n) >= Pr[Mac-forge(A', Π, n) = 1] >= Pr[Vrfy] / q(n)
+        Pr[Vrfy] <= q(n) / negl(n)
+    if Vrfy never happens, either A never queries vrfy oracle or all such queries have result 0
+    define another adversary A* that:
+        run A as a subroutine
+        pass 1^n to A
+        when A queries the Mac oracle, query its own Mac oracle and forward the result to A
+        when A queries the vrfy oracle with (m, t):
+            if m is previously queried in Mac oracle and the result is t, return 1 to A
+            otherwise return 0
+        output whatever A outputs
+    again
+        negl(n) >= Pr[Mac-forge(A*, Π, n) = 1]  >= Pr[Mac-forge-vrfy(A, Π, n) = 1 ∧ ¬Vrfy]
+        Pr[Mac-forge-vrfy(A, Π, n) = 1] <= Pr[Vrfy] + Pr[Mac-forge-vrfy(A, Π, n) = 1 ∧ ¬Vrfy]
+                                        <= q(n) / negl1(n) + negl2(n)
+    thus security and unique tags implies this stronger definition of security
+c.  thanks https://people.seas.harvard.edu/~salil/cs127/fall13/ps8.pdf
+    let Π = (Gen, Mac, Vrfy) be the secure authentication code defined in construction 4.3
+    define Π' = (Gen, Mac', Vrfy') that
+        Mac':   on input m, let t = Mac(k, m), output t||0^n
+        Vrfy':  on input <m, t>, parse t = t'||pad, where |pad| = n = |k|
+                output 1 if Vrfy(k, m, t') = 1 and pad = 0^n or #1(pad)-th bit of the key is 1
+                output 0 otherwise
+    since the adversary have to both satisfy the vrfy algorithm and guess one bit of the key,
+        Pr[Mac-forge(A, Π', n) = 1] <= Pr[Mac-forge(A, Π, n) = 1] <= negl(n)
+    but with a vrfy oracle, an adversary can:
+        query the Mac oracle for some m and get <m, t||0^n>
+        make n queries to the vrfy oracle of <m, t||1^i0^(n-i)> to recover the key
+        calculate t for some new m', output <m', t>
+    and break the stronger sense of security with certainty
+
+4.6
+no
+again use the weak pseudorandom function define in part b of problem 3.20
+F(k, m||0) = F(k, m||1) for every m <- {0,1}^(n-1)
+an adversary only need to query some m||0, get <m||0, t> and output <m||1, t>
+by the definition <m||1, t> is valid
+
+4.7
+the only part changed in the proof of Theorem 4.6 is the proof of claim 4.8:
+    Pr[Mac-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ ¬Forge] = 0 
+let <m, t> is the output, m = m1 .. md, t = <r, t1 .. td>
+again it has 3 cases:
+    1.  the identifier r is different from all identifiers used by the Mac oracle: unchanged
+    2.  the identifier was used in exactly one of the Mac tag obtained by A from Mac oracle
+        let <m', t'>, m' = m'1 .. m'd', t' = <r, t1' .. t'd'> be result of that query:
+        a.  |m'| < |m|, m contains more blocks than m', obviously some block r||b||i||mi was never authenticated
+        b.  |m'| > |m|, then the last block r||1||d||md was never authenticated
+            the only block in t' with b = 1 is the last block r||1||d'||md', and d != d'
+        c.  |m'| = |m|, then there is some i that mi != m'i, then r||b||i||mi was never authenticated
+    3.  r was used in more than one of the Mac tags obtained by A from its oracle: again can't happen
+the tags are slightly shorter this time
+
+4.8
+for messages of length n, Mac(k, m) = F(k, 0^n xor m) = F(k, m)
+an adversary can query for some message m, obtain <m, t> and output <m||0^n, Mack(t)>
+and Mac(k, m||0^n) = F(k, Mac(k, m) xor 0^n) = F(k, t) = Mac(k, t)
+
+4.9
+a.  for messages of length n, Mac(k, m) = F(k, IV xor m)
+    define an adversary A that:
+        sample m <- {0,1}^n 
+        query m, obtain IV||t
+        calculate m' = ~m, IV' = ~IV 
+        output <m', IV'||t>
+    since IV xor m = IV' xor m', F(k, IV' xor m') = F(k, IV xor m) = t
+    A breaks the authentication code with certainty
+b.  define an adversary A that:
+        sample m1, m2 <- {0,1}^n
+        query m = m1||m2, obtain t = t1||t2
+        calculate m1' = t1 xor m2, m2' = t2 xor m1
+        output <m1'||m2', t2||t1>
+    t1' = F(k, t1 xor m2) = t2 
+    t2' = F(k, t1' xor m1') = F(k, t2 xor t2 xor m1) = F(k, m1) = t1
+    thus A succeeds if m1||m2 != m1'||m2'
+    as F is pseudorandom, m1 = m1' = t1 xor m2 only happends with negligible probability
+    A succeeds with probability 1 - negl(n)
+
+4.10
+define the second pre-image finding experiment Hash-sec-pre(A, Π, n):
+    1.  A key s is generated by running Gen(1^n), an input x <- {0,1}* is sampled
+    2.  The adversary A is given s and x, outputs x' ∈ {0,1}*
+    3.  The output of the experiment is defined to be 1 iff x != x' and H(s, x) = H(s, x')
+a hash function Π = (Gen, H) is second pre-image resistant if for all polynomial time adversary A:
+    Pr[Hash-sec-pre(A, Π, n) = 1] <= negl(n)
+define the preimage finding experiment Hash-pre(A, Π, n):
+    1.  A key s is generated by running Gen(1^n), an input x <- {0,1}* is sampled, y = H(s, x)
+    2.  The adversary A is given s and y, outputs x' ∈ {0,1}*
+    3.  The output of th experiment is defined to be 1 iff H(s, x') = y
+a hash function Π = (Gen, H) is pre-image resistent if for all polynomial time adversary A:
+    Pr[Hash-pre(A, Π, n) = 1] <= negl(n)
+if for some hash function Π, there is some A that 
+    Pr[Hash-sec-pre(A, Π, n) = 1] = ε(n)
+define another A' that:
+    run A as a subroutine
+    upon input s, sample x <- {0,1}* and pass s, x to A
+    when A outputs x', output x and x'
+A' perfectly simulates A, success of A implies success of A'
+    Pr[Hash-coll(A, Π, n) = 1] = Pr[Hash-sec-pre(A, Π, n) = 1] = ε(n)
+if ε(n) is non-negligible, Π is not collision-resistent
+thus collision-resistance implies second pre-image resistance
+if for some hash function Π, there is some A that
+    Pr[Hash-pre(A, Π, n) = 1] = ε(n)
+the domain of Hs is infinite and the range is finite
+with only negligible probability a x <- {0,1}* will be mapped to a Hs(x) with finite pre-image
+so it's safe to assume for a uniformly sampled x <- {0,1}*, H(s, x) has infinite pre-image
+since A is only given y = H(s, x), x' and x are independent pre-image of Hs and
+    Pr[x = x']  = Pr[x = x' | Hs(x) has finite pre-image] * Pr[Hs(x) has finite pre-image]
+                + Pr[x = x' | Hs(x) has infinite pre-image] * Pr[Hs(x) has infinite pre-image]
+                <= negl(n)
+define another A' that:
+    run A as a subroutine 
+    upon input s, sample x <- {0,1}*, define y = H(s, x), pass s, y to A
+    when A outputs x', output x' as well
+then Pr[Hash-sec-pre(A, Π, n) = 1]  = Pr[Hash-pre(A, Π, n) = 1 ∧ x != x']
+                                    = Pr[Hash-pre(A, Π, n) = 1] - Pr[Hash-pre(A, Π, n) = 1 ∧ x = x']
+                                    >= ε(n) - Pr[x = x']
+                                    = ε(n) - negl(n)
+if ε(n) is non-negligible, A' breaks second pre-image resistance
+thus second pre-image resistance implies pre-image resistance
+
+4.11
+a.  obviously, a collision in Π is directly a collision in Π1 and Π2 with corresponding keys
+    if an adversary A can break Π with non-negligible probability, deifine a new adversary A1 for Π1 that:
+        upon receiving s1, generate s2 <- Gen2(1^n) (1^n is implicit in s1)
+        run A with (s1, s2), A outputs x and x'
+        output x and x'
+    if x and x' is a collision in Π,
+        H1(s1, x)||H2(s2, x) = H1(s1, x')||H2(s2, x')
+        H1(s1, x) = H1(s1, x')
+    so x and x' is also a collision in Π1 and
+        Pr[Hash-coll(A1, Π1, n) = 1] >= Pr[Hash-coll(A, Π, n) = 1]
+    by a symmetric argument,
+        Pr[Hash-coll(A2, Π2, n) = 1] >= Pr[Hash-coll(A, Π, n) = 1]
+    if Π is not collision resistent, neither Π1 nor Π2 is
+    thus if either Π1 or Π2 is collision resistant, Π is collision resistant
+b.  a second pre-image x' in Π is obviously a second pre-image in Π1 and Π2
+    but when given H1(s1, x), x cannot be calculated and A1 cannot give H1(s1, x)||H2(s2, x) to A
+    the break cannot be transferred from A to A1 by the same idea
+    namely if Π1 is pre-image resistent and Π2 just outputs x
+    upon receiving H1(s1, x)||H2(s2, x) = H1(s1, x)||x
+    an adversary can just output x can break pre-image resistance with certainty
+
+4.12
+let Π' = (Gen, H^2), if an adversary A' can break Π' with non-negligible probability, define A for Π that:
+    upon receiving s, run A' with s, A' outputs (x, x')
+    if H(s, x) = H(s, x'), output (x, x')
+    if H(s, x) != H(s, x'), output (H(s, x), H(s, x'))
+if x, x' is a collision in Π', H(s, H(s, x)) = H(s, H(s, x')) and x != x'
+    if H(s, x) = H(s, x'), then x, x' is a collision in Π
+    if H(s, x) != H(s, x'), then H(s, x), H(s, x') is a collision in Π as they hashes to the same result
+then 
+    Pr[Hash-coll(A, Π, n) = 1] >= Pr[Hash-coll(A', Π', n) = 1]
+and the collision resistance of Π implies the collision resistance of Π'
+
+4.13
+assume an adversary A can break Π = (Gen, H) with non-negligible probability, define A' for (Gen, h) that:
+    upon receiving s, pass s to A and A outputs (x, x')
+    pad x and x' to multiply of l(n), parse the result as l(n) bit blocks x = x1 .. xb and x' = x'1 .. x'b'
+    define z0 = 0^l(n)
+    for i = 1 .. b, calculate every zi = h(s, zi-1||xi)
+    for j = 1 .. b', calculate every wj = h(s, wj-1||x'j)
+    if there exists some i and j that zi-1||xi != wj-1||x'j but zi = wj, output zi-1||xi and wj-1||x'j
+    otherwise output 0, 1
+as in proof of Theorem 4.14:
+if x != x' and H(s, x) = H(s, x'), there must be some collision between different zi-1||xi and wj-1||x'j
+thus
+    Pr[Hash-coll(A', (Gen, h), n) = 1] >= Pr[Hash-coll(A, Π, n) = 1]
+and the collision resistance of (Gen, h) implies the collision resistance of (Gen, H)
+
+4.14
+pad and parse the input to B blocks of length l'(n) - l(n), define z0 = 0^l(n) as well 
+then |zi-1||xi| = l'(n) is a valid input to hs, |zi| = l(n) for all i
+the proof of its collision resistance unchanged
+
+4.15
+a.  x and x padded with 0 to a multiply of l(n) hashes to the same result now 
+b.  if (x, x') is a collision in this code, zb||L = z'b'||L', zb = z'b' and L = L'
+    then h(s, zb||L) = h(s, z'b'||L') and (x, x') is also a collision in (Gen, H)
+    so the collision resistance of (Gen, H) implies collision resistance of this code
+c.  a collision (x, x') in this scheme implies IV||zb+1 = IV'||z'b+1, the two application chooses the same IV
+    since the IV in (Gen, H) can be replaced by any constant, define z0 = IV and (x, x') is also a collision in (Gen, H)
+    so the collision resistance of (Gen, H) implies collision resistance of this code 
+d.  if (x, x') is a collision in this code, h(s, zb||L) = h(s, z'b'||L')
+    if L != L', (zb||L, z'b'||L') is a collision in (Gen, h)
+    if L = L', there exists some i that xi != x'i, and zi-1||xi != z'i-1||x'i
+    let i* be the maximal of such i, then there must be some i* <= j <= b+1 that
+        zj-1||xj != z'j-1||x'j and h(s, zj-1||xj) = h(s, z'j-1||x'j)
+    and that's a collision in (Gen, h)
+    so the collision resistance of (Gen, h) implies collision resistance of this code
+e.  for a collision resistant hash function (Gen, g), define a new hash function (Gen, h) that:
+        h(s, <2l(n)>||x) = <l(n)> for some fixed x ∈ {0,1}^n
+        h(s, x) = 1g(s, x) otherwise
+    where gs: {0,1}^2l(n) -> {0,1}^(l(n)-1) and <k> is the binary representation of k padded to l(n) bits
+    then hs: {0,1}^2l(n) -> {0,1}^l(n), <2l(n)> starts with 0 as 2l(n) < 2^l(n)
+    <l(n)> is the only hash code starts with 0, a collision in (Gen, h) must be a collision in (Gen, g)
+    implies (Gen, h) is collision resistant
+    then for any message x' ∈ {0,1}^l(n),
+        H(s, x||x') = h(s, h(s, <2l(n)>||x)||x') = h(s, <l(n)>||x') = H(s, x')
+    and (x, x||x') is a collision in (Gen, H)
+
+4.16
+let (Gen', h) be a fixed-length collision-resistant hash function, hs: {0,1}^l'(n) -> {0,1}^l(n)
+let (Gen', H) be the result of applying the Merkle-Damgard transform described in problem 4.14 to (Gen, h)
+let IV be fixed constant string of length l(n), opad and ipad be fixed constant strings of length l'(n) - l(n)
+define a MAC as:
+    Gen:    generate s <- Gen'(1^n), sample k <- {0,1}^(l'(n) - l(n)), output (s, k)
+    Mac:    on input m of length L, output the tag:
+                t = H(s, (k xor opad)||H(s, k xor ipad)||m)
+            using the fixed IV
+    Vrfy:   on input (m, t), output 1 iff t = Mac((s, k), m)
+
+4.17
+s is not kept secret, and adversary can calculate
+even if s is secret, collision resistance puts no restriction on the distribution of s, and the distribution is public
+the underlying hash function (Gen', h) may not have that much variation of s <- Gen'(1^n)
+if there is only few s may ever be generated by Gen'(1^n)
+h(s, m) can be computed correctly with non-negligible probability
+assume |k| = l(n), an adversary can query for Mac(k, ε) = H(s, k) = h(s, h(s, IV||k)||<l(n)>) = tk
+then it can calculate h(s, tk||<2l(N)>) = tb, and
+    Mac(k, <l(n)>) = H(s, k||<l(n)>)    = h(s, h(s, h(s, IV||k)||<l(n)>)||<2l(n)>)
+                                        = h(s, tk||<2l(n)>)
+                                        = tb
+so if the adversary correctly outputs (<l(n)>, tb), it breaks the MAC
+if for some s' that Pr[s = s'] is polynomial, the probability of tb to be correct is non-negligible by guessing s = s'
+thus the adversary can break the MAC with non-negligible probability
+
+4.18
+for Construction 4.5, if for some valid (m, t)
+assume an adversary A with oracle access to Mack but cannot query for m can find another different valid tag t' for m
+then it must have find Mac(k, m) with a different identifer r' that
+    t' = r', t'1 .. t'd
+    t'i = Mac'(k, r'||l||i||mi)
+since for any different m' != m A queried, a fresh r is chosen and a collision event ri = rj is negligible
+assuming all such queries using different r (true with 1 - negl(n) probability),
+only one query m' can have the same identifier as t'
+    if |m| != |m'|, every block r||l||i||mi are different
+    if |m| = |m'|, as m' != m, at least on one position i, mi != m'i
+but then A have effectively forged a fresh pair (r'||l||i||mi, t'i) and breaks Π'
+so A cannot success with non-negligible probability
+since the encryption scheme in Construction 4.19 is CPA-secure,
+encrypting a different message m' will never give Enck(m) or decryption is impossible
+encrypting the same message m polynomial times will only give the same ciphertext c with negligible probability
+(or an adversary has non-negligible probability to differ Enck(m0) and Enck(m1))
+so an adversary attacking CCA-security, with 1 - negl(n) probability, is in the same (or weaker) situation to A
+such an adversary only have negligible probability to find another valid tag when given (c, t)
+denote the event it find another valid tag for any (c, t) as ValidTag
+then
+    Pr[PrivK(A, Π', n) = 1] <= Pr[ValidQuery ∧ ¬ValidTag]
+                            + Pr[ValidTag] 
+                            + Pr[PrivK(A, Π', n) = 1 ∧ ¬ValidQuery ∧ ¬ValidTag]
+Pr[ValidTag] <= negl(n)
+where Pr[ValidQuery ∧ ¬ValidTag] = Pr[ValidQuery] in the original proof
+(if no (c, t') with fresh and valid t' is queried, the proof of Claim 4.21 remains true)
+and Pr[PrivK(A, Π', n) = 1 ∧ ¬ValidQuery ∧ ¬ValidTag] = Pr[PrivK(A, Π', n) = 1 ∧ ¬ValidQuery] in the original proof
+(similar for Claim 4.22)
+thus Pr[PrivK(A, Π', n) = 1] <= 1/2 + negl(n) even if Π' uses MAC from Construction 4.5
+
+4.19
+if MAC has unique tags, authenticating a message twice will give the same tag
+authenticating two different messages will only give the same tag with negligible probability
+proof: if for some m0 and m1, Pr[Mac(k, m0) = Mac(k, m1)] = ε(n)
+define an adversary A:
+    query for m0, get t
+    output (m1, t1)
+then A succeeds with probability ε(n) and ε(n) must be negligible for secure MAC
+define adversary A attacking CPA-security of encrypt-and-authenticate:
+    outputs m0 and m1
+    upon receiving c = (c', t), query for Enck(m0), get (c'', t')
+    if t = t', output 0; otherwise output 1
+then Pr[PrivK(A, Π, n) = 1] = Pr[t' = t | b = 0] / 2 + Pr[t' != t | b = 1] / 2
+                            = 1/2 + (1 - Pr[t' = t | b = 1]) / 2
+                            = 1/2 + (1 - negl(n)) / 2
+                            = 1 - negl(n) / 2
+thus Π is not CPA-secure
+
+4.20
+the encryption scheme in problem 3.14
+it's CCA-secure (the problem text claimed so)
+but for all ciphertext c there is a corresponding r||m that Fk(r||m) = c as F being a pseudorandom permutation
+so there is Deck(c) = m for every c and there is no authenticated communication
+
+4.21
+let MAC be any authentication method, and Enc(k, m) just outputs plain m
+then EncMac((k1, k2), m) = <m, t> with encryption-and-authenciation method
+oracle access to EncMack is equivalent to Mack, Auth(A, Π', n) is equivalent to Mac-forge(A, ΠM, n)
+obviously Pr[Auth(A, Π', n) = 1] = Pr[Mac-forge(A, ΠM, n) = 1] <= negl(n)
+but the scheme is not secure at all
+
+4.22
+in any valid encryption scheme, different messages never encrypt to the same ciphertext
+so if at the end of experiment Auth(A, Π', n), the adversary outputs (c, t) and Dec(k, (c, t)) = m != ⊥, m ∉ Q
+then for any previous query m' to EncMack, EncMac(k, m') = (c', t'), c' != c
+assume Pr[Auth(A', Π', n) = 1] = ε(n) for some A'
+define an adversary A attacking experiment Mac-forge(A, ΠM, n) that:
+    sample k1 <- GenE(1^n)
+    run A' as a subroutine, when A' queries EncMack with m:
+        calculate c = Enc(k, m)
+        query Mack2(c) = t
+        pass <c, t> to A'
+    when A' outputs <c, t>, outputs <c, t> as well
+denote all queries to Mack2 in this experiment by QM
+if Dec(k1, <c, t>) = m != ⊥, m ∉ Q, then c ∉ QM and Vrfy(k2, c, t) = 1
+    negl(n) >= Pr[Mac-forge(A, ΠM, n) = 1] >= Pr[Auth(A', Π', n) = 1] = ε(n)
+and this scheme has authenticated communication
+combined with Theorem 4.20, it's a secure message transmission scheme
