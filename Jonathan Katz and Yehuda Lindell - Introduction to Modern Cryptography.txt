@@ -964,3 +964,71 @@ if Dec(k1, <c, t>) = m != ⊥, m ∉ Q, then c ∉ QM and Vrfy(k2, c, t) = 1
     negl(n) >= Pr[Mac-forge(A, ΠM, n) = 1] >= Pr[Auth(A', Π', n) = 1] = ε(n)
 and this scheme has authenticated communication
 combined with Theorem 4.20, it's a secure message transmission scheme
+
+Chapter 5
+5.1
+assume an adversary A can recover key with 100 queries to oracle Fk
+define a distinguisher D with oracle access to a (potentially random) function f that:
+    run A as a subroutine
+    when A queries Fk with m, query f(m) and pass result to A
+    denote Q = {m | m is queried so far}
+    if A reports an error, output 0
+    when A outputs a key k, choose a random m ∉ Q and calculate F(k, m), compare it to f(m)
+    if F(k, m) = f(m), output 1; otherwise output 0
+when f = Fk, D simulates A and A outputs k correctly, makes Pr[D(Fk, 1^n) = 1] = Pr[F(k, m) = f(m)] = 1
+for invalid inputs (f(m) when f is not Fk), A either reports an error or output a wrong result 
+if A reports error, only 2^n (those equal to some Fk) in all n! permutations in Perm(n) will not report an error, so
+    Pr[D(f, 1^n) = 1 | A reports error] = 0
+2^n / n! is negligible so 1 - 2^n / n! is not
+if A gives wrong (random) answer, F(k, m) and f(m) is totally independent, makes 
+    Pr[D(f, 1^n) = 1 | A gives wrong answer] = Pr[F(k, m) = f(m)] = 1 / 2^n
+thus
+    Pr[D(Fk, 1^n) = 1] - Pr[D(f, 1^n) = 1]  = 1 - (0 + 1 / 2^n)
+is not negligible, F is not pseudorandom
+
+5.2
+using 8 S-boxes of 8 bits, the 4-bit α1 may be influenced by 4 S-boxes and 32 bits in ka
+then combined with 4 bits from kb, 2^36 possibilities has to be tested
+the probability of false positive is still 1/16, roughly 9 input/output pairs are needed to narrow down the answer
+9 * 2^36 * 16 < 2^44 in total
+if block size is 128 bits, the key must be extended to 256 bits or there is some dependency between ka and kb
+the first 4 bits in the result of the first round still only influenced by 32 bits in ka
+the probability of false positive still 1/16
+but now there's twice the number of portions of ka have to be tested
+complexity 9 * 2^36 * 32 < 2^45 in total
+
+5.3
+if Fk is 3-round substitution permutation network described in section 5.1
+a one-bit difference in input in known position will be propagated to about 8 bits of the result in known position
+when ctr is even, ctr and ctr+1 will only be different at the least significant bit, which is known
+F(k, ctr) and F(k, ctr+1) will only be different at 8 known position
+by choosing m0 = 0^2n and m1 = 0^n1^n, observe c1 and c2
+if they are equal except that 8 bits, m0 must be encrypted, the adversary outputs 0; otherwise it outputs 1
+if ctr is even, the adversary outputs 0 or 1 randomly
+an adversary using this strategy always succeeds when ctr is odd, or with roughly 3/4 posibility in total
+
+5.4
+r permutations in a row is equivalent to a single permutation
+r key-mixing, when the scheme is open, is equivalent to a single key-mixing
+r substitution with a S-box Si is equivalent to one substitution with a S-box defined as Si^r
+this construction is equivalent to a one-round substitution-permutation network
+private key can be easily recovered in this construction
+
+5.5
+a.  (Lr, Rr) = (L0, R0) if r is even, (R0, L0) if r is odd
+    a single round computes Li+1 = Ri, Ri+1 = Li xor 0^n = Li, effectively swaps the position of Li and Ri
+b.  (L1, R1) = (R0, L0 xor R0)
+    (L2, R2) = (L0 xor R0, R0 xor L0 xor R0) = (L0 xor R0, L0)
+    (L3, R3) = (L0, L0 xor R0 xor L0) = (L0, R0)
+    thus for any r, (Lr, Rr) = (Lk, Rk), k = r mod 3
+
+5.6
+in every round of DES
+    E(~m) = ~E(m) as E only duplicates some bits, regardless of their exact value
+    ~E(m) xor ~ki = E(m) xor ki by the definition of xor
+    so f(~ki, ~m) = f(ki, m) for any sub-key
+    assume (L'i, R'i) = (~Li, ~Ri)
+    L'i+1 = ~Ri = ~Li+1
+    R'i+1 = ~Li xor f(~ki, ~Ri) = ~Li xor f(ki, Ri) = ~(Li xor f(ki, Ri)) = ~Ri+1
+    (L'i+1, R'i+1) = (~Li+1, ~Ri+1)
+by induction, for all r ∈ N, an r round DES(k, x) = ~DES(~k, ~x)
