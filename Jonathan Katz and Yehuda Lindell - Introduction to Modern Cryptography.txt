@@ -1032,3 +1032,57 @@ in every round of DES
     R'i+1 = ~Li xor f(~ki, ~Ri) = ~Li xor f(ki, Ri) = ~(Li xor f(ki, Ri)) = ~Ri+1
     (L'i+1, R'i+1) = (~Li+1, ~Ri+1)
 by induction, for all r ∈ N, an r round DES(k, x) = ~DES(~k, ~x)
+
+5.7
+query c0 = DESk(0^64) and c1 = DESk(1^64)
+brute-force search for any key in {0,1}^56, but for every trial k':
+    test if DES(k', 0^64) = c0 and if ~DES(k', 0^64) = c1
+    if the first equation holds, with high probability k = k'
+    if the second equation holds, by problem 5.6 with high probability k = ~k'
+thereby one calculation DES(k', 0^64) can rule out 2 possible keys k' and ~k'
+and only 2^56 / 2 = 2^55 calculation is necessary
+
+5.8
+for one round in the computation of DESk:
+    Li+1 = Ri 
+    Ri+1 = Li xor f(ki, Ri)
+for one round in the computation of DESk^-1:
+    Li = Ri+1 xor f(ki, Li+1)
+    Ri = Li+1
+swap the roles of L and R in DESk^-1 then:
+    L'i = Ri 
+    R'i = Li
+    L'i = R'i+1
+    R'i = L'i+1 xor f(ki, L'i+1)
+and the result of the final round in DESk^-1 is swapped to get (R'0, L'0) = (L0, R0)
+the only difference between DESk and DESk^-1 is the order of ki applied
+
+5.9
+a.  when k = 0^56, every sub-key chosen as a portion of k is also 0^48
+    every ki = kj and by problem 5.8, DESk = DESk^-1, DES(k, DES(k, m)) = m
+    an adversary can always query DESk(c) on receiving a previous query (m, c)
+    if DESk(c) = m, with high probability k is some special value
+b.  1^56
+    0^28||1^28
+    1^28||0^28
+c.  asymptotically not, only with 1 / 2^54 probability the four keys will be chosen
+    also these keys are problematic in any encryption/permutation scheme
+    they are highly regular and must be in some rainbow table
+    
+5.10
+a.  in this variation of DES:
+        Li+1 = Ri 
+        Ri+1 = Li xor ki xor Ri
+    then obviously the i-th bit of any sub-key will only affect the i-th bit in L and R
+    for a 16-round DES, the first bit in 16 sub-keys can be tested with the first bit in L16 and R16
+    there are 2^16 possibilities, with false positive 1/4
+    every bit position in sub-keys can be tested independently, thus the total time required to recover all sub-keys is
+        2^16 * log(4, 2^16) * 32 = 2^25
+b.  define SWAP(L||R) = (R||L) for |L| = |R|
+    for an oracle f, define F'(c) = SWAP(f(SWAP(c)))
+    by problem 5.8, if every sub-key is the same, SWAP(DES(k, SWAP(DES(k, m)))) = m
+    a distinguisher D can first query for some (m, c), and test if F'(c) = m, output 1 if the equation holds
+    if f = DESk, D success with certainty
+    if f <- Perm(n), F'(c) will be random and Pr[F'(c) = m] = 1 / 2^n
+        |Pr[D(DESk, 1^n) = 1] - Pr[D(f, 1^n) = 1]|  = 1/2 + 1/2 * (1 - 1 / 2^n)
+                                                    = 1 - 1 / 2^(n+1)
