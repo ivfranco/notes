@@ -282,7 +282,7 @@ define Π = (Gen, Enc, Dec) that
         read first |b(l(n))| bit to get the length of the real message
         truncate m' to the specified length to recover m
 then an experiment in this encryption scheme is more powerful than an experiment in the stream cipher
-since for any m0, m1 outputed by A, m0', m1' are of the same length
+since for any m0, m1 outputted by A, m0', m1' are of the same length
 and if A may succeed with m0 and m1 in this scheme with non-negligible probability
 A also may succeed with m0' and m1' in the stream cipher, thus contradicts with the assumption
 
@@ -1086,3 +1086,69 @@ b.  define SWAP(L||R) = (R||L) for |L| = |R|
     if f <- Perm(n), F'(c) will be random and Pr[F'(c) = m] = 1 / 2^n
         |Pr[D(DESk, 1^n) = 1] - Pr[D(f, 1^n) = 1]|  = 1/2 + 1/2 * (1 - 1 / 2^n)
                                                     = 1 - 1 / 2^(n+1)
+
+5.11
+after acquired 2^12 candidates for both kl and kr, with a new input/output pair (x', y')
+each kl can be tested independent to kr by comparing the XOR of round function outputs
+the false positive rate is again 1 / 2^16, and this time with high probability only one kl will be valid
+so 2^12 tests is necessary to decide kl or kr, 2 * 2^28 + 2 * 2^12 in total
+
+5.12
+a.  since F is a block cipher (pseudorandom permutation)
+    when k is known, both F(k, m) and F^-1(k, m) can be efficiently computed
+    with a known pair (x, y), an adversary can brute-force all k1 ∈ {0,1}^n
+    F^-1(k2, F(k1, m)) and F(k1, m) is computable when k1 is known
+    all possible k2 can be computed since both input and output of F^-1(k2, F(k1, m)) is known
+    assume Fk maps input to random output, for a given pair (x, y)
+    roughly 2^n pairs (k1, k2) will be valid among all 2^2n
+    by testing another two input/output pairs, with more than 1 - 2^n probability only one pair will remain valid
+b.  for all k2 ∈ {0,1}^n, calculate m = F^-1(k2, 0^n) and store k2 in linked lists in a hash table keyed by m
+    then for input m, the linked list contains all k2 that F^-1(k2, 0^n) = m can be queried as a table entry
+c.  calculate x = F^-1(k1, 0^n), query for x to get (x, y)
+    calculate y' = F^-1(k1, y), then y' = F^-1(k2, F(k1, x)) = F^-1(k2, 0^n)
+    then all valid k2 can be determined in constant time after the pre-process step
+    if there are multiple k2, false positives can be eliminated with further queries to F' in constant time
+d.  do the pre-process step in part b
+    brute-force all k1 ∈ {0,1}^n, for every k1 query x = F^-1(k1, 0^n)
+    total time 2^n + 2^n = O(2^n)
+
+5.13
+let i and j be two indexes starting from 0, l0 and l1 denote the two sorted lists
+group the elements of l1 by their first entry z, as l1 is sorted this can be done in linear time
+then l1' is a list of elements (z, {k2 | F^-1(k2, y) = z})
+while i < len(l0):
+    while j < len(l1) and l0[i].1 >= l1'[j].1:
+        if l0[i].1 = l1'[j].1: 
+            add all {(l0[i].2, k2) | k2 ∈ l1'[i].2} to S
+        j++
+    i++
+runtime linear in 
+    1. the combined length of the two lists
+    2. the combined size of all l1'[j].2 added to S, i.e. all matches
+
+5.14
+a variation of meet-in-the-middle attack
+query a input/output pair (x, y)
+for all kl ∈ {0,1}^28:
+    calculate z = the result of DES(kl||0^28, x) after 8 rounds
+    store and sort all (z, kl) in a list 
+for all kr ∈ {0,1}^28:
+    calculate z' = the result of DES^-1(0^28||kr, y) after 8 rounds
+    store and sort (z', kr) in another list
+then if z = SWAP(z'), kl||kr is a valid private key for the pair (x, y)
+as in the case of double encryption, this attack can be carried out in roughly 2 * 2^28 time
+
+5.15
+a.  0^112 and 1^112, both h(x) = 0^64
+b.  fix some x1 and calculate y' = DES^-1(x1, y)
+    brute-force to find x2 that DES(x2, 0^64) = y'
+    total runtime 2^56 + 1
+c.  given a value y ∈ {0,1}^64, sample x <- {0,1}^56, calculate z = DES^-1(x, y) and z' = DES(x, 0^64)
+    let t and t' be two hashtable indexed by z ∈ {0,1}^64
+    set t[z] = t'[z'] = x
+    if t[z'] or t'[z] is defined, output t[z]||t'[z] (or t[z']||t'[z']); otherwise sample another x and repeat
+    since DES is designed as a pseudorandom permutation
+    both DES^-1(x1, y) and DES(x2, 0^64) will effectively be random value in {0,1}^64
+    thereby the process is roughly equivalent to finding a collision after sampling z <- {0,1}^64 multiple times
+    by A.4, this succeeds with probability greater than q(q-1) / (4 * 2^64) for q independent sample
+    when q = 2^32, this strategy succeeds with probability 2^32(2^32 - 1) / 2^66 ≒ 1/4
