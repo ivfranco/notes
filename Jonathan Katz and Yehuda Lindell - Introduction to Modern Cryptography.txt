@@ -1206,10 +1206,10 @@ thereby f' is one-way
 assume an algorithm A inverts g(x1, x2) correctly with probability ε(2n) (let |x1| = |x2| = n)
 define another algorithm A' that:
     on input f(x1), x1 <- {0,1}^n, sample x2 <- {0,1}^n
-    pass (f(x1), x2) to A
-    when A outputs (x1', x2'), outputs x1'
+    pass 1^2n, (f(x1), x2) to A
+    when A outputs (x1', x2'), output x1'
 A' perfectly simulates A in experiment Invert(A, g, 2n)
-when A succeeds, g(x1', x2') = (f(x1'), x2') = (f(x1), x2), f(x1') = f(x1), A also successfully inserts f
+when A succeeds, g(x1', x2') = (f(x1'), x2') = (f(x1), x2), f(x1') = f(x1), A also successfully inverts f
 then
     negl(n) >= Pr[Invert(A', f, n) = 1] >= Pr[Invert(A, g, 2n) = 1] = ε(2n)
 a negligible function is asymptotically smaller than any 1 / p(n) when p is a polynomial, then 
@@ -1217,6 +1217,75 @@ a negligible function is asymptotically smaller than any 1 / p(n) when p is a po
 define p'(n) = p(2n), then p' is also a polynomial, therefore
     ∀p∃N, ∀n > N, negl(n) < 1 / p'(n) = 1 / p(2n)
 that means negl(n) is also asymptotically smaller than any 1 / p(2n) when p is a polynomial
-if ε(2n) is non-negligible, there is some polynomial that ε(2n) is not asymptotically smaller than p(2n)
+if ε(2n) is non-negligible, there is some polynomial p that ε(2n) is not asymptotically smaller than 1 / p(2n)
 but it's impossible as negl(n) >= ε(2n) and negl(n) is asymptotically smaller than any 1 / p(2n)
 thus ε(2n) is negligible, g is one-way
+
+6.5
+assume f is a length-preserving one-way function
+define f'(x1, x2) = f(x1)||0^n, |x1| = |x2| = n
+|f'(x1, x2)| = |f(x1)| + |x2| = |x1||x2|
+if there is an algorithm A that can invert f' with probability ε(2n)
+drop the last n bits (that is x2) from the result then A inverts f(x1), that makes negl(n) >= ε(2n)
+as proved in problem 6.4, ε(2n) is negligible, f' is one way and length-preserving
+but now G(x) = (f'(x), hc(x)) always has 0s at known positions
+an distinguisher D that:
+    upon input w = w1 .. w2n+1, if wn+1 = .. = w2n = 0 outputs 1; otherwise 0
+Pr[D(G(x)) = 1] = 1, Pr[D(r) = 1] = 1 / 2^n
+G is not a pseudorandom generator
+
+6.6
+=>  let f' be a one-way function defined on {0,1}* -> {0,1}*
+    define Π = (Gen, Samp, f) as a family of functions that:
+        Gen(1^n) outputs I = 1^n
+        Samp(1^n) samples x <- {0,1}^n
+        f(I, x) = f'(x)
+    then the experiment Invert(A, Π, n) is equivalent to Invert(A, f', n)
+    the one-wayness of f' implies the one-wayness of Π
+<=  thanks https://people.seas.harvard.edu/~salil/cs127/fall13/lec9.pdf
+    as Π = (Gen, Samp, f) is efficiently computable, I <- Gen at most expands 1^n polynomial times
+    there must be a polynomial p = c1 * n^c2 that:
+        on input 1^n to Gen, both Gen and Samp won't consume more than p(n) coins
+    define
+        f'(r1, r2) = (I, f(Samp(I; r2))), where 
+        |r1| = |r2| = n and I = Gen(1^n'; r1)
+        n' is the biggest integer that p(n') <= n
+        (as p(n) = c1 * n^c2, p(n) is monotonic and n' can be find with binary search, in time linear to |n|)
+    then f' is deterministic, and if an algorithm A can invert f', define another A' attacking Invert(A', Π, n) that:
+        on input I and y, run A(I, y) to get (r1, r2)
+        output x = Samp(I; r2)
+    if A successfully inverts f'(r1, r2) = (I, y), y = f(Samp(I; r2)) = f(x), A' successfully inverts f(I, y)
+        negl(n) >= Pr[Invert(A', Π, n) = 1] >= Pr[Invert(A, f', n) = 1] = ε(2n)
+    therefore f' must be one-way
+    do not work for one-way permutations as f'(r1, r2) is not length-preserving
+
+6.7
+if an algorithm A inverts g(x) with non-negligible probability
+an other algorithm A' on input f(x) can calculate f(f(x)) and invert it with A
+A' succeeds if A succeeds, thus g(x) must be one-way
+the same idea also applies to g(x) = (f(x), f(f(x)))
+
+6.8
+a.  assume f is a one-way function
+    define a non-deterministic machine that, given input 1^n and y:
+        guess a 0 or 1, append it to the previous guesses (ε if this is the first guess)
+        check if the current guess x makes f(x) = y
+        if that is the case, output x and halt
+    |x| = n and f(x) can be calculated in time polynomial to |x|
+    then this machine solves inversion problem in nondeterministic polynomial time
+    if P = NP, a deterministic machine M can simulate this machine in polynomial time
+    M inverts f in polynomial time, in contradiction to the assumption
+    thus existance of one-way function implies P != NP
+    a more formal proof: https://crypto.stackexchange.com/questions/39878
+b.  define f on input x ∈ {0,1}^n as:
+        calculate n' as biggest integer that n'^2 + n' <= |x|
+        (n' can be calculated by binary search, runtime linear in |x|)
+        if x = 0^(|x| - n'^2 - n')||x', calculate g(x') where g is subset-sum function defined in 6.1.2
+        otherwise f(x) = 0
+    for big enough n, n'^2 + n' <= |x| <= (n'+1)^2 + n', |x| = Θ(n'^2), |x'| = Θ(n'^2) = Θ(|x|)
+    for any n, inverting f(x) on some input requires solving subset-sum problem on input size Θ(n)
+    when P != NP, this cannot be done in polynomial time, Pr[f(A(f(x))) = f(x)] != 1
+    but for infinitely many n = n'^2 + n' + 1, define an algorithm that:
+        output x' = 10^(n-1)
+    with 1/2 probability, x <- {0,1}^n starts with 1 and f(x) = 0 = f(x')
+    therefore f is not one-way
