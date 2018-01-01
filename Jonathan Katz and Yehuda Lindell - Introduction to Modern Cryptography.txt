@@ -1152,3 +1152,71 @@ c.  given a value y ∈ {0,1}^64, sample x <- {0,1}^56, calculate z = DES^-1(x, 
     thereby the process is roughly equivalent to finding a collision after sampling z <- {0,1}^64 multiple times
     by A.4, this succeeds with probability greater than q(q-1) / (4 * 2^64) for q independent sample
     when q = 2^32, this strategy succeeds with probability 2^32(2^32 - 1) / 2^66 ≒ 1/4
+
+Chapter 6
+6.1
+for a sum w (assuming no leading 0), take x = 10^(|w|-1), y = w xor x, then f(x, y) = w
+by a binary search, inverse of f(x) = x^2 can be find in time O(log(2^|x^2|)) = O(|x|)
+
+6.2
+since f is one-way, for any polynomial time algorithm A there is a negligible function negl:
+    Pr(x <- {0,1}^n)[A(f(x)) ∈ f^-1(f(x))] <= negl(n)
+for every n
+define f' on f that:
+    f'(0^n) = 0^n 
+    f'(x) = f(x) when x != 0^n for some n
+then for all A':
+    Pr(x <- {0,1}^n)[A'(f'(x)) ∈ f'^-1(x)]  <= Pr[f'(x) = 0^n] 
+                                            + Pr[A'(f'(x)) ∈ f'^-1(x) | f'(x) != 0^n] * Pr[f'(x) != 0^n]
+                                            <= Pr[f'(x) = 0^n] + Pr[A'(f(x)) ∈ f^-1(x) | f(x) != 0^n]
+    Pr[f'(x) = 0^n] = Pr[f'(x) = 0^n | x = 0^n] * Pr[x = 0^n] + Pr[f'(x) = 0^n | x != 0^n] * Pr[x != 0^n]
+                    = 1 / 2^n + Pr[f(x) = 0^n | x != 0^n] * (1 - 1 / 2^n)
+if Pr[f(x) = 0^n | x != 0^n] = ε(n) is not negligible, an adversary that:
+    on input f(x) = 0^n, sample x' <- {0,1}^n / 0^n and output x'
+Pr[f(x) = 0^n] >= Pr[f(x) = 0^n | x != 0^n] * Pr[ x != 0^n] = ε(n) * (1 - 1 / 2^n)
+Pr[f(x') = 0^n] = ε(n)
+as x and x' are independent, this adversary succeeds with probability ε(n)^2 - negl(n)
+if ε(n) is not negligible, this probability is not too, in contradiction to the assumption that f is one-way
+thereby ε(n) is negligible and Pr[f'(x) = 0^n] <= 1 / 2^n + ε(n) is negligible
+    Pr[A'(f(x)) ∈ f^-1(x)]  >= Pr[A'(f(x)) ∈ f^-1(x) | f(x) != 0^n] * Pr[f(x) != 0^n]
+                            = Pr[A'(f(x)) ∈ f^-1(x) | f(x) != 0^n] * (1 - ε(n))
+if Pr[A'(f(x)) ∈ f^-1(x) | f(x) != 0^n] = ε'(n) is non-negligible
+Pr[A'(f(x)) ∈ f^-1(x)]  >= ε'(n) - negl(n) is also non-negligible, in contradiction to f being one-way
+thus Pr(x <- {0,1}^n)[A'(f'(x)) ∈ f'^-1(x)]  <= ε(n) + ε'(n) is negligible for all n
+therefore f' is one-way
+for infinite x, f is trivially invertible 
+but such x only exists uniquely in every probability space x <- {0,1}^n, not infinitely
+the one-wayness only consider one probability space a time, so infinite invertible x doesn't matter
+
+6.3
+errata: length-preserving => length-regular https://www.cs.umd.edu/~jkatz/imc/errata.pdf
+since f is a one-way function, it's efficiently computable
+the time required to compute f(x) is bounded by some polynomial p(|x|)
+define f'(x) = f(x)||10^(p(|x|) - |f(x)|), then for every input x, 
+    |f'(x)| = p(|x|) + 1
+so f' is length-regular
+if some algorithm A' can invert f' with probability ε(n), define A as:
+    on input 1^n and f(x), pass f'(x) = f(x)||10^(p(n) - |f(x)|) to A'
+    output whatever A' outputs
+obviously |x| = n and A simulates A', a correct output of A' is a correct output of A
+    Pr[Invert(A, f, n) = 1] = Pr[Invert(A', f, n) = 1] = ε(n) <= negl(n)
+thereby f' is one-way
+
+6.4
+assume an algorithm A inverts g(x1, x2) correctly with probability ε(2n) (let |x1| = |x2| = n)
+define another algorithm A' that:
+    on input f(x1), x1 <- {0,1}^n, sample x2 <- {0,1}^n
+    pass (f(x1), x2) to A
+    when A outputs (x1', x2'), outputs x1'
+A' perfectly simulates A in experiment Invert(A, g, 2n)
+when A succeeds, g(x1', x2') = (f(x1'), x2') = (f(x1), x2), f(x1') = f(x1), A also successfully inserts f
+then
+    negl(n) >= Pr[Invert(A', f, n) = 1] >= Pr[Invert(A, g, 2n) = 1] = ε(2n)
+a negligible function is asymptotically smaller than any 1 / p(n) when p is a polynomial, then 
+    ∀p∃N, ∀n > N, negl(n) < 1 / p(n)
+define p'(n) = p(2n), then p' is also a polynomial, therefore
+    ∀p∃N, ∀n > N, negl(n) < 1 / p'(n) = 1 / p(2n)
+that means negl(n) is also asymptotically smaller than any 1 / p(2n) when p is a polynomial
+if ε(2n) is non-negligible, there is some polynomial that ε(2n) is not asymptotically smaller than p(2n)
+but it's impossible as negl(n) >= ε(2n) and negl(n) is asymptotically smaller than any 1 / p(2n)
+thus ε(2n) is negligible, g is one-way
