@@ -1424,3 +1424,143 @@ if f = Fk, f(1) = G1(k), f(11) = G1(G1(k)), D always outputs 1
 if f <- Func(n), f(1) and f(11) are independent strings in {0,1}^n, Pr[D(f, 1^n) = 1] = Pr[x1 = x11] = 1/2^n
 therefore
     |Pr[D(Fk, 1^n) = 1] - Pr[D(f, 1^n) = 1]| = 1 - 1/2^n
+
+6.16
+define a keyed function F'(k1|| .. ||kn, x) = F(k1, x)|| .. ||F(kn, x)
+k = k1|| .. ||kn, |ki| ∈ {0,1}^n, x ∈ {0,1}^p(n)
+let fi be a uniformly chosen function {0,1}^p(n) -> {0,1}^i
+define oracles Fi with key k = ki+1|| .. ||kn as:
+    calculate r = fi(x)
+    output r||F(ki+1, x)|| .. ||F(kn, x)
+then F0 = F' and Fn = f
+assume some D can distinguish F' and f <- {0,1}^p(n) -> {0,1}^n, then:
+    |Pr[D(F', 1^n) = 1] - Pr[D(f, 1^n) = 1]| = ε(n)
+    = |Σ(i∈{0 .. n-1})Pr[D(Fi, 1^n) = 1] - Σ(i∈{1 .. n})Pr[D(Fi, 1^n) = 1]|
+    <= Σ(i∈{0 .. n-1})|Pr[D(Fi, 1^n) = 1] - Pr[D(Fi+1, 1^n) = 1]|
+then there must be some i' that:
+    |Pr[D(Fi', 1^n) = 1] - Pr[D(Fi'+1, 1^n) = 1]| >= ε(n)/n
+both probability defined over all randomly chosen fi: {0,1}^p(n) -> {0,1}^n and k = ki+1|| .. ||kn
+define another distinguisher D' with access to an oracle f: {0,1}^p(n) -> {0,1} that:
+    sample i <- {0 .. n-1}
+    sample ki+2, .. , kn <- {0,1}^n
+    when D queries x
+        if x is never queried: sample r <- {0,1}^i, calculate w = r||f(x)||F(ki+2, x)|| .. ||F(kn, x), record (x, w)
+        if x is queried before: output the previously recorded w
+    output whatever D outputs
+by sample and record random r, D' effectively constructs a random f: {0,1}^p(n) -> {0,1}^i
+if f is a randomly chosen function {0,1}^p(n) -> {0,1}:
+    r||f(x) is random (but deterministic to input) string in {0,1}^(i+1)
+    f'(x) = r||f(x) is a uniformly chosen function from {0,1}^p(n) -> {0,1}^(i+1)
+    D' simulates D(Fi+1, 1^n)
+if f = Fk for k <- {0,1}^n:
+    k concatenated with randomly sampled ki+2 .. kn is a random key to Fi
+    D' simulates D(Fi, 1^n)
+thereby
+    |Pr[D'(Fk, 1^n) = 1] - Pr[D'(f, 1^n) = 1]|  >= |Pr[D(Fi', 1^n) = 1] - Pr[D(Fi'+1, 1^n) = 1] * Pr[i = i']
+                                                >= ε(n)/n * 1/n = ε(n)/n^2 <= negl(n)
+therefore ε(n) must be negligible, F' is a pseudorandom function                                                
+
+6.17
+refer 3.13
+
+6.18
+for a 2-round Feistel network P with pseudorandom function F and two independent key k1, k2
+    L2 = R1 = L0 xor F(k1, R0)
+    R2 = L1 xor F(k2, R1) = R0 xor F(k2, L0 xor F(k1, R0))
+define a distinguisher D with access to oracle P:
+    sample two random x1, x2, x3 <- {0,1}n, define x = (x1, x3), x' = (x2, x3)
+    query P(x) = (L2, R2), P(x') = (L2', R2')
+    if L2 xor x1 = L2' xor x2, output 1; otherwise output 0
+by definition, L2 = x1 xor F(k, x3), L2' = x2 xor F(k, x3), L2 xor x1 = L2' xor x2
+which only happens with negligible probability if P is truly random
+    |Pr[D(P, 1^n) = 1] - Pr[D(p, 1^n) = 1]| = 1 - negl(n)
+
+6.19
+thanks https://crypto.stackexchange.com/questions/32974
+the original proof on the page mistakenly used the inversion function of Feistel network in DES
+which swaps L and R after the last round, makes P and P^-1 be the same function with reversed order of keys
+for a 3-round Feistel network P with pseudorandom function F and three independent key k1, k2, k3
+    L1 = R0
+    R1 = L0 xor F(k1, R0)
+    L2 = R1
+    R2 = L1 xor F(k2, R1)
+    L3 = R2 
+    R3 = L2 xor F(k3, R2)
+    L3 = R0 xor F(k2, L0 xor F(k1, R0))
+    R3 = L0 xor F(k1, R0) xor F(k3, R0 xor F(k2, L0 xor F(k1, R0)))
+P^-1 is defined as:
+    R2 = L3
+    L2 = R3 xor F(k3, R2)
+    R1 = L2 
+    L1 = R2 xor F(k2, R1)
+    R0 = L1
+    L0 = R1 xor F(k1, R0)
+    L0 = R3 xor F(k3, L3) xor F(k1, L3 xor F(k2, R3 xor F(k3, L3)))
+    R0 = L3 xor F(k2, R3 xor F(k3, L3))
+denote F(ki, x) as Fi(x)
+define a distinguisher D that:
+    query P^-1(0^2n) = (a, b)
+    query P(0^n||b) = (c, d)
+    query P^-1(c||(a xor d)) = (e, f)
+    if f = c xor b, output 1; otherwise output 0
+by definitions of P and P^-1:
+    b = F2(F3(0^n))
+    a = F3(0^n) xor F1(F2(F3(0^n))) = F3(0^n) xor F1(b)
+    c = b xor F2(F1(b))
+    d = F1(b) xor F3(b xor F2(F1(b))) = F1(b) xor F3(c)
+    a xor d = F3(0^n) xor F3(c)
+    f   = c xor F2(a xor d xor F3(c))
+        = c xor F2(F3(0^n)) 
+        = c xor b
+if P is a 3-round Feistel network, D outputs 1 with certainty
+if P = p <- Perm(2n), f and c xor b are independent strings in {0,1}^n, Pr[D(p) = 1] = 1/2^n
+    |Pr[D(P, 1^n) = 1] - Pr[D(p, 1^n) = 1]| = 1 - 1/2^n
+therefore P is not strongly pseudorandom 
+
+6.20
+errata: pseudorandom function => pseudorandom generator https://www.cs.umd.edu/~jkatz/imc/errata.pdf
+for all polynomial time distinguisher D:
+    |Pr[D(G(s)) = 1] - Pr[D(r) = 1]| <= negl(n)
+    s <- {0,1}^n, r <- {0,1}^(n+1)
+if an algorithm can invert G:
+    |Pr[A(G(s)) ∈ G^-1(G(s))]| = ε(n)
+define a new D' as:
+    on input w ∈ {0,1}^(n+1), run A(w) = s
+    if G(s) = w, output 1; otherwise output 0
+when w = G(s'), s' <- {0,1}^n, only when A succeeds, s ∈ G^-1(s'), G(s) = G(s'), D' succeeds
+when w <- {0,1}^(n+1)
+    if w is in the range of G, w = G(s') for some s', again D' succeeds iff A succeeds
+    if w is not in the range of G, no matter A succeeds or not, G(s) != w, D' outputs 0
+as G takes input s ∈ {0,1}^n, the range of G has size at most 2^n,
+    Pr(w <- {0,1}^(n+1))[w in the range of G] <= 2^n / |{0,1}^(n+1)| = 1/2
+thereby
+    Pr[D'(G(s)) = 1] = ε(n)
+    Pr[D'(w) = 1] = ε(n) * Pr[w in range of G] <= ε(n)/2
+    negl(n) >= |Pr[D'(G(s)) = 1] - Pr[D'(w) = 1]|  >= |ε(n) - ε(n)/2| = ε(n)/2
+ε(n) is negligible and G is one-way
+
+6.21
+a.  assume for some polynomial time distinguisher D:
+        |Pr[D(1^n, A(Xn)) = 1] - Pr[D(1^n, A(Yn)) = 1]| = ε(n)
+    define another distinguisher D' as:
+        on input 1^n and w, run D(1^n, A(w)), output whatever it outputs
+    both A and D are polynomial time algorithms, thereby D' is polynomial time too
+    when w <- Xn, D' simulates D(A(Xn))
+    when w <- Yn, D' simulates D(A(Yn))
+        negl(n) >= |Pr[D'(1^n, Xn) = 1] - Pr[D'(1^n, Yn) = 1]| = |Pr[D(1^n, A(Xn)) = 1] - Pr[D(1^n, A(Yn)) = 1] = ε(n)
+    {Xn} and {Yn} are computationally indistinguishable
+b.  let G be a pseudorandom generator with expansion factor 2n
+    let Xn be the distribution of G(s), s <- {0,1}^n
+    let Yn be the distribution r <- {0,1}^2n
+    then {Xn} and {Yn} are computationally indistinguishable
+    but is A has unbounded computational power, on input w ∈ {0,1}^2n, A can try every possible G(s)
+    if any G(s) = w, A outputs 1; otherwise output 0
+    then A always outputs 1 for every Xn
+    for w <- Yn, A outputs 1 when w is in the range of G, which happens with probability at most 2^n / 2^2n = 1/2^n
+    thereby
+        Pr[A(Xn) = 1] = 1
+        Pr[A(Yn) = 1] <= 1/2^n
+    an distinguisher D on input A(w) ∈ {0,1} can output A(w) directly, which gives:
+        |Pr[D(A(Xn)) = 1] - Pr[D(A(Yn)) = 1]|   = |Pr[A(Xn) = 1] - Pr[A(Yn) = 1]| >= 1 - 1/2^n
+    D doesn't have to compute A(w) itself and runs in constant time
+    therefore {A(Xn)} and {A(Yn)]} are not computationally indistinguishable
