@@ -1361,26 +1361,26 @@ as x <- {0,1}^n, |Sn| >= 2^n * ε(n)/2
 
 6.13
 let l be the expansion factor of G
-define Gi(y1|| .. ||yi-1||xi|| .. ||xn) = y1|| .. ||yi-1||G(xi)|| .. ||G(xn)
+define Gi(y1|| .. ||yi||xi+1|| .. ||xn) = y1|| .. ||yi||G(xi+1)|| .. ||G(xn)
 where yi <- {0,1}^l(n), xi <- {0,1}^n
 the output of all Gi has the same length nl(n)
 let si be the input to Gi, si <- {0,1}^(i * l(n) + (n-i) * n)
-G1 = G' and Gn takes input r <- {0,1}^nl(n) then output it
+G0 = G' and Gn takes input r <- {0,1}^nl(n) then output it
 if there is some D can distinguish G' and r,
-    |Pr[D(G'(s1)) = 1] - Pr[D(r) = 1]| = ε(n)
-    = |∑(i ∈ {2 .. n})Pr[D(Gi(si)) = 1] - ∑(i ∈ {1 .. n-1})Pr[D(Gi(si)) = 1]|
-    <= ∑(i ∈ {1 .. n-1})|Pr[D(Gi+1(si+1)) = 1] - Pr[D(Gi(si)) = 1]|
+    |Pr[D(G'(s0)) = 1] - Pr[D(r) = 1]| = ε(n)
+    = |∑(i ∈ {0 .. n-1})Pr[D(Gi(si)) = 1] - ∑(i ∈ {1 .. n})Pr[D(Gi(si)) = 1]|
+    <= ∑(i ∈ {0 .. n-1})|Pr[D(Gi+1(si+1)) = 1] - Pr[D(Gi(si)) = 1]|
 so there must be some i' that
-    |Pr[D(Gi'+1(si'+1)) = 1] - Pr[D(Gi'(si')) = 1]| >= ε(n)/(n-1)
+    |Pr[D(Gi'+1(si'+1)) = 1] - Pr[D(Gi'(si')) = 1]| >= ε(n)/n
 define another D' that takes input |w| ∈ {0,1}^l(n) as:
-    sample i <- {1 .. n-1}
-    sample y1 .. yi-1 <- {0,1}^l(n)
-    sample xi+1 .. xn <- {0,1}^n
-    compute s = y1|| .. ||yi-1||w||G(xi+1)|| .. ||G(xn)
+    sample i <- {0 .. n-1}
+    sample y1 .. yi <- {0,1}^l(n)
+    sample xi+2 .. xn <- {0,1}^n
+    compute s = y1|| .. ||yi||w||G(xi+2)|| .. ||G(xn)
     run D(s), output whatever it outputs
 then if i = i':
-    if w = G(x), x <- {0,1}^n, D'(s) is equivalent to D(Gi'(si'))
-    if w = r, r <- {0,1}^l(n), D'(s) is equivalent to D(Gi'+1(si'+1))
+    if w = G(x), x <- {0,1}^n, D'(w) is equivalent to D(Gi'(si'))
+    if w = r, r <- {0,1}^l(n), D'(w) is equivalent to D(Gi'+1(si'+1))
 thereby
     |Pr[D'(G(s)) = 1] - Pr[D'(r) = 1]|  >= |Pr[D(Gi'(si')) = 1] - Pr[D(Gi'+1(si'+1)) = 1] * Pr[i = i']
                                         >= (ε(n) / (n-1)) * 1 / (n-1)
@@ -1424,3 +1424,33 @@ if f = Fk, f(1) = G1(k), f(11) = G1(G1(k)), D always outputs 1
 if f <- Func(n), f(1) and f(11) are independent strings in {0,1}^n, Pr[D(f, 1^n) = 1] = Pr[x1 = x11] = 1/2^n
 therefore
     |Pr[D(Fk, 1^n) = 1] - Pr[D(f, 1^n) = 1]| = 1 - 1/2^n
+
+6.16
+define F' with k = k1|| .. ||kn, |ki| = n and input x ∈ {0,1}^p(n) that:
+    F'(k, x) = F(k1, x)|| .. ||F(kn, x)
+for a random function f: {0,1}^p(n) -> {0,1}^n, define fi(x) be the first i bits of f(x)
+define a sequence of keyed functions Fi that, with k = k1|| .. ||kn, |ki| = n and input x ∈{0,1}^p(n) that:
+    Fi(k, x) = f1(x)|| .. ||fi(x)||F(ki+1, x)|| .. ||F(kn, x)
+then F0 = F', Fn = f
+if some D can distinguish F' and f then:
+    |Pr[D(F'k, 1^n) = 1] - Pr[D(f, 1^n) = 1]| = ε(n)
+    = |∑(i∈{0 .. n-1})Pr[D(Fik, 1^n) = 1] - ∑(i∈{1 .. n})Pr[D(Fik, 1^n) = 1]|
+    <= ∑(i∈{0 .. n-1})|Pr[D(Fik, 1^n) = 1] - Pr[D(Fi+1k, 1^n) = 1]|
+then for some i' it must have 
+    |Pr[D(Fi'ki, 1^n) = 1] - Pr[D(Fi'+1ki+1, 1^n) = 1]| >= ε(n)/n
+    ki <- {0,1}^(n * (n - i))
+define another D' that, with an oracle f: {0,1}^p(n) -> {0,1}:
+    sample i <- {0 .. n-1}
+    sample ki+2 .. kn <- {0,1}^n
+    run D as a subroutine, when D queries on input x:
+        if x is not queried before:
+            sample r <- {0,1}^i, pass w = r||f(x)||F(ki+2, x)|| .. ||F(kn, x) to D
+            record the pair (x, w) in a hash table
+        if x is queried before:
+            query the hash table for w, pass w to D
+    output whatever D outputs
+the hash table effectively constructs a random function f': {0,1}^p(n) -> {0,1}^i on fly
+and it's indistinguishable from fi, as both output random r <- {0,1}^i
+if i = i'
+    when f = Fk, k <- {0,1}^n, D' simulates D(Fi'k, 1^n)
+    when f is a random function {0,1}^p(n)
