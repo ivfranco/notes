@@ -1644,6 +1644,8 @@ b.  define
         pq|(x - x')
         x - x' = npq for n ∈ N
     as both x and x' in PQ, x - x' < pq and n = 0, x = x', f is one-to-one
+    as gcd(p, q) = 1, there exist some integers X, Y that:
+        Xp + Yq = 1
     for any (x1, x2) ∈ PxQ, define
         x = x1Yq + x2Xp
         x mod p = x1Yq + x2Xp mod p 
