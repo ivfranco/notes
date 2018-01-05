@@ -1564,3 +1564,99 @@ b.  let G be a pseudorandom generator with expansion factor 2n
         |Pr[D(A(Xn)) = 1] - Pr[D(A(Yn)) = 1]|   = |Pr[A(Xn) = 1] - Pr[A(Yn) = 1]| >= 1 - 1/2^n
     D doesn't have to compute A(w) itself and runs in constant time
     therefore {A(Xn)} and {A(Yn)]} are not computationally indistinguishable
+
+Chapter 7
+7.1
+assume there are two identities e1 and e2 for an abelian group G
+then for every element g in G:
+    e1 + g = g, e2 + g = g
+    e1 + e2 = e1, e1 + e2 = e2
+therefore e1 = e2
+assume there are two inverse g'1, g'2 for an element g
+    g'1 + g = 0
+    g'2 + g = 0
+    g'2 + (g + g'1) = 0 + g'1
+    g'2 = g'1
+so any inverse of g must be the same element, g has a unique inverse
+
+7.2
+let G = R / 0 be the set of rational numbers without 0
+operation o be multiplication
+1 be the identity
+then for every element g ∈ G, g is a rational number and can be expressed as a/b for some integer a and b
+for all element g, h ∈ R, g * h ∈ R 
+for all g = a/b, g' = b/a ∈ R and g * g' = 1
+associativity follows the associativity of multiplication
+thereby G is a group
+define H = {1} ∪ {2^i | i ∈ Z+} ⊆ G (1 = 2^0)
+H contains the identity of G, and for any two elements g, h in H:
+    g = 2^i, h = 2^j
+    g * h = 2^(i+j) ∈ H
+but for any 2^i, i >= 1, the inverse of 2^i is not in H and H is not a subgroup of G
+
+7.3
+let m = |G|, as g^0 = 1, the identity of G is in <g>
+for any two elements g1, g2 ∈ <g>:
+    g1 = g^x1, g2 = g^x2 for some x1, x2 ∈ N
+    g1 * g2 = g^(x1 + x2) ∈ <g>
+g^0 = 1 ∈ G and assume g^i is in G:
+    g^(i+1) = g^i * g ∈ G (by closure property of G)
+by induction, g^i ∈ G for i ∈ N, <g> ⊆ G
+by Proposition 7.36, <g> is a subgroup of G
+if G is infinite, H is not necessarily a subgroup of G (refer set H defined in problem 7.2)
+
+7.4
+a.  define S = {p^i * u | 1 <= i < e, gcd(u, p) = 1, 1 <= u < p^(e - i)}
+    then for all d ∈ S, gcd(d, p^e) = p^i != 1, p^i * u < p^e
+    if d = gcd(n, p^e) != 1 for some n < p^e, d|n and d|p^e, d must be a power of p, d = p^i, 1 <= i < e
+    fix i and n = p^i * u for some integer u, p^i * u < p^e => u < p^(e - i)
+    if gcd(u, p) != 1, u = p^j * k for some k, d = p^(i+j)k, gcd(n, p^e) = p^(i+j)
+    thereby gcd(u, p) = 1 and d ∈ S
+    so S = {d | gcd(d, p^e) != 1}
+    as every integer has a unique factorization and gcd(u, p) = 1
+    d = p^i * u = p^i * Π(j)pj^ej, ∀j(pj != p)
+    if d = p^i * u, d' = p^i' * u', i != i' => d != d'
+    obviously, if d = p^i * u, d' = p^i * u', u != u' => d != d'
+    so any two elements in S defined as p^i * u for some different (i, u) are distinct
+    there is one-to-one correspondence between pair (i, u) and s ∈ S
+    fix i, gcd(u, p) = 1 and 1 <= u < p^(e - i), there are 
+        p^(e - i) - (p^(e - i)/p - 1) = p^(e - i) - p^(e - i + 1)
+    such u, and for all possible i:
+        |S| = ∑i∈{1 .. e-1}(p^(e - i) - p^(e - i + 1))
+            = ∑i∈{1 .. e-1}p^(e - i) - ∑i∈{2 .. e}p^(e - i)
+            = p^(e - 1) - 1
+    φ(p^e) = (p^e - 1) - |S| = p^e - p^(e - 1) = p^(e - 1) * (p - 1)
+b.  define
+        PQ = {n | gcd(n, pq) = 1, 1 <= n < pq}
+        P = {n | gcd(n, p) = 1, 1 <= n < p}
+        Q = {n | gcd(n, q) = 1, 1 <= n < q}
+        |PQ| = φ(pq), |P| = φ(p), |Q| = φ(q)
+    define f(x) = (x mod p, x mod q), then if gcd(x, pq) = 1, gcd(x, p) = 1
+        f(a + b) = ((a + b) mod p, (a + b) mod q) = (a mod p, a mod q) + (b mod p, b mod q) = f(a) + f(b)
+        f(ab) = (ab mod p, ab mod q) = (a mod p, a mod q)(b mod p, b mod q) = f(a)f(b)
+    assume x = kp + r for 0 <= r < p, if gcd(r, p) = d > 1:
+        d|r, d|p => d|(kp + r), d|x, gcd(x, p) > 1
+    thereby gcd(r, p) = gcd(x mod p, p) = 1, x mod p ∈ P
+    symmetrically, x mod q ∈ Q, f: PQ -> PxQ
+    if f(x) = (x1, x2) = f(x'),
+        x = x' = x1 mod p
+        x = x' = x2 mod q
+        p|(x - x'), q|(x - x')
+    as gcd(p, q) = 1:
+        pq|(x - x')
+        x - x' = npq for n ∈ N
+    as both x and x' in PQ, x - x' < pq and n = 0, x = x', f is one-to-one
+    as gcd(p, q) = 1, there are some X, Y that:
+        Xp + Yq = 1
+    for any (x1, x2) ∈ PxQ, define
+        x = x1Yq + x2Xp
+        x mod p = x1Yq + x2Xp mod p 
+                = x1(1 - Xp) + x2Xp mod p
+                = x1
+        x mod q = x2 (symmetric)
+    as x mod pq mod p = x mod p, x mod pq mod q = x mod q,
+    there is a number x mod pq ∈ PQ that f(x) = (x1, x2), f is onto
+    thereby f is a bijection, |PQ| = |P| * |Q|, φ(pq) = φ(p)φ(q)
+c.  every integer has unique factorization
+    for any n, n = Πpi^ei and every pi^ei is coprime
+    then φ(n) = Πφ(pi^ei) = Π(pi^(ei - 1) * (pi - 1))
