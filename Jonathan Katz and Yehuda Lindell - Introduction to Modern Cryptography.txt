@@ -1631,9 +1631,7 @@ b.  define
         P = {n | gcd(n, p) = 1, 1 <= n < p}
         Q = {n | gcd(n, q) = 1, 1 <= n < q}
         |PQ| = φ(pq), |P| = φ(p), |Q| = φ(q)
-    define f(x) = (x mod p, x mod q), then if gcd(x, pq) = 1, gcd(x, p) = 1
-        f(a + b) = ((a + b) mod p, (a + b) mod q) = (a mod p, a mod q) + (b mod p, b mod q) = f(a) + f(b)
-        f(ab) = (ab mod p, ab mod q) = (a mod p, a mod q)(b mod p, b mod q) = f(a)f(b)
+    define f(x) = (x mod p, x mod q)
     assume x = kp + r for 0 <= r < p, if gcd(r, p) = d > 1:
         d|r, d|p => d|(kp + r), d|x, gcd(x, p) > 1
     thereby gcd(r, p) = gcd(x mod p, p) = 1, x mod p ∈ P
@@ -1646,14 +1644,18 @@ b.  define
         pq|(x - x')
         x - x' = npq for n ∈ N
     as both x and x' in PQ, x - x' < pq and n = 0, x = x', f is one-to-one
-    as gcd(p, q) = 1, there are some X, Y that:
-        Xp + Yq = 1
     for any (x1, x2) ∈ PxQ, define
         x = x1Yq + x2Xp
         x mod p = x1Yq + x2Xp mod p 
                 = x1(1 - Xp) + x2Xp mod p
                 = x1
         x mod q = x2 (symmetric)
+    so gcd(x, p) = gcd(x mod p, p) = 1 = gcd(x, q) and there exists constants A,B,C,D:
+        Ax + Bp = 1
+        Cx + Dq = 1
+        (Ax + Bp)(Cx + Dq)  = ACx^2 + ADxq + BCxp + BDpq 
+                            = (ACx + ADq + BCp)x + BDpq = 1
+    which means gcd(x, pq) = 1
     as x mod pq mod p = x mod p, x mod pq mod q = x mod q,
     there is a number x mod pq ∈ PQ that f(x) = (x1, x2), f is onto
     thereby f is a bijection, |PQ| = |P| * |Q|, φ(pq) = φ(p)φ(q)
