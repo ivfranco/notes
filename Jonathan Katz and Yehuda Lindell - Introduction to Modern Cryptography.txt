@@ -1662,3 +1662,37 @@ b.  define
 c.  every integer has unique factorization
     for any n, n = Πpi^ei and every pi^ei is coprime
     then φ(n) = Πφ(pi^ei) = Π(pi^(ei - 1) * (pi - 1))
+
+7.5
+φ(100) = φ(2^2 * 5^2) = 40
+3^1000 mod 100  = 3^(1000 mod φ(1000)) mod 100
+                = 3^(1000 mod 40) mod 100
+                = 3^0 mod 100
+                = 1
+so the final two digits are 01
+
+7.6
+φ(35) = φ(5*7) = 24
+101^4800000023 mod 35   = 101^(4800000023 mod φ(35)) mod 35
+                        = 101^(4800000023 mod 24) mod 35
+                        = 101^23 mod 35
+                        = (101 mod 35)^23 mod 35
+                        = 31^23 mod 35
+                        = 31^(23 - φ(35)) mod 35
+                        = 31^-1 mod 35
+                        = 26
+
+7.7
+if G and H are groups with binary operations og and oh identities 1g and 1h
+define a binary operation O that
+    O((g, h), (g', h')) = (g og g', h oh h')
+then for any two elements (g, h), (g', h') ∈ GxH:
+    O((g, h), (g', h')) = (g og g', h oh h') ∈ GxH by closure of G and H
+define (1g, 1h) as the identity of GxH, then
+    O((g, h), (1g, 1h)) = (g og 1g, h oh 1h) = (g, h)
+for any elements (g, h) in GxH:
+    (g^-1, h^-1) ∈ GxH and
+    O((g, h), (g^-1, h^-1)) = (g og g^-1, h oh h^-1) = (1g, 1h)
+for any three elements in GxH:
+    associativity, routine
+therefore GxH defined as above is a group
