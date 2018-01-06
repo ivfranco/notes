@@ -1698,3 +1698,89 @@ for any elements (g, h) in GxH:
 for any three elements in GxH:
     associativity, routine
 therefore GxH defined as above is a group
+
+7.8
+X = kN + r, 0 <= r < N, X mod N = r
+if p|N, N = dp, X mod p = kdp + r mod p = r mod p = X mod N mod p
+let N = 6, p = 3
+4 mod p mod N = 1 != 4 = 4 mod N
+
+7.9
+let f(x) = f(x mod p, x mod q)
+refer to problem 7.4: 
+    f: Zpq* -> Zp* x Zq*
+    for f(x) = (x1, x2) = f(x'), x = x'
+so f is one-to-one
+also |Zpq*| = φ(pq) = φ(p)φ(q) = |Zp*| * |Zq*| = |Zp* x Zq*|
+f is a bijection
+refer to problem 7.7, Zp* x Zq* is a group with
+    o((x, y), (x', y')) = (xx' mod p, yy' mod q)
+    (1, 1) be the identity
+let *N denote the multiplication modulo N, x *N x' = [x * x' mod N]
+    f(x *N x') = ([x * x' mod N] mod p, [x * x' mod N] mod q)
+by problem 7.8,
+    [[x * x' mod N] mod p] = x * x' mod p
+    [[x * x' mod N] mod q] = x * x' mod q
+    f(x *N x')  = (xx' mod p, xx' mod q)
+                = (x mod p, x mod q) o (x' mod p, x' mod q)
+                = f(x) o f(x')
+thereby f is an isomorphism Zpq* -> Zp* x Zq*
+Zpq* is isomorphic to Zp* x Zq*
+
+7.10
+when p, q are distinct prime numbers, φ(N) = φ(p)φ(q)
+by Chinese remainder theorem, Zn is isomorphic to Zp x Zq, f(x) = (x mod p, x mod q) satistifes:
+    f(xx') = f(x)f(x')
+    f(x^ed) = f(x)^ed = (x^ed mod p, x^ed mod q)
+x^ed = x^(1 + kφ(N)) = x^(1 + kφ(p)φ(q))
+if x != 0 mod p and x != 0 mod q, x mod p ∈ Zp* and q ∈ Zq*,
+    x^(1 + kφ(p)φ(q)) = x mod p
+    x^(1 + kφ(p)φ(q)) = x mod q
+    f(x^ed) = (x mod p, x mod q) = f(x), x^ed = x mod N
+if x = 0 mod p, x = kp = k'q + r, 0 < r < q, f(x) = (0, r), r ∈ Zq*
+    f(x^ed) = (0^ed, r^ed mod q) = (0, r^(1 + kφ(p)φ(q)) mod q) = (0, r mod q) = (0, k'q + r mod q) = f(x)
+    x^ed = x mod N
+if both x = 0 mod p and x = 0 mod q
+    f(x) = (0, 0), f(x^ed) = (0, 0)^ed = (0, 0) = f(x)
+    x = x^ed mod N
+therefore x^ed = x mod N when ed = 1 mod φ(N), N = pq, p and q are distinct primes
+
+7.11
+a.  (considering only positive integers, nowhere in the text specified the binary representation of negative integers)
+    if a <= b, then ||a|| <= ||b|| (intuitively, a formal proof relies on the concrete representation so emitted)
+    if n >= 2, N = n^e >= 2^e, ||N|| >= ||2^e|| = e + 1, ||N|| + 1 >= e
+b.  assuming addition of two n bit integers can be done in time O(n)
+    multiplication of two n bit integers, most naively, can be done in time O(n^2)
+    when M^e < N, calculating M^e can be done with O(e) multiplication and O(e) addition, in total O(e||N||^2)
+    by part a, e = O(||N||) and O(e||N||^2) = O(||N||^3)
+    by binary search a number 1 < M <= N, calculate M^e (halt when at some point M^e' > N) and compare to N
+    an algorithm can calculate M^e = N from N in time O(||N||^3log(N)) = O(||N||^4)
+c.  since ||2^e|| = e + 1, for all e > ||N||, ||2^e|| > ||N|| + 1
+    so N cannot be a perfect power of n^e where e > ||N||
+    by run the algorithm in part b for 2 <= e <= ||N||
+    another algorithm can test whether N is a perfect power in time O(||N||^5)
+
+7.12
+assume N is odd
+N - 1 has least significant bit 0, let N - 1 = x1x2...xn in big endian
+by search from the least significant bit to the most, find the biggest i that xi = 1, then 
+    N - 1 = x1 .. xi||0^(n-i)
+denote r = n-i, let r be the number represented by the string x1 .. xi, then
+    N - 1 = u * 2^(n-i) = 2^r * u
+calculate b = [a^u mod N], if b != ±1 output "yes" and halt
+for j = 1 to r - 1:
+    calculate b^2^j = [(b^2^(j-1))^2 mod N]
+    if b^2^j != -1, output "yes" and halt
+output "no" and halt
+searching u and r can be done in time O(||N||), r = O(||N||)
+calculating a^u can be done in time O(||N||^2 * log(u)) = O(||N||^3)
+each step in the loop is multiplication of two ||N|| bit number, O(||N||^2)
+total running time O(||N||^3) is polynomial
+
+7.13
+N = pq 
+φ(N) = (p-1)(q-1) = pq - p - q + 1
+then φ(N) - N = 1 - p - q, p = 1 - q - φ(N) + N
+N = (1 - q - φ(N) + N)q = -q^2 + (N - φ(N) + 1)q
+-q^2 + (N - φ(N) + 1)q - N = 0, coefficient all known, q can be solved in polynomial time by formula
+with q, p can be solved by binary search or long division
