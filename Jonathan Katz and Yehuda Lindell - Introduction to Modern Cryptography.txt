@@ -1751,7 +1751,7 @@ a.  (considering only positive integers, nowhere in the text specified the binar
     if n >= 2, N = n^e >= 2^e, ||N|| >= ||2^e|| = e + 1, ||N|| + 1 >= e
 b.  assuming addition of two n bit integers can be done in time O(n)
     multiplication of two n bit integers, most naively, can be done in time O(n^2)
-    when M^e < N, calculating M^e can be done with O(e) multiplication and O(e) addition, in total O(e||N||^2)
+    when M^e < N, calculating M^e can be done with O(e) multiplication and square, in total O(e||N||^2)
     by part a, e = O(||N||) and O(e||N||^2) = O(||N||^3)
     by binary search a number 1 < M <= N, calculate M^e (halt when at some point M^e' > N) and compare to N
     an algorithm can calculate M^e = N from N in time O(||N||^3log(N)) = O(||N||^4)
@@ -1784,3 +1784,55 @@ then φ(N) - N = 1 - p - q, p = 1 - q - φ(N) + N
 N = (1 - q - φ(N) + N)q = -q^2 + (N - φ(N) + 1)q
 -q^2 + (N - φ(N) + 1)q - N = 0, coefficient all known, q can be solved in polynomial time by formula
 with q, p can be solved by binary search or long division
+
+7.14
+thanks https://stackoverflow.com/questions/2921406
+// incomplete and informal
+assume d is positive, otherwise (3d^2) is a positive number and
+    3(3d^2) = (3d)^2 = 1^2 = 1 mod φ(N)
+and ||3d^2|| = O(||d||), the number 3d^2 is only longer by a constant times, let 3d^2 be d in the following proof
+3d = 1 mod φ(N)
+3d = 1 + kφ(N) for some positive integer k
+calculate k' = 3d/N, the biggest integer that k'N <= 3d, k' <= 3d/N
+    k'N <= 3d = 1 + kφ(N) < (k'+1)N
+as φ(N) = (p-1)(q-1) < N, k > k'
+also (k'+1)N >= kφ(N), k <= (k'+1) * N/φ(N)
+N / φ(N) = pq / pq - (p+q) + 1 = 1 + (p+q-1 / pq-(p+q)+1)
+φ(N) = Θ(N) and when p and q are close, (p+q-1 / φ(N)) = O(N^(1/2)) / Θ(N) = O(1 / N^(1/2))
+k <= (k'+1) * N/φ(N) <= k'+ 1 + (3d/N + 1) * O(1 / N^(1/2))
+if d is O(N^(3/2)), k <= k' + 1 + c for some constant c
+by testing k starting from k'+1 with the algorithm in problem 7.13, p and q can be calculated efficiently
+
+7.15
+assume some algorithm A can compute discrete logarithm problem that:
+    Pr[DLog(A, G, n) = 1] = ε(n)
+define another A' solving CDH that:
+    run A as a subroutine
+    on input G, q, g, h1, h2, run x1 = A(G, q, g, h1), x2 = A(G, q, g, h2)
+    output g^(x1x2)
+if both x1 and x2 are correct, g^(x1x2) is correct
+as h1 = g^x1 and h2 = g^x2 is defined by randomly chosen x1 and x2, f(x) = g^x is a isomorphism, g is a generator
+h1 and h2 are randomly chosen from G, their successes are independent
+    Pr[CDH(A'(G, q, g, h1, h2)) = 1] = ε(n)^2
+if CDH is hard, ε(n)^2 is negligible, ε(n) must be negligible and DLog must be difficult
+
+7.16
+assume some algorithm A can solve CDH that:
+    Pr[CDH(A, G, n) = 1] = ε(n)
+define another A' solving DDH that:
+    run A as a subrountine
+    on input G, q, g, h1, h2, h3, run h3' = A(G, q, g, h1, h2)
+    if h3 = h3', output 1; otherwise output 0
+when h3 = g^xy, if A succeeds h3' = h3 and A' outputs 1
+    Pr[A'(G, q, g, g^x, g^y, g^xy) = 1] >= ε(n)
+when h3 is chosen randomly, A outputs 1 when h3 equals the output of A
+A doesn't know h3 and the two events are independent, this happens with probability 1/|G|
+if DDH is hard, first |G| must be exponential to the security parameter
+or an algorithm that outputs a random elements in G will succeed with probability 1/|G| non-negligible
+thereby
+    Pr[A'(G, q, g, g^x, g^y, g^z) = 1] = negl(n)
+    |Pr[A'(G, q, g, g^x, g^y, g^xy) = 1] - Pr[A'(G, q, g, g^x, g^y, g^z) = 1]| = ε(n) - negl(n) <= negl'(n)
+therefore ε(n) must be negligible and CDH must be difficult
+
+7.17
+it's geometry
