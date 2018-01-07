@@ -1802,6 +1802,8 @@ N / φ(N) = pq / pq - (p+q) + 1 = 1 + (p+q-1 / pq-(p+q)+1)
 k <= (k'+1) * N/φ(N) <= k'+ 1 + (3d/N + 1) * O(1 / N^(1/2))
 if d is O(N^(3/2)), k <= k' + 1 + c for some constant c
 by testing k starting from k'+1 with the algorithm in problem 7.13, p and q can be calculated efficiently
+errata: d ∈ {1 .. φ(N)}: https://www.cs.umd.edu/~jkatz/imc/errata.pdf
+3d = 1 + kφ(N), k can only be 1 or 2
 
 7.15
 assume some algorithm A can compute discrete logarithm problem that:
@@ -1836,3 +1838,83 @@ therefore ε(n) must be negligible and CDH must be difficult
 
 7.17
 it's geometry
+
+7.18
+by problem 7.10, for any ed = 1 mod φ(N), g ∈ ZN, g^ed = g mod N, φ(p) = p-1
+when x ∈ Zp-1* = Zφ(p)*, gcd(x, φ(p)) = 1 and x^-1 mod φ(p) exist and can be computed in polynomial time (Theorem B.2)
+with x' = x^-1 mod φ(p), [y^x' mod N] = [g^xx' mod N] = g mod N can be computed in polynomial time
+
+7.19
+let Gen be the algorithm in Construction 7.62
+p is chosen as a random strong prime number of (n+1) bits
+2 is not a strong prime number, thereby p must be odd
+p-1 is a (n+1)-bit even number, q = (p-1)/2 drops the least significant zero in p-1 and is a n-bit prime number
+(p, q, g) <- Gen(1^n), ||p|| = n+1, ||q|| = n
+input to the hash function Zq x Zq is a tuple of two numbers smaller than q, 2||q|| = 2n bits
+output of the hash function is a number in Zp, has at most ||p|| = n+1 bits
+the hash function therefore maps 2n bits to n+1 bits, when n > 1 it achieves compression
+
+7.20
+(p, q, g) <- Gen'(1^n), p is a prime number, ||p|| = n, q = p-1, g is a generator of Zp*
+as p being a prime number, Zp* = {1 .. p-1} and every number in Zp* - {1} is a generator
+if discrete logarithm is hard relative to Gen, given p, q, g, h = g^x a polynomial algorithm cannot calculate x
+fix g ∈ Zp* - {1} and define p: Zp* -> Zp* as:
+    f(x) = [g^(x - 1) mod p]
+g is a generator of order q, for x, y ∈ Zp* = {1 .. q}, x-1, y-1 ∈ Zq = {0 .. q-1}
+if g^x = g^y, x mod q = y mod q, x = y, thereby f is a permutation on Zp*
+define a family of permutations Π = (Gen, Samp, H) that:
+    Gen = Gen'
+    Samp: on input (p, q, g), sample x <- Zp*
+    H((p, q, g), x) = g^(x-1)
+if an algorithm A can invert Π,
+    Pr[Invert(A, Π, n) = 1] = ε(n)
+define another A' attacking discrete logarithm that:
+    on input p, q, g, h, run x = A((p, q, g), h)
+    output x-1
+if A successfully calculates x that g^(x-1) = h = g^x', x-1 = x' mod q, x-1, x' ∈ Zq, x-1 = x', A' succeeds too
+    Pr[DLog(A', A, Gen, n) = 1] >= Pr[Invert(A, Π, n) = 1] = ε(n) <= negl(n)
+Π must be a family of one-way permutations
+
+7.21
+let (x, x') be a collision of Hs, x != x'
+define σ be the suffix function, σ(x, n) is the last n bits of x
+as (x, x') being a collision, Hs(x) = Hs(x')
+take i be the last position where xi != x'i, then σ(x, 3n-i) = σ(x', 3n-i), define t = Hs(σ(x, 3n-i)) = Hs(σ(x', 3n-i))
+xi != x'i, if Hs(σ(x, 3n-i+1)) = Hs(σ(x', 3n-i+1)), yt^e = t^e mod N, y = 1
+when y = 1, RSA is easy with x = 1, thus exclude this case
+for y != 1, Hs(σ(x, 3n-i+1)) != Hs(σ(x', 3n-i+1)) and for any w, w', Hs(w) = Hs(w') => Hs(0||w) != Hs(1||w)
+as Hs(x) = Hs(x'), at some point in the calculation there must be
+    yt1^e = yt2^e mod N or
+    t1^e = t2^e  mod N or
+    yt1^e = t2^e mod N
+for different t1, t2
+y ∈ Zn* means y^-1 exists, the first two cases both reduce to t1^e = t2^e mod N
+by definition of GenRSA, gcd(e, φ(N)) = 1, there exists ed = 1 mod φ(N), f(x) = x^e is a permutation on ZN*
+if t1^e = t2^e mod N, t1 = t2 mod N, in contradiction to t1, t2 being different
+so there must be some different t1, t2 that
+    yt1^e = t2^e mod N
+    y   = t2^e * (t1^e)^-1 mod N    // f(x) = x^e is a permutation on ZN*, t1^e invertible
+        = (t2 * t1^-1)^e mod N  // t1 invertible as t1 = yt1'^e or t1'^e, both y and t1'^e invertible by induction
+therefore t2 * t1^-1 is a e-th root of y
+assume A can find a collision of Π = (Gen, H):
+    Pr[Hash-coll(A, Π, n) = 1] = ε(n)
+define another A' attacking RSA problem that:
+    on input s = (N, e, y), run (x, x') = A(s)
+    calculate Hs(σ(x, i)), Hs(σ(x', i)) for i from 1 to 3n, find the first pair that
+        x(3n-i) != x'(3n-i)
+        t1 = Hs(σ(x, i)) != Hs(σ(x', i)) = t2
+        Hs(σ(x, i+1)) = Hs(σ(x', i+1))
+    if x'(3n-i) = 0, output t2 * t1^-1 mod N; otherwise output t1 * t2^-1 mod N
+A' correctly simulates A
+if A succeeds, by the previous argument, A' outputs some x ∈ ZN* that x^e = y,
+if RSA problem is hard relative to Gen
+    negl(n) >= Pr[RSA-inv(A, Gen, n) = 1] >= Pr[Hash-coll(A, Π, n) = 1] = ε(n)
+and Construction 7.75 must be a collision-resistant hash function
+
+7.22
+given a collision (x, x'), x != x', Hs(x) = Hs(x') for some s = (G, q, (h1 .. ht))
+x = x1 .. xt, x' = x'1 .. x't, xi, x'i ∈ Zq
+    Πhi^xi = Πhi^x'i
+as q is a prime and h1 is a generator of q, G is cyclic and any h except the identity is a generator of order q
+assume the operation in group G can be done in polynomial time
+h^q = 1, h * h^(q-1) = 1, the inverse of every element in G can be calculated in polynomial time
