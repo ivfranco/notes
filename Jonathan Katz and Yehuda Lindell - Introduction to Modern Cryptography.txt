@@ -1917,4 +1917,39 @@ x = x1 .. xt, x' = x'1 .. x't, xi, x'i ∈ Zq
     Πhi^xi = Πhi^x'i
 as q is a prime and h1 is a generator of q, G is cyclic and any h except the identity is a generator of order q
 assume the operation in group G can be done in polynomial time
-h^q = 1, h * h^(q-1) = 1, the inverse of every element in G can be calculated in polynomial time
+h^q = 1, h * h^(q-1) = 1, the inverse of every element in G exists and can be calculated in polynomial time
+    Πhi^xi = Πhi^x'i
+    Πhi^xi * (hi^-1)^x'i = 1
+    Πhi^(xi - x'i) = 1
+as x != x, at least one xi - x'i will be non-zero
+define f(x) = h1^k, f:Zq -> G is a bijection, ki <- Zq implies hi = f(ki) = h1^ki <- G, then
+    Πhi^(xi - x'i) = Πh1^ki^(xi - x'i) = h1^(Σki(xi - x'i)) = 1
+    k1 = 1, k2 .. kt <- Zq
+therefore Σki(xi - x'i) = 0 mod q
+for some specific i' that xi' - x'i' != 0, 
+    ki'(xi' - x'i') + Σ(i != i')ki(xi - x'i) = 0 mod q
+    [ki'(xi' - x'i') mod q] = q - [Σ(i!=i')ki(xi - x'i) mod q]
+    [ki' mod q] = [(q - [Σ(i!=i')ki(xi - x'i)])(xi' - x'i')^-1 mod q]
+ki' can be calculated from Σki(xi - x'i)
+if some algorithm A can find a collision in Π = (Gen, H):
+    Pr[Hash-coll(A, Π, n) = 1] = ε(n)
+define another A' attacking DLog that:
+    on input G, q, g, h
+    sample i <- {1 .. t}
+    sample k2 .. ki-1, ki+1 .. kt <- Zq
+    compute hj = g^kj for j = 2 .. i-1, i+1 .. t
+    define h1 = g, hi = h, run (x, x') = A((G, q, (h1 .. ht)))
+    compute Δj = (xj - x'j) for j ∈ {1 .. t}
+    if Δi != 0: compute and output [(q - [ΣΔj * kj mod q]) * Δi^-1 mod q]
+A' correctly simulates A as h is randomly chosen from G
+as x != x, at least one xj != x'j, this j is independent to i
+with probability 1/t, i = j and Δi != 0
+when i = j and A successfully finds a collision, the calculated output is the correct k that g^k = h
+when discrete logarithm is hard,
+    negl(n) >= (Pr[DLog(A', G, n) = 1] >= ε(n)/t
+as t = poly(n), ε(n) must be negligible and (Gen, H) is a collision-resistant hash function
+H maps x1 .. xt ∈ Zq to G, every string in {0,1}^(||q||-1) = {0,1}^(n-1) can be parsed as a number in Zq
+thereby H is defined on all strings {0,1}^t(n-1)
+when representing an element in G requires p(n) bits, H: {0,1}^t(n-1) -> {0,1}^p(n)
+when t(n-1) > p(n), H achieves compression
+as an example, when t = p(n), t(n-1) = p(n)(n-1) > p(n)
