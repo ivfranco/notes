@@ -1953,3 +1953,88 @@ thereby H is defined on all strings {0,1}^t(n-1)
 when representing an element in G requires p(n) bits, H: {0,1}^t(n-1) -> {0,1}^p(n)
 when t(n-1) > p(n), H achieves compression
 as an example, when t = p(n), t(n-1) = p(n)(n-1) > p(n)
+
+Chapter 8
+8.1
+this method is vulnerable to Pollard's p-1 method
+say both p-1 and q-1 are multiplication of a subset of the first k (small) primes
+define B = Π(i∈{1 .. k})pi, (p-1)|B and (q-1)|B
+then for some x ∈ ZN*, [x^B mod N] <-> (xp, xq)^B = (1,1), [x^B mod N] = 1
+by testing x^B mod N, a smallest possible k can be found by binary search
+as p != q, p-1 != q-1, there must be some pi, i <= k that pi|(p-1) but not pi|(q-1)
+brute force such a pi and define B' = B/pi, (q-1)|B but not (p-1)|B
+B' satisfies the requirement of Pollard's p-1 method
+when k = O(polylog(q)), the instructions above can be done in O(polylog(q)) time
+this method of choosing prime numbers is not secure
+
+8.2
+a.  q = p^e, g^p^(e-1)|q => ord(g^p^(e-1)) = ord(g)/p^(e-1) = p
+    define y' = y^p^(e-1), g' = g^p^(e-1)
+    solving (g^p^(e-1))^x0 = y^p^(e-1) is now g'^x0 = y', a new discrete logarithm problem with ord(g') = p
+    use baby-step/giant-step algorithm and it can be solved in time O(p^1/2 * polylog(q))
+b.  ord(g) = q means the g^x0 * g^(q - x0) = g^q = 1, g^(q - x0) = (g^x0)^-1 is the inverse of g^x0
+    multiplying both side of g^x = y by (g^x0)^-1,
+        g^(x0 + x1p + .. + xe-1p^(e-1)) * (g^x0)^-1 = y * g^(x0)^-1
+        (g^p)^(x1 + x2p + .. + xe-1p^(e-2)) = y * g^(x0)^-1 = y'
+c.  the equation above is a discrete logarithm in the same group with ord(g^p) = q/p = p^(e-1)
+    apply the instructions in part a again can again solve x1 in time O(p^1/2 * polylog(q))
+    at the last step, (g^p^(e-1))^xe-1 = y* for some y* can be solved in time O(p^1/2 * polylog(q))
+        P(e) = P(e-1) + O(p^1/2 * polylog(q))
+        P(1) = O(p^1/2 * polylog(q))
+    by master theorem:
+        P(e) = O(e * p^1/2 * polylog(q)) = O(p^1/2 * polylog(q))
+
+8.3
+every pi^ei and pj^ej is pairwise relatively prime when i != j
+by Pohlig-Hellman algorithm, the discrete logarithm problem g^x = y can be reduced to i problems gi^xi = yi
+where gi = g^(q/pi^ei), yi = y^(pi^ei), ord(gi) = pi^ei
+by problem 8.2, such a sub problem can be solved in time O(pi^1/2 * polylog(q))
+reconstruction from i sub problems to the original problem takes time O(polylog(q)) by Chinese remainder theorem
+therefore the original problem can be solved in time O(∑pi^1/2 * polylog(q)) = O(max{pi}^1/2 * polylog(q))
+
+8.4
+a.  i.  d|b and d|N
+        ab = c + kN
+        d|b => d|ab => d|(c + kN) => c + kN = 0 mod d
+        d|N => c + kN = c + kk'd, c + kk'd = c mod d, c = 0 mod d, d|c
+    ii. ab = c + kN => ak1d = k2d + kk3d => aki = k2 + kk3 => a(b/d) = (c/d) + k(N/d)
+        a(b/d) = c/d mod N/d
+    iii.if gcd(b/d, N/d) > 1 = d'
+        d'|b/d and d'|N/d => dd'|b and dd'|N, dd' > d, in contradiction to gcd(b, N) = d
+b.  when g, y ∈ ZN, xg = y mod N
+    calculate d = gcd(g, N)
+    by ai, d|y
+    by aii, x(g/d) = y/d mod N/d
+    by aiii, gcd(g/d, N/d) = 1
+    the problem xg = y mod N is now reduced to the problem x(g/d) = y/d mod N/d
+    denote g' = g/d, y' = y/d, N' = N/d, g', y' < N' as g < N
+    as gcd(g', N') = 1, Xg' + YN' = 1
+    for every number k in ZN', kXg' + kYN' = k, [kX mod N']g' = k mod N', g' is a generator of ZN
+    apply the method described in 8.2.3, x can be efficiently found and
+        x(g/d) = y/d mod N/d
+        x(g/d) = y/d + k(N/d)
+        xg = y + kN
+        xg = y mod N
+    x is also the solution of the original problem
+
+8.5
+define a series of strings x1 .. as xi+1 = H(xi) for a randomly chosen x1
+if there are some H(xi) = H(xj) for i < j in the series
+the series {H(xi)} repeats j-i elements after xi
+define k as the smallest integer that k(j-i) >= i, define i' = k(j-i)
+i' < j and H(xi') = H(x2i') as in Claim 8.2
+define an algorithm that:
+    sample x0 <- {0,1}^l(n), where l(n) is the output length of H
+    set xi = x2i = x0
+    for i = 1 to k:
+        xi' = H(xi)
+        x2i' = H(H(x2i))
+        compare xi' and x2i', output (xi, H(x2i)) if xi' = x2i'
+        xi = xi'
+        x2i = x2i'
+take k = Θ(2^l(n)/2)
+if the series {xi} can be viewed as independently sampled strings in {0,1}^l(n), by birthday problem:
+    coll(k) >= k(k-1)/4|{0,1}^l(n)| ≒ 1/4
+    Pr[xi = xj, i != j] = negl(n)
+the algorithm have 1/4 - negl(n) probability finding a collision of H
+by repeating the algorithm polynomial times with different x0, with 1 - negl(n) probability a collision can be found
