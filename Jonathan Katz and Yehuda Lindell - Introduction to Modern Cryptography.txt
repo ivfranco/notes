@@ -2198,3 +2198,59 @@ if Πk is secure,
     1/2 + 2negl(n) >= ε(n)
     1/2 + negl'(n) >= ε(n)
 and Π must be CPA-secure
+
+10.5
+assume A is an adversary outputs two vectors of messages M0 and M1, M0 = (m01 .. m0k), M1 = (m11 .. m1k)
+as A is PPT, k is bounded by a polynomial t(n) given security parameter n and define
+    Pr[PubKmult(A, Π, n) = 1] = ε(n)
+define A' be an adversary attacking PubKmult(A', Π, n) and outputs two message vectors M'0 and M'1 of length t(n) that:
+    run A as a subroutine 
+    on input (pk, 1^n), pass (pk, 1^n) to A, get two message vectors M0 and M1 of length k
+    pad both M0 and M1 to length t(n) by appending 0^|m00| (m00 is the first element in M0), get M0' and M1'
+    output M0' and M1', get a vector of challenge ciphertexts C, pass the first k elements of C to A
+    output whatever A outputs
+C is the encryption of Mb' where b <- {0,1}, thereby the first k elements of C is the encryption of Mb where b <- {0,1}
+A' correctly simulates PubKmult(A, Π, n) and A' succeeds iff A succeeds, by Definition 10.7:
+    1/2 + negl(n) >= Pr[PubKmult(A', Π, n) = 1] = Pr[PubKmult(A, Π, n) = 1] = ε(n)
+therefore Π has indistinguishable multiple encryptions regarding message vectors of variable length k
+
+10.6
+define an adversary A' attacking PubK(A', Π, n) that:
+    run A as a rubroutine
+    on input (pk, 1^n), pass (pk, 1^n) to A, get a pair of vectors ((m00, m01), (m10, m11))
+    output a pair of messages (m00, m10), get a challenge ciphertext c0
+    compute c1 <- Enc(pk, m11), pass (c0, c1) to A
+    output whatever A' outputs
+when b = 0, c0 <- Enc(pk, m00) and
+    Pr[PubK(A', Π, n) = 1 | b = 0] = Pr[A(Enc(pk, m00), Enc(pk, m11)) = 0]
+when b = 1, c0 <- Enc(pk, m10) and 
+    Pr[PubK(A', Π, n) = 1 | b = 1] = Pr[A(Enc(pk, m10), Enc(pk, m11)) = 1]
+as Π is CPA-secure,
+    1/2 + negl(n)   >= Pr[PubK(A', Π, n) = 1]
+                    = 1/2 * (Pr[PubK(A', Π, n) =1 | b = 0] + Pr[PubK(A', Π, n) = 1 | b = 1])
+                    = 1/2 * Pr[A(Enc(pk, m00), Enc(pk, m11)) = 0]
+                    + 1/2 * Pr[A(Enc(pk, m10), Enc(pk, m11)) = 1]
+
+10.7
+assume e is known, f(x) = x^e mod N is a bijection in group ZN*, N = pq for some primes p and q
+define A' as:
+    run A as a subroutine
+    on input y = x^e, x unknown, assert that gcd(y, N) = 1
+    for i = 1 to log(0.99, 0.01):
+        sample r <- ZN, calculate [r^-1 mod N]
+        if gcd(r, N) = 1, compute y' = y * r^e mod N, run x' = A(y')
+        if (x' * r^-1)^e = y mod N, output x' * r^-1
+if gcd(y, N) > 1 or any gcd(r, N) > 1, N can be easily factored
+A' can calculate d = e^-1 mod φ(N), then x = x^ed = y^d mod N
+assume gcd(y, N) = gcd(r, N) = 1, then y, r <- ZN*, r^e <- ZN* as f(x) = x^e mod N is a bijection
+by lemma 10.20, y * r^e is a uniformly chosen element in group ZN*, thereby
+    Pr[A(y * r^e) = y^(1/e) * r] = 0.01
+repeating with k independently sampled r, the probability that A succeeds at least once is:
+    1 - (1 - Pr(A(y * r^e) = y^(1/e) * r))^k = 1 - 0.99^k
+take k = log(0.99, 0.01),
+    1 - 0.99^k = 1 - 0.99^log(0.99. 0.01) = 1 - 0.01 = 0.99
+when x' = y^(1/e) * r, (x' * r^-1)^e = y^(1/e)^e = y mod N, x' * r^-1 is the answer to the original problem
+therefore A' successfully calculates y^(1/e) mod N when any one of log(0.99, 0.01) runs of A succeeds
+A' succeeds with probability 0.99
+by Theorem B.2, exponentiation, inverse, gcd and multiplication can all be done in time poly(||N||)
+also log(0.99, 0.01) is a constant, A' runs in time poly(t, ||N||)
