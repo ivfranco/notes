@@ -2254,3 +2254,174 @@ therefore A' successfully calculates y^(1/e) mod N when any one of log(0.99, 0.0
 A' succeeds with probability 0.99
 by Theorem B.2, exponentiation, inverse, gcd and multiplication can all be done in time poly(||N||)
 also log(0.99, 0.01) is a constant, A' runs in time poly(t, ||N||)
+
+10.8
+raise x to x^e mod N, by the algorithm in B.2.3, requires #1(b(e)) - 1 multiplication and ||e|| square operations
+3 is small and 2^16 + 1 = b10000000000000001
+for a random number e with ||e|| = ||2^16+1||, the binary representation of e will typically contain more 1 than 2^16+1
+thereby x^e requires more multiplication thus is slower than x^(2^16+1)
+
+10.9
+let Π be Construction 10.18 with padding l, assume some adversary attacking PubK(A, Π, n) that:
+    Pr[PubK(A, Π, n) = 1] = ε(n)
+define another adversary A' attacking PAD(A', GenRSA, l, n) that:
+    on input (N, e), pass (N, e) to A, get a pair of messages (m0, m1)
+    sample b <- {0,1}, output mb, get y, pass y to A, get a bit b'
+    if b = b', output 1; otherwise output 0
+when y = [(r||m)^e mod N], y = Enc((N, e), mb), A' correctly simulates PubK(A, Π, n) and
+    Pr[PAD(A', GenRSA, l, n) = 1 | y = [(r||m)^e mod N]] = Pr[PubK(A, Π, n) = 1] = ε(n)
+when y <- ZN*, y contains no information of and is totally independent to (m0, m1)
+b' outputted by A is independent to b and
+    Pr[PAD(A', GenRSA, l, n) = 1 | y <- ZN*] = Pr[b' = b] = 1/2
+assume l-padded RSA problem is hard relative to GenRSA,
+    1/2 + negl(n)   >= Pr[PAD(A', GenRSA, l, n) = 1]
+                    = 1/2 * Pr[PAD(A', GenRSA, l, n) = 1 | y = [(r||m)^e mod N]]
+                    + 1/2 * Pr[PAD(A', GenRSA, l, n) = 1 | y <- ZN*]
+                    = 1/2 * ε(n) + 1/2 * 1/2
+                    = 1/4 + ε(n)/2
+    1/2 + 2negl(n)  >= ε(n)
+    1/2 + negl'(n)  >= ε(n)
+therefore Π is CPA-secure
+
+10.10
+?
+
+10.11
+if b = 0, c1 = g^y, c2 = h^y = g^xy = (g^y)^x = c1^x
+if b = 1, as g is a generator of G, c1 and c2 are independent elements in G, Pr[c1^x = c2] = negl(n)
+thereby with 1 - negl(n) probability, with knowledge of private key x, compare c2 and c1^x, b can decrypt efficiently
+let Π be the this encryption scheme, assume some A attacking PubK(A, Π, n) has:
+    Pr[PubK(A, Π, n) = 1] = ε(n)
+define another A' attacking DDH problem relative to G that:
+    run A as a subroutine
+    on input (G, q, g, h1, h2, h3), pass (G, q, g, h1) to A, get a pair of messages (m0, m1)
+    without loss of generality, assume m0 = ~m1
+    pass (h2, h3) to A, get a bit b'
+    if mb' = 0, output 1; otherwise output 0
+in DDH experiment, h1 = g^x, h2 = g^y, x, y <- Zq
+if h3 = g^xy, h2 = g^y = c1, h3 = g^xy = h1^y = c2, A' is simulating the encryption of m = 0
+    Pr[A'(G, q, g, g^x, g^y, g^xy) = 1] = Pr[PubK(A, Π, n) = 1 | mb = 0]
+if h3 = g^z, z <- Zq, A' is simulating the encryption of m = 1
+    Pr[A'(G, q, g, g^x, g^y, g^z) = 1]  = Pr[PubK(A, Π, n) = 0 | mb = 1]
+                                        = 1 - Pr[PubK(A, Π, n) = 1 | mb = 1]
+by the setting of experiment PubK and the assumption m0 = ~m1, Pr[mb = 0] = Pr[mb = 1] = 1/2
+    |Pr[A'(G, q, g, g^x, g^y, g^xy) = 1] - Pr[A'(G, q, g, g^x, g^y, g^xy) = 1]|
+    = |Pr[PubK(A, Π, n) = 1 | mb = 0] + Pr[PubK(A, Π, n) = 1 | mb = 1] - 1|
+    = |2 * ε(n) - 1|
+if DDH is difficult relative to G,
+    |2ε(n) - 1| <= negl(n)
+    2ε(n) <= 1 + negl(n)
+    ε(n) <= 1/2 + negl(n)/2 = 1/2 + negl'(n)
+therefore Π is CPA-secure
+
+10.12
+(the problem assumes k can be treated as both a group element and a private key)
+by the above assumption, a random element g <- G is also a random key
+as g is a generator, choose r <- Zq and g^r is also a uniformly random element in G
+define a hybrid encryption scheme that
+given El Gamal scheme Π' = (Gen', Enc', Dec') and a private key scheme Π* = (Gen*, Enc*, Dec*), define a scheme Π that:
+    Gen:    output (pk, sk) = ((G, q, g, h), (G, q, g, x)) <- Gen'
+    Enc:    on a message m, sample r <- Zq, return ciphertext (h^r, Enc*(g^r, m))
+    Dec:    on input (c1, c2), calculate k = c1/g^x, output Dec*(k, c2)
+k = c1/g^x = h^r/g^x = g^xr/g^x = g^r, c2 is encrypted by the key g^r, this scheme has correct decryption
+assume some adversary A attacking PubK(A, Π, n) and:
+    Pr[PubK(A, Π, n) = 1] = ε(n)
+define another A' attacking DDH problem that:
+    run A as a subroutine
+    on input (G, q, g, h1, h2, h3), pass (G, q, g, h1) to A, get a pair of messages (m0, m1)
+    sample b <- {0,1}, pass (h3, Enc*(h2, m)) to A, get a bit b'
+    if b = b', output 1; otherwise output 0
+by the setting of DDH experiment, h1 = g^x, h2 = g^y, x, y <- Zq
+when h3 = g^xy, h3 = h1^y, A' correctly simulates PubK(A, Π, n) and
+    Pr[DDH(G, q, g, g^x, g^y, g^xy) = 1] = ε(n)
+when h3 = g^z, z <- Zq, both pk and c1 = h3 contains no information of h2 = g^y
+A is effectively running PrivK(A, Π*, n) with no free oracle access to Enc*
+assume Π* has indistinguishable encryption:
+    Pr[DDH(G, q, g, g^x, g^y, g^z) = 1] = Pr[PrivK(A, Π*, n) = 1] <= 1/2 + negl(n)
+assume DDH problem is hard relative to G:
+    |Pr[DDH(G, q, g, g^x, g^y, g^xy) = 1] - Pr[DDH(G, q, g, g^x, g^y, g^z) = 1]|
+    = |ε(n) - (1/2 + negl(n))| <= negl'(n)
+    ε(n)    <= 1/2 + negl(n) + negl'(n)
+            = 1/2 + negl''(n)
+and Π is CPA-secure
+
+10.13
+given a public-key encryption scheme Π = (Gen, Enc, Dec) has indistinguishable encryption with a message space {0,1}
+let Π' be the encryption scheme constructed as 10.2 from Π with message space {0,1}*
+define an adversary A attacking PubKcca(A, Π', n) that:
+    on input pk, output two messages (00, 10)
+    on receiving the challenge ciphertext c, parse c = (c1, c2) (implicitly possible by the construction of Π')
+    query b' = Deck(c1), output b'
+by the definition of Π', for m = m1m2, Enc'(pk, mb) = Enc(pk, mb1)||Enc(pk, mb2)
+Deck(c1) = mb1, the first bit of the message
+when b = 0, c1 = Enc(pk, 0), b' = Dec(sk, Enc(pk, 0)) = 0; similarly when b = 1, b' = 1
+A succeeds with certainty and Π' is not CCA-secure
+in CCA-security experiments, the adversary can query the decryption of any ciphertexts except these given as challenges
+with a single long message, the ciphertext can be parsed to many shorter ciphertexts
+the messages can be totally recovered by query all these shorter ciphertexts to the decryption oracle
+while in multiple messages experiment, messages in the vectors are encrypted seperately
+an adversary is not allowed to query any ciphertext in the challenge ciphertext vector
+to recover some information of the message m from its ciphertext c
+the adversary has to modify c to some c', the ciphertext of m' that is somehow relative to m
+when the underlying encryption scheme is CCA-secure, such modification is impossible
+
+10.14
+on a ciphertext c = m'^e mod N, m' = 0^k||r||0^8||m, calculate c' = c*2^e, then c' = (2m')^e mod N
+when the first bit of r chosen during the encryption of m and m itself are both 0
+2m' shifts every bit in m' one position to left is still a valid padded message
+2m' = 0^k||r<<1||0^8||m<<1||0, where m<<k drops the first k bits from m
+if the decryption of c' is not an error, m can be recovered
+if the decryption of c' is an error, by probability 1/2 (r starts with 0) the first bit of m is 1
+either case some information of m is leaked
+in PKCS, the padding contains a 1 at a specific position
+it's harder to forge a valid ciphertext in PKCS than in this scheme
+
+10.15
+?
+
+10.16
+a.  assume that Pr[hc(x) = 1] = ε(n)
+    define an adversary A guessing hc(x) from f(x) that:
+        always output 1 regardless of the input
+    then Pr(x<-DI)[A(f(x)) = hc(x)] = Pr[hc(x) = 1] = ε(n)
+    if hc is a hard-core predicate, ε(n) <= 1/2 + negl(n)
+    symmetically, Pr[hc(x) = 0] <= 1/2 + negl(n)
+    by choosing n random x, the probability no hc(x) = m is:
+        (Pr[hc(x) = ~m])^n = (1/2 + negl(n))^n = ΣC(n, k)(1/2)^k * negl(n)^(n-k) = negl'(n)
+    by output ⊥ when no hc(x) = m is find in n trials and define Dec(_, ⊥) = ⊥
+    decryption fails with negligible probability (which is acceptable)
+    as hc is PPT, n calculation of hc is also PPT, Enc can be performed in polynomial time
+b.  assume there is some adversary A attacking PubK(A, Π, n) that:
+        Pr[PubK(A, Π, n) = 1] = ε(n)
+    define another A' guesses hc(I, x) from f(I, x) that:
+        run A as a subroutine
+        on input (I, f(I, x)), pass pk = I to A, get a pair of messages (m0, m1)
+        assume without loss of generality m0 = ~m1
+        pass f(I, x) to A, get a bit b', output mb'
+    as x <- DI, if hc(x) = m0, A' simulates PubK(A, Π, n) when b = 0
+        Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m0] = Pr[PubK(A, Π, n) = 1 | b = 0]
+    symmetically
+        Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m1] = Pr[PubK(A, Π, n) = 1 | b = 1]
+    as m0 = ~m1, hc(x) = m0 or hc(x) = m1,
+        Pr[A'(I, f(I, x)) = hc(x)]  = Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m0] * Pr[hc(x) = m0]
+                                    + Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m1] * Pr[hc(x) = m1]
+                                    <= Pr[PubK(A, Π, n) = 1 | b = 0] * (1/2 + negl(n))
+                                    + Pr[PubK(A, Π, n) = 1 | b = 1] * (1/2 + negl(n))
+                                    = Pr[PubK(A, Π, n) = 1] + negl'(n)
+                                    = ε(n) + negl'(n)
+    when hc is a hard-core predicate,
+        ε(n) + negl'(n) <= 1/2 + negl(n)
+        ε(n) <= 1/2 + negl''(n)
+    and Π is CPA-secure
+
+10.17
+a.  if A is dishonest and always output cA = Enc(pk, b) for b = 1 or 0
+    B is honest and outputs cB = Enc(pk, b'), Pr[b' = 0] = Pr[b' = 1] = 1/2
+    c = b xor b', Pr[c = b] = Pr[b' = 0] = 1/2, Pr[c = ~b] = Pr[b' = 1] = 1/2
+    c is still uniformly distributed as an element in {0,1}
+b.  the bit first has to be encoded as a group element
+    define 0g, 1g ∈ G be the encoding of 0 and 1 in the group
+    if A outputs ciphertext (h1, h2), by also output (h1, h2), B chooses the same bit as A, b xor b' = 0
+    by output (h1, h2 * 0g^-1 * 1g), if A encodes 0g, B encodes 1g, b xor b' = 1
+    if A encodes 1g, the decryption of cB will be an error, b xor b' = 0 never happen
+c.  the encryption scheme must be CCA-secure against replay attack
