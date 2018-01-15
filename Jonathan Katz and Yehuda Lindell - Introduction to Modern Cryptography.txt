@@ -2385,7 +2385,7 @@ a.  assume that Pr[hc(x) = 1] = ε(n)
         always output 1 regardless of the input
     then Pr(x<-DI)[A(f(x)) = hc(x)] = Pr[hc(x) = 1] = ε(n)
     if hc is a hard-core predicate, ε(n) <= 1/2 + negl(n)
-    symmetically, Pr[hc(x) = 0] <= 1/2 + negl(n)
+    symmetrically, Pr[hc(x) = 0] <= 1/2 + negl(n)
     by choosing n random x, the probability no hc(x) = m is:
         (Pr[hc(x) = ~m])^n = (1/2 + negl(n))^n = ΣC(n, k)(1/2)^k * negl(n)^(n-k) = negl'(n)
     by output ⊥ when no hc(x) = m is find in n trials and define Dec(_, ⊥) = ⊥
@@ -2400,9 +2400,9 @@ b.  assume there is some adversary A attacking PubK(A, Π, n) that:
         pass f(I, x) to A, get a bit b', output mb'
     as x <- DI, if hc(x) = m0, A' simulates PubK(A, Π, n) when b = 0
         Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m0] = Pr[PubK(A, Π, n) = 1 | b = 0]
-    symmetically
+    symmetrically    
         Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m1] = Pr[PubK(A, Π, n) = 1 | b = 1]
-    as m0 = ~m1, hc(x) = m0 or hc(x) = m1,
+    as m0 = ~m1, hc(x) = m0 or hc(x) = m1, 
         Pr[A'(I, f(I, x)) = hc(x)]  = Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m0] * Pr[hc(x) = m0]
                                     + Pr[A'(I, f(I, x)) = hc(x) | hc(x) = m1] * Pr[hc(x) = m1]
                                     <= Pr[PubK(A, Π, n) = 1 | b = 0] * (1/2 + negl(n))
@@ -2425,3 +2425,205 @@ b.  the bit first has to be encoded as a group element
     by output (h1, h2 * 0g^-1 * 1g), if A encodes 0g, B encodes 1g, b xor b' = 1
     if A encodes 1g, the decryption of cB will be an error, b xor b' = 0 never happen
 c.  the encryption scheme must be CCA-secure against replay attack
+
+Chapter 11
+11.1
+let G be a abelian group
+let G* be the set of quadratic residues in G, G* = {y | y = x^2, x ∈ G}
+as 1^2 = 1, 1 ∈ G*, 1 is also the identity of G*
+for any two elements g, h ∈ G*, g = x^2, h = y^2, gh = x^2y^2 = (xy)^2
+by closure property of G, xy ∈ G and (xy)^2 ∈ G*, G* has closure property 
+for any g = x^2 in G*, x ∈ G, x^-1 ∈ G, g * (x^-1)^2 = x^2 * (x^-1)^2 = (x * x^-1)^2 = 1
+the inverse of g is h = (x^-1)^2 and h ∈ G*
+the associativity of G implies the associativity of G*
+as G* ⊆ G, G* is a subgroup of G
+
+11.2
+a.  let p = 2i + 1 be a odd prime number
+    for any y ∈ Zp, if y is even, x = y/2 ∈ Zp
+    if y is odd, y = 2j+1, j < i
+    define x = i + j + 1, x < p => x ∈ Zp
+    2x = 2i + 2j + 2 = 2j+1 = y mod p 
+    therefore every element in Zp is a quadratic residue
+b.  by Chinese remainder theorem, Zpq <-> Zp x Zq
+    y = 2x mod N => y <-> 2(xp, xq) => y <-> (xp + xp mod p, xq + xq mod q)
+    y is a quadratic residue of ZN iff there there are some quadratic residues xp, xq in Zp, Zq that y <-> (xp, xq)
+    as every element in Zp, Zq is a quadratic residue, every element in ZN is also a quadratic residue
+c.  N = 2i is an even integer
+    for every even element y in ZN, y = 2j, j < i, thereby j ∈ ZN and y is a quadratic residue
+    for every odd element y in ZN, y = 2j+1
+    if y is a quadratic residue, 2x = y mod N, 2x = y + kN = 2j+1 + k(2i) = 2(j + ki) + 1
+    lhs is an even number 2x and rhs is an odd number
+    even number cannot be equal to odd number therefore no such x ∈ ZN that 2x = y mod N
+    every odd number y in ZN is not a quadratic residue
+    quadratic residues in ZN are all even elements in ZN
+
+11.3
+both N = pq and p, q are known
+|ZN*| = φ(N) = (p-1)(q-1), assume p, q are different primes,
+    |ZN*|/|ZN| = (p-1)(q-1)/pq >= 2/6 = 1/3
+by sample n independent 0 < z < N, with probability 1 - (2/3)^n more than one of them are in ZN*
+testing whether z ∈ ZN* is equivalent to test gcd(z, N) = 1, can be done in time poly(||N||)
+thereby ZN* is efficiently samplable
+with a random z <- ZN*, z ∈ QNR+1 iff Jp([z mod p]) = Jq([z mod q]) = -1
+both Jp and Jq can be calculated in time poly(||N||), and Pr[z ∈ QNR+1] = 1/4
+by sample n = ||N|| random z <- ZN* and test Jp([z mod p]) and Jq([z mod q])
+with probability 1 - (3/4)^n at least one z ∈ QNR+1 can be found in time poly(||N||)
+the probability of failure is (3/4)^||N||, negligible in ||N||
+
+11.4
+if x ∈ QR, x <-> (xp, xq) and Jp(xp) = Jq(xq) = 1
+x * x^-1 = 1 mod N => x^-1 <-> (xp', xq') and (xp, xq) * (xp', xq') = (1, 1) => xp' * xp = 1 mod p, xq' * xq = 1 mod q
+Jp(xp * xp') = Jp(1) = 1, Jq(xq * xq') = Jq(1) = 1
+as Jp(xp) = Jq(xq) = 1, Jp(xp') = Jq(xq') = 1, [x^-1 mod N] ∈ QR
+if x ∈ QNR+1, Jp(xp) = Jq(xq) = -1
+again Jp(xp * xp') = Jp(1) = 1 = Jp(xq * xq')
+Jp(xp') = Jq(xq') = -1, [x^-1 mod N] ∈ QNR+1
+
+11.5
+for z ∈ QNR+1, [z^-1 mod N] ∈ QNR+1 and
+    Pr[zx = y mod N] = Pr[x = z^-1y mod N]
+given y ∈ QNR+1, x' = [z^-1 * y mod N] ∈ QR is a fixed quadratic residue of ZN*
+when x <- QR,
+    Pr[x = z^-1y mod N] = Pr[x = x'] = 1/|QR|
+
+11.6
+let N = p1p2p3p4p5
+by Chinese remainder theorem, [x mod N] <-> ([x mod p1], [x mod p2], [x mod p3], [x mod p4], [x mod p5])
+different (x1, x2, x3, x4, x5) corresponds to different element of ZN*
+by an extension of Propositon 11.6
+y ∈ ZN* is a quadratic residue iff y <-> (y1 .. y5) and y1 .. y5 are quadratic residues in their corresponding groups
+if yi ∈ Zpi is a quadratic residue, yi has exactly two suqare roots xi and -xi
+by choose xi or -xi for i = 1 .. 5, there are 2^5 = 32 different elements (x1 .. x5) in Zp1 x Zp2 x Zp3 x Zp4 x Zp5 that
+    (x1 .. x5)^2 = (y1 .. y5) <-> y
+all (x1 .. x5) are mutually different i.e. corresponds to different elements in ZN*
+therefore there are 32 differernt x ∈ ZN* that x^2 = y mod N, y has 32 square roots 
+
+11.7
+a.  as p|N and q|N, [-1 mod N] = -1 mod p and [-1 mod N] = -1 mod q
+    [-1 mod N] <-> ([-1 mod p], [-1 mod q])
+    p = 3 + 4i, q = 3 + 4j
+    Jp([-1 mod p]) = (-1)^((p-1)/2) = (-1)^((2+4i)/2) = (-1)^(1 + 2i) = -1
+    similarly Jq([-1 mod q]) = -1, thereby [-1 mod N] ∈ QNR+1
+b.  when deciding quadratic residuosity is hard relative to GenModulus
+    this scheme is equivalent to Construction 11.13 with fixed z = [-1 mod N]
+    decryption is still determined by the qudratic residuosity of ciphertext
+    [-1 mod N] incurs no difference compared to any other z ∈ QNR+1
+    assume for some adversary A that:
+        Pr[PubK(A, Π, n) = 1] = ε(n)
+    define another D solving decisional quadratic residuosity problem that:
+        on input (N, z), pass pk = N to A, get a pair of messages (m0, m1)
+        sample b <- {0,1}, x <- ZN*, compute c = [z^mb * x^2 mod N]
+        pass c to A, get a bit b', output 1 if b = b'; output 0 otherwise
+    by exactly the same argument in Theorem 11.14,
+        |Pr[D(N, qr) = 1] - Pr[D(N, qnr) = 1]|  = |ε(n) - 1/2| <= negl(n)
+        ε(n) <= 1/2 + negl(n)
+    and Π is CPA-secure
+
+11.8
+assume some D can distinguish (N, QR) and (N, JN+1) with probability ε(n):
+    |Pr[D(N, QR) = 1] - Pr[D(N, JN+1) = 1]| = ε(n)
+define another D' that:
+    sample b <- {0,1}, x <- ZN*, y = [x^2 mod N]
+    on input (N, z)
+        if b = 0, set z' = z
+        if b = 1, set z' = y
+    pass (N, z') to D, output whatever D outputs
+the distribution of z' is solely determined by z
+when z <- QR, no matter b = 1 or 0, z' is a random element in QR,
+    Pr[D'(N, qr) = 1] = Pr[D(N, qr) = 1]
+when z <- QNR+1, with half the probability b = 1 and z' <- QR, the same for b = 0 and z' <- QNR+1
+Proposition 11.8 says |JN+1| = |QR| + |QNR+1|, |QR| = |QNR+1|
+for any element y' in JN+1,
+    Pr[z' = y']  = Pr[z' = y' | z' ∈ QR] * Pr[z' ∈ QR] + Pr[z' = y' | z' ∈ QNR+1] * Pr[z' ∈ QNR+1]
+                = Pr[z' = y' | b = 1] * Pr[b = 1] + Pr[z' = y' | b = 0] * Pr[b = 0]
+                = 1/2 * (Pr[y = y'] + Pr[z = y']) 
+as y' ∈ JN+1, z <- QNR+1, y <- QR, either Pr[y = y'] = 0 or Pr[z = y'] = 0, the other is 2/|JN+1|
+    Pr[z' = y'] = 1/2 * 2/|JN+1| = 1/|JN+1|
+and z' is a uniformly random element of JN+1,
+    Pr[D'(N, qnr) = 1] = Pr[D(N, JN+1) = 1]
+assume decide quadratic residuosity is hard relative to GenModulus,
+    |Pr[D'(N, qr) = 1] - {r[D'(N, qnr) = 1]|    = |Pr[D(N, qr) = 1] - Pr[D(N, JN+1) = 1]|
+                                                = ε(n) <= negl(n)
+therefore distinguishing z <- QR and z <- JN+1 is also hard                                                 
+
+11.9
+a.  as mensioned in section 11.1.3, there isa polynomial time algorithm calculating JN(x) without factoring N
+    by sample x <- ZN*,Pr[JN(x) = 1] = 1/2
+    by sample n random x <- ZN* and test JN(x), with 1 - (1/2)^n the algorithm can find at least one x ∈ JN+1
+b.  on receiving (c1 .. cn), the receiver tests quadratic residuosity of all ci
+    (can be done in poly(n) as Algorithm 11.11)
+    if all ci ∈ QR, Dec(sk, c*) = 0
+    if there is some ci ∉ QR, Dec(sk, c*) = 1
+    when m = 0, all ci <- QR, Dec(sk, c*) = 0 with certainty
+    when m = 1, as ci <- JN+1, Pr[c1 .. ci ∈ QR] = Pr[ci ∈ QR]^n = (1/2)^n
+    with probability (1/2)^n, Dec(sk, c*) = 0, otherwise Dec(sk, c*) = 1, the probability of failure is negligible
+c.  assume some adversary A attacking PubK(A, Π, n) that:
+        Pr[PubK(A, Π, n) = 1] = ε(n)
+    define another D distinguishing z <- QR and z <- JN+1 that:
+        on input (N, z), pass N to A, get a pair of one-bit messages (m0, m1)
+        assume without loss of generality, m0 = ~m1
+        sample n different xi <- ZN*, compute yi = [xi^2 mod N], sample b <- {0,1}
+        set ci = [z^b * yi mod N]
+        pass c* = (c1 .. cn) to A, get a bit b'
+        output mb'
+    when z <- QR, both yi and z * yi are independent elements in group QR
+    D is simulating PubK(A, Π, n) when the message get encrypted is 0, thus
+        Pr[D(N, qr) = 1]    = Pr[mb' = 1 | mb = 0] 
+                            = Pr[PubK(A, Π, n) = 0 | mb = 0]
+                            = 1 - Pr[PubK(A, Π, n) = 1 | mb = 0]
+    when z <- JN+1 and b = 1, with 1/2 probability, z <- QR and z * yi is a random element in group QR
+    also with 1/2 probability, z <- QNR+1, z * yi ∈ QNR+1
+    if z * yi = z * yj, as z ∈ ZN*, z^-1 ∈ ZN* and yi = yj mod N
+    as |QR| = |QNR+1|, f(y) = [z * y mod N] is a bijection QR -> QNR+1
+    z * yi is a uniformly random element in QNR+1 given yi <- QR
+    when b = 0, yi <- QR
+    by the same argument in problem 11.8, z^b * yi <- JN+1
+    D is simulating PubK(A, Π, n) when the message get encrypted is 1, thus
+        Pr[D(N, JN+1) = 1]  = Pr[mb' = 1 | mb = 1] 
+                            = Pr[PubK(A, Π, n) = 1 | mb = 1]
+    assume deciding quadratic residuosity is hard relative to GenModulus
+    problem 11.8 shows that it's also difficult to distinguish z <- QR and z <- JN+1, therefore
+        |Pr[D(N, qr) = 1] - Pr[D(N, JN+1) =1]|
+        = |1 - (Pr[PubK(A, Π, n) = 1 | mb = 0] + Pr[PubK(A, Π, n) = 1 | mb = 1])|
+        = |1 - 2ε(n)| <= negl(n)
+        2ε(n) <= 1 + negl(n)
+        ε(n) <= 1/2 + negl(n)/2 = 1/2 + negl'(n)
+    and Π is CPA-secure
+
+11.10
+assume p is odd (true for all n > 2)
+given h = g^x, x ∈ Zp, by computing Jp(h), a PPT algorithm can decide whether x is an even number
+if for h1 = g^x and h2 = g^y, both x and y are even, then xy is an even number and g^xy is a quadratic residue of Zp as
+    g^[(xy/2) mod φ(p)]^2 = g^[xy mod φ(p)] = g^xy
+so Jp(g^xy) = 1
+for a random z <- Zp*, Pr[Jp(g^z) = 1] = |QR|/|Zp*| = 1/2
+define an adversary attacking DDH problem that:
+    on input (G, q, g, h1, h2, h3), compute Jp(h1), Jp(h2), Jp(h3)
+    if Jp(h1) = Jp(h2) = 1, output Jp(h3); otherwise output 0 or 1 randomly
+when h1 = g^x, h2 = g^y, h3 = g^xy, with probability 1/4, Jp(h1) = Jp(h2) = 1, implies Jp(h3) = 1
+    Pr[D(G, q, g, g^x, g^y, g^xy) = 1] = 3/4 * 1/2 + 1/4 * 1 = 5/8
+when h1 = g^x, h2 = g^y, h3 = g^z, with probability 1/4, Jp(h1) = Jp(h2) = 1
+z is independent to x, y, Pr[Jp(h3) = 1] = 1/2
+    Pr[D(G, q, g, g^x, g^y, g^z) = 1] = 3/4 * 1/2 + 1/4 * 1/2 = 1/2
+    |Pr[D(G, q, g, g^x, g^y, g^xy) = 1] - Pr[D(G, q, g, g^x, g^y, g^z) = 1]|
+    = 1/8 (for infinitely many n)
+therefore DDH problem is not hard relative to G
+
+11.11
+let f(x) = [g^x mod p], lsb(x) is determined by the oddity of x that:
+    lsb(x) = 0 if x is even
+    lsb(x) = 1 is x is odd
+f(x) is a bijection Zφ(p) -> Zp*
+f(x+y) = g^(x+y) = g^x * g^y = f(x) * f(y)
+f(x) is an isomorphism Zφ(p) -> Zp*
+if g^y is a quadratic residue of Zp*
+    f(y) = g^y = g^x * g^x = f(x) * f(x) = f(x+x)
+[y mod φ(p)] is also a quadratic residue of Zφ(p)
+conversely, if y = 2x mod φ(p), f(y) = f(x+x) = f(x) * f(x), f(y) = [g^y mod p] is a quadratic residue of Zp*
+assume p is odd (true for all n > 2), φ(p) = p-1 is even
+by problem 11.2, if [g^y mod p] is a quadratic residue of Zp*, [y mod φ(p)] is even
+y = [y mod φ(p)] + kφ(p), thereby y is even too
+if [y mod φ(p)] is odd, y = [y mod φ(p)] + kφ(p) is odd and [g^y mod p] is not a quadratic residue of Zp*
+this means by computing Jp(g^y), a PPT algorithm can decide the quadratic residuosity of g^y, thus the oddity of y
+therefore lsb(x) can be computed from f(x) and cannot possibly be a hard-core predicate
