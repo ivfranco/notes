@@ -2627,3 +2627,15 @@ y = [y mod φ(p)] + kφ(p), thereby y is even too
 if [y mod φ(p)] is odd, y = [y mod φ(p)] + kφ(p) is odd and [g^y mod p] is not a quadratic residue of Zp*
 this means by computing Jp(g^y), a PPT algorithm can decide the quadratic residuosity of g^y, thus the oddity of y
 therefore lsb(x) can be computed from f(x) and cannot possibly be a hard-core predicate
+
+11.12
+when c = [m^2 mod N], for ciphertext c that is not a quadratic residue in ZN*, Dec(sk, c) must return error messages
+even if the scheme try to hide an error by return some element in m on quadratic non-residue c, by computing
+    c' = [m^2 mod N]
+and c' is a quadratic residue of ZN*, it must have c' != c
+thereby in a chosen ciphertext attack, it will be easy to determine the quadratic residuosity of any c ∈ ZN*
+by Theorem 11.22, by finding two unrelative quadratic residues x and x', N can be factored in time poly(n)
+by Proposition 11.8, Pr(x <- ZN*)[x ∈ QR] = 1/4
+by sample n random x <- ZN*, an algorithm can find a quadratic residue with probability 1 - negl(n)
+by sample other n random x' <- ZN*, another quadratic residue with probility 1 - negl(n)
+as these two 
