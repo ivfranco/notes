@@ -2636,6 +2636,101 @@ and c' is a quadratic residue of ZN*, it must have c' != c
 thereby in a chosen ciphertext attack, it will be easy to determine the quadratic residuosity of any c ∈ ZN*
 by Theorem 11.22, by finding two unrelative quadratic residues x and x', N can be factored in time poly(n)
 by Proposition 11.8, Pr(x <- ZN*)[x ∈ QR] = 1/4
-by sample n random x <- ZN*, an algorithm can find a quadratic residue with probability 1 - negl(n)
-by sample other n random x' <- ZN*, another quadratic residue with probility 1 - negl(n)
-as these two 
+by sample n random x <- ZN*, an algorithm can find a quadratic residue with probability 1 - (3/4)^n
+by sample other n random x' <- ZN*, another quadratic residue with probility 1 - (3/4)^n
+as these two quadratic residues are independent sampling of QR, x' = ±x mod N with probability 2/|QR| = 8/φ(N)
+as N = pq is a Blum integer, p, q >= 3, φ(N) = (p-1)(q-1) >= 2N/3
+    Pr[x' = ±x mod N] = 8/φ(N) <= 12/N
+    Pr[x' != ±x mod N] = 1 - 12/N
+an adversary given oracle access to Dec(sk, _) can run the above process and factor N with probability
+    (1 - (3/4)^n)^2 * (1 - 12/N)    = (1 - negl(n))^2 * (1 - negl'(n))
+                                    = 1 - negl''(n)
+and recover the private key (p, q)
+
+11.13
+a.  for all quadratic residue z of ZN*, z <-> (yp, yq)
+    z has four square roots in the form (xp, xq), (-xp, xq), (xp, -xq), (-xp, -xq)
+    assume Jp(xp) = Jq(xq) = 1, Jp(-xp) * Jq(-xq) = 1
+    the other two square roots (-xp, xq), (xp, -xq) are not in JN+1
+    for x <-> (xp, xq), x' <-> (-xp, -xq), x' = -x mod N, only one of them can be smaller than N/2
+    therefore exactly one square root of z is in S, f(x) = [x^2 mod N] is a permutation S -> QR
+    define gN(z) as:
+        z if z < N/2
+        [-z mod N] = N - z if z > N/2
+    by problem 11.7, JN(-1) = 1, JN(-z) = JN(-1) * JN(z) = JN(z)
+    for z ∈ ZN*, 0 < z < N, gcd(z, N) = 1, gN(z) < N/2 (z = N/2 cannot happen)
+    thereby gN maps JN+1 -> S and fN(x) = gN(f(x))
+    assume z, w be two quadratic residues of ZN*, gN(z) = gN(w)
+    if both 0 < z, w < N/2 or N/2 < z, w < N, z = w
+    if z < N/2 and w > N/2,
+        w = -z mod N
+    as -1 ∈ QNR+1, z ∈ QR, w = -1 * z mod N and w ∈ QNR+1, in contradiction to the assumption
+    therefore gN: QR -> S is one-to-one, |QR| = |S|, gN is a permutation QR -> S
+    implies fN = gN . f is also a permutation S -> S
+b.  define a family of trap-door permutations Π = (Gen, Samp, f, Inv) that:
+        Gen:    run (N, p, q) <- GenModulus(1^n), N be a Blum integer, set I = N, td = (p, q), output (I, td)
+        Samp:   on input I = N, output a random element x <- S
+        f:      on input I = N and x, output fN(x)
+        Inv:    on input I = N, td = (p, q) and x, first compute Jp([x mod p]) and Jq([x mod q])
+                set z' = [±z mod N] according to the previous computation so z' is a quadratic residue of ZN*
+                calculate the unique x ∈ S that x^2 = z' mod N following Lemma 11.21
+    Inv(f(x)) = x follows the arguments in part a
+    obviously if an adversary can invert f(x), it can compute square root of random z <- QR given only I = N
+    if factorization is hard relative to GenModulus, computing square roots is also hard relative to GenModulus
+    Π defined here is a family of trap-door permutation
+
+11.14
+a.  let g(x) = [x^2 mod N], if g(x) = g(y), x and y are two square roots of g(x) = [x^2 mod N]
+    denote x <-> (xp, xq), then the four square roots are
+        (xp, xq), (-xp, xq), (xp, -xq), (-xp, -xq)
+    assume JN(x) = 1 (other possibilities are symmetric)
+        JN((xp, xq)) = JN((-xp, -xq)) = 1
+        JN((-xp, xq)) = JN((xp, -xq)) = -1
+    if x < N/2, x' <-> (-xp, -xq) and x' = -x mod N, x' > N/2
+    similarly halfN((-xp, xq)) = ~halfN((xp, -xq))
+    thereby given a, b <- {0,1}, only one square root x of x^2 satisfies JN(x) = a and halfN(x) = b
+    therefore if f(x) = f(y),
+        g(x) = g(y), x and y are square roots of a specific z ∈ QR
+        JN(x) = JN(y), halfN(x) = halfN(y), x and y are both equal to the specific square root of z
+    f: ZN* -> QR x {0,1}^2 is one-to-one
+    in fact |ZN*| = 4|QR| and f is a permutation
+b.  define Π = (Gen, Enc, Dec) that:
+        Gen:    run (N, p, q) <- GenModulus, set pk = N, sk = (p, q)
+        Enc:    on input (pk, m), choose random r <- {0,1}^(||N|| - n - 1)
+                output c = ([(r||m)^2 mod N], JN(r||m), halfN(r||m))
+        Dec:    on input (sk, (c, a, b)), calculate the unique square root m' of c that
+                    JN(m') = a
+                    halfN(m') = b
+                and output the last n bits of m'
+    correctness of decryption follows part a, security unknown
+
+11.15
+given c = f(a, b) = [(1+N)^a * b^N mod N^2], as in the decryption algorithm of Paillier encryption scheme,
+    a = [([c^φ(N) mod N^2] - 1)/N * φ(N)^-1 mod N]
+can be computed given N and its factorization (thereby φ(N))
+as (1+N)^a = 1 + aN mod N^2, gcd(1 + aN, N^2) = 1, (1+N)^a is invertible mod N^2
+compute c' = [[c * (1+N)^a^-1 mod N^2] mod N], c' = [[b^N mod N^2] mod N] = [b^N mod N]
+as gcd(N, φ(N)) = 1, d = N^-1 mod φ(N) exists, can be computed from N and its factorization
+then [c'^d mod N] = [b^Nd mod N] = [b mod N]
+as f is defined on ZN x ZN* -> ZN^2*, 0 < b < N, [b mod N] = b
+both a and b can be computed from f(a, b), N and the factorization of N
+
+11.16
+for an element c in Φ(N^2), c = [(1+N)^a mod N^2], c <-> (a, 1)
+c^N = (a, 1)^N = (1, 1) = 1 + N mod N^2
+for c' <-> (a, b) that b != 1, c^N = (a, b)^N = (1, b^N)
+as gcd(N, φ(N)) = 1, f(b) = b^N mod N is a permutation ZN* -> ZN*, b != 1 implies b^N != 1 mod N
+therefore by computing [c^N mod N^2] and compare it to 1 + N, an algorithm can decide whether c ∈ Φ(N^2)
+
+11.17
+given m1, m2 ∈ Z2, the ciphertexts c1, c2 ∈ ZN^2* are:
+    c1 = [(1+N)^m1 * r1^N mod N^2]
+    c2 = [(1+N)^m2 * r2^N mod N^2]
+    c1 * c2 = [(1+N)^(m1 + m2) * (r1r2)^N mod N^2]
+when m1 = m2 = 0,
+    c1 * c2 = [(r1r2)^N mod N^2] is an encryption of m = 0
+when m1 = 0, m2 = 1 (and symmetrically),
+    c1 * c2 = [(1+N) * (r1r2)^N mod N^2] is an encryption of m = 1
+when m1 = m2 = 1, m1 + m2 = 0 mod 2
+    c1 * c2 = [(1+N)^2 * (r1r2)^N mod N^2] is an encryption of m = 2 = 0 mod 2
+and Dec(c1 * c2) = m1 * m2 mod 2
