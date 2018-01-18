@@ -2734,3 +2734,141 @@ when m1 = 0, m2 = 1 (and symmetrically),
 when m1 = m2 = 1, m1 + m2 = 0 mod 2
     c1 * c2 = [(1+N)^2 * (r1r2)^N mod N^2] is an encryption of m = 2 = 0 mod 2
 and Dec(c1 * c2) = m1 * m2 mod 2
+
+Chapter 12
+12.1
+?
+
+12.2
+regarding Construction 12.3, assume RSA problem is hard relative to GenRSA
+a.  sample r <- ZN*, define r' = r^e mod N, query for signature σ = Sign(sk, r'm) = (r'm)^d mod N
+    by definition, σ = (r'm)^d mod N = r'^d * m^d mod N = r^ed * m^d mod N = r * m^d mod N
+    output σ' = σ * r^-1 mod N = m^d mod N, then Vrfy(m, σ') = 1
+    an adversary can break this definition of security with almost certainty
+b.  assume some adversary A can break this security with probability ε(n)
+    define another A' attacking RSA problem that:
+        run A as a subroutine
+        on input (N, e, y), set pk = (N, e), pass (pk, y) to A, get a signature σ ∈ ZN*
+        output σ
+    A' correctly simulates A in its experiment
+    when A successfully outputs a signature σ that Vrfy(y, σ) = 1, y = σ^e mod N, A' succeeds in RSA experiment
+    by the assumption above:
+        negl(n) >= Pr[RSA-inv(A', GenRSA, n) = 1] = ε(n)
+    and the textbook RSA signature scheme is secure in this definition of security
+
+12.3
+define "textbook Rabin signature scheme (Gen, Sign, Vrfy) as:
+    Gen:    run (N, p, q) <- GenModulus(1^n), where N = pq is a Blum integer
+            set pk = N, sk = (p, q), output (pk, sk)
+    Sign:   on input (sk, m), where m ∈ QR, output σ, a random square root of m
+    Vrfy:   on input (pk, m, σ), output 1 if σ^2 = m mod N
+obviously Vrfy(pk, m, Sign(sk, m)) = 1 for all pk, sk and m, this scheme has correct verification
+but an adversary with access to a Sign oracle can in fact obtain square root of arbitrary m ∈ QR
+if some adversary can obtain two square roots x, x' of the same message m, and x' != ±x mod N,
+by Lemma 11.21 the adversary can factor N in time poly(||N||)
+by query the same m twice, an adversary get such two x, x' with probability 1/2
+the private key sk = (p, q) can be recovered in a chosen-message attack with probability 1/2
+
+12.4
+a.  compute if σ^e = enc(m) mod N
+b.  when enc is hard to invert, given random σ, it will still be easy to compute enc(m) = σ^e mod N
+    but a PPT adversary will not be able to compute a proper m from enc(m), thus no-message attack doesn't work directly
+c.  this enc is easy to invert
+    given σ^e = enc(m) = 0||m||0^(l/10), |enc(m)| = ||N|| = l
+    drop the first and last l/10 0s an adversary can recover m from enc(m)
+d.  again enc is easy to invert
+    given σ^e = enc(m) = 0||m||0||m, drop the last half and the single leading 0 an adversary can recover m
+
+12.5
+let Π' = (Gen', Sign', Vrfy') be a fixed-length signature scheme for messages of length l(n)
+define Π = (Gen, Sign, Vrfy) as follows:
+    Gen:    identical to Gen'
+    Sign:   on input (sk, m), m ∈ {0,1}*, l = |m| <= 2^(l(n)/4), parse m into d blocks m1 .. md, each of length l(n)/4
+            (last block is padded with 0s if necessary)
+            sample r <- {0,1}^(l(n)/4)
+            for i = 1 .. d:
+                compute ti <- Sign'(sk, r||l||i||mi), l and i uniquely encoded as strings of length l(n)/4
+            output t = <r, t1 .. td>
+    Vrfy:   on input (pk, m, t), l = |m| <= 2^(l(n)/4), t = <r, t1 .. td>
+            parse m into d' blocks m1 .. md' of length l(n)/4
+            if d = d' and Vrfy'(r||l||i||mi, ti) = 1 for all i = 1 .. d, output 1; otherwise output 0
+assume for some adversary A attacking Sign-forge(A, Π, n):
+    Pr[Sign-forge(A, Π, n) = 1] = ε(n)
+let Repeat denote the same identifer r appears in two of the signatures returned by the oracle
+as A is PPT, the number of oracle queries by A is bounded by a polynomial q
+applying birthday bound:
+    Pr[Repeat] <= q(n)^2 / 2^(l(n)/4)
+if l(n) is super-logarithm, 1/2^(l(n)/4) and Pr[Repeat] are negligible
+let (m, t = <r, t1 ..>) be the final output of A
+let Forge denote the event that at least one of the blocks r||l||i||mi was never previously signed by the scheme and
+    Vrfy'(pk, r||l||i||mi, ti) = 1
+by argument identical to that following Claim 4.8:
+    Pr[Sign-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ ¬Forge] = 0
+then
+    Pr[Sign-forge(A, Π, n) = 1] <= Pr[Repeat]
+                                + Pr[Sign-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ ¬Forge]
+                                + Pr[Sign-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ Forge]
+                                <= negl(n) + Pr[Sign-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ Forge]
+    Pr[Sign-forge(A, Π, n) = 1 ∧ ¬Repeat ∧ Forge] <= ε(n) - negl(n)
+define another A' attacking Sign-forge(A', Π', n) that:
+    run A as a subroutine
+    on input pk, pass pk to A
+    when A queries its Sign oracle with a message m,
+        sample r <- {0,1}^(l(n)/4)
+        parse m into d blocks m1 .. md of length l(n)/4
+        query and record every block r||l||i||mi in its own Sign' oracle, get ti
+        return <r, t1 .. td>
+    when A outputs the final result (m, t = <r, t1 ..>),
+        parse m = m1 .. md, t = <r, t1 .. td'>
+        find the previously unsigned block r||l||i||mi and output (r||l||i||mi, ti)
+        if no such block exists, halt
+by the same argument at the end of Theorem 4.6,
+    Pr[Sign-forge(A', Π', n) = 1] >= Pr[Sign-forge(A, Π, n) = 1] >= ε(n) - negl(n)
+assume Π' is secure,
+    negl'(n) >= ε(n) - negl(n)
+    ε(n) <= negl''(n)
+and Π is secure against adaptive chosen-message attacks
+l(n) has to be at least super-logarithm
+the signature will be linear to the length of the message
+however this scheme does not rely on the existance of hash functions compared to hash-and-sign schemes
+
+12.6
+a.  define an adversary A that:
+        on input pk = y, query for m = n, get a signature σ
+        output (n-1, f(σ))
+    as σ = Sign(sk, m) = f^(n - n)(x) = x, f(σ) = f(x) = Sign(sk, n-1), Vrfy(n-1, f(σ)) = 1
+    A successfully breaks Π with certainty
+    given σ = Sign(sk, i), σ = f^(n-i)(x) 
+    for any j < i, an adversary can compute σ' = Sign(sk, j) = f^(i-j)(σ) = f^(n-j)(x) and output (j, σ') as a forgery
+b.  assume an adversary A given a signature on i can output a forgery on some message j > i with probability ε(n)
+    define another A' attacking Invert(A', f, n) that:
+        run A as a subroutine
+        on input y, compute pk = f^i(y), pass pk to A
+        when A queries a message i',
+            if i != i', halt
+            if i = i', output y
+        when A finally outputs (j, σ),
+            if j <= i, halt
+            if j > i, compute x = f^(j-i-1)(σ), output x
+    by definition, A' simulates A when A queries for only one message i
+    when A successfully outputs a forgery of message (j, σ), j > i, f^j(σ) = f^i(y)
+    f^(j-i)(σ) = y, f(f^(j-i-1)(σ)) = y, f^(j-i-1)(σ) is a preimage of y, A' succeeds when A succeeds
+    assume f is one-way,
+        negl(n) >= ε(n)
+    and A can only succeeds with negligible probability
+c.  define another signature scheme Π = (Gen, Sign, Vrfy) that:
+        Gen:    sample x, x' <- {0,1}^n, compute y = f^n(x) and y' = f^n(x')
+                set sk = (x, x'), pk = (y, y'), output (sk, pk)
+        Sign:   on input (sk, i), i ∈ {1 .. n}, compute σ = f^(n-i)(x) and σ' = f^i(x')
+                output (σ, σ')
+        Vrfy:   on input (i, (σ, σ')), compare y = f^i(σ) and y' = f^(n-i)(σ')
+                output 1 if both equation holds; 0 otherwise
+    by the same argument in part b (one in reverse)
+    given a signature on i, no PPT adversary can output a forgery on any message j > i or j < i with >= negl(n) chance
+    therefore Π is a one-time signature scheme
+
+12.7
+an adversary A can:
+    query 1^l(n), get x1,1 .. xl,1
+    query 0^l(n), get x0,0 .. xl,0
+by Construction 12.7, A recovered the whole secret key sk and can sign any message now
