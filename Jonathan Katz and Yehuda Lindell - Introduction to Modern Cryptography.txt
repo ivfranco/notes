@@ -1005,7 +1005,7 @@ F(k, ctr) and F(k, ctr+1) will only be different at 8 known position
 by choosing m0 = 0^2n and m1 = 0^n1^n, observe c1 and c2
 if they are equal except that 8 bits, m0 must be encrypted, the adversary outputs 0; otherwise it outputs 1
 if ctr is even, the adversary outputs 0 or 1 randomly
-an adversary using this strategy always succeeds when ctr is odd, or with roughly 3/4 posibility in total
+an adversary using this strategy always succeeds when ctr is odd, or with roughly 3/4 possibility in total
 
 5.4
 r permutations in a row is equivalent to a single permutation
@@ -2872,3 +2872,127 @@ an adversary A can:
     query 1^l(n), get x1,1 .. xl,1
     query 0^l(n), get x0,0 .. xl,0
 by Construction 12.7, A recovered the whole secret key sk and can sign any message now
+
+12.8
+assume some adversary A can forge a signature of this scheme with probability ε(n):
+    Pr[Sign-forge1(A, Π, n) = 1] = ε(n)
+define another A' inverting the one-way function f that:
+    run A as a subroutine
+    on input (1^n, y), sample i* <- {1 .. 2l}
+    for all i != i*, sampe xi <- {0,1}^n, compute yi = f(xi)
+    set pk = (y1 .. y2l), pass pk to A
+    when A queries a message m':
+        if the corresponding subset Sm' contains i*, halt
+        otherwise return the correct signature σ' = {xi}, i ∈ Sm'
+    when A outputs (m, σ), σ = {xi}, i ∈ Sm
+        if i* ∈ Sm, output xi* from σ
+when A outputs a forgery (m, σ), m != m', Sm != Sm', there must be some i that i ∈ Sm and i ∉ Sm'
+again i* is independent to this i, thereby
+    Pr[i* = i] = 1/2l
+by definition, when i* ∉ Sm' and A' correctly simulates A in this case
+when A succeeds, for all i ∈ σ = Sm, f(xi) = yi, if i* ∈ Sm, f(xi*) = yi* = y, xi* is a preimage of y, A' succeeds too
+by one-wayness of f:
+    negl(n) >= Pr[Invert(A', f, n) = 1] >= Pr[Sign-forge1(A, Π, n) = 1 ∧ i = i*]
+            = Pr[Sign-forge1(A, Π, n) = 1] * Pr[i* = i]
+            = ε(n) * 1/2l
+for Π to be efficient, l must be polynomial, therefore ε(n) is negligible and Π is a one-time signature scheme
+for the mapping from m to Sm be one-to-one
+the number of subsets of {1 .. 2l} of size l should be greater or equal to the number of strings of length l'
+    C(2l, l) >= 2^l'
+
+12.9
+a.  for a signature scheme Π = (Gen, Sign, Vrfy) and a PPT adversary A, define experiment Strong-Sign-forge1(A, Π, n) as:
+        run (pk, sk) <- Gen(1^n)
+        adversary A is given pk and can ask a single query m' to oracle Sign(sk, _), get σ' = Sign(sk, m')
+        A outputs (m, σ), the output of the experiment is defined as 1 iff
+            Vrfy(pk, m, σ) = 1, (m, σ) != (m', σ')
+    a signature scheme Π is a strong one-time signature scheme if for all PPT adversary A:
+        Pr[Strong-Sign-forge1(A, Π, n) = 1] <= negl(n)
+b.  let g(x1, x2) = f(x1), |x1| = |x2|
+    by problem 6.5, given f being a one-way function, g is a one-way function too
+    let Π = (Gen, Sign, Vrfy) be Lamport's scheme with one-way function g
+    define an adversary A attacking Strong-Sign-forge(A, Π, n) that:
+        on input pk, sample random m <- {0,1}^l, query for σ = Sign(sk, m) = (x1,m1 .. xl,ml)
+        parse (x1, x2) = x1,m1, set x* = x1||~x2
+        output (m, σ' = (x*, x2,m2 .. xl,ml))
+    by definition, σ != σ' and for all i ∈ {1 .. l},
+        for i = 1, g(x*) = g(x1, ~x2) = f(x1) = g(x1, x2) = y1,m1
+        for i = 2 .. l, f(xi,mi) = yi,mi naturally
+    Vrfy(pk, m, σ') = 1, A breaks Π in this experiment with certainty
+c.  use a collision-resistant hash function instead a one-way function in Lamport's scheme
+    by Section 4.6.2, any collision-resistant hash function is automatically one-way
+    thereby for any PPT adversary A, the probability that A outputs a forgery with a fresh message is negligible 
+    when A outputs (m, σ) after querying for m and get σ' = Sign(sk, m)
+    for (m, σ) to be a forgery, σ != σ' and A must have found a collision for some yi,mi
+    another A' running A can then output this collision and succeeds in experiment Hash-coll(A', Π, n)
+    formally, given Πh = (Genh, f) be a collision-resistant hash function
+    define Π = (Gen, Sign, Vrfy) be the Lamport's scheme using Πh in place of the one-way function
+    (Π has to run s <- Genh(1^n) and include s in both pk and sk)
+    assume some adversary A attacking Strong-Sign-forge1(A, Π, n) and:
+        Pr[Strong-Sign-forge1(A, Π, n) = 1] = ε(n)
+    define another A' attacking Hash-coll(A', Πh, n) that:
+        run A as a subroutine
+        on input (1^n, s), simulate Gen with s, get (pk, sk), pass pk to A
+        when A queries for a message m, calculate σ = Sign(sk, m), pass σ to A
+        when A finally outputs a pair (m', σ'):
+            if m != m', halt
+            if m = m', let σ = x1,m1 .. xl,ml, σ' = x'1,m1 .. x'l,ml
+                find some i that xi,mi != x'i,mi, output this pair
+    when A successfully outputs a forgery (m', σ') that m' = m and σ' != σ, there must be some i that:
+        xi,mi != x'i,mi
+        f(xi,mi) = f(x'i,mi) = yi,mi
+    and A' succeeds in finding a collision
+    assume Πh is collision-resistant:
+        negl(n) >= Pr[Hash-coll(A', Πh, n) = 1] >= Pr[Strong-Sign-forge1(A, Π, n) = 1 | m = m']
+                >= Pr[Strong-Sign-forge1(A, Π, n) = 1] - Pr[Strong-Sign-forge1(A, Π, n) = 1 | m != m] * Pr[m != m]
+                >= ε(n) - negl'(n)
+        ε(n) <= negl''(n)
+    and Π is a strong one-time signature scheme
+
+12.10
+refer 4.10
+
+12.11
+the same method is not directly applicable
+for a receiving party to verify the signature of the ith message mi, it needs:
+    all previously signed messages m1 .. mi-1
+    all previously generated public keys pk1 .. pki
+    all signatures σ1 .. σi
+assume {pki} and {σi} can be computed by using pseudorandom coins
+a stateless signer cannot output {mi}, the series of previously signed messages
+the tree-based scheme addressed this problem and is proved secure in Section 12.6.2
+
+12.12
+let G be a pseudorandom function, define F be a pseudorandom function that:
+    F(k1||k2, x) = G(k1, x)||G(k2, x)
+by problem 6.16, F is also a pseudorandom function 
+let Π = (Gen, Sign, Vrfy) be the stateless tree-based signature scheme described in Section 12.6.2
+let F above be the pseudorandom function in Π
+let Π' = (Gen', Sign', Vrfy') be the stateful tree-based signature corresponding to Π
+the only differences between Π and Π' is:
+    compared to Gen', Gen generates two more key k, k' for the pseudorandom function F
+    (F(k||k', x) = G(k, x)||G(k', x), F generates two random tapes at once)
+    Π then uses pseudorandom tapes generated by F where Π' uses real random coins
+assume some adversary A attacking Sign-forge(A, Π, n) and:
+    Pr[Sign-forge(A, Π, n) = 1] = ε(n)
+by Theorem 12.13, Π' is a secure signature scheme and
+    Pr[Sign-forge(A, Π', n) = 1] <= negl(n)
+define a distinguisher D with oracle access to a function f that:
+    run A as a subroutine
+    simulates the experiment Sign-forge(A, Π, n)
+    when random tapes are needed by Gen and Sign, query f(w)
+    if A finally outputs a forgery, output 1; otherwise output 0
+when f <- Func is a true random function, A' indeed simulates Sign-forge(A, Π', n) and
+    Pr[A'(f) = 1] = Pr[Sign-forge(A, Π', n) = 1] <= negl(n)
+when f(w) = F(k1||k2, w), A' simulates Sign-forge(A, Π, n) and
+    Pr[A'(Fk) = 1] = Pr[Sign-forge(A, Π, n) = 1] = ε(n)
+by pseudorandomness of F:
+    |Pr[A'(f) = 1] - Pr[A'(Fk) = 1]|    = |ε(n) - negl(n)| <= negl'(n)
+ε(n) must be negligible and Π is a secure signature scheme
+
+12.13
+by the security of underlying signature schemes, only people possessing skB can sign such a message in respect to pkB
+then there are two possibilities:
+    it's issued by Bob and the CA should do as Bob asked
+    it's issued by someone other than Bob, which means Bob's secret key is stolen, CA should revoke the key
+either case the correct thing to do is to revoke Bob's public key
