@@ -2996,3 +2996,189 @@ then there are two possibilities:
     it's issued by Bob and the CA should do as Bob asked
     it's issued by someone other than Bob, which means Bob's secret key is stolen, CA should revoke the key
 either case the correct thing to do is to revoke Bob's public key
+
+Chapter 13
+13.1
+let F be the pseudorandom function constructed in Section 13.1.1
+assume some distinguisher D given oracle access to H and a function f trying to find out weither
+    f <- Func(n) or f(x) = H(k||x)
+as F being a random oracle, output of Both Fk and H are independent to their input
+k is totally independent to all the queries D can make
+let Query denote the event that D ever queries H(k||x) for some x
+only 2^n in 2^2n strings in {0,1}^2n has the form k||x, which means
+assume D makes q = q(n) querie to the random oracle H,
+    Pr[Query]   = 1 - (1 - 2^n/2^2n)^q
+                = 1 - ΣC(q, i)(-negl(n))^i
+                = negl'(n)
+when D never queries H(k||x) for any x, H(k||x) for all x is totally random to D, thereby
+    Pr[H(k||x) = c] = 1/2^n = Pr[f(x) = c] for any fixed x and random H, f
+    Pr[D(Fk) = 1] = Pr[D(f) = 1]
+define Pr[D(Fk) = 1] = ε(n), Pr[D(f) = 1] = δ(n), then
+    Pr[D(Fk) = 1]   = Pr[D(Fk) = 1 | ¬Query] * Pr[¬Query] + Pr[D(Fk) = 1 | Query] * Pr[Query]
+                    = Pr[D(f) = 1] * Pr[¬Query] + Pr[D(Fk) = 1 | Query] * Pr[Query]
+    δ(n) * (1 - negl(n)) <= ε(n) <= δ(n) * (1 - negl(n)) + negl(n) 
+    δ(n) - negl'(n) <= ε(n) <= δ(n) + negl''(n)
+    |ε(n) - δ(n)| <= negl(n)
+therefore Fk is a pseudorandom function
+
+13.2
+a.  as H being a random oracle, Pr[H(0) = y] = negl(n) for any fixed y
+    H is used nowhere in the scheme Π, thereby H is independent of Π
+    for any adversary A attacking Sign-forge(A, Πy, n), assuming Π is secure,
+        Pr[Sign-forge(A, Πy, n) = 1]    <= Pr[Sign-forge(A, Πy, n) = 1 | H(0) != y] + Pr[H(0) = y]
+                                        = Pr[Sign-forge(A, Π, n) = 1] + negl(n)
+                                        = negl'(n)
+    and Πy is secure in random oracle model
+b.  as SHA-1 being a deterministic function, define y = SHA-1(0)
+    Πy will output the secret key everytime therefore is not secure
+
+13.3
+by the same argument in problem 13.1
+an adversary which only queries H polynomial times can make meaningful oracle accesses to H only with negl(n) chance
+with 1 - negl(n) probability, Mac(k, m) = H(k||m) works like a total random function {0,1}* -> {0,1}^n
+for the final output (m, t) of some adversary A to be a forgery, m ∉ Q, Mac(k, m) is totally random,
+    Pr[Mac(k, m) = t] = 1/2^n = negl(n)
+    Pr[Mac-forge(A, Π, n) = 1]  <= Pr[Mac-forge(A, Π, n) = 1 | ¬Query] + Pr[Query]
+                                = negl(n) + negl'(n) = negl''(n)
+therefore Π is secure in random oracle model
+if H is instantiated by a hash function constructed via the Merkle-Damgard transform,
+by problem 4.17 Π is not secure
+
+13.4
+let some adversary attacking PubK(A, Π, n) that:
+    Pr[PubK(A, Π, n) = 1] = ε(n)
+in experiment PubK(A, Π, n)
+    A receives input pk = (N, e)
+    A outputs (m0, m1), receives a ciphertext c = ([r^e mod N], Enc'(H(r), mb)), r <- ZN*
+    A outputs a bit b'
+let Query denote the event that A queries H(r) in the experiment
+define another A* attacking RSA problem that:
+    run A as a subroutine
+    sample k* <- {0,1}^n
+    on input (N, e, y), pass pk = (N, e) to A
+    define a table of triples, add (*, y, k*) to it
+    when A queries the random oracle H with input r, compute c = [r^e mod N] that:
+        if (*, c, k) is previously recorded, update it with (r, c, k), return k
+        if (r, c, k) is previously recorded, return k
+        otherwise sample k <- {0,1}^n, record (r, c, k), return k
+    when A outputs (m0, m1), sample b <- {0,1}, pass (y, Enc'(k*, mb)) to A
+    when A halts, search the table for the triple (r, y, k*)
+    if (r, y, k*) is defined, output r
+A* simulates PubK(A, Π, n) in the random oracle model and
+    Pr[RSA(A*, GenRSA, n) = 1] = Pr[Query]
+if RSA problem is hard relative to GenRSA, Pr[Query] is negligible
+define another A' attacking PrivK(A, Π', n) that:
+    run A as a subroutine
+    run (N, e, d) <- GenRSA(1^n), pass pk = (N, e) to A
+    sample r* <- ZN*, compute c1 = [r*^e mod N]
+    whex A queries H(r):
+        if (r, k) is previously recorded, return k
+        otherwise sample k <- {0,1}^n, record (r, k), return k
+    when A outputs (m0, m1), output (m0, m1) too, on receiving the challenge ciphertext c pass c to A
+    output whatever A outputs
+when Query didn't happen, A' correctly simulates A in experiment PubK(A, Π, n)
+when A succeeds, A correctly guesses b, which is also the same b in experiment PrivK(A, Π', n)
+if Π' has indistinguishable encryption:
+    Pr[PrivK(A, Π', n) = 1] = Pr[PubK(A, Π, n) = 1 | ¬Query] <= 1/2 + negl(n)
+thereby:
+    Pr[PubK(A, Π, n) = 1]   <= Pr[PubK(A, Π, n) = 1 | ¬Query] + Pr[Query]
+                            = 1/2 + negl(n) + negl'(n)
+                            = 1/2 + negl''(n)
+and Π is CPA-secure
+
+13.5
+a.  let Πm = (Genm, Encm, Decm) be a private-key encryption scheme
+    let Πk = (Genk, Enck, Deck) be a public-key encryption scheme 
+    define Π = (Gen, Enc, Dec) in with a random oracle H as:
+        Gen:    run (pk, sk) <- Genk(1^n)
+        Enc:    on input (pk, m), sample r <- {0,1}^n, query k = H(r), output (Enck(pk, r), Encm(k, m))
+        Dec:    on input (sk, (c1, c2)), output Decm(Deck(sk, c1), c2)
+    if Πm has indistinguishable encryption, Πk is a one-way public-key encryption scheme
+    Π is a CPA-secure public-key encryption scheme (proof is exactly the same as problem 13.4)
+b.  textbook RSA is such a one-way public-key encryption scheme
+    assume some adversary A attacking the textbook RSA scheme in one-way experiment succeeds with probability ε(n)
+    define another A' attacking RSA problem that:
+        run A as a subroutine
+        on input (N, e, y), set pk = (N, e), pass (N, y) to A
+        output whatever A outputs
+    in RSA experiment, y = [x^e mod N] and x <- ZN* is chosen randomly, therefore A' correctly simulates A
+    f(x) = [x^e mod N] is a permutation, when A succeeds, m = x and [m^e mod N] = y, A' succeeds too
+    if RSA problem is hard relative to GenRSA, A' and A can only succeed with negligible probability
+    therefore textbook RSA is one-way
+
+13.6
+a.  as in Section 10.4.2, r^3 can be computed from [r^3 mod N1], [r^3 mod N2], [r^3 mod N3]
+    the cube-root r can be find by binary search in time poly(||N||)
+    with r, the adversary can query H(r) and recover m from H(r) xor m
+b.  assume the three key pairs are generated randomly by GenRSA
+    define an scheme Π that:
+        on input ((N1, e1), (N2, e2), (N3, e3)) and a message m
+        sample r1 <- ZN1*, r2 <- ZN2*, r3 <- ZN3*, output ciphertext
+            ([r1^e1 mod N1], [r2^e2 mod N2], [r3^e3 mod N3], H(r1) xor m, H(r2) xor m, H(r3) xor m)
+    intuitively, Π applies Contstuction 13.1 with three independent key pairs
+    let Query denotes the event that an adversary A attacking PubK(A, Π, n) queries any of {r1, r2, r3}
+    by the same argument in the proof of Claim 13.4, Pr[Query] is negligible
+    when Query never happens, H(r1), H(r2) and H(r3) are totally random to A
+    H(r1) xor m, H(r2) xor m, H(r3) xor m are independent random strings in {0,1}^n
+    Π in this case is equivalent to one-time pad and
+        Pr[PubK(A, Π, n) = 1]   <= Pr[PubK(A, Π, n) = 1 | ¬Query] + Pr[Query]
+                                = 1/2 + negl(n)
+    therefore Π is CPA-secure
+c.  thanks http://u.cs.biu.ac.il/~asharog/2010/89-656/sol5.pdf 
+    define an scheme that, with a private-key scheme Π' = (Gen', Enc', Dec'):
+        on input ((N1, e1), (N2, e2), (N3, e3)) and a message m
+        sample r1 <- ZN1*, r2 <- ZN2*, r3 <- ZN3*, k <- Gen'(1^n)
+        set yi = [ri^ei mod Ni] for i = 1, 2, 3
+        output (y1, y2, y3, H(r1) xor k, H(r2) xor k, H(r3) xor k, Enc'(k, m))
+    again by the same argument, an adversary can only query r1, r2, r3 with negligible probability
+    thereby k xor H(r1), k xor H(r2) and k xor H(r3) are all independent random strings
+    when Query never happens, the yi, H(ri) xor k contains no information of k
+    assume Pr[PubK(A, Π, n) = 1] = ε(n), define another A' attacking PrivK(A', Π', n) that:
+        generate three pairs of (pki, ski) by running Gen(1^n)
+        sample r1 <- ZN1*, r2 <- ZN2*, r3 <- ZN3*, compute yi = [ri^ei mod N] for i = 1 .. 3
+        sample h1, h2, h3 <- {0,1}^n
+        // A' implicitly sets H(ri) = hi xor k without knowing k
+        when A queries the random oracle H with r:
+            if r = ri, i = 1 .. 3, halt
+            if (r, h) is recorded, return h
+            otherwise sample h <- {0,1}^n, record (r, h), return h
+        when A outputs (m0, m1), also outputs this pair of messages, receive a challenge ciphertext c
+        pass (y1, y2, y3, h1, h2, h3, c) to A, output whatever A outputs 
+    when Query didn't happen, H(ri) is uniformly random to A
+    when hi <- {0,1}^n is chosen uniformly, hi xor k is uniform as (xor k) is a permutation on {0,1}^n
+    thereby A' correctly simulates experiment PubK(A, Π, n) when Query didn't happen
+    when A successfully guesses b, which is also b in experiment PrivK(A', Π', n), A' succeeds too, thereby
+        Pr[PrivK(A', Π', n) = 1] = Pr[PubK(A, Π, n) = 1 | ¬Query]
+    if Π' has indistinguishable encryption,
+        Pr[PubK(A, Π, n) = 1]   <= Pr[PubK(A, Π, n) = 1 | ¬Query] + Pr[Query]
+                                <= 1/2 + negl(n) + negl'(n)
+                                = 1/2 + negl''(n)
+    therefore Π is CPA-secure
+
+13.7
+similar to problem 13.5, the proof to Theorem 13.6 holds for all one-way public-key encryption schemes
+and a CPA-secure public-key encryption scheme is automatically one-way
+assume some adversary A succeeds in one-way experiments for a scheme Π with probability ε(n)
+define another A' attacking PubK(A, Π, n) that:
+    run A as a subroutine
+    on input pk, sample m0, m1 <- {0,1}^n, output (m0, m1), get a challenge ciphertext c
+    pass (pk, c) to A, A outputs m'
+    if mb' = m', output b'; otherwise output 1 or 0 randomly
+m0 = m1 with only negligible probability
+when A succeeds, c = Enc(pk, mb) and m' = mb, when m0 != m1 A' succeeds too
+when A fails, c = Enc(pk, mb), m' != mb, c is independent to another message
+m' the output of A is independent to the other message m~b, which is chosen uniformly from {0,1}^n
+thus Pr[m' = m~b] is negligible
+    Pr[PubK(A, Π, n) = 1 | A' succeeds, m0 != m1] = 1
+    Pr[PubK(A, Π, n) = 1 | A' fails, m0 != m1]  = Pr[PubK(A, Π, n) = 1 | A' fails, m0 != m1, m' = m~b] * Pr[m' = m~b]
+                                                + Pr[PubK(A, Π, n) = 1 | A' fails, m0 != m1, m' != m~b] * Pr[m' != m~b]
+                                                = 1/2 * (1 - negl(n))
+    Pr[PubK(A, Π, n) = 1]   >= Pr[PubK(A, Π, n) = 1 | m0 != m1] * Pr[m0 != m1]
+                            = Pr[PubK(A, Π, n) = 1 | A' succeeds, m0 != m1] * Pr[A' succeeds]
+                            + Pr[PubK(A, Π, n) = 1 | A' fails, m0 != m1] * Pr[A' fails] - negl(n)
+                            = ε(n) + (1/2 * (1 - negl(n))) * (1 - ε(n)) - negl(n)
+                            = 1/2 + ε(n)/2 - negl(n)
+if Π is CPA-secure,
+    1/2 + negl(n) >= 1/2 + ε(n)/2 - negl(n)
+    ε(n) <= negl(n)
+and Π is one-way
