@@ -1,0 +1,49 @@
+Chapter 3
+3.1
+a permutation {0,1}^64 -> {0,1}^64 is a table of 64-bit strings of 2^64 entries
+one such permutation takes 64 * 2^64 bits to describe (at least)
+by using 80-bit keys, there are 2^80 such permutations in the idealized block cipher
+2^80 * 64 * 2^64 = 2^150 bits in total
+
+3.2
+16 rounds
+56-bit key
+64-bit block
+encrypt the same plaintext 3 times with (k1, k2, k1) or three independent keys
+
+3.3
+128, 192, 256
+10, 12, 14
+128-bit block
+
+3.4
+on legacy system
+when it's feasible
+
+3.5
+for all 2^56 keys:
+a single processor takes 2^56 * 2^-26 = 2^30 seconds to do the exhaustive searching, or 34 years
+assume the order is independent to the actual key, it 17 years in average
+by using 2^14 processors, it takes 2^30 / 2^14 = 2^16 seconds, or about 18 hours to do the exhaustive search
+in average the key will be found in 9 hours
+
+3.6
+in DES2, either half of the plaintext is affected by only one round function
+given plaintext (L0, R0) and ciphertext (L2, R2)
+by definition of DES, L1 = R0 and R1 = L2, all (Li, Ri) for i = 0 .. 2 are known
+R1 = L0 xor F(k1, R0), R2 = L1 xor F(k2, R1), both the input and output of Fk1, Fk2 are known
+therefore k1 and k2 can be exhaustively searched seperately, takes 2^48 * 2 = 2^49 encryptions
+also in DES2, changing one half of the plaintext will only affect one half of the ciphertext
+which only happens in an idealized cipher with probability 1/2^32
+
+3.7
+see problem 5.7 to Introduction of Modern Cryptography
+
+3.8
+80 70 60 50 40 30 20 10 08 07 06 05 04 03 02 01
+
+3.9
+80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01
+
+3.10
+-
