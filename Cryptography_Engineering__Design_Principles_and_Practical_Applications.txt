@@ -46,4 +46,40 @@ see problem 5.7 to Introduction of Modern Cryptography
 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01
 
 3.10
--
+./Cryptography_Engineering/complementation/
+
+chapter 4
+4.1
+it's not reversible
+assume the block size is 128 bits, then 0 <= n < 128, the encoding of n is a single byte
+then the following padded text does not correspond to a unique plaintext:
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01
+it can be sixteen 00 bytes or fifteen 00 bytes followed by a 01
+
+4.2
+fixed IV:   the same to ECB, doesn't have indistinguishable encryption
+counter IV: not that different to fixed IV, the resulting scheme is not CPA-secure
+random IV:  relies on a cryptographically secure random number generator, which may be inefficient
+            otherwise this scheme can be proven CPA-secure given an idealized block cipher
+nonce IV:   performance depends on the implementation of the nonce
+            if it provides no randomness then the resulting scheme can not possibly be CPA-secure
+
+4.3
+K = C xor P = F(k, nonce||i)
+C' = K' xor P'
+K' = F(k, nonce||i')
+if the block cipher is perfect, an adversary cannot possibly know K' given K
+so even with knowledge of K, C, C' and P, the only thing an adversary can be sure is P xor P' != C xor C'
+
+4.4
+Another secret!
+And another.   
+
+4.5
+routine
+
+4.6
+C1' = F(k, C0' xor P1')
+C2 = F(k, C1 xor P2)
+given C1' = C2, C0' xor P1' = C1 xor P2, P1' = C1 xor P2 xor C0'
+given C1, P2 and C0', P1' can be computed
