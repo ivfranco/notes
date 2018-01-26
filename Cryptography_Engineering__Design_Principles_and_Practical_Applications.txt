@@ -83,3 +83,44 @@ C1' = F(k, C0' xor P1')
 C2 = F(k, C1 xor P2)
 given C1' = C2, C0' xor P1' = C1 xor P2, P1' = C1 xor P2 xor C0'
 given C1, P2 and C0', P1' can be computed
+
+Chapter 5
+5.1
+thanks https://www.decrane.io/md5
+0000000023f95a1cc84f18591bef74a9027ab6bfff4753bec329a9ddb11e6294d12c2405075eb4421be258722583b2521297d824ca8cae13e1e93477
+000000005401426fb4b54a77d215905a7a42cfdd9f765b3790dd7e3d0afd77d7d14c55de49ff3ef2f552b88672c0497e80acd11fc738b496a8d373f0
+4b5cd8f200000000
+and
+0000000023f95a1cc84f18591bef74a9027ab63fff4753bec329a9ddb11e6294d12c2405075eb4421be258722503b3521297d824ca8cae13e1e934f7
+000000005401426fb4b54a77d215905a7a42cfdd9f765bb790dd7e3d0afd77d7d14c55de49ff3ef2f552b88672c0497e802cd11fc738b496a8d373f0
+4b5cd87200000000
+
+5.2
+./Cryptography_Engineering/hash
+85027f3fa308b4f070b566ca4da26daffa65d861e6a26430d69a5ab7670a56f9a1668b802e6dfd4ddc992b93f752f29d76ce32777a3234f6a47db5aa
+4dc57185
+
+5.3
+./Cryptography_Engineering/hash
+the complexity of birthday attack is Θ(2^(n/2))
+adding one more byte to the hash makes the attack 2^(8/2) = 16 times harder
+finding a collision in SHA-512-32 takes roughly 5 seconds
+thereby finding a collision in SHA-512-256 may take 5 * 16^(32 - 5) ≒ 10^25 years
+finding a collision in SHA-512 itself may take 10^25 * 16^32 ≒ 10^63 years
+
+5.4
+./Cryptography_Engineering/hash
+finding a preimage by random sampling has complexity Θ(2^n)
+it takes roughly 2 seconds to find a preimage in SHA-512-16
+thereby it may take 2^(256 - 16) * 2 ≒ 10^65 years to find a preimage in SHA-512-256
+10^65 * 2^256 = 10^142 years to find a preimage in SHA-512 itself
+
+5.5
+H2 = AES(k, H1 xor m2)
+H1 = AES(k, H0 xor m1)
+m1' = m2 xor H1
+H1' = AES(k, H0 xor m1') = AES(k, H0 xor m2 xor H1) = AES(k, H1 xor m2) = H2
+H2' = AES(k, H1' xor m2') = AES(k, H2 xor H2 xor m2 xor H1) = AES(k, H1 xor m2) = H2
+
+5.6
+-

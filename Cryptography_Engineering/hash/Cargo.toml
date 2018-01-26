@@ -1,0 +1,8 @@
+[package]
+name = "hash"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco@smoug.net>"]
+
+[dependencies]
+rust-crypto = "0.2"
+rand = "0.4"
