@@ -124,3 +124,36 @@ H2' = AES(k, H1' xor m2') = AES(k, H2 xor H2 xor m2 xor H1) = AES(k, H1 xor m2) 
 
 5.6
 -
+
+Chapter 6
+6.1
+given two messages p1 and p2, where p2 = a||p2', a is the first block of p2
+an adversary can request M(p1) and M(p2) then compute a block b that:
+    b = a xor IV xor M(p1)
+    M(p1||b||p2') = M(p2)
+for a authentication system for mails, the date of a letter is almost always located at the end of the text
+an adversary can get tags for the content of a letter and an arbitrary date (prepended with a random block)
+then forge a tag for a letter with wrong date and some noise in between
+
+6.2
+M(a||c) = E(k, c xor M(a)) = E(k, c xor M(b)) = M(b||c)
+by correctness of decryption, c xor M(a) = c xor M(b), M(a) = M(b)
+then for any block d,
+M(a||d) = E(k, d xor M(a)) = E(k, d xor M(b)) = M(b||d)
+
+6.3
+M(b||M(b) xor M(a) xor b) = E(k, M(b) xor M(a) xor b xor M(b)) = E(k, M(a) xor b) = M(a||b)
+
+6.4
+M(a) = E(k, a xor IV)
+let b = M(a) xor a xor IV, then
+M(a||b) = E(k, b xor M(a)) = E(k, M(a) xor a xor IV xor M(a)) = E(k, a xor IV) = M(a)
+
+6.5
+routine 
+
+6.6
+routine
+
+6.7
+routine
