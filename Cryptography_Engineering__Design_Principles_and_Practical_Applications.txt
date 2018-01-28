@@ -150,10 +150,44 @@ let b = M(a) xor a xor IV, then
 M(a||b) = E(k, b xor M(a)) = E(k, M(a) xor a xor IV xor M(a)) = E(k, a xor IV) = M(a)
 
 6.5
-routine 
+./Cryptography_Engineering/cbc_mac
 
 6.6
 routine
 
 6.7
 routine
+
+Chapter 7
+7.1
+first the message number is used as a nonce in the authentication scheme
+if the message number ever repeats the underlying authentication will break
+the message number is also used as the nonce in CTR mode
+if the same message number is used twice, it's obvious to any adversary
+the adversary can then easily compute the difference between two messages using the same key stream
+
+7.2
+-
+
+7.3
+-
+
+7.4
+given a CPA-secure encryption scheme and a secure authentication scheme
+encryption-then-authentication will guarentee a CCA-secure encryption scheme
+the security of authentication-then-encryption is only determined after a case-by-case analysis
+encryption-and-authentication is almost never secure
+authentication schemes is not required to, thereby often does not have indistinguishable encryption
+
+7.5
+-
+
+7.6
+by eavesdropping the traffics of the secure channel in this scheme, an adversary will learn:
+    the size of every message (up to number of blocks due to padding)
+    when and how often these messages are issued and received
+    the total number of messages issued under the current key (message number is not encrypted)
+    the messages is not obfuscated, it will be clear to any eavesdropper that the two parites are communicating secretly
+say an Orwellian authority is in operation
+then frequent and lengthy communication through an encrypted channel is itself a strong indication of thoughtcrime
+the actual message been exchanged doesn't really matter
