@@ -167,7 +167,7 @@ if the same message number is used twice, it's obvious to any adversary
 the adversary can then easily compute the difference between two messages using the same key stream
 
 7.2
--
+./Cryptography_Engineering/secure-channel
 
 7.3
 -

@@ -1,0 +1,7 @@
+[package]
+name = "secure-channel"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco@smoug.net>"]
+
+[dependencies]
+rust-crypto = "0.2"
