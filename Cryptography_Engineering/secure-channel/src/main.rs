@@ -99,6 +99,10 @@ fn generate_key_sequence(key: &[u8], nonce: &[u8], out: &mut [u8]) {
 }
 
 impl Channel {
+    fn overhead() -> usize {
+        NONCE_LEN + MAC_LEN
+    }
+
     fn new(key: &[u8], role: Role) -> Self {
         let mut key_send_enc = [0; KEY_SIZE];
         let mut key_rec_enc = [0; KEY_SIZE];
@@ -131,28 +135,27 @@ impl Channel {
         assert!(ext.len() <= MAX_EXT_LEN);
         assert!(out.len() == msg.len() + NONCE_LEN + MAC_LEN);
 
+        let (nonce_sector, tail) = out.split_at_mut(NONCE_LEN);
+        let (mac_sector, cipher_sector) = tail.split_at_mut(MAC_LEN);
+
         self.msg_cnt_send += 1;
-        let nonce = u32_to_byte_array(self.msg_cnt_send);
+        nonce_sector.copy_from_slice(&u32_to_byte_array(self.msg_cnt_send));
 
         let key_sequence_length = (msg.len() / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
         let mut key_sequence: Vec<u8> = vec![0; key_sequence_length];
-        generate_key_sequence(&self.key_send_enc, &nonce, &mut key_sequence);
+        generate_key_sequence(&self.key_send_enc, nonce_sector, &mut key_sequence);
 
         for i in 0..msg.len() {
-            out[(NONCE_LEN + MAC_LEN) + i] = msg[i] ^ key_sequence[i];
+            cipher_sector[i] = msg[i] ^ key_sequence[i];
         }
 
-        let mut mac = [0; MAC_LEN];
         authenticate(
             &self.key_send_auth,
-            &nonce,
+            nonce_sector,
             ext,
-            &out[NONCE_LEN + MAC_LEN..],
-            &mut mac,
+            cipher_sector,
+            mac_sector,
         );
-
-        (&mut out[NONCE_LEN..(NONCE_LEN + MAC_LEN)]).copy_from_slice(&mac);
-        (&mut out[..NONCE_LEN]).copy_from_slice(&nonce);
     }
 
     fn receive_message(
@@ -165,7 +168,10 @@ impl Channel {
         assert!(ext.len() <= MAX_EXT_LEN);
         assert!(cipher.len() == msg.len() + NONCE_LEN + MAC_LEN);
 
-        let cnt = byte_array_to_u32(&cipher[..NONCE_LEN]);
+        let (nonce_sector, tail) = cipher.split_at(NONCE_LEN);
+        let (mac_sector, cipher_sector) = tail.split_at(MAC_LEN);
+
+        let cnt = byte_array_to_u32(nonce_sector);
         if cnt <= self.msg_cnt_rec {
             return Err(RecvError::MessageOrderError);
         }
@@ -173,25 +179,25 @@ impl Channel {
         let mut mac = [0; MAC_LEN];
         authenticate(
             &self.key_rec_auth,
-            &cipher[..NONCE_LEN],
+            nonce_sector,
             ext,
-            &cipher[(NONCE_LEN + MAC_LEN)..],
+            cipher_sector,
             &mut mac,
         );
 
-        if &mac != &cipher[NONCE_LEN..(NONCE_LEN + MAC_LEN)] {
+        if &mac != mac_sector {
             return Err(RecvError::AuthenticationFailure);
         }
 
-        let key_sequence_length =
-            ((cipher.len() - NONCE_LEN - MAC_LEN) / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
+        let key_sequence_length = (msg.len() / AES_BLOCK_SIZE + 1) * AES_BLOCK_SIZE;
         let mut key_sequence = vec![0; key_sequence_length];
-        generate_key_sequence(&self.key_rec_enc, &cipher[..NONCE_LEN], &mut key_sequence);
+        generate_key_sequence(&self.key_rec_enc, nonce_sector, &mut key_sequence);
 
-        for i in 0..(cipher.len() - NONCE_LEN - MAC_LEN) {
-            msg[i] = cipher[i + NONCE_LEN + MAC_LEN] ^ key_sequence[i];
+        for i in 0..msg.len() {
+            msg[i] = cipher_sector[i] ^ key_sequence[i];
         }
 
+        self.msg_cnt_rec = cnt;
         Ok(())
     }
 }
@@ -201,12 +207,15 @@ fn main() {
     let mut alice = Channel::new(&key, Role::Send);
     let mut bob = Channel::new(&key, Role::Recv);
 
-    let plain = "Ahora";
+    let plain = "cryptographicsystemsareextremelydifficulttobuildneverthelessf\
+                 orsomereasonmanynonexpertsinsistondesigningnewencryptionschem\
+                 esthatseemtothemtobemoresecurethananyotherschemeonearththeunf\
+                 ortunatetruthhoweveristhatsuchschemesareusuallytrivialtobreak";
     let msg = plain.as_bytes();
-    let mut msg_recv = vec![0; msg.len()];
-    let cipher_length = msg.len() + NONCE_LEN + MAC_LEN;
+    let cipher_length = msg.len() + Channel::overhead();
     let mut cipher = vec![0; cipher_length];
     alice.send_message(msg, &[], &mut cipher);
+    let mut msg_recv = vec![0; msg.len()];
     bob.receive_message(&cipher, &[], &mut msg_recv);
 
     println!{"{}\n{:?}\n{:?}", plain, cipher, String::from_utf8(msg_recv)};
