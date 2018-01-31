@@ -1,0 +1,7 @@
+[package]
+name = "prng"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco@smoug.net>"]
+
+[dependencies]
+rand = "0.4"

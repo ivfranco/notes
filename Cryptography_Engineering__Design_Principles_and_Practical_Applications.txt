@@ -221,7 +221,8 @@ javascript: how Math.random() works is not stated in the language specification,
             no obvious reseed is performed after initialization
             once the seed is known to the adversary, all future random numbers in the current execution are predictable
 9.2
--
+./Cryptography_Engineering/prng
+using /dev/urandom as the generator
 
 9.3
 rand crate of Rust provides a cryptographically secure PRNG called ChaCha
@@ -244,10 +245,10 @@ PRNG:   pros:   fast
                 given enough (exponential) time, an adversary can always distinguish and predict a PRNG
 
 9.5
--
+./Cryptography_Engineering/prng
 
 9.6
--
+./Cryptography_Engineering/prng
 
 9.7
 -
