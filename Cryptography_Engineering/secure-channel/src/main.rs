@@ -27,7 +27,7 @@ enum RecvError {
     MessageOrderError,
 }
 
-type Key = [u8; 32];
+type Key = [u8; KEY_SIZE];
 
 #[derive(Debug)]
 struct Channel {
@@ -39,21 +39,18 @@ struct Channel {
     msg_cnt_rec: u32,
 }
 
-fn shad_256(input: &[u8], output: &mut [u8]) {
+fn derive_key(key: &[u8], phrase: &str, out: &mut [u8]) {
+    assert!(key.len() == KEY_SIZE);
+    assert!(out.len() == KEY_SIZE);
+
     let mut sha = Sha256::new();
     sha.input(&[0; 64]);
-    sha.input(&input);
-    sha.result(output);
+    sha.input(key);
+    sha.input_str(phrase);
+    sha.result(out);
     sha.reset();
-    sha.input(&output[..32]);
-    sha.result(output);
-}
-
-
-fn derive_key(key: &[u8], phrase: &str, output: &mut [u8]) {
-    let mut key_phrase: Vec<u8> = Vec::from(key);
-    key_phrase.extend_from_slice(phrase.as_bytes());
-    shad_256(&key_phrase, output);
+    sha.input(out);
+    sha.result(out);
 }
 
 fn hmac_sha_256(key: &[u8], msg: &[u8], out: &mut [u8]) {
@@ -63,12 +60,15 @@ fn hmac_sha_256(key: &[u8], msg: &[u8], out: &mut [u8]) {
 }
 
 fn authenticate(key: &[u8], nonce: &[u8], ext: &[u8], msg: &[u8], out: &mut [u8]) {
+    assert!(out.len() == MAC_LEN);
+
     let mut auth: Vec<u8> = vec![];
     auth.extend_from_slice(&nonce);
     auth.extend_from_slice(&u32_to_byte_array(ext.len() as u32));
     auth.extend_from_slice(ext);
     auth.extend_from_slice(msg);
     hmac_sha_256(key, &auth, out);
+    wipe_bytes(&mut auth);
 }
 
 fn u32_to_byte_array(n: u32) -> [u8; 4] {
@@ -89,11 +89,13 @@ fn byte_array_to_u32(bytes: &[u8]) -> u32 {
 }
 
 fn generate_key_sequence(key: &[u8], nonce: &[u8], out: &mut [u8]) {
+    assert!(out.len() % AES_BLOCK_SIZE == 0);
+
     let aes = AesSafe256Encryptor::new(key);
     let mut ctr = [0; AES_BLOCK_SIZE];
+    (&mut ctr[NONCE_LEN..NONCE_LEN * 2]).copy_from_slice(&nonce);
     for (i, block) in out.chunks_mut(AES_BLOCK_SIZE).enumerate() {
         (&mut ctr[..NONCE_LEN]).copy_from_slice(&u32_to_byte_array(i as u32));
-        (&mut ctr[NONCE_LEN..NONCE_LEN * 2]).copy_from_slice(&nonce);
         aes.encrypt_block(&ctr, block);
     }
 }
@@ -104,6 +106,8 @@ impl Channel {
     }
 
     fn new(key: &[u8], role: Role) -> Self {
+        assert!(key.len() == KEY_SIZE);
+
         let mut key_send_enc = [0; KEY_SIZE];
         let mut key_rec_enc = [0; KEY_SIZE];
         let mut key_send_auth = [0; KEY_SIZE];
@@ -148,6 +152,8 @@ impl Channel {
         for i in 0..msg.len() {
             cipher_sector[i] = msg[i] ^ key_sequence[i];
         }
+
+        wipe_bytes(&mut key_sequence);
 
         authenticate(
             &self.key_send_auth,
@@ -197,15 +203,33 @@ impl Channel {
             msg[i] = cipher_sector[i] ^ key_sequence[i];
         }
 
+        wipe_bytes(&mut key_sequence);
+
         self.msg_cnt_rec = cnt;
         Ok(())
     }
 }
 
+fn wipe_bytes(bytes: &mut [u8]) {
+    for byte in bytes.iter_mut() {
+        *byte = 0u8;
+    }
+}
+
+impl Drop for Channel {
+    fn drop(&mut self) {
+        wipe_bytes(&mut self.key_send_enc);
+        wipe_bytes(&mut self.key_rec_enc);
+        wipe_bytes(&mut self.key_send_auth);
+        wipe_bytes(&mut self.key_rec_auth);
+    }
+}
+
 fn main() {
-    let key = [0; KEY_SIZE];
+    let mut key = [0; KEY_SIZE];
     let mut alice = Channel::new(&key, Role::Send);
     let mut bob = Channel::new(&key, Role::Recv);
+    wipe_bytes(&mut key);
 
     let plain = "cryptographicsystemsareextremelydifficulttobuildneverthelessf\
                  orsomereasonmanynonexpertsinsistondesigningnewencryptionschem\

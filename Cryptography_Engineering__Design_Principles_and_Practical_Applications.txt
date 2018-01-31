@@ -191,3 +191,63 @@ by eavesdropping the traffics of the secure channel in this scheme, an adversary
 say an Orwellian authority is in operation
 then frequent and lengthy communication through an encrypted channel is itself a strong indication of thoughtcrime
 the actual message been exchanged doesn't really matter
+
+Chapter 8
+-
+
+Chapter 9
+9.1
+Haskell:    https://hackage.haskell.org/package/random-1.1/docs/System-Random.html
+            samples and sets a 32-bit(!) global seed from the current cpu time when run in IO monad
+            calculate future seeds from the global one otherwise (manually from StdGen, in ST monad, etc.)
+            when used in pure functions the generator will not be reseeded
+            once the seed is known to an adversary it's completely broken
+Rust:       https://doc.rust-lang.org/rand/rand/index.html
+            by default uses an ISAAC generator with 64-bit seed, which will be reseeded frequently from /dev/urandom
+            along with the relatively small seed, ISSAC generator is not recommended for cryptographic purposes
+            provides cryptographically secure ChaCha generator as an alternative
+            provides access to the cryptographically secure /dev/urandom through rand::os::OsRng
+            provides a true random number generator based on the jitter in the CPU, which is 10^3 ~ 10^6 times slower
+javascript: how Math.random() works is not stated in the language specification, thus totally implementation-dependent
+            according to their blog (https://v8project.blogspot.com/2015/12/theres-mathrandom-and-then-theres.html)
+            in Google's V8 engine, before a certain version they used MWC1616 with 64-bit seeds
+            however the algorithm only outputs an u32, which is further truncated to 30-bits
+            (Math.random() outputs a number in [0, 1), the inverse of the 30-bit output)
+            https://github.com/v8/v8/blob/47c9e1c904050f82c4e527c5f86fc287856cdd3c/src/js/math.js#L133
+            the seed is sampled once during launch and no obvious reseeding is done later
+            after that they switched to an algorithm called xorshift128+ with 128-bit seed
+            https://github.com/v8/v8/blob/ceade6cf239e0773213d53d55c36b19231c820b5/src/js/math.js#L143
+            both MWC1616 and xorshift128+ are very fast but not suitalbe for cryptographic purposes
+            no obvious reseed is performed after initialization
+            once the seed is known to the adversary, all future random numbers in the current execution are predictable
+9.2
+-
+
+9.3
+rand crate of Rust provides a cryptographically secure PRNG called ChaCha
+the pitfall is the default implementation (rand::ChaChaRng) is not automatically reseeded
+who want a secure (automatically reseeding) generator have to combine it with a wrapper (rand::reseeding::ReseedingRng)
+the only way to trigger a reseeding is by the size of bytes generated or manually
+also it didn't specify any source of entropy
+user has to explicitly provide 256-bit seeds during initialization (::from_seed()) and reseeding (through the wrapper)
+as a consequence it cannot and don't have to deal with reboots: it doesn't collect entropy by itself
+
+9.4
+RNG:    pros:   truly random
+        cons:   based on real events which can be manipulated by adversaries
+                rekatively slow compared to PRNG (by a degree of 10^3 ~ 10^6)
+                relies on real events, is not always fully available
+PRNG:   pros:   fast
+                do not relies on real events, numbers can be generated in fixed, constant time
+                cryptographically secure PRNG is somehow unpredictable, even after a seed leakage
+        cons:   not truly random, can only be computationally indistinguishable from true random numbers
+                given enough (exponential) time, an adversary can always distinguish and predict a PRNG
+
+9.5
+-
+
+9.6
+-
+
+9.7
+-
