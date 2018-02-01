@@ -252,3 +252,32 @@ PRNG:   pros:   fast
 
 9.7
 -
+
+Chapter 10
+10.1
+./Cryptography_Engineering/prime
+
+10.2
+./Cryptography_Engineering/prime
+
+10.3
+./Cryptography_Engineering/prime
+
+10.4
+no, 3 * 4 = 5 mod 7, 5 is not in the set
+
+10.5
+263
+
+10.6
+79
+
+10.7
+83394443253893042657835271916421478558970962746299534128004050498353405478321
+
+10.8
+./Cryptography_Engineering/prime
+
+10.9
+199
+9 multiplications

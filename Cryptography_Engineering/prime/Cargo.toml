@@ -1,0 +1,10 @@
+[package]
+name = "prime"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco@smoug.net>"]
+
+[dependencies]
+num-bigint = { version = "0.1", features = ["rand"] }
+num-traits = "0.1"
+num-integer = "0.1"
+rand = "0.3"
