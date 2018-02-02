@@ -281,3 +281,28 @@ no, 3 * 4 = 5 mod 7, 5 is not in the set
 10.9
 199
 9 multiplications
+
+Chapter 11
+11.1
+200 * (200 - 1) = 49800
+
+11.2
+{1, 3, 9, 5, 4}
+{1, 7, 5, 2, 3, 10, 4, 6, 9, 8}
+{1, 10}
+
+11.3
+for prime p > 2, by Proposition 11.2 of Introduction to Modern Cryptography, 
+    Jp(x) = x^((p-1)/2) = x^q mod p, where Jp(x) is the Jacobi symbol of x in group Zp*
+and in such a group Jp(x) = 1 mod p iff x is a quadratic residuo of Zp*
+
+11.4
+the public key should be changed regularly
+the 128-bit security of the key-exchange protocol will be defeated by Moore's law soon or later
+also when the public key is not regularly changed, a break from outside of the cryptographic system will be permanent
+if e.g. an adversary acquired the key using a computer virus, security cannot be recovered
+
+11.5
+the sole purpose of a 256-bit AES key is to ensure 128-bit security somewhere else
+thereby the key-exchange protocol itself cannot have less than 128-bit security, otherwise it will be the weakest link
+they should use the recommended 6800-bit public key to achieve 128-bit security
