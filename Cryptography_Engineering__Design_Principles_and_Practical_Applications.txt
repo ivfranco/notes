@@ -306,3 +306,33 @@ if e.g. an adversary acquired the key using a computer virus, security cannot be
 the sole purpose of a 256-bit AES key is to ensure 128-bit security somewhere else
 thereby the key-exchange protocol itself cannot have less than 128-bit security, otherwise it will be the weakest link
 they should use the recommended 6800-bit public key to achieve 128-bit security
+
+Chapter 12
+12.1
+8458
+
+12.2
+1204
+
+12.3
+3344
+
+12.4
+gcd(e, lcm(p-1, q-1)) == 1, e is a valid public key
+the corresponding secret key is 1367
+
+12.5
+gcd(e, lcm(p-1, q-1)) == 3, e is not a valid public key
+
+12.6
+when the secret key is fixed, anyone can easily decrypt any ciphertext and the encryption scheme is trivally broken
+
+12.7
+when n = pq, Pollard's rho algorithm can factor n in time O(n^(1/4))
+given the factorization of n, the RSA encryption is trivally broken
+therefore 256-bit RSA key can at most provide 64-bit security, worse than 128-bit security of 256-bit AES key
+there are also other more efficient algorithms reduces the security of 256-bit RSA key further
+
+12.8
+σ1 = 1876, σ2 = 2206
+σ3 = 5830 = σ1 * σ2 = 1876 * 2206 mod n
