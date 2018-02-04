@@ -336,3 +336,19 @@ there are also other more efficient algorithms reduces the security of 256-bit R
 12.8
 σ1 = 1876, σ2 = 2206
 σ3 = 5830 = σ1 * σ2 = 1876 * 2206 mod n
+
+Chapter 13
+-
+
+Chapter 14
+14.1
+when this protocol is provided as some proprietary service and charged based on times been used
+such a log may inaccurately increase the fee be charged
+
+14.2
+by sending multiple (Sa, Na) to Bob as the first message, Bob has to compute g^x mod p
+when ||g|| is big (more than 4096 bits), such a computation will be costly, i.e. the DOS succeeds
+as the protocol has to be initialized by Alice, an adversary cannot start a DOS against Alice
+
+14.3
+-
