@@ -352,3 +352,15 @@ as the protocol has to be initialized by Alice, an adversary cannot start a DOS 
 
 14.3
 -
+
+Chapter 15
+15.1
+the time required to copy the key may leak the length of the key in bytes
+the time required to calculate the key, when the key has mathematical structures, may leak some information about it
+time required for operations performed with the key, e.g. exclusive or, may depend on the exact number of bits set in it
+
+15.2
+-
+
+Chapter 16
+-
