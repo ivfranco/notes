@@ -450,3 +450,40 @@ highly automated national railway system
     the headquarter of the national railway company can be the sole PKI
 emails
     OpenPGP for example
+
+Chapter 19
+19.1 
+if Alice uses the same keys for multiple PKIs
+a certificate issued for one PKI is automatically a certificate for all PKIs
+if the key is compromised, the attacker can impersonate Alice under all these PKIs
+
+19.2
+if more than 50 keys have been revoked, the CRL stored in the device cannot be up-to-date or complete
+either the device cannot check all the revoked keys, which defeats the revocation mechanisms
+or the device has to download the whole CRL every time a certificate has to be verified
+which makes it an attack point of DOS
+
+19.3
+if it refuses to work when the CRL database is offline, that makes the DOS more effective
+if it keeps a local copy of the CRL database and verifies the certificate according to it when the database is offline
+it reduces the speed of revocations, further more the revocation time in this system is no longer consistent
+if it verifies the certificates regardless of the CRL, that defeats the whole revocation mechanisms, system less secure
+
+19.4
+PKI:        more complicate, the server do not have private keys of the users
+key server: less complicate, the server holds the private keys of all the users by nature
+for a huge corporation with hundreds of departments all over the world, a PKI is more suitble
+    every department can have its own sub-CA and issuing certificates for access to assets in the department
+    it's unnecessary to have a huge key server managing all the keys, that may be even physically impossible
+for an instance message service provider who is obligated to log and keep all the conversations for legal reasons
+    the PKI is out of the question, communications between two users of the PKI is secure against the server
+    for a key server, the communication between two users is secure against a third user, but not against the server
+
+19.5
+CRL provides instantaneous revocation
+when all the devices in the system fundamentally do not work without network connection e.g. ATMs
+CRL is more preferable than other methods
+fast expiration relies less on consistent and fast network access, but requires more time to revoke a key
+when devices in the system only have occational network access e.g. nuclear submarines, fast expiration is the choice
+online certificate verification is almost always inferior to CRL
+it's only preferable when all the devices in the system are rarely used, has consistant but very slow network access
