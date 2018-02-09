@@ -487,3 +487,31 @@ fast expiration relies less on consistent and fast network access, but requires 
 when devices in the system only have occational network access e.g. nuclear submarines, fast expiration is the choice
 online certificate verification is almost always inferior to CRL
 it's only preferable when all the devices in the system are rarely used, has consistant but very slow network access
+
+Chapter 20
+20.1
+user's public key 
+which encryption algorithm should the key be used with
+the user's identity (nationality, name, email, website, etc.)
+a serial number (so the certificate can later be referred in a CRL)
+which signature algorithm is used to sign this certificate
+the exact version of algorithms (if any)
+expiration date (not valid after)
+validation date (not valid before)
+the scope of the trust associated with the key (where it can and cannot be used)
+
+20.2
+there's no such thing
+the browser refers to the root certificates provided by the operating system
+there are hundreds of them
+
+20.3
+if the certificate is carelessly designed (e.g. no version number included), the meaning of it may be ambiguous 
+a file may be parsed as a valid certificate by both version of the PKI
+including a version number in the certification from the first version may eliminate such ambiguity
+
+20.4
+./Cryptography_Engineering/cert
+
+20.5
+-
