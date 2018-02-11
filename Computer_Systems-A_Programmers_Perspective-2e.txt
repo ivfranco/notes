@@ -1,0 +1,165 @@
+Chapter 2
+2.1
+A.  1110011010011111111000
+B.  c97b
+C.  11010101111001001100
+D.  26e7b5
+
+2.2
+19  524288  0x80000
+14  16384   0x4000
+16  65536   0x10000
+17  131072  0x20000
+5   32      0x20
+7   128     0x80
+
+2.3
+167 10100111    0xa7
+62  00111110    0x3e
+188 10111100    0xbc
+55  00110111    0x37
+136 10001000    0x88
+82  01010010    0x52
+172 10101100    0xac
+231 11100111    0xe7
+
+2.4
+A. 0x503c + 0x8 = 0x5044
+B. 0x503c − 0x40 = 0x4ffc 
+C. 0x503c + 64 = 0x503c + 0x40 = 0x507c
+D. 0x50ea − 0x503c = 0xae
+
+2.5
+A.  21
+    87
+B.  21 43
+    87 65
+C.  21 43 65
+    87 65 43
+
+2.6
+A.  00000000001101011001000101000001
+    01001010010101100100010100000100
+B.  00000000001101011001000101000001
+      01001010010101100100010100000100
+    21 bits match
+C.  the first non-zero bit in the representation of the integer number
+    the first 9 bits in the representation of the float number
+    the last 2 bits in the representation of the float number
+
+2.7
+61 62 63 64 65 66
+will not include the terminating character
+
+2.8
+a = 01101001
+b = 01010101
+~a = 10010110
+~b = 10101010
+a & b = 01000001
+a | b = 01111101
+a ^ b = 00111100
+
+2.9
+A.  ~Black = White
+    ~Blue = Yellow
+    ~Green = Magenta
+    ~Cyan = Red
+    and vice versa
+B.  Blue | Green = Cyan 
+    Yellow  & Cyan = Green 
+    Red ^ Magenta = Blue
+
+2.10
+a   a^b
+b   a^b
+b   a
+
+2.11
+A.  both equals k
+B.  the function in the final iteration swaps the k+1-th elements with itself
+    the two references applied to the function inplace_swap refers to the same address
+    in step 1 of inplace_swap, *y = *x ^ *y = *x ^ *x = 0, further computations always result in 0
+C.  change line 4 to
+        first < last;
+
+2.12
+A.  x & 0xff
+B.  x ^ ~0xff
+C.  x | 0xff
+
+2.13
+x   y   bis(x, y)
+0   0   0
+0   1   1
+1   0   1
+1   1   1
+therefore x | y == bis(x, y)
+x   y   bic(x, y)
+0   0   0
+0   1   0
+1   0   1
+1   1   0
+therefore x ^ y = bic(x, y) | bic(y, x) = bis(bic(x, y), bic(y, x))
+
+2.14
+x & y == 0x20
+x | y == 0x7f
+~x | ~y == 0xdf
+x & !y == 0x01
+x && y == 0x01
+x || y == 0x01
+!x || !y == 0x00
+x && ~y == 0x01
+
+2.15
+!(x ^ y)
+
+2.16
+0xc3    11000011    11000       0x18    110000  0x30    11110000    0xf0
+0x75    1110101     10101000    0xa8    11101   0x1d    11101       0x1d
+0x87    10000111    111000      0x38    100001  0x21    11100001    0xe1 
+0x66    1100110     110000      0x30    11001   0x19    11001       0x19
+
+2.17
+0x0 0000    0   0
+0x5 0101    5   5
+0x8 1000    8   -8
+0xd 1101    13  -3
+0xf 1111    15  -1
+
+2.18
+A.  440
+B.  20
+C.  -424
+D.  -396
+E.  68
+F.  -312
+G.  16
+H.  12
+I.  -276
+J.  32
+
+2.19
+-8  8
+-3  13
+-2  14
+-1  15
+0   0
+5   5
+
+2.20
+T2U4(x) =   x if x >= 0
+            x + 16 if x < 0
+
+2.21
+unsigned    1
+signed      1
+unsigned    0
+signed      1
+unsigned    1
+
+2.22
+A.  1011 = -2^3 + 2^1 + 2^0 = -5
+B.  11011 = -2^4 + 2^3 + 2^1 + 2^0 = -5
+C.  111011 = -2^5 + 2^4 + 2^3 + 2^1 + 2^0 = -5
