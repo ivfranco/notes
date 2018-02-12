@@ -1,3 +1,4 @@
+//  whenever appropriate, all "Write a program" practices will be done in Rust instead of C
 Chapter 2
 2.1
 A.  1110011010011111111000
@@ -163,3 +164,192 @@ unsigned    1
 A.  1011 = -2^3 + 2^1 + 2^0 = -5
 B.  11011 = -2^4 + 2^3 + 2^1 + 2^0 = -5
 C.  111011 = -2^5 + 2^4 + 2^3 + 2^1 + 2^0 = -5
+
+2.23
+A.  118     118
+    33      33
+    201     -55
+    135     -121
+B.  returns the least significant 8 bits of a word, padded by either 0 or 1, interpreted as sa signed integer
+
+2.24
+0   0
+2   2
+1   1
+3   3
+7   -1
+
+2.25
+length - 1, when length == 0, will underflow and wrap to 2^w - 1, given w-bit word size
+change loop condition from i <= length - 1 to i < length will fix the error
+
+2.26
+A.  whenever strlen(s) < strlen(t), the function will return 1
+B.  when strlen(s) < strlen(t), the result of strlen(s) - strlen(t) will underflow and wrap to a positive number
+C.  return strlen(s) > strlen(t);
+
+2.27
+fn uadd_ok(x: u32, y: u32) -> bool {
+  let s = x.wrapping_add(y);
+  s >= x
+}
+
+2.28
+0   0   0   0
+5   5   11  b
+8   8   8   8
+d   13  3   3
+f   15  1   1
+
+2.29
+10100   10001
+-12     -15     -27     5       1
+11000   11000
+-8      -8      -16     -16     2
+10111   01000
+-9      8       -1      -1      2
+00010   00101
+2       5       7       7       3
+01100   00100
+12      4       16      -16     4
+
+2.30
+fn tadd_ok(x: i32, y: i32) -> bool {
+  let s = x.wrapping_add(y);
+  !((x >= 0 && y >= 0 && s < 0) || (x < 0 && y < 0 && s >= 0))
+}
+
+2.31
+cause I was being harsh against others
+and the implementation is based on the exact meaning of signed substraction
+when sum = x + y overflowed, sum - x and sum - y may also overflow, the result is UB in the specification of C
+
+2.32
+when y == -(2^w), w the size of the word, y doesn't have a positive counterpart representable as a w-bit word
+when y == -(2^w), -y overflows, the result is UB and tadd_ok(x, -y) may return anything depend on -y
+
+2.33
+0   0   0   0
+5   5   -5  b
+8   -8  -8  8
+d   -3  3   3
+f   -1  1   1
+they have the same bit representation
+
+2.34
+100     101
+4       5       20[100100]      4[100]
+-4      -3      12[001100]      -4[100]
+010     111
+2       7       14[001110]      6[110]
+2       -1      -2[111110]      -2[110]
+110     110
+6       6       36[100100]      4[100]
+-2      -2      4[000100]       -4[100]
+
+2.35
+when x == 0, xy will always be 0, no matter truncated to how many bits, thereby no overflow
+tmult_ok(0, y) should return 1 for all y
+when x == 0, !x == 1, (!x || p/x == y) == 1, the answer is correct
+when x != 0, xy didn't overflow, xy == p
+reversely, when xy == p, xy didn't overflow
+when xy overflowed,
+    p   = U2Tw(xy mod 2^w)
+        = [xy mod 2^w] + k2^w, k = -1 or 0
+    xy  = [xy mod 2^w] + r2^w
+        = p + (r - k)2^w
+define t = r - k then xy = p + t2^w
+the specification of C language requires (p / x) * x + p % x == p for integers
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf
+hence for q = p/x, p == q * x + p % x, where p % x is the reminder of p divides x, therefore r = p % x and |r| < |x|
+when t == 0, r == 0, xy didn't oveflow, xy == p, q == p / x == y
+when t != 0, xy overflowed, xy == p + t2^w, p == xy - t2^w
+if q == p / x == y, p == xy + r, |r| < |x|, which implies |t2^w| < |x|, contradiction
+therefore when t != 0, q != y, and q == y <=> (t == 0 && r == 0)
+
+2.36
+fn tmult_ok(x: i32, y: i32) -> bool {
+  // product of two w-bit signed integer can be represented by 2w bits
+  // so product of two i32 will fit in an i64, the calculation can never overflow
+  let p = (x as i64) * (y as i64);
+  let min = i32::min_value() as i64;
+  let max = i32::max_value() as i64;
+  p >= min && p <= max
+}
+
+2.37
+A.  not so much. the library function memcpy expects input of type size_t, and will truncate asize to that size
+    by carefully choosing ele_cnt and ele_size, the trancated asize can still be small
+B.  explicitly check for overflow using function tmult_ok
+    immediately return NULL when the multiplication will overflow
+
+2.38
+a << k == a * 2^k
+a << k + a == a * 2^k + a == a * (2^k + 1)
+for k ∈ {0 .. 3}, LEA can calculate pa for p ∈ {1, 2 4, 8} ∪ {2, 3, 5, 9} = {1, 2, 3, 4, 5, 8, 9}
+
+2.39
+(x << n) << 1 - (x << m)
+
+2.40
+6[110]      (x << 2) + (x << 1)
+31[11111]   (x << 6) - x
+-6, 2 - 8   (x << 1) - (x << 3)
+55[110111]  (x << 7) - (x << 3) - x
+
+2.41
+when (n - m) is greater than 2 and subtraction has similar cost to addition, use form B
+otherwise (n - m <= 2 or substraction is significantly more costy than addition), use form A
+
+2.42
+fn div16(x: i32) -> i32 {
+  let bits = x >> 31;
+  let bias = 16 - 1;
+  (x + (bias & bits)) >> 4
+}
+
+2.43
+M == 2^5 - 1 == 31
+N == 2^3 == 8
+
+2.44
+A.  for x = -2^31, x < 0, x - 1 == 2^31 - 1 > 0
+B.  x & 7 truncates x to 3 bits
+    when x & 7 intepreted as a 32-bit signed integer equals to 7, the least significant 3 bits of x is 111
+    thereby x << 29 will have most significant bit equals to 1, is a negative number when interpreted as a signed int
+C.  for x = 1234567891, x * x == -1521747479 < 0
+D.  if x >= 0, -x is representable in 32 bits and will not overflow, -x <= 0
+E.  for x = -2^31, -x is defined as -2^31, x < 0 && -x < 0
+F.  this is how signed integer addition is defined according to 2.13
+    x + y and ux + uy will have the same bit representation
+    also == will cast the signed x + y to unsigned integer
+G.  x * (~y + 1) == x * -y == - (x * y)
+    x * y and ux * uy have the same bit representation
+    for some signed z and its unsigned interpretation uz
+    if z == -2^(w-1),
+        -z          == -2^(w-1)
+        T2Uw(-z)    == 2^w + -2^(w-1) == 2^(w-1)
+        T2Uw(z)     == 2^(w-1)
+        -T2Uw(z)    == 2^w - 2^(w-1) == 2^(w-1)
+    if -2^(w-1) < z < 0,
+        -z          == -(z) (integer)
+        T2Uw(-z)    == -(z)
+        T2Uw(z)     == 2^w + z
+        -T2Uw(z)    == 2^w - (2^w + z) == -(z)
+    if z == 0,
+        -z          == 0
+        T2Uw(-z)    == 0
+        T2Uw(z)     == 0
+        -T2Uw(z)    == 0
+    if z > 0,
+        -z          == -(z)
+        T2Uw(-z)    == 2^w - z
+        T2Uw(z)     == z 
+        -T2Uw(z)    == 2^w - z
+    therefore -z and -uz has the same bit representation, and 
+        -(x * y) + ux * uy == 0
+        x * (~y + 1) + ux * uy == 0
+        x * ~y + x + ux * uy == 0
+    by definition, x * ~y + ux * uy is the additional inversion of ux
+    again -ux and -x has the same bit representation, so
+        x * ~y + ux * uy == -x
