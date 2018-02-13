@@ -350,6 +350,109 @@ G.  x * (~y + 1) == x * -y == - (x * y)
         -(x * y) + ux * uy == 0
         x * (~y + 1) + ux * uy == 0
         x * ~y + x + ux * uy == 0
-    by definition, x * ~y + ux * uy is the additional inversion of ux
+    by definition, x * ~y + ux * uy is the addictive inverse of ux
     again -ux and -x has the same bit representation, so
         x * ~y + ux * uy == -x
+
+2.45
+3/4     0.11    0.75
+25/16   1.1001  1.5625
+43/16   10.1011 2.6875
+9/8     1.001   1.125
+47/8    101.111 5.875
+51/16   11.0011 3.1875
+
+2.46
+x = 0.00011001100110011001100
+A.  0.1 - x == 0.0000000000000000000000011[0011]...
+B.  0.1 - x ≒ 0.0000000953674316
+C.  t_diff == 100 * 3600 * (0.1 - x) ≒ 0.034332275392634 second
+D.  2000 * t_diff ≒ 68.664550785 meters
+
+2.47
+./CSAPP/float
+
+2.48
+the bit representation of 3510593 is 1101011001000101000001, 22 bit long
+drop the leading 1, get 101011001000101000001
+pad it to 23 bits with 0, get 10101100100010100000100
+the fraction should be shifted to 21 positions to the right of binary point
+21 + 127 = 149, has binary representation 10010101
+combined with a sign bit 0, 01001010110101100100010100000100 is the final result
+
+2.49
+A.  for a floating-format with n-bit fraction, let f = [10^n1], then f * 2^k cannot be represented exactly for any k
+    let sd be the smallest positive denormalized number and sn the smallest positive normalized number
+    the smallest positive number np that cannot be represented exactly is
+        np  == sd/2 + sn
+            == 2^(-n - 2^(k-1) + 1) + 2^(-2^(k-1) + 2)
+B.  for n = 23, k = 8,
+        np == 2^-149 + 2^-125
+
+2.50
+A.  10.010(2 + 1/4)     10.0(2)
+B.  10.011(2 + 3/8)     10.1(2 + 1/2)
+C.  10.110(2 + 3/4)     11.0(3)
+D.  11.001(3 + 1/8)     11.0(3)
+
+2.51
+A.  0.1 == 0.00011001100110011001100[1100]...
+    x' == 0.00011001100110011001101
+B.  x' - 0.1 == 0.10000002384185791
+C.  t_diff == 100 * 3600 * (x' - 0.1) == 0.008583068845657849 seconds
+D.  2000 * t_diff == 17.166137691315697 meters
+
+2.52
+101 1110    30      1001 111    30
+010 1001    25/32   0110 100    12/16
+110 1111    31/2    1011 000    16
+000 0001    1/32    0001 000    1/32
+
+2.53
+#define POS_INFINITY (1e308 * 2)
+#define NEG_INFINITY (1e308 * -2)
+#define NEG_ZERO (1 / NEG_INFINITY)
+
+2.54
+A.  true, int -> double will be exact, no rounding performed on the way back
+B.  x = 0x80000001
+C.  x = 0.1234567890123
+D.  true, float -> double will be exact, no rounding performed on the way back
+E.  true, negation of a floating number only changes the sign bit
+F.  true, integer literals will be implicitly converted to float
+G.  guarenteed by IEEE format
+H.  f = 1e10, d = 1e-10
+
+2.55
+most of them are little-endian
+
+2.56
+./CSAPP/float
+
+2.57
+a properly coded polynomial function show_bytes<T> in Rust can handle all types which implements trait Sized
+i.e. show_short, show_long, show_double all unnecessary
+
+2.58
+./CSAPP/float
+
+2.59
+(0x00000001 & x) | (0xfffffffe & y)
+
+2.60
+./CSAPP/float
+
+2.61
+A.  !!x
+B.  !(~x)
+C.  !!(x & 0xff)
+D.  !!(~x & (INT_MIN >> 1))
+
+2.62
+./CSAPP/float
+
+2.63
+./CSAPP/float
+
+2.64
+./CSAPP/float
