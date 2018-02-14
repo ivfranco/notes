@@ -456,3 +456,133 @@ D.  !!(~x & (INT_MIN >> 1))
 
 2.64
 ./CSAPP/float
+
+2.65
+thanks https://stackoverflow.com/questions/27467595/
+./CSAPP/float
+given a w-bit word x = [b1b2 .. bw], the parity function is defined as
+    f(x) = b1 xor b2 xor .. xor bw
+by commutativity and associativity of xor, every pair of 1s will cancel each other
+if there are odd 1s in the bit representation of x, f(x) == 1, otherwise f(x) == 0
+also for a 2w-bit word x = [b1..b2w],
+    f(x)    = b1 xor .. xor b2w
+            = (b1 xor bw+1) xor (b2 xor bw+2) .. xor (bw xor b2w)
+            = f(x'), where x' = x[1..w] xor x[w+1..2w]
+hence given a w-bit x = x1||x2, |x1| = |x2|, the parity of x can be computed as the parity of x1 xor x2
+doing so iteratively and odd_ones can be computed with log2(w) xors and log2(w) shifts
+
+2.66
+./CSAPP/float
+let x = [0 .. 0bk .. bw], where bk is the most significant non-zero bit
+by computing x |= x >> 1, both bk and bk+1 now is guarenteed to be 1
+such a computation will never change bits more significant than bk, as right shift is logical for unsigned integer
+then x |= x >> 2, as bk and bk+1 are 1, bk+2 and bk+3 will be 1 after this step
+after t steps, 2^t bits after bk will be 1
+so 5 steps is sufficient to transfer any 32-bit x to [0 .. 01 .. 1], where k-th bit is still the first non-zero bit
+let y be x after 5 iterations
+then (y >> 1) + 1 will give the right answer for all x except 0
+so ((y >> 1) + 1) & x is the answer
+
+2.67
+A.  shift count in C cannot be equal to or greater than the size of the integer
+    for a 32-bit int, 1 << 32 will be UB
+B.  change line 4 and 6 to
+        int set_msb = 1 << 31;
+        int beyond_msb = 1 << 31 << 1;
+C.  change line 4 and 6 to
+        int set_msb = 1 << 15 << 15 << 1;
+        int beyond_msb = 1 << 15 << 15 << 2;
+
+2.68
+./CSAPP/float
+
+2.69
+./CSAPP/float
+
+2.70
+./CSAPP/float
+
+2.71
+A.  word is of type unsigned, and type casting in C between unsigned and int preserves bit representation, not value
+    (word >> (bytenum << 3)) will always be extended with 0, the result will always be interpreted as positive
+B.  return 0xff - ((word << ((3 - bytenum) << 3)) >> 24)
+
+2.72
+A.  the one of the operator of (maxbytes - sizeof(val)) is of type size_t, which is unsigned
+    so the result will be casted to unsigned, and an unsigned number is always greater or equal to 0
+B.  if (maxbytes >= 0 && maxbytes >= sizeof(val))
+
+2.73
+thanks https://zhangjunphy.github.io/csapp/chap2.html
+./CSAPP/float
+
+2.74
+check if y == INT_MIN, then run tadd_ok(x, -y)
+
+2.75
+when x, y <= INT_MAX, the result of unsigned_high_prod(x, y) should be equal to signed_high_prod(x, y)
+when both x, y > INT_MAX, denote tx = U2Tw(x) and ty = U2Tw(y)
+    tx = x - 2^w, ty = y - 2^w
+    tx * ty = 2^2w + xy - x2^w - y2^w
+    xy = tx * ty + x2^w + y2^w - 2^2w = tx * ty + x2^w + y2^w mod 2^2w
+both x2^w and y2^w have zeros in lower w bits
+thus unsigned_high_prod(x, y) = signed_high_prod(x, y) + x + y
+when x <= INT_MAX and y > INT_MAX, denote tx = U2Tw(x) and ty = U2Tw(y)
+    tx = x, ty = y - 2^w
+    tx * ty = xy - x2^w
+    xy = tx * ty + x2^w
+and unsigned_high_prod(x, y) = signed_high_prod(x, y) + x
+when x > INT_MAX and y <= INT_MAX, symmetrically
+unsigned_high_prod(x, y) = signed_high_prod(x, y) + y
+./CSAPP/float
+
+2.76
+A.  x + (x << 4)
+B.  x - (x << 3)
+C.  (x << 6) - (x << 2)
+D.  (x << 4) - (x << 7)
+
+2.77
+./CSAPP/float 
+
+2.78
+./CSAPP/float
+
+2.79
+thanks https://dreamanddead.gitbooks.io/csapp-3e-solutions/chapter2/2.80.html
+./CSAPP/float
+
+2.80
+A.  -1 << k
+B.  ~(-1 << k << j) & (-1 << j)
+
+2.81
+A.  when x == INT_MIN, y >= 0, x < y == 1 and -x > -y == 0
+B.  (x + y) << 4 == 16 * (x + y) == 16 * x + 16 * y
+    (x + y) << 4 + y - x == 17 * y + 15 * x
+C.  ~(x + y) + 1 == -(x + y), ~(x + y) == -(x + y) - 1
+    ~x + 1 == -x, ~y == -y - 1, ~x + ~y + 1 = -x + -y - 1
+    -x + x + -y + y == 0, x + y + (-x + -y) == 0, (-x + -y) == -(x + y), negation distributes over addition
+D.  substraction, addition and negation are all isomorphic in signed and unsigned arithmetics
+    the bit representation is always the same after signed or unsigned computation
+    -(y - x) == -(uy - ux)
+    ux - uy + (uy - ux) == 0, -(uy - ux) == ux - uy
+    therefore ux - uy == -(unsigned)(y - x)
+E.  (x << 2) >> 2 erases the least significant 2 bits of x
+    in two's complement representation, these two bits always have positive weights
+    therefore (x << 2) >> 2 <= x holds
+
+2.82
+A.  0.yyyyy... == Y/2^k + Y/2^2k + ... == Y(1/2^k + 1/2^2k + ...) == Y(2^k/(2^k - 1) - 1) == Y/(2^k - 1)
+B.  a.  5/(2^3 - 1) == 5/7
+    b.  6/(2^4 - 1) == 6/15 == 2/5
+    c.  35/(2^6 - 1) == 35/63 == 5/9
+
+2.83
+return sx == sy ? (sx ? ux << 1 >= uy << 1 : ux << 1 <= uy << 1) : (ux << 1 == 0 && uy << 1 == 0) || sx > sy
+
+2.84
+A.  E = 2, M = 7/4, f = 3/4, V = 7
+    x = 0||e||m
+    where e is the k-bit representation of 2^(k-1) + 1
+    m is the n-bit representation of 3/4, binary point placed before the first bit
