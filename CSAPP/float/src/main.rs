@@ -3,10 +3,15 @@
 extern crate rand;
 
 use std::mem;
+use std::f32;
 use rand::Rng;
 
 fn main() {
-    practice_2_79();
+    let mut res = true;
+    for _ in 0..100 {
+        res = res && practice_2_95();
+    }
+    println!("all test passed: {}", res);
 }
 
 fn practice_2_47() {
@@ -369,4 +374,166 @@ fn practice_2_79() {
     assert!(threefourths(-10) == -7);
     assert!(threefourths(-11) == -8);
     assert!(threefourths(-12) == -9);
+}
+
+type FloatBits = u32;
+
+const SIG_OFFSET: FloatBits = 31;
+const EXP_OFFSET: FloatBits = 23;
+const EXP_MASK: FloatBits = 0xff;
+const FRAC_MASK: FloatBits = (1 << 23) - 1;
+const EXP_BIAS: i32 = (1 << (8 - 1)) - 1;
+
+fn decompose(f: FloatBits) -> (u32, u32, u32) {
+    let sig = f >> SIG_OFFSET;
+    let exp = (f >> EXP_OFFSET) & EXP_MASK;
+    let frac = f & FRAC_MASK;
+
+    (sig, exp, frac)
+}
+
+fn compose(sig: u32, exp: u32, frac: u32) -> FloatBits {
+    assert!(sig <= 1);
+    assert!(exp <= EXP_MASK);
+    assert!(frac <= FRAC_MASK);
+    (sig << SIG_OFFSET) | (exp << EXP_OFFSET) | frac
+}
+
+fn is_nan(f: FloatBits) -> bool {
+    let (_, exp, frac) = decompose(f);
+    exp == EXP_MASK && frac != 0
+}
+
+fn float_negate(f: FloatBits) -> FloatBits {
+    if is_nan(f) {
+        return f;
+    }
+    f ^ (1 << SIG_OFFSET)
+}
+
+fn float_bits_op<F: Fn(FloatBits) -> FloatBits>(op: F, x: f32) -> f32 {
+    unsafe {
+        let f = mem::transmute::<f32, FloatBits>(x);
+        mem::transmute::<FloatBits, f32>(op(f))
+    }
+}
+
+fn test_framework<F, G>(lib: F, usr: G) -> bool
+where
+    F: Fn(f32) -> f32,
+    G: Fn(FloatBits) -> FloatBits,
+{
+    let x: f32 = rand::random();
+    let f = float_bits_op(usr, x);
+    let res = lib(x) == f;
+    println!("{} == {}, {}", lib(x), f, res);
+    res
+}
+
+fn practice_2_91() -> bool {
+    test_framework(|x| -x, float_negate)
+}
+
+fn float_absval(f: FloatBits) -> FloatBits {
+    if is_nan(f) {
+        return f;
+    }
+    f & (0xffffffff >> 1)
+}
+
+fn practice_2_92() -> bool {
+    test_framework(f32::abs, float_absval)
+}
+
+fn float_twice(f: FloatBits) -> FloatBits {
+    if is_nan(f) {
+        return f;
+    }
+
+    let (sig, exp, frac) = decompose(f);
+    if exp == EXP_MASK - 1 {
+        compose(sig, EXP_MASK, 0)
+    } else if exp == 0 {
+        if frac >> (EXP_OFFSET - 1) == 0 {
+            compose(sig, 0, frac << 1)
+        } else {
+            compose(sig, 1, (frac << 1) & FRAC_MASK)
+        }
+    } else {
+        compose(sig, exp + 1, frac)
+    }
+}
+
+fn practice_2_93() -> bool {
+    test_framework(|x| x * 2.0, float_twice)
+}
+
+fn float_half(f: FloatBits) -> FloatBits {
+    if is_nan(f) {
+        return f;
+    }
+
+    let (sig, exp, mut frac) = decompose(f);
+    if exp > 1 {
+        return compose(sig, exp - 1, frac);
+    }
+
+    let lsb = frac & 1;
+    frac >>= 1;
+    if lsb == 1 && frac & 1 == 1 {
+        frac += 1;
+    }
+    if exp == 1 {
+        frac |= 1 << (EXP_OFFSET - 1);
+    }
+
+    compose(sig, 0, frac)
+}
+
+fn practice_2_94() -> bool {
+    test_framework(|x| x * 0.5, float_half)
+}
+
+fn float_f2i(f: FloatBits) -> i32 {
+    let w = (mem::size_of::<i32>() << 3) as u32;
+    let err = i32::min_value();
+    if is_nan(f) {
+        return err;
+    }
+    let (sig, exp, mut frac) = decompose(f);
+    let e = if exp == 0 {
+        1 - EXP_BIAS
+    } else {
+        (exp as i32) - EXP_BIAS
+    };
+
+    // too small to be represented as an integer
+    if e < 0 {
+        return 0;
+    }
+
+    // overflow and underflow
+    // for the special case where sig == 1, e == w - 1, frac == 0
+    // V == -2^(w - 1) == INT_MIN == ERR
+    // by returning ERR, this special case is covered
+    if e > (w as i32) - 2 {
+        return err;
+    }
+
+    frac |= 1 << EXP_OFFSET;
+    frac <<= w - EXP_OFFSET - 1;
+    frac >>= (w as i32) - e - 1;
+
+    let s = if sig == 0 { 1 } else { -1 };
+    return (frac as i32) * s;
+}
+
+fn practice_2_95() -> bool {
+    let mut rnd = rand::thread_rng();
+    let x: f32 = rnd.gen_range(-2e9, 2e9);
+    let f = unsafe { mem::transmute::<f32, FloatBits>(x) };
+    let int_f = float_f2i(f);
+    let res = (x as i32) == int_f;
+    println!("{} == {}, {}", x as i32, int_f, res);
+    res
 }

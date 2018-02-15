@@ -586,3 +586,92 @@ A.  E = 2, M = 7/4, f = 3/4, V = 7
     x = 0||e||m
     where e is the k-bit representation of 2^(k-1) + 1
     m is the n-bit representation of 3/4, binary point placed before the first bit
+B.  for E > n + 1, every number representable will be even
+    E = n, M = 2 - 1/2^n, f = 1 - 1/2^n, V = 2^(n+1) - 1
+    x = 0||e||1^n
+    where e is the k-bit representation of n
+C.  the smallest positive normalized value = 2^(2 - 2^(k-1))
+    its reciprocal is 2^(2^(k-1) - 2)
+    E = 2^(k-1) - 2, M = 1, f = 0, V = 2^(2^(k-1) - 2)
+    x = 0||e||0^n
+    where e is the n-bit representation of 2^(k-1) - 2 + 2^(k-1) - 1 = 2^k - 3
+
+2.85
+2^-16445            about 1e-4950
+2^-16382            about 1e-4931
+2^16384 - 2^16320   about 1e4932
+
+2.86
+0x8000      0       -63     -0
+0x2001      257/256 1       257 * 2^-7
+0x4800      0       9       512
+0x00ff      255/256 -62     255 * 2^-70
+0x3bb0      432/256 -4      27 * 2^-8
+
+2.87
+routine
+
+2.88
+A.  casting from int -> double is accurate, int -> float is equivalent to int -> double -> float
+B.  dx - dy will not underflow
+    when x - y underflowed (x - y < INT_MIN), (double)(x - y) will be positive, while dx - dy is negative
+C.  floating point arithmetics is not associative
+    when dx = 1e-10, dy = 1e10, dz = -1e10
+    (dx + dy) + dz == 0, dx + (dy + dz) == 1e-10
+D.  again floating point arithmetics is not associative
+    when dx = 1e300, dy = 1e300, dz = 1e-300
+    (dx * dy) * dz == inf, dx * (dy * dz) == 1e300
+E.  when dx = 0, dz = 1
+    dx / dx == NaN, dz / dz == 1
+
+2.89
+x < -149
+    exp = 0
+    frac = 0
+x < -126
+    exp = 0
+    frac = 1 << (x + 149)
+x < 128
+    exp = x + 127
+    frac = 0
+else 
+    exp = 0xff
+    frac = 0
+
+2.90
+A.  11.0010010000111111011011
+B.  22/7 = 3 + 1/7, 1/7 = 0.[001]..., 22/7 = 11.[001]...
+C.  at the 9th binary position
+
+2.91 - 2.95
+./CSAPP/float
+
+Chapter 3
+3.1
+%eax            0x100
+0x104           0xAB
+$0x108          0x108
+(%eax)          0xFF
+4(%eax)         0xAB
+9(%eax,%edx)    0x11
+260(%ecx,%edx)  0x13
+0xFC(,%ecx,4)   0xFF
+(%eax,%edx,4)   0x11
+
+3.2
+movl
+movw
+movb
+movb
+pushl
+movw
+popl
+
+3.3
+1.  addresses have to be 32-bit long, while %bl is 8-bit
+2.  movl moves 32-bit double words, while %ax is 16-bit
+3.  mov instructions cannot move memory address to another memory address directly
+4.  no register called %sh 
+5.  the destination of movl cannot be an immediate value
+6.  movl moves 32-bit double words, while %dx is 16-bit
+7.  movb moves 8-bit bytes, while %si is 16-bit 
