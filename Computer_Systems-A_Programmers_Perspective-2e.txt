@@ -675,3 +675,228 @@ popl
 5.  the destination of movl cannot be an immediate value
 6.  movl moves 32-bit double words, while %dx is 16-bit
 7.  movb moves 8-bit bytes, while %si is 16-bit 
+
+3.4
+movsbl %al, (%edx)
+movzbl %al, (%edx)
+movsbl %al, (%edx)
+movb %al, (%edx)
+movb %al, (%edx)
+movl %eax, (%edx)
+
+3.5
+
+fn decode1(xp: &mut i32, yp: &mut i32, zp: &mut i32) {
+    let x = *xp;
+    let y = *yp;
+    let z = *zp;
+    *xp = z;
+    *yp = x;
+    *zp = y;
+}
+
+3.6
+x + 6
+x + y
+x + 4y
+9x + 7
+4y + 10
+x + 2y + 9
+
+3.7
+0x100       0x100
+0x104       0x99
+0x10C       0x110
+0x108       0x14
+%ecx        0x0
+%eax        0xFC
+
+3.8
+movl 8(%ebp), %eax 
+sall $2, %eax
+movl 12(%ebp), %ecx
+sarl %cl, %eax
+
+3.9
+int t1 = y;
+int t2 = t1 ^ x;
+int t3 = t2 >> 3;
+int t4 = -t3 - z;
+
+3.10
+A.  it sets %edx to 0x00000000, as for any number x, x ^ x == 0
+B.  movl $0, %edx
+C.  xorl %edx, %edx is two bytes (31 d2) in machine code
+    movl $0, %edx is five bytes (ba 00 00 00 00), the last four bytes encode a 32-bit immediate value zero
+
+3.11
+movl 8(%edp), %eax
+xorl %edx, %edx
+divl 12(%edp)
+movl %eax, 4(%esp)
+movl %edx, (%esp)
+
+3.12
+A.  num_t is long long unsigned, or u64
+    it has size twice a dword, and computing x * y compiled to mull, the unsigned full multiplication instructure
+B.  movl 20(%edp), %ecx, on a little-endian machine, moves the higher 8 bytes of y to %ecx
+    y == 20(%edp) * 2^32 + 16(%edp) == %ecx * 2^32 + 16(%edp)
+    x * y == (x * %ecx mod 2^32) * 2^32 + x * 16(%edp) mod 2^64
+    imull %eax, %ecx computes x * %ecx mod 2^32 and puts it at %ecx
+    mull 16(%edp) computes x * 16(%edp) and puts the result at %edx:%eax
+    leal (%ecx, %edx) %edx computes %ecx + %edx, the higher 32 bits of x * y mod 2^64, puts the result at %edx
+    therefore %edx:%eax is the result of x * y mod 2^64 at the end
+
+3.13
+A.  int, <
+B.  short, >=
+C.  unsigned char, >
+D.  int or unsigned, !=
+
+3.14
+A.  int or unsigned, !=
+B.  short or unsigned short, ==
+C.  char, >
+D.  unsigned short, >
+
+3.15
+A.  0x8048296
+B.  0x8048341
+C.  0x804837f
+D.  0x80482a5
+E.  absolute address
+
+3.16
+A.  void cond(int a, int *p) {
+        if (p == 0)
+            goto done;
+        if (a <= 0)
+            goto done;
+        *p += a;
+    done:
+    }
+B.  the && operator in C is short-circuiting
+    when p == 0, it will not, and generally should not evaluate a > 0
+    therefore if the computer find that p == 0, it should immediately skip to the end of the function
+
+3.17
+A.  int gotodiff(int x, int y) {
+        int result;
+        if (x < y)
+            goto x_l_y;
+        result = y - x;
+        goto done;
+    x_l_y:
+        result = x - y;
+    done:
+        return result;
+    }
+B.  if the if clause without the corresponding else clause is compiled in the same way
+    this rule performs one more unnecessary jump
+
+3.18
+int test(int x, int y) {
+    int val = x - y;
+    if (x < -3) {
+        if (x > y) {
+            val = x * y;
+        } else {
+            val = x + y;
+        }
+    } else if (x <= 2)
+        val = x ^ y;
+    return val;
+}
+
+
+3.19
+A.  12
+B.  20
+
+3.20
+A.  %eax    x       x 
+    %ecx    y       y
+    %edx    n       n
+B.  test-expr: n > 0 && y < n
+    body-statemenet: x += n; y *= n; n--;
+C.  movl    8(%edp), %eax       Get x
+    movl    12(%edp), %ecx      Get y 
+    movl    16(%edp), %edx      Get n
+  .L2:                        loop:
+    addl    %edx, %eax          Compute x += n 
+    imull   %edx, %ecx          Compute y *= n 
+    subl    $1, %edx            Decrement n
+    testl   %edx, %edx          Compare n:0
+    jle     .L5                 if <=, goto done
+    cmpl    %edx, %ecx          Compare y:n
+    jl      .L2                 if <, goto loop
+  .L5:                        done:
+
+3.21
+A.  %edx == a + b
+B.  %ecx    a       a
+    %ebx    b       b
+    %eax    result  1
+    %edx    (a+b)   (a+b)
+C.  -
+D.  int loop_while(int a, int b) {
+        int result = 1;
+        int s;
+        if (a >= b)
+            goto done;
+        s = a + b;
+        result = 1;
+    loop:
+        result *= s;
+        a += 1;
+        s += 1;
+        if (b > a)
+            goto loop;
+    done:
+    }
+
+3.22
+A.  int fun_a(unsigned x) {
+        int val = 0;
+        while (x != 0) {
+            val ^= x;
+            x = x >> 1;
+        }
+        return val & 1;
+    }
+B.  after the while loop, val is a 32-bit word
+    the kth most significant bit of val is the parity of the k most significant bits of x
+    val & 1 gives the least significant bit of val, which is the parity of all 32 bits in x
+
+3.23
+A.  int fun_b(unsigned x) {
+        int val = 0;
+        int i;
+        for (i = 0; i != 32; i++) {
+            val = (x & 1) | (val + val);
+            x = x >> 1;
+        }
+        return val;
+    }
+B.  the result val have reversed bit representation of x
+
+3.24
+A.  int sum = 0;
+    int i = 0;
+    while (i < 10) {
+        if (1 & 1)
+            continue;
+        sum += i;
+        i++;
+    }
+    continue in a for loop will still execute the update-expr
+    however in a while loop continue will pass control to the condition-expr, skips update-expr along with loop body
+B.  int sum = 0;
+    int i = 0;
+    while (i < 10) {
+        if (1 & 1)
+            goto update;
+        sum += i;
+    update:
+        i++;
+    }
