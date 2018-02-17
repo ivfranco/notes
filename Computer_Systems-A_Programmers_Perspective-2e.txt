@@ -900,3 +900,151 @@ B.  int sum = 0;
     update:
         i++;
     }
+
+3.25
+A.  30 cycles 
+B.  46 cycles
+
+3.26
+A.  /
+B.  when x < 0, the result is (x + 3) >> 2
+    hence the division is always rounded towards zero, instead of towards -∞
+
+3.27
+int test(int x, int y) {
+    int val = x + y;
+    if (y > 0) {
+        if (x < y) {
+            val = x - y;
+        } else {
+            val = y - x;
+        }
+    } else if (y >= -2) {
+        val = 4 * x;
+    }
+    return val;
+}
+
+3.28
+A.  -2  -> .L3
+    0   -> .L4 
+    1   -> .L5 
+    2,3 -> .L6 
+    4   -> .L7
+    def -> .L2
+B.  .L6, has labels 2 and 3
+
+3.29
+int switcher(int a, int b, int c) {
+    int answer;
+    switch (a) {
+    case 5:
+        c = b ^ 0xf;
+    case 0:
+        answer = c + 112;
+        break;
+    case 2:
+    case 7:
+        answer = (b + c) >> 2;
+        break;
+    case 4:
+        answer = 4;
+        break;
+    default:
+        answer = b;
+    } 
+    return answer;
+}
+
+3.30
+A.  the absolute address of the instruction following the label next
+B.  there's nowhere to go back: the return address already been poped to %eax
+C.  to get an address on fly, so it can later be used in indirect calls/jumps
+
+3.31
+%edi, %esi and %ebx are callee-save registers
+procedure been called has to restore them at the end
+
+3.32
+int fun(int c, int d, int *p, int x);
+
+3.33
+A.  0x80003c
+B.  0x800014
+C.  x at %edp - 4 == 0x800038
+    y at %edp - 8 == 0x800034
+D.  0x80003c    8x800060    %edp
+    0x800038    0x53        x
+    0x800034    0x46        y
+    0x800030
+    |
+    0x800020
+    0x80001c    0x800038    &x
+    0x800018    0x800034    &y
+    0x800014    0x300070    %esp and .LCO
+E.  0x800030 - 0x800020
+
+3.34
+A.  x
+B.  int rfun(unsigned x) {
+        if (x == 0)
+            return 0;
+        unsigned nx = x >> 1;
+        int rv = rfun(nx);
+        return (x & 1) + rv;
+    }
+C. the number of 1s in the bit representation of x
+
+3.35
+short: 2 bytes
+*short: 4 bytes
+**short: 4bytes
+long double: 5 bytes in IA32, 4 bytes otherwise
+*long double: 4 bytes
+
+3.36
+S+1         *short      xE + 2      leal 2(%edx), %eax
+S[3]        short       M[xE + 6]   movw 6(%edx), %ax
+&S[i]       *short      xE + 2i     leal (%edx, %ecx, 2), %eax
+S[4*i+1]    short       M[xE+2i+2]  movw 2(%edx, %ecx, 2), %ax
+S+i-5       *short      xE+2i-10    leal -10(%edx, %ecx, 2), %eax
+
+3.37
+%eax == 7i + j before line 8, N == 7
+%edx == 5j + i before line 9, M == 5
+
+3.38
+void fix_set_diag_opt(fix_matrix A, int val) {
+    int i;
+    for (i = 0; i != (N+1) * N; i += N+1) {
+        *(A+i) = val;
+    }
+}
+
+3.39
+A.  p:      0
+    s.x:    4
+    s.y:    8
+    next:   12
+B.  16
+C.  void sp_init(struct prob *sp) {
+        sp->s.x = sp->s.y;
+        sp->p = s.x;
+        sp->next = sp;
+    }
+
+3.40
+up->t1.v    short
+    movw (%eax), %ax 
+    movw %ax, %dx
+&up->t1.d   *short
+    leal 2(%eax), %edx
+up->t2.a    int[2]
+    movl (%eax), %edx
+up->t2.a[up->t1.s]  int
+    movl 4(%eax), %edx
+    movl (%eax), %eax
+    movl (%eax,%edx,4), %edx
+*up->t2.p   char
+    movl 8(%eax), %eax
+    movb (%eax), %dl
