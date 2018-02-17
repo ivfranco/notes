@@ -999,7 +999,7 @@ C. the number of 1s in the bit representation of x
 short: 2 bytes
 *short: 4 bytes
 **short: 4bytes
-long double: 5 bytes in IA32, 4 bytes otherwise
+long double: 10 bytes in IA32, 8 bytes otherwise
 *long double: 4 bytes
 
 3.36
