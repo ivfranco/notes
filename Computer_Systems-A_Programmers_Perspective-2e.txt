@@ -1048,3 +1048,237 @@ up->t2.a[up->t1.s]  int
 *up->t2.p   char
     movl 8(%eax), %eax
     movb (%eax), %dl
+
+3.41
+A.  i: 0, c: 4, j: 8, d: 12
+    size: 16, alignment: 4/8
+B.  i: 0, c: 4, d: 5, j: 8
+    size: 12, alignment: 4/4
+C.  w: 0, c: 6
+    size: 10, alignment: 2/2
+D.  w: 0, c: 8
+    size: 24, alignment: 4/4
+E.  a: 0, p: 32
+    size: 36, alignment: 4/4
+
+3.42
+A.  a   b   c   d   e   f   g   h
+    0   4   8   16  20  24  32  40
+B.  48
+C.  struct {
+        double      c;
+        long long   g;
+        float       e;
+        void       *h;
+        char       *a;
+        char        d;
+        char        f;
+    }
+    c   g   e   h   a   d   f
+    0   8   16  20  24  28  29
+    size: 32
+
+3.43
+A.  0x4     08 04 86 43 return address
+    %ebp    bf ff fc 94 stored %ebp
+    -0x4    00 00 00 02 stored %edi
+    -0x8    00 00 00 03 stored %esi
+    -0xc    00 00 00 01 stored %ebx
+    ...
+    -0x28               <- %esp
+B.  0x4     00 04 86 43 return address, first byte overwritten by the terminate character
+    %ebp    30 31 32 33 "0123", %ebp overwritten
+    -0x4    36 37 38 39 "6789", %edi overwritten
+    -0x8    32 33 34 35 "2345", %esi overwritten
+    -0xc    38 39 30 31 "8901", %ebx overwritten
+    -0x10   34 35 36 37 "4567"
+    -0x14   30 31 32 33 "0123"
+    ...
+    -0x28   -0x14       <- %esp
+C.  0x00048643
+D.  %ebp, %edi, %esi and %ebx
+E.  thanks CSAPP-2e
+    result should be large enough to contain the terminate character, strlen(buf) + 1
+    malloc may fail and return NULL pointer, this case has to be handled
+
+3.44
+A.  131072
+B.  1024
+
+3.45
+A.  without protector
+        v:      %edp - 8
+        buf:    %edp - 20
+    with protector
+        canary: %edp - 8
+        v:      %edp - 24
+        buf:    %edp - 20
+B.  in the original order, the canary can only detect the overflow if the overflow overwrites more than 4 bytes
+    by putting canary value right below buf on the stack, the canary can detect buffer overflow ASAP
+
+3.46
+A.  2034
+B.  2045
+C.  2028 
+    2039
+
+3.47
+int             long            movslq  %edi    %rax
+char            long            movsbq  %dil    %rax
+unsigned int    unsigned long   movq    %edi    %rax
+unsigned char   unsigned long   movzbq  %dil    %rax
+long            int             movl    %edi    %eax
+unsigned long   unsigned        movl    %edi    %eax
+
+3.48
+long arithprob(int a, char b, long c, int d);
+
+3.49
+A.  long fun_c(unsigned long x) {
+        long val = 0;
+        int i;
+        for (i = 0; i != 8; x >>= 1, i++) {
+            val += 0x101010101010101 & x;
+            // 0b0000000100000001000000010000000100000001000000010000000100000001 in binary
+        }
+        val += val >> 32;
+        val += val >> 16;
+        val += val >> 8;
+        return val & 0xff;
+    }
+B.  view val and x as 8 chars
+    after the for loop, every char in val records the number of 1s in the corresponding chars in x
+    after val += val >> 32, ith char in the lower 4 chars of val encodes the number of 1s in ith and (i+4)th char in x
+    similarly, after val += val >> 16 and val += val >> 8
+    the lowest char in val encodes the number of 1s in the whole x
+    therefore val & 0xff returns the number of 1s in x
+    there are at most 64 1s in x, and a char can encode numbers <= 127, the calculation will not overflow
+
+3.50
+the first argument must be x, of 4-byte size, stored in %edi
+the second argument must be q, of 8-byte size, stored in %rsi
+as %edi is sign-extended to %rdi before adding to (%rsi), q has type (long *)
+the third argument must be t, of 8-byte size, stored in %rdx
+from addl %edi, (%rdx), %rdx points to a 4-byte integer, signed or unsigned
+void incrprob(int x, long *q, int *t);
+void incrprob(int x, long *q, unsigned *t);
+void incrprob(unsigned x, long *q, int *t);
+void incrprob(unsigned x, long *q, unsigned *t);
+
+3.51
+A.  -8
+    -16 7
+    -24 5
+    -32 3
+    -40 2
+B.  -
+C.  the array is allocated on %rsp - 7 to %rsp - 40, without actually substracing %rsp
+
+3.52
+A.  x 
+B.  store and restore the callee-save register %rbx
+C.  -
+D.  it uses pushq to automatically increment %rsp and store the value at the same time
+    other programs manually substracts the number of bytes it allocates from %rsp
+
+3.53
+A.  i   c   j   d
+    0   4   8   16
+    size: 24, alignment: 8
+B.  i   c   d   j 
+    0   8   9   12
+    size: 16, alignment: 8
+C.  w   c
+    0   6
+    size: 10, alignment: 2
+D.  w   c
+    0   8
+    size: 24, alignment: 8
+E.  a   p 
+    0   48
+    size: 56, alignment: 8
+
+3.54
+./CSAPP/asm
+
+3.55
+assume y = yh * 2^32 + yl
+yh is the integer represented by the higher 32 bits of y
+yl is the positive integer represented by the lower 32 bits of y
+then x * y == x * yh * 2^32 + x * yl
+as x * yh * 2^32 will have least significant 32 bits equal to 0
+the lower 32 bits of x * yl is the lower 32 bits of x * y
+when x >= 0, (x * yl) >> 32 + x * yh is the higher 32 bits of x * y
+when x < 0, T2U(x) = 2^32 + x, T2U(x) * yl == (2^32 + x) * yl == 2^32 * yl + x * yl
+the higher 32 bits of x * y can be computed as T2U(x) * yl >> 32 + x * yh - yl
+assuming little-endian machine
+movl    16(%ebp), %esi          retrieve lower 4 bytes of y, save to %esi
+movl    12(%ebp), %eax          retrieve x, save to %eax 
+movl    %eax, %edx              copy x to %edx
+sarl    $31, %edx               if x < 0, %edx == -1; otherwise %edx == 0
+movl    20(%ebp), %ecx          retrieve higher 4 bytes of y, save to %ecx
+imull   %eax, %ecx              compute product of x and yh, save to %ecx
+movl    %edx, %ebx              copy the sign mask to %ebx
+imull   %esi, %ebx              compute product of yl and sign mask, save to %ebx
+addl    %ebx, %ecx              if x >= 0, %ecx unchanged; otherwise %ecx += -yl
+mull    %esi                    compute full unsigned product of yl and x, save to %edx:%eax
+leal    (%ecx,%edx), %edx       add %ecx and %edx, save to %edx
+movl    8(%edp), %ecx           retrieve dest, save to %ecx 
+movl    %eax, (%ecx)            save %eax to lower 4 bytes of *dest
+movl    %edx, 4(%ecx)           save %edx to higher 4 bytes of *dest
+
+3.56
+A.  %esi: x
+    %ebx: n
+    %edi: result 
+    %edx: mask
+B.  result = -1;
+    mask = 1;
+C.  mask != 0
+D.  mask <<= n;
+E.  result ^= x & mask;
+F.  int loop(int x, int n) {
+        int result = -1;
+        int mask;
+        for (mask = 1; mask != 0; mask <<= n) {
+            result ^= x & mask;
+        }
+        return result;
+    }
+
+3.57
+int cread_alt(int *xp) {
+    let n = 0;
+    return *(xp ? xp : &n);
+}
+
+3.58
+typedef enum {MODE_A, MODE_B, MODE_C, MODE_D, MODE_E} mode_t;
+int switch3(int *p1, int *p2, mode_t action)
+{
+    int result = 0;
+    switch(action) {
+    case MODE_A:
+        result = *p1;
+        *p1 = *p2;
+        break;
+    case MODE_B:
+        result = *p2;
+        result += *p1;
+        *p2 = result;
+        break;
+    case MODE_C:
+        *p2 = 15;
+        result = *p1;
+        break;
+    case MODE_D:
+        *p2 = *p1;
+        result = 17;
+        break;
+    case MODE_E:
+        result = 17;
+        break;
+    default:
+}
+    return result;
+}
