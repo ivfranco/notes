@@ -1282,3 +1282,175 @@ int switch3(int *p1, int *p2, mode_t action)
 }
     return result;
 }
+
+3.59
+int switch_prob(int x, int n) {
+    int result = x;
+    switch(n) {
+    case 50:
+    case 52:
+        result <<= 2;
+        break;
+    case 53:
+        result >>= 2;
+        break;
+    case 54:
+        result *= 3;
+    case 55:
+        result *= result;
+    default:
+        result += 10;
+        break;
+    }
+    return result;
+}
+
+3.60
+A.  T D[R][S][T]
+    &D[i][j][k] == xD + L(S*T*i + T*j + k)
+B.  according to errata: http://csapp.cs.cmu.edu/2e/errata.html
+    imull I, S, T compute I * S, saves the result in T, the first operand has to be an immediate value
+    R * S * T * 4 == 1980, R * S * T == 495
+    after line 6, %eax == 99i + 11j + k
+    therefore T = 11, S = 9, R = 5
+
+3.61
+int var_prod_ele_opt(int n, int A[n][n], int B[n][n], int i, int k) {
+    int *Arow = &A[i][0];
+    int *Bptr = &B[0][k] + n * (n-1);
+    int result = 0;
+    n--;
+    while (n >= 0) {
+        result += Arow[n] * *Bptr;
+        Bptr -= n;
+        n--;
+    }
+    return result;
+}
+
+3.62
+A.  M = 13
+B.  %ecx: j
+    %edi: i
+C.  void transpose_opt(Marray_t A) {
+        int i, j, *Cptr, *Rptr;
+        for (i = 0; i < M; i++) {
+            Cptr = &A[i][0];
+            Rptr = &A[0][i];
+            for (j = 0; j < i; j++) {
+                int t = Cptr[j];
+                Cptr[j] = *Rptr;
+                *Rptr = t;
+                Rptr += M;
+            }
+        }
+    }
+
+3.63
+line 19 in the loop increments %eax (row pointer) by %esi
+on line 9, %esi == %ecx * 4
+on line 3, %ecx == %edx + %eax == 3%eax == 3n
+E2(n) = 3n
+on line 14, %ecx get initialized to 1
+on line 18 in the loop, %ecx is incremented by 1 then compared to %ebx, loop condition is %ebx != %ecx
+on line 4, %ebx == %edx == 2%eax == 2n, then %ebx += 2 on line 15, %ebx == 2n + 2
+E1(n) = 2n + 1
+
+3.64
+A.  8(%ebp): a pointer to a struct str2, allocated by the caller of word_sum
+    12(%ebp): s1.a
+    16(%ebp): s1.p
+B.  %ebp
+    +16     space allocated for s2.diff
+    +12     space allocated for s2.sum
+    +8      s1.p
+    +4      s1.a
+    %esp    the hidden "zeroth argument" to word_sum, of type (struct str2 *), a str2 allocated on %esp+12 and %esp+16
+C.  the structure is allocated on the stack frame of the caller
+    callee refers the structure as usual
+D.  the structure is allocated on the stack frame of the caller
+    the callee is implicitly being passed a pointer to the caller-allocated structure
+    the callee then mutates the states of the structure by memory accessing
+    the compiled word_sum is effectively:
+    void word_sum(str2 *s2, str1 s1) {
+        s2.sum = s1.a + *s1.p;
+        s2.diff = s1.a - *s1.p;
+    }
+
+3.65
+the alignment of str2 is 4
+as q->t is accessed by 12(%eax), char array[B] and the padding following it (if any) takes 12 bytes of space, so
+    9 <= B <= 12
+as q->u is accessed by 36(%eax), short s[B] and the padding following it takes 20 bytes of space, so
+    9 <= B <= 10
+as p->y is accessed by 92(%eax), short x[A][B] and the padding following it takes 92 bytes of space, so
+    45 <= AB <= 46
+if B == 10, no integer A will satisfy this condition
+therefore B == 9, A == 5
+
+3.66
+A.  bp->right is accessed by 0xb8(%ecx), a_struct a[CNT] and the padding following it takes 180 bytes of space
+    after line 6, %eax == 5i
+    line 7 adds *(int *)((void *)bp + 20i + 4) to %eax
+    thereby a_struct takes 20 bytes of space, CNT == 9
+B.  0x4(%ecx, %eax, 4) most likely refers to a[i].idx
+    typedef struct {
+        int idx;
+        int x[4];
+    }
+
+3.67
+A.  e1.p: 0
+    e1.y: 4
+    e2.x: 0
+    e2.next: 4
+B.  8 bytes
+C.  up->next->y = *(up->next->p) - up->x;
+
+3.68
+thanks https://github.com/jlroo/Computer-Systems/blob/master/HW_6/good_echo.c
+#define BUF_SIZE 16
+void good_echo() {
+    char c, buf[BUF_SIZE];
+    int i;
+    while (1) {
+        if (fgets(buf, BUF_SIZE, stdin) == NULL)
+            return;
+        for (i = 0; i < BUF_SIZE; i++) {
+            c = putc(buf[i], stdout);
+            if (c == EOF || c == '\n')
+                return;
+        }
+    }
+}
+
+3.69
+A.  long trace(tree_ptr tp) {
+        long result = 0;
+        while (tp != NULL) {
+            result = tp->val;
+            tp = tp->right;
+        }
+        return result;
+    }
+B.  returns the right-most value in the tree
+
+3.70
+A.  -9223372036854775808 is 1 followed by 63 0 in binary form
+    long traverse(tree_ptr tp) {
+        // the minimal value of long;
+        long result = 1 << 63;
+        long l_val, r_val;
+        if (tp == NULL)
+            return result;
+        l_val = traverse(tp->left);
+        r_val = traverse(tp->right);
+        if (l_val >= result)
+            result = l_val;
+        if (r_val > result)
+            result = r_val;
+        return result;
+    }
+B.  finds the greatest value in the tree
+    return the minimal value of type long if the tree is empty
+    
