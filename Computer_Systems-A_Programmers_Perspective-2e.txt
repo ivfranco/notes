@@ -1454,3 +1454,108 @@ A.  -9223372036854775808 is 1 followed by 63 0 in binary form
 B.  finds the greatest value in the tree
     return the minimal value of type long if the tree is empty
     
+4.1
+30F30F00000020314013FDFFFFFF6031700C000000
+
+4.2
+A.  irmovl $-4, %ebx
+    rmmovl %esi, 2048(%ebx)
+    halt
+B.  pushl %esi
+    call 0x208
+    halt
+    0x208 <L0>:
+    irmovl $10, %ebx
+    ret
+C.  Decode error: InvalidInstSpec at 7
+D.  0x400 <L0>:
+    subl %ecx, %ebx
+    je 0x400
+    halt
+E.  Decode error: InvalidRegisterCode at 4
+
+4.3
+Rsum:
+    pushl   %ebp
+    rrmovl  %esp, %ebp 
+    mrmovl  8(%ebp), %ecx
+    mrmovl  12(%ebp), %edx
+    andl    %edx, %edx
+    jg      Rec
+    irmovl  $0, %eax
+    jmp     End
+Rec:
+    irmovl  $4, %eax
+    addl    %eax, %ecx
+    irmovl  $-1, %eax
+    addl    %eax, %edx
+    pushl   %edx
+    pushl   %ecx
+    call    Rsum
+    popl    %ecx
+    popl    %edx
+    mrmovl  8(%edp), %ecx
+    mrmovl  (%ecx), %ecx
+    addl    %ecx, %eax
+End:
+    rrmovl  %ebp, %esp
+    popl    %ebp
+    ret
+
+4.4
+Sum:
+    pushl   %ebp
+    rrmovl  %esp, %ebp 
+    mrmovl  8(%ebp), %ecx
+    mrmovl  12(%ebp), %edx
+    xorl    %eax, %eax
+    andl    %edx, %edx
+    je      End
+Loop:
+    mrmovl  (%ecx), %esi
+    andl    %esi, %esi
+    jge     Pos
+    rrmovl  %esi, %ebx
+    irmovl  $0, %esi
+    subl    %ebx, %esi
+Pos:
+    addl    %esi, %eax
+    irmovl  $4, %ebx
+    addl    %ebx, %ecx
+    irmovl  $-1, %ebx
+    addl    %ebx, %edx
+    jne     Loop
+End:
+    rrmovl  %ebp, %esp
+    popl    %ebp
+    ret
+
+4.5
+Sum:
+    pushl   %ebp
+    rrmovl  %esp, %ebp 
+    mrmovl  8(%ebp), %ecx
+    mrmovl  12(%ebp), %edx
+    xorl    %eax, %eax
+    andl    %edx, %edx
+    je      End
+Loop:
+    mrmovl  (%ecx), %esi
+    irmovl  $0, %ebx
+    subl    %esi, %ebx
+    andl    %esi, %esi
+    cmovl   %ebx, %esi
+    addl    %esi, %eax
+    irmovl  $4, %ebx
+    addl    %ebx, %ecx
+    irmovl  $-1, %ebx
+    addl    %ebx, %edx
+    jne     Loop
+End:
+    rrmovl  %ebp, %esp
+    popl    %ebp
+    ret
+    
+4.6
+pushl %esp pushes the original %esp before decrementation
+otherwise the procedure will return 4
