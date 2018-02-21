@@ -1559,3 +1559,66 @@ End:
 4.6
 pushl %esp pushes the original %esp before decrementation
 otherwise the procedure will return 4
+
+4.7
+popl decrements %esp first, then moves the value pointed by %esp to the operand
+irmovl $0xabcd, %eax
+
+4.8
+bool xor = (a && !b) || (!a && b)
+xor == !eq
+
+4.9
+xor (for every ai and bi, 0 <= i <= 31) -> or (32 inputs) -> not
+
+4.10
+int Median3 = [
+    (A <= B && B <= C) || (C <= B && B <= A):   B;
+    (B <= A && A <= C) || (C <= A && A <= B):   A;
+    1                                       :   C;
+]
+
+4.11
+3:0 <- M1[0x00e]
+f:4 <- M1[0x00f]
+0x80 <- M4[0x010]
+valP <- 0x014
+R[%esp] <- 0x80
+PC <- valP
+PC += 6;
+%esp = 128;
+
+4.12
+b:0 <- M1[0x01c]
+0:f <- M1[0x01d]
+valP <- PC + 2 == 0x01e
+valA <- 124
+valB <- 124
+valE <- valB + 4 == 128
+valM <- M1[valA] == 9
+R[%esp] <- valE == 128
+R[%eax] <- valM == 9
+PC <- valP == 0x01e
+PC += 2;
+%esp += 4;
+%eax = 9;
+
+4.13
+write then decrement
+conforms to the desired behavior
+
+4.14
+write then increment
+conforms to the desired behavior
+
+4.15
+Fetch       icode:ifun <- M1[PC]
+            rA:rB <- M1[PC + 1]
+            valP <- PC + 2
+Decode      valA <- R[rA]
+            valB <- R[rB]
+Execute     valE <- 0 + valA
+            Cnd <- Cond(CC, ifun)
+Memory
+Write back  R[rB] <- Cnd ? valA : valB
+PC update   PC <- valP
