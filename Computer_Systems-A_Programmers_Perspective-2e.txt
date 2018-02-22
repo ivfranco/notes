@@ -1561,7 +1561,7 @@ pushl %esp pushes the original %esp before decrementation
 otherwise the procedure will return 4
 
 4.7
-popl decrements %esp first, then moves the value pointed by %esp to the operand
+popl increments %esp first, then moves the value pointed by %esp to the operand
 irmovl $0xabcd, %eax
 
 4.8
@@ -1608,7 +1608,7 @@ write then decrement
 conforms to the desired behavior
 
 4.14
-write then increment
+increment then write
 conforms to the desired behavior
 
 4.15
@@ -1622,3 +1622,63 @@ Execute     valE <- 0 + valA
 Memory
 Write back  R[rB] <- Cnd ? valA : valB
 PC update   PC <- valP
+
+4.16
+8:0 <- M1[0x023]
+valC <- 0x029
+valP <- PC + 5 == 0x028
+valB <- R[%esp] == 128
+valE <- valB + (-4) == 124
+M4[valE] <- valP == 0x028
+R[%esp] <- valE == 124
+PC <- valC == 0x029
+
+4.17
+need_valC = icode in { IIRMOVL, IRMMOVL, IMRMOVL, IJXX, ICALL }
+
+4.18
+int srcB = [
+    icode in { IRMMOVL, IMRMOVL, IOPL }     : rB;
+    icode in { ICALL, IRET, IPUSHL, IPOPL } : RESP;
+    1                                       : RNONE;
+]
+
+4.19
+int dstM = [
+    icode in { IMRMOVL, IPOPL } : rA;
+    1                           : RNONE;
+]
+
+4.20
+write to port E should have higher priority than write to port M
+
+4.21
+int aluB = [
+    icode in { IOPL, IRMMOVL, IMRMOVL, IPUSHL, IPOPL, ICALL, IRET } : valB;
+    icode in { IRRMOVL, IIRMOVL, }                                  : 0;
+]
+
+4.22
+int dstE = [
+    icode in { IRRMOVL } && Cnd : rB;
+    icode in { IIRMOVL, IOPL } : rB;
+    icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+    1 : RNONE;  # Don’t write any register
+];
+
+4.23
+int mem_data = [
+    icode in { IPUSHL, IRMMOVL } : valA;
+    icode in { ICALL } : valP;
+]
+
+4.24
+bool mem_write = icode in { IPUSHL, IRMMOVL, ICALL }
+
+4.25
+char Stat = [
+    icode == IHALT : SHALT;
+    !instr_valid : SINS;
+    imem_error || dmem_error : SADR;
+    1 : SAOK;
+]
