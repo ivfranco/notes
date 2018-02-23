@@ -1682,3 +1682,61 @@ char Stat = [
     imem_error || dmem_error : SADR;
     1 : SAOK;
 ]
+
+4.26
+A.  between C and D
+    190ps per stage
+    latency 380ps
+    throughput 2/380ps == 5.26 GIPS
+B.  between B and C, between D and E
+    130ps per stage
+    latency 390ps
+    throughput 3/390ps == 7.69 GIPS
+C.  between AB, CD, DE
+    110ps per stage
+    latency 440ps
+    throughput 4/440ps == 9.09 GIPS
+D.  insert pipeline register between every two stages
+    100ps per stage, 6 stages
+    latency 600ps
+    throughput 6/600ps == 10 GIPS
+
+4.27
+A.  (300/k + 20)ps per stage, k stages
+    latency (300/k + 20) * k == (300 + 20k)ps
+    throughput k/(300 + 20k) GIPS
+B.  lim(k->∞)(k/(300 + 20k)) = 1/20
+    throughput 1/20 * 1000 = 50 GIPS
+
+4.28
+byte f_stat = [
+    f_icode == IHALT : SHALT;
+    !f_instr_valid : SINS;
+    f_imem_error : SADR;
+    1 : SAOK;
+]
+
+4.29
+int d_dstE = [
+    D_icode in { IRRMOVL } : D_rB;
+    D_icode in { IIRMOVL, IOPL } : D_rB;
+    D_icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+    1 : RNONE;
+]
+
+4.30
+reversed: %eax == 0x104
+correct: %eax == whatever at (0x104)
+
+4.31
+exactly the same program in 4.30
+
+4.32
+int d_valB = [
+    d_srcB == e_dstE : e_valE;
+    d_srcB == M_dstM : M_valM;
+    d_srcB == M_dstE : M_valE;
+    d_srcB == W_dstM : W_valM;
+    d_srcB == W_dstE : W_valE;
+    1 : d_rvalB;
+]
