@@ -1740,3 +1740,103 @@ int d_valB = [
     d_srcB == W_dstE : W_valE;
     1 : d_rvalB;
 ]
+
+4.33
+dstE is defined in SEQ as:
+int dstE = [
+    icode in { IRRMOVL } && Cnd : rB;
+    icode in { IIRMOVL, IOPL } : rB;
+    icode in { IPUSHL, IPOPL, ICALL, IRET } : RESP;
+    1 : RNONE;  # Don’t write any register
+];
+Cnd is computed at execution stage, thereby E_dstE do not always equal to e_dstE for the first case
+for all CMOVXX instructions, E_dstE will always be rB
+iirmovl $1, %edx
+iirmovl %0, %eax
+andl %eax, %eax
+cmovne %edx, %eax
+if E_dstE is used in place of e_dstE, %eax == 1, otherwise %eax == 0
+
+4.34
+"The basic rule is to put priority on the exception triggered by the instruction that is furthest along the pipeline."
+byte m_stat = [
+    dmem_error : SADR;
+    1 : M_stat;
+]
+
+4.35
+    xorl %edx, %edx
+    jne Prod
+    irmovl $1, %edx
+    halt
+Prod:
+    ret
+    irmovl $2, %edx
+    halt
+when a misprediction is detected in execution stage, pipeline register D and E will be set to bubble
+the ret instruction at decode will be erased from the pipeline after the current cycle
+the ret instruction causes D_icode == IRET and will stall pipeline register F
+but f_pc is implemented as:
+int f_pc = [
+        # Mispredicted branch.  Fetch at incremented PC
+        M_icode == IJXX && !M_Cnd : M_valA;
+        # Completion of RET instruction.
+        W_icode == IRET : W_valM;
+        # Default: Use predicted value of PC
+        1 : F_predPC;
+];
+so when misprediction happens (M_icode == IJXX && !M_Cnd), f_pc is irrelative to F_predPC
+the instructions currently at fetch and decode stages will be overwritten by bubbles
+the next instruction fetched will be that pointed by M_valA, the instruction following the jxx instruction
+the control logic handles this problem correctly
+
+4.36
+ret reads from %esp
+so load/use hazard can happen right before a ret instruction iff the previous instruction is mrmovl -(-), %esp
+ret will return to the instruction pointed by (%esp + 4) when executed correctly
+    irmovl ADDR, %edx
+    mrmovl (%edx), %esp
+    ret
+ADDR:
+    .long ORIGIN
+ORIGIN:
+    .align 4
+    .long 0
+    .long HALT
+HALT:
+    halt
+
+4.37
+bool D_stall = E_icode in { IMRMOVL, IPOPL } && E_dstM in { d_srcA, d_srcB };
+
+4.38
+bool mispred = E_icode == IJXX && !e_Cnd;
+bool load_use = E_icode in { IMRMOVL, IPOPL } && E_dstM in { d_srcA, d_srcB };
+bool D_bubble = mispred || load_use;
+
+4.39
+//Figure 4.64
+bool exception = m_stat in { SHLT, SADR, SINS } || W_stat in { SHLT, SADR, SINS };
+bool set_cc = E_icode == IOPL && exception;
+
+4.40
+// change of CC, memory write and register write back should be disabled when exception happens
+bool M_bubble = exception;
+// when an exception arised from memory stage
+// the instruction in write back stage should still be fully executed
+// register W should only stall when the exception has propagated to write back stage
+bool W_stall = W_stat in { SHLT, SADR, SINS };
+
+4.41
+CPI = 0.2 * 0.35 * 2 + 0.05 + 0.06 + 1 = 1.25
+
+4.42
+A.  Problem 4.4: 12 instructions when negative, 9 instructions when non-negative, 10.5 on average
+    Problem 4.5: 11 instructions, 11 on average
+B.  mispredicted jxx instruction will introduce 2 bubbles
+    while cmovxx will not introduce bubbles due to forwarding
+    both problems will cause exactly one load/use hazard, introducing one bubble
+    Problem 4.4: 3 bubbles with misprediction, 1 bubble with correct prediction, 2 on average
+    Problem 4.5: 1 bubble on average
+C.  Problem 4.4: 12.5 cycles on average 
+    Problem 4.5: 12 cycles on average
