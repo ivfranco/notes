@@ -1840,3 +1840,227 @@ B.  mispredicted jxx instruction will introduce 2 bubbles
     Problem 4.5: 1 bubble on average
 C.  Problem 4.4: 12.5 cycles on average 
     Problem 4.5: 12 cycles on average
+
+4.43
+A.  from the analysis in problem 4.6
+    pushl pushes the original value of %esp to the stack before decrementing it
+    this code sequence doesn't correctly describe the behavior of pushl %esp
+B.  movl REG, -4(%esp)
+    subl $4, %esp
+
+4.44
+A.  from the analysis in problem 4.7
+    popl first decrements %esp, then move the value pointed by the original %esp to the operand register
+    this code sequence does not correctly describe the behavior of popl %esp
+B.  subl $4, %esp
+    movl 4(%esp), REG
+
+4.45
+A.  void bubble_b(int *data, int count) {
+    int i, last, *lower, *higher, t;
+        for (last = count - 1; last > 0; last--) {
+            lower = data;
+            higher = lower + 1;
+            for (i = 0; i < last; i++) {
+                if (*higher < *lower) {
+                    t = *higher;
+                    *higher = *lower;
+                    *lower = t;
+                    higher++;
+                    lower++;
+                }
+            }
+        }
+    }
+B.      pushl %ebp
+        rrmovl %esp, %ebp
+        mrmovl 12(%ebp), %edx       retrieve count
+        irmovl $1, %eax             
+        subl %eax, %edx             initialize last for outer loop
+        jle End                     skip outer loop if last <= 0
+    Outer:
+        mrmovl 8(%ebp), %esi        retrieve data, compute lower
+        rrmovl %esi, %edi           
+        irmovl $4, %eax 
+        addl %eax, %edi             compute higher
+        irmovl $0, %ecx             initialize i for inner loop
+    Inner:
+        mrmovl (%esi), %eax         *lower
+        mrmovl (%edi), %ebx         *higher
+        subl %eax, %ebx             *higher - *lower, no cmpl instruction, have to perform subl and overwrite %ebx
+        jge NOSWAP 
+        mrmovl (%edi), %ebx         reset %ebx to *higher
+        rmmovl %ebx, (%esi)         
+        rmmovl %eax, (%edi)         swap *higher and *lower
+    NOSWAP:
+        irmovl $4, %eax
+        addl %eax, %esi             lower++
+        addl %eax, %edi             higher++
+        irmovl $1, %eax
+        addl %eax, %ecx             i++
+        rrmovl %ecx, %ebx 
+        subl %ecx, %ebx             i - count
+        jl Inner
+    InnerEnd:
+        irmovl $1, %eax
+        subl %eax, %edx             last--
+        jg Outer
+    End:
+        pushl %ebp
+        ret
+        
+4.46
+    pushl %ebp
+    rrmovl %esp, %ebp
+    mrmovl 12(%ebp), %edx       retrieve count
+    irmovl $1, %eax             
+    subl %eax, %edx             initialize last for outer loop
+    jle End                     skip outer loop if last <= 0
+Outer:
+    mrmovl 8(%ebp), %esi        retrieve data, compute lower
+    rrmovl %esi, %edi           
+    irmovl $4, %eax 
+    addl %eax, %edi             compute higher
+    irmovl $0, %ecx             initialize i for inner loop
+Inner:
+    mrmovl (%esi), %eax         *lower
+    mrmovl (%edi), %ebx         *higher
+    subl %eax, %ebx             *higher - *lower, no cmpl instruction, have to perform subl and overwrite %ebx
+    pushl %edx                  not enough registers, reusing %edx
+    mrmovl (%edi), %ebx         reset %ebx to *higher
+    mrmovl (%esi), %edx         set %edx to *lower
+    cmovl %ebx, %eax
+    cmovl %edx, %ebx            swap the value of %eax and %ebx if *higher < *lower
+    popl %edx                   reset %edx to last
+    rmmovl %eax, (%esi)         
+    rmmovl %ebx, (%edi)         swap *higher and *lower
+    irmovl $4, %eax
+    addl %eax, %esi             lower++
+    addl %eax, %edi             higher++
+    irmovl $1, %eax
+    addl %eax, %ecx             i++
+    rrmovl %ecx, %ebx 
+    subl %ecx, %ebx             i - count
+    jl Inner
+InnerEnd:
+    irmovl $1, %eax
+    subl %eax, %edx             last--
+    jg Outer
+End:
+    pushl %ebp
+    ret
+    
+4.47
+Fetch:      icode:ifun <- M1[PC]
+            rA:rB <- M1[PC + 1]
+            valC <- M4[PC + 2]
+            valP <- PC + 6
+Decode:     valB <- R[rB]
+Execute:    valE <- valC + valB
+            Set CC
+Memory:
+Write back: R[rB] <- valE
+PC update:  PC <- valP
+
+4.48
+Fetch:      icode:ifun <- M1[PC]
+            valP <- PC + 1
+Decode:     valA <- r[%ebp]
+            valB <- r[%ebp]
+Execute:    valE <- 4 + valB
+Memory:     valM <- M4[valA]
+Write back: r[%esp] <- valE
+            r[%ebp] <- valM
+PC update:  PC <- valP
+
+4.49 - 4.50
+./CSAPP/hcl/seq-full.hcl
+
+4.51
+the file actually is named pipe-nobypass.hcl
+without forwarding, all write to registers should stall following reading from the same register until write back stage
+write instructions: OPL, RRMOVL, IRMOVL, MRMOVL, POPL, PUSHL, CALL, RET
+read instructions: OPL, RRMOVL, MRMOVL, RMMOVL, POPL, PUSHL, CALL, RET
+this "read/write hazard" happens where normally forwarding happens, thereby the forwarding logic can be reused here:
+    // wrong version
+    // bool rw_hazard =
+    //     d_srcA in { e_dstE, M_dstM, M_dstE, W_dstM, W_dstE } ||
+    //     d_srcB in { e_dstE, M_dstM, M_dstE, W_dstM, W_dstE };
+    bool rw_hazard =
+        (d_srcA != RNONE && d_srcA in { e_dstE, M_dstM, M_dstE, W_dstM, W_dstE }) ||
+        (d_srcB != RNONE && d_srcB in { e_dstE, M_dstM, M_dstE, W_dstM, W_dstE });
+the read instruction is stalled at decode stage
+the write instruction moves normally from execute stage to write back stage
+therefore pipeline register D and before (F) should be stalled, also bubbles should be inserted in E
+F       D       E       M       W
+stall   stall   bubble  normal  normal
+like processing ret, rw_hazard can happen in different stages (execute, memory and write back)
+while bubbles will be inserted at execute stage
+    case1   case2   case3
+W                   write 
+M           write   bubble
+E   write   bubble  bubble
+D   read    read    read
+Combination 1:
+    when a pair of write/read instructions is also a pair of load/use instructions (e.g. MRMOVL -> RRMOVL)
+    case1 and load/use hazard can happen in the same time
+    however they force the same set of stall/bubble conditions onto registers, so this combination causes no trouble
+    actually the conditions that triggers load/use hazard is a subset of conditions that triggers write/read hazard
+    hence load/use hazards can be ignored
+Combination 2, 3, 4:
+    RET is a read instruction (reads %esp)
+    so all three cases of read/write hazard and case1 of ret may happen at the same time
+    this combination will put pipeline register D in both stalled and bubble condition
+    to solve this confliction, the write instruction preceding RET should be fully executed first
+    W   bubble
+    M   bubble
+    E   bubble
+    D   ret
+    then the RET instruction can be processed normally
+    therefore the condition set of write/read hazard should have higher priority than ret processing
+for the resulting pipe-stall.hcl
+please refer https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter4/code/sim/pipe/pipe-stall.hcl
+also thanks https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter4/4.53.md
+excluded the situation where d_srcA == RNONE or d_srcB == RNONE
+where forwarding didn't actually happen but the forwarding logic still computes the correct srcA and srcB
+however according to analysis here, jxx misprediction and write/read hazard cannot happen at the same time
+(jxx is neither a read nor write instruction, d_srcA == d_srcB == RNONE)
+hence rw_hazard implies !jxx_misprediction and the above implementation includes a few redundency
+after deleting misprediction conditions from like (rw_hazard && !jxx_misprediction)
+the compiled simulator still passes all 600 hazard tests defined by htest.pl
+./CSAPP/hcl/pipe-stall.hcl
+
+4.52
+the condition code should be updated
+./CSAPP/hcl/pipe-full.hcl
+
+4.53
+LEAVE reads memory into registers, thereby is vulnerable to load/use hazard
+bool load_hazard = E_icode in { IPOPL, IMRMOVL, ILEAVE } && E_dstM in {d_srcA, d_srcB };
+./CSAPP/hcl/pipe-full.hcl
+
+4.54
+J_YES is actually defined as UNCOND in the file
+the meaning of misprediction reversed
+    bool mispred = M_icode == IJXX && M_ifun != UNCOND && Cnd;
+all pipeline register control and fetching code should be adjusted accordingly
+for instruction JXX, E_valA and M_valA are not used, it's safe to store E_valC in M_valA through e_valA:
+    int e_valA = [
+        E_icode in { IJXX } : E_valC;
+        1 : E_valA;
+    ];
+./CSAPP/hcl/pipe-nt.hcl
+
+4.55
+thanks https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter4/code/sim/pipe/pipe-btfnt.hcl
+had never known one can compare integers in hcl (what's the purpose of CC then?)
+JXX instruction do not use ALU as well: both M_valE and M_valA can be safely reused
+M_valA will be set to D_valP by default
+by setting aluA to valC, aluB to 0 when E_icode == IJXX, M_valE will be D_valC
+again the meaning of misprediction changed:
+    bool mispred = 
+        M_icode == JXX && M_ifun != UNCOND && 
+        (M_Cnd && M_valE >= M_valA || !M_Cnd && M_valE < M_valA);
+PC should be M_valE (== valC) when M_Cnd and M_valA (== valP) when !M_Cnd
+(for some reason e_valA is not available in the pipeline register control logic, using E_valA there)
+./CSAPP/hcl/pipe-btfnt.hcl
