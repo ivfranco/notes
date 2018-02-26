@@ -2064,3 +2064,67 @@ again the meaning of misprediction changed:
 PC should be M_valE (== valC) when M_Cnd and M_valA (== valP) when !M_Cnd
 (for some reason e_valA is not available in the pipeline register control logic, using E_valA there)
 ./CSAPP/hcl/pipe-btfnt.hcl
+
+4.56
+A.  among all instructions, only RMMOVL, PUSHL writes register values to memory
+    for RMMOVL, only the value of rA can be forwarded from memory stage to execute stage, not rB
+    for PUSHL, only the operand rA can be forwarded from memory stage to execute stage, not %esp
+    both these two operands is passed as d_srcA
+        bool e_forwarding = E_icode in { IMRMOVL, IPOPL } && D_icode in { IRMMOVL, IPUSHL } && E_dstM == d_srcA;
+        bool load_hazard = E_icode in { IMRMOVL, IPOPL } && E_dstM in { d_srcA, d_srcB } && !e_forwarding
+B.  forwarding logic:
+    int e_valA = [
+        E_icode in { IRMMOVL, IPUSHL } && E_srcA == M_dstM : m_valM;
+        1 : E_valA;  
+    ];
+    ./CSAPP/hcl/pipe-lf.hcl
+
+4.57
+ipopl => iaddl $4, %esp 
+ipop2 rA => mrmovl -4(%esp), rA
+IPOPL
+Fetch:      icode:ifun <- M1[PC]
+            rA:rB <- M1[PC + 1]
+            valP <- PC
+            (next icode set to IPOP2)
+Decode:     valB <- R[%esp]
+Execute:    valE <- 4 + valB
+Memory:
+Write back: R[%esp] <- valE
+PC update:  PC <- valP
+IPOP2 rA
+Fetch:      icode:ifun <- M1[PC]
+            rA:rB <- M1[PC+1]
+            valP <- PC + 2
+Decode      valB <- R[%esp]
+Execute:    valE <- -4 + valB
+Memory:     valM <- M4[valE]
+Write back: R[rA] <- valM
+PC update:  PC <- valP
+./CSAPP/hcl/pipe-1w.hcl
+
+4.58
+-
+
+Chapter 5
+5.1
+it will set *xp (== *yp) to 0
+
+5.2
+n <= 2:         Version 1
+3 <= n <= 7:    Version 2
+n >= 7:         Version 3
+
+5.3
+A.  1   91  90  90
+B.  91  1   90  90
+C.  1   1   90  90
+
+5.4
+A.  in -O1, %xmm0 is used as a temporary register for storing and computing the next value for *dest
+    in -O2, %xmm0 has the same role as acc in combine4, accumulating the product
+B.  -
+C.  as -O2 writes the value of %xmm0 to memory every iteration
+    at the starting of each iteration, %xmm0 == (%r12), where %r12 holds dest
+    -O1 and -O2 will be equivalent even if dest is aliased
+
