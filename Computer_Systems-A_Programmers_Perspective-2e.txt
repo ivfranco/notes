@@ -2128,3 +2128,95 @@ C.  as -O2 writes the value of %xmm0 to memory every iteration
     at the starting of each iteration, %xmm0 == (%r12), where %r12 holds dest
     -O1 and -O2 will be equivalent even if dest is aliased
 
+5.5
+A.  2n additions (result += .. and i++), 2n multiplications (a[i] * xpwr and x * xpwr)
+B.  the latency bound of double multiplication is 5 cycles
+    the value of xpwr in the next iteration depends on a multiple of xpwr in the currecnt iteration
+    which forms a critical path, so 5 is the lower bound of the CPE of this function
+
+5.6
+A.  2n additions (a[i] + .. and i--) and n multiplications (x * result)
+B.  now result is stored in a loop register
+    its value in the next iteration depends on the return of an addition and a multiplication involving itself
+    the critical path now contains a double multiplication and a double addition
+    assuming result -> %xmm0, x -> %rax, i -> %rdx, the data-flow may looks like:
+    %xmm0   %rax    %rdx
+    |       |       |
+    mul <---|       |
+    |       |       |
+    add <-----load--|
+    |       |       add
+    |       |       |
+    %xmmo   %rax    %rdx
+    the lower bound of CPE is the combined latency of double addition and double multiplication, which is 3+5 = 8
+C.  the critical path is now longer, so is the CPE
+    asymptotically, the function with lower CPE always win out 
+5.7
+./CSAPP/opt
+
+5.8
+r = ((r * x) * y) * z:
+    three multiplications on the critical path
+    CPE = 15
+r = (r * (x * y)) * z:
+    two multiplications on the critical path
+    CPE = 10
+r = r * ((x * y) * z) and r = r * (x * (y * z)):
+    one multiplications on the critical path
+    CPE = 5
+r = (r * x) * (y * z):
+    two multiplications on the critical path
+    CPE = 10
+
+5.9
+./CSAPP/opt
+
+5.10
+A.  a[i] == i+1 for 0 <= i <= 998
+    a[999] == 999
+B.  a[i] == 0 for all i
+C.  in part A, every memory position appears twice 
+    first time as src, second time as dest in the next iteration
+    thereby the function never reads from a memory position it previously stores to
+    load and store operations in this case do not form critial paths
+    in part B, again every memory position appears twice
+    first time as dest, then immediately as src in the next iteration
+    load operations in every iteration depends on store operation in the previous iteration
+    the critical path in this case includes load and store operations, hence higher CPE
+D.  as the function does not read from any memory address after write to it
+    the performance should be close to that in part A
+
+5.11
+%rsi, %rax -> load_a
+%rsi, %rax -> s_addr
+%rdi, %rax -> load_b
+load_a, load_b -> add
+add -> s_data
+s_data -> load_a, in next iteration, if addresses match
+critical path:  (s_data in previous iteration)
+                ! 
+                load_a
+                |
+                addss
+                |
+                s_data
+every iteration reads from memory address that is written to by the previous iteration
+the critical path thus includes load and store operations
+
+5.12
+./CSAPP/opt
+
+5.13
+A.  a = 1500/2500 = 0.6
+    k = 1.5
+    S = 1/(0.4 + 0.6/1.5) = 1/0.8 = 1.25
+B.  S = 1/((1 - a) + a/k) = 1/(0.4 + 0.4/k) = 5/3
+    5 * (0.4 + 0.4/k) = 3
+    2 + 2/k = 3
+    2/k = 1, k = 2
+
+5.14
+S = 1/((1 - 0.8) + 0.8/k) = 2
+0.4 + 1.6/k = 1
+1.6/k = 0.6
+k = 8/3
