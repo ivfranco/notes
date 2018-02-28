@@ -4,3 +4,8 @@ version = "0.1.0"
 authors = ["ivfranco <ivfranco@smoug.net>"]
 
 [dependencies]
+simd = "0.2.1"
+
+[features]
+nightly = []
+avx = ["nightly"]

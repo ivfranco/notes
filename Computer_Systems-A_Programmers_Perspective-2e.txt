@@ -2220,3 +2220,98 @@ S = 1/((1 - 0.8) + 0.8/k) = 2
 0.4 + 1.6/k = 1
 1.6/k = 0.6
 k = 8/3
+
+5.15
+A.  %rbx, %rdx -> load_a
+    %rax, %rdx -> load_b
+    load_a, load_b -> mulss
+    mulss, %xmm1 -> addss -> %xmm1
+    %rdx -> add -> %rdx
+    critical path:  %xmm1
+                    |
+                    addss
+                    |
+                    %xmm1
+B.  the latency of single precision floating point addition
+    CPE >= 3
+C.  the latency of 32-bit integer addition
+    CPE >= 1
+D.  the multiplication operations have long latency (4-5 cycles) but is fully pipelined
+    since all multiplications are local, they can be issued every cycle
+    the floating point multiplication is located on another critical path, where %rdx is incremented
+    as integer addition has very short latency (1 cycle), also the procedure does not alter values in memory
+    data loading can be performed and cached every cycle, hence multiplication can be issued every next cycle
+    the latency of floating point addition is longer than the throughput of floating point multiplication
+    therefore the addition becomes the bottleneck
+
+5.16
+./CSAPP/opt
+A.  every multiplication requires two data loads, every one takes one cycle at least
+    so the multiplication can only be performed every next cycle
+B.  the floating point addition is still on the critical path
+    its 3-cycle latency is the bottleneck of this loop procedure
+
+5.17
+./CSAPP/opt
+A.  data loading
+B.  there are only 6 general-purpose registers in IA32
+    there are at least 8 local variables in this procedure
+    (which is length, udata, vdata, sum1 - sum4, i)
+    some local variables have to be stored on the stack, thereby limits the performance
+
+5.18
+already done reassociation in problem 5.16
+try implement the function with simds instead
+
+5.19
+./CSAPP/opt
+
+5.20
+./CSAPP/opt
+
+5.21
+./CSAPP/opt
+
+5.22
+S1 = 1/((1 - 30%) + 30%/3) = 1/(0.7 + 0.1) = 5/4
+S2 = 1/((1 - 50%) + 50%/1.5) = 1/(1/2 + 2/3) = 6/5
+should speed up part B
+
+Chapter 6
+6.1
+4   4   2   2   2
+4   4   2   2   2
+16  8   4   3   4
+32  16  5   4   5
+32  32  5   5   5
+
+6.2
+2 * 2 * 10000 * 400 * 512 = 8.192 GB
+
+6.3
+Tseek = 8ms
+Trotation = 1/2 * 60/15000 * 1000 = 2ms
+Ttransfer = 1/15000 * 1/500 * 60 * 1000 = 0.008ms
+Taccess = Tseek + Trotation + Transfer = 10.008ms
+
+6.4
+Tseek = 5ms
+Trotation = 1/2 * 60/10000 * 1000 = 3ms
+Ttransfer = 1/10000 * 1/1000 * 60 * 1000 = 0.006ms
+if sequential: T = Tseek + Trotation + Ttransfer * 10^6/512 = 19.72ms
+if random: T = 10^6/512 * (Tseek + Trotation + Ttransfer) = 15636.71ms
+
+6.5
+A.  cylinders in use: 22076928 / 8 / 864 = 3194
+    spare cylinders: 3201 - 3194 = 7
+B.  cylinders in use: 20804608 / 8 / 704 = 3694
+    spare cylinders: 3700 - 3694 = 6
+
+6.6
+A.  10^15 / (170 * 10^6) / 3600 / 24 / 365 = 0.187 years
+B.  10^15 / (14 * 10^6) / 3600 / 24 / 365 = 2.265 years
+C.  10^15 / (20 * 10^9) / 365 = 137.00 years
+    
+6.7
+log(3e-4 / (500 / (1e15 / 1e6))) / log(1600000 ** (1/30)) = 13.434
+around year 2023
