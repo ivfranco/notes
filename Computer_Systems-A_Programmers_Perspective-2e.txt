@@ -2315,3 +2315,75 @@ C.  10^15 / (20 * 10^9) / 365 = 137.00 years
 6.7
 log(3e-4 / (500 / (1e15 / 1e6))) / log(1600000 ** (1/30)) = 13.434
 around year 2023
+
+6.8
+change line 8 to
+    sum += a[i][j][k];
+
+6.9
+clear1:
+    stride-1 reference pattern
+clear2:
+    the 6 4-byte memory positions in a struct is referred in order:
+    0   3   1   4   2   5
+    similar to a stride-3 reference pattern
+clear3:
+    stride-6 reference pattern
+
+6.10
+-
+
+6.11
+3 out of 4 floats in a block will be cache hits
+
+6.12
+A.  in this scenario, an address is parsed as:
+        s||t||b
+    where s is set index, t is tag, b is block offset
+    assuming direct-mapping caches, there is only one line in every set
+    addresses with same s and t but different b are in the same block
+    addresses with same s but different t and b are mapped to the same cache set
+    therefore 2^t contiguous blocks are mapped to the same set
+B.  s = 9
+    b = 5
+    t = m - (b + s) = 32 - 14 = 18
+    int is 4-byte long, every 2^18 / 4 = 65536 contiguous bits will be mapped to the same block
+    thus all array[4096] will be mapped to the same block, at most one block will be stored in the cache
+
+6.13
+s = 3
+b = 2
+t = m - (b + s) = 8
+from highest bit to lowest
+12-5: tag
+4-2: set index
+1-0: block offset
+
+6.14
+A.  0x0E34 = 0b01110001-101-00
+B.  CO: 0x0
+    CI: 0x5
+    CT: 0x71
+    cache hit: Y
+    byte returned: 0x0B
+
+6.15
+A.  0x0DD5 = 0b01100110-001-01
+B.  CO: 0x1
+    CI: 0x1
+    CT: 0x66
+    cache hit: N
+    byte returned: -
+
+6.16
+A.  0x1FE4 = 0x11111111-001-00
+    CO: 0x0
+    CI: 0x1
+    CT: 0xFF
+    cache hit: N 
+    byte returned: -
+
+6.17
+0x064C
+0x064D
+0x064E
