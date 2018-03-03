@@ -4,3 +4,9 @@ version = "0.1.0"
 authors = ["ivfranco <ivfranco@smoug.net>"]
 
 [dependencies]
+bencher = "0.1.5"
+rand = "0.4"
+
+[[bench]]
+name = "transpose"
+harness = false

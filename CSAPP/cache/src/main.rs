@@ -1,9 +1,12 @@
+mod transpose;
+
 use std::num::Wrapping;
 
 fn main() {
-    problem_6_36();
+    problem_6_38();
 }
 
+// rounded towards +inf
 fn log2(x: usize) -> usize {
     assert!(x > 0);
 
@@ -36,7 +39,6 @@ struct DMCache {
 impl DMCache {
     fn new(m: usize, c: usize, b: usize) -> Self {
         let mut sets = vec![];
-        let w = ::std::mem::size_of::<usize>() * 8;
         let s = c / b;
         for _ in 0..s {
             sets.push(CacheLine::new());
@@ -108,4 +110,55 @@ fn problem_6_35() {
 
 fn problem_6_36() {
     simulate_6_35_36(128);
+}
+
+fn problem_6_38_a(n: usize) {
+    const S_INT: usize = 4;
+    let addr = |i, j| (i * n + j) * S_INT;
+    let mut cache = DMCache::new(log2(n * n * S_INT), 4 * 2usize.pow(10), 16);
+    let mut miss = 0;
+    for i in 0..n {
+        for j in 0..n {
+            miss += !cache.access(addr(i, j)) as usize;
+        }
+    }
+    println!("sumA, N = {}, miss rate: {}/{}", n, miss, n * n);
+}
+
+fn problem_6_38_b(n: usize) {
+    const S_INT: usize = 4;
+    let addr = |i, j| (i * n + j) * S_INT;
+    let mut cache = DMCache::new(log2(n * n * S_INT), 4 * 2usize.pow(10), 16);
+    let mut miss = 0;
+    for j in 0..n {
+        for i in 0..n {
+            miss += !cache.access(addr(i, j)) as usize;
+        }
+    }
+    println!("sumB, N = {}, miss rate: {}/{}", n, miss, n * n);
+}
+
+fn problem_6_38_c(n: usize) {
+    const S_INT: usize = 4;
+    let addr = |i, j| (i * n + j) * S_INT;
+    let mut cache = DMCache::new(log2(n * n * S_INT), 4 * 2usize.pow(10), 16);
+    let mut miss = 0;
+    for j in (0..n).filter(|j| j % 2 == 0) {
+        for i in (0..n).filter(|i| i % 2 == 0) {
+            miss += !cache.access(addr(i, j)) as usize;
+            miss += !cache.access(addr(i + 1, j)) as usize;
+            miss += !cache.access(addr(i, j + 1)) as usize;
+            miss += !cache.access(addr(i + 1, j + 1)) as usize;
+        }
+    }
+    println!("sumC, N = {}, miss rate: {}/{}", n, miss, n * n);
+}
+
+fn problem_6_38() {
+    problem_6_38_a(64);
+    problem_6_38_a(60);
+    problem_6_38_b(64);
+    problem_6_38_b(60);
+    problem_6_38_c(64);
+    problem_6_38_c(60);
 }
