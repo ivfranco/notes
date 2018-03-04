@@ -2821,4 +2821,85 @@ buf     Y   extern  main.o  .data
 bufp0   Y   global  swap.o  .data
 bufp1   Y   global  swap.o  .bss 
 swap    Y   global  swap.o  .text
-temp    N   local   swap.o  -
+temp    N   -       -       -
+
+7.2
+A.  REF(main.1) --> DEF(main.1)
+    REF(main.2) --> DEF(main.1)
+B.  ERROR, two strong symbols
+C.  REF(x.1) --> DEF(x.2)
+    REF(x.2) --> DEF(x.2)
+
+7.3
+A.  ld p.o libx.a
+B.  ld p.o libx.a liby.a
+C.  ld p.o libx.a liby.a libx.a p.o
+
+7.4
+A.  0x80483bb
+B.  0x0000009
+C.  won't change, it's PC relative
+
+7.5
+A.  otherwise the load won't know where to start execution
+B.  call to _exit is already in crt1.o, which is linked to every C program
+
+7.6
+buf     Y   extern  main.o  .data
+bufp0   Y   global  swap.o  .data
+bufp1   Y   local   swap.o  .bss
+swap    Y   global  swap.o  .text
+temp    N   -       -       -
+incr    Y   local   swap.o  .text
+count   Y   local   swap.o  .data
+
+7.7
+double x;
+void f() {
+    x = x;
+}
+
+7.8
+A.  main.2 is not global
+    REF(main.1) --> DEF(main.1)
+    REF(main.2) --> DEF(main.2)
+B.  unknown, two weak symbols
+C.  ERROR, two strong symbols
+
+7.9
+as main.bar6 is a weak symbol, REF(main.bar6) --> DEF(main.foo6)
+an implicit type casting (void (*)(void)) -> char is performed, and the last two hex digits of pointer main is printed
+
+7.10
+A.  ld p.o libx.a p.o
+B.  ld p.o libx.a liby.a libx.a
+C.  ld p.o libx.a liby.a libz.a libx.a
+
+7.11
+thanks https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter7/7.11.md
+0xe8 is the size of the .data section
+0x104 is the size of .data and .bss section
+
+7.12
+bufp0   line3   0x3     0x0
+buf[1]  line5   0x8     0x4
+bufp1   line8   0x10    0x0
+bufp1   line15  0x1f    0x0
+
+7.13
+A.  0x12: R_386_PC32 p3
+    0x19: R_386_32 xp
+    0x21: R_386_PC32 p2
+B.  0x4: R_386_32 x
+
+7.14
+A.  0x11: R_386_32 .rodata
+B.  0x0: R_386_32 relo3+0x28
+    0x4: R_386_32 relo3+0x15
+    0x8: R_386_32 relo3+0x25
+    0xc: R_386_32 relo3+0x18
+    0x10: R_386_32 relo3+0x18
+    0x14: R_386_32 relo3+0x20
+
+7.15
+-
