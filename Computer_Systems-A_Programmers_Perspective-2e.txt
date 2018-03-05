@@ -2902,4 +2902,41 @@ B.  0x0: R_386_32 relo3+0x28
     0x14: R_386_32 relo3+0x20
 
 7.15
--
+there's no libc.a in modern osx
+from the result of
+    cat /usr/include/libc.h | grep "#include" | wc -l
+there may be 27 object files in what's equivalent to a libc.a
+
+Chapter 8
+8.1
+AB  y
+AC  n 
+BC  y
+
+8.2
+A.  printf1: x=2
+    printf2: x=1
+B.  printf2: x=0
+
+8.3
+abcc
+bacc
+
+8.4
+A.  6
+B.  Hello
+    0
+    1
+    Bye
+    2
+    Bye
+
+8.5
+./CSAPP/ecf
+
+8.6
+./CSAPP/ecf
+
+8.7
+thanks CSAPP2e
+./CSAPP/ecf
