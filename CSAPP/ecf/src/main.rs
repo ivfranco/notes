@@ -5,10 +5,10 @@ extern crate libc;
 
 use libc::*;
 use std::env;
+use std::ffi::CString;
+use std::ptr;
 
-fn main() {
-    problem_8_7();
-}
+fn main() {}
 
 #[cfg(target_os = "macos")]
 unsafe fn errno() -> i32 {
@@ -20,7 +20,8 @@ unsafe fn errno() -> i32 {
 }
 
 unsafe fn unix_error(msg: &str) -> ! {
-    eprintln!("{}: {}", msg, errno());
+    let error = CString::from_raw(strerror(errno()));
+    eprintln!("{}: {:?}", msg, error);
     exit(0)
 }
 
@@ -33,12 +34,19 @@ unsafe fn Fork() -> pid_t {
     }
 }
 
-unsafe fn Signal(sigint: c_int, handler: sighandler_t) -> sighandler_t {
-    let prev_handler = signal(sigint, handler);
-    if prev_handler == SIG_ERR {
+unsafe fn Signal(signum: c_int, handler: sighandler_t) -> sighandler_t {
+    let mut action = sigaction {
+        sa_sigaction: handler,
+        sa_mask: 0,
+        sa_flags: SA_RESTART,
+    };
+    let mut old_action: sigaction = ::std::mem::uninitialized();
+
+    sigemptyset(&mut action.sa_mask as *mut u32);
+    if sigaction(signum, &mut action, &mut old_action) < 0 {
         unix_error("Signal error")
     } else {
-        prev_handler
+        old_action.sa_sigaction
     }
 }
 

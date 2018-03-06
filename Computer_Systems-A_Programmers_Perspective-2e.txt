@@ -2940,3 +2940,165 @@ B.  Hello
 8.7
 thanks CSAPP2e
 ./CSAPP/ecf
+
+8.8
+213
+
+8.9
+AB  n
+AC  y 
+AD  y
+BC  y 
+BD  y 
+CD  y
+
+8.10 
+A.  fork
+B.  execve, longjmp
+C.  setjmp
+
+8.11
+4
+
+8.12
+8
+
+8.13
+x=2 // from child, line 10
+x=4 // from parent, line 8
+x=3 // from parent, line 10
+
+8.14
+3
+
+8.15
+5
+
+8.16
+counter = 2
+a child process will get its own copy of virtual memory, including global variables in .data section
+
+8.17
+(parent)
+Hello
+(child) (parent) // two processes running concurrently, outputs may interleave in arbitrary way
+1       0
+Bye
+(parent)
+2
+
+8.18
+parent -> child1, child2
+child2 -> child3
+(parent)    (child1)    (child2)    (child3)
+                        0           0       // printf("0"); at line 13
+1           1                               // printf("1"); at line 15
+            2                       2       // printf("2"); in end  
+A.  1(p)-12(c1)-0(c2)-02(c3)
+B.  impossible, 2 must follow 1 or 0
+C.  1(p)-02(c3)-12(c1)-0(c2)
+D.  impossible, the second 2 must be the fourth or later output
+E.  1(p)-0(c2)-02(c3)-12(c1)
+
+8.19
+2^n
+
+8.20
+#include <stdio.h>
+#include <unistd.h>
+#include <errno.h>
+int main(int argc, char *argv[], char *envp[]) {
+    if (execve("/bin/ls", argv, envp) < 0) {
+        fprintf(stderr, "Exec error: %d\n", errno);
+    }
+}
+
+8.21
+abc; bac
+
+8.22
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+int mysystem(char *command) {
+  int status;
+  if (fork() == 0) {
+    char *argv[4] = {
+      "/bin/sh",
+      "-c",
+      command,
+      NULL
+    };
+    execv("/bin/sh", argv);
+    exit(0);
+  } else {
+    waitpid(-1, &status, 0);
+    if WIFEXITED(status)
+      return WEXITSTATUS(status);
+    if WIFSIGNALED(status)
+      return WTERMSIG(status);
+    return -1;
+  }
+}
+
+8.23
+signals are not queued
+
+8.24
+// nowhere implemented strerror or strsignal, neither repl.it or other online compiling services
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <errno.h>
+#include <signal.h>
+#define N 2
+int main(void) {
+  int status, i;
+  pid_t pid;
+  for (i = 0; i < N; i++) {
+    if ((pid = fork()) == 0) {
+      char *text = (char *) main;
+      *text = '1';
+      exit(100+i);
+    }
+  }
+  while (waitpid(-1, &status, 0) > 0) {
+    if (WIFEXITED(status))
+      printf("child %d terminated normally with exit status=%d\n", pid, WEXITSTATUS(status));
+    if (WIFSIGNALED(status)) {
+      int sig = WTERMSIG(status);
+      char desc[128];
+      sprintf(desc, "child %d terminated by signal %d", pid, sig);
+      psignal(sig, desc);
+    }
+  }
+  if (errno != ECHILD) {
+    fprintf(stderr, "waitpid error: %d", errno);
+  }
+  exit(0);
+}
+
+8.25
+#include <stdio.h>
+#include <signal.h>
+#include <unistd.h>
+#include <setjmp.h>
+static sigjmp_buf env;
+void handler(int sig) {
+  longjmp(env, 1);
+}
+char *tfgets(char *s, int n, FILE *stream) {
+  signal(SIGALRM, handler);
+  alarm(5);
+  if (setjmp(env) == 0) {
+    char *s_indicator = fgets(s, n, stream);
+    alarm(0);
+    return s_indicator;
+  } else {
+    return NULL;
+  }
+}
+
+8.26
+-
