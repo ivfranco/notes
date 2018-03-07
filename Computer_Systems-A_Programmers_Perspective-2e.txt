@@ -3102,3 +3102,38 @@ char *tfgets(char *s, int n, FILE *stream) {
 
 8.26
 -
+
+Chapter 9
+9.1
+8   256B    255
+16  64K     65535
+32  4G      4294967295
+48  256T    2^48 - 1
+64  16E     2^64 - 1
+
+9.2
+16  4K  2^4 = 16
+16  8K  2^3 = 8
+32  4K  2^20 = 1M
+32  8K  2^19 = 512K
+
+9.3
+1K  22  10  14  10
+2K  21  11  13  11
+4K  20  12  12  12
+8K  19  13  11  13 
+
+9.4
+A.  0x03d7 = 0b0011-11-010111
+B.  VPN:        0x0f
+    TLBI:       0x3
+    TLBT:       0x3
+    TLB hit:    y
+    page fault: n
+    PPN:        0x0d
+C.  0b001101-0101-11
+D.  CO:         0x3
+    CI:         0x5
+    CT:         0xd
+    Cache hit:  y
+    Return:     0x1d
