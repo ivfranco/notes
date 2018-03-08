@@ -3004,42 +3004,14 @@ E.  1(p)-0(c2)-02(c3)-12(c1)
 2^n
 
 8.20
-#include <stdio.h>
-#include <unistd.h>
-#include <errno.h>
-int main(int argc, char *argv[], char *envp[]) {
-    if (execve("/bin/ls", argv, envp) < 0) {
-        fprintf(stderr, "Exec error: %d\n", errno);
-    }
-}
+thanks https://docs.rs/nix/0.10.0/nix/unistd/fn.execve.html
+./CSAPP/ecf
 
 8.21
 abc; bac
 
 8.22
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/wait.h>
-int mysystem(char *command) {
-  int status;
-  if (fork() == 0) {
-    char *argv[4] = {
-      "/bin/sh",
-      "-c",
-      command,
-      NULL
-    };
-    execv("/bin/sh", argv);
-    exit(0);
-  } else {
-    waitpid(-1, &status, 0);
-    if WIFEXITED(status)
-      return WEXITSTATUS(status);
-    if WIFSIGNALED(status)
-      return WTERMSIG(status);
-    return -1;
-  }
-}
+./CSAPP/ecf
 
 8.23
 signals are not queued
@@ -3137,3 +3109,21 @@ D.  CO:         0x3
     CT:         0xd
     Cache hit:  y
     Return:     0x1d
+
+9.5
+./CSAPP/vm
+
+9.6
+malloc(1)   8   0x9
+malloc(5)   16  0x11
+malloc(12)  16  0x11
+malloc(13)  24  0x19
+
+9.7
+12B, 4B header || 4B payload || 4B footer
+8B, 4B header || 4B payload
+16B, 4B header || 8B payload || 4B footer
+8B, 4B header || 4B payload
+
+9.8 - 9.9
+./CSAPP/vm/src/mm.rs
