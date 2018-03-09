@@ -3210,3 +3210,8 @@ B.  VPN:            0x1
 
 9.20
 -
+
+Chapter 10
+10.1
+the smallest file descriptor available to this program
+after FILENO_STDIN, FILENO_STDOUT and FILENO_STDERR, fd2 == 3
