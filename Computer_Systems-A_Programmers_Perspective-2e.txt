@@ -3127,3 +3127,86 @@ malloc(13)  24  0x19
 
 9.8 - 9.9
 ./CSAPP/vm/src/mm.rs
+
+9.10
+since with simple segregated free lists blocks are never coalesced
+if an application 
+    1.  allocates and frees a lot of small objects
+    2.  allocates and frees only much bigger objects then
+then all the small blocks allocated in step 1 will never be reused
+
+9.11
+A.  0b000010-01-111100
+B.  VPN:            0x9
+    TLBI:           0x1
+    TLBT:           0x2
+    TLB hit:        n
+    page fault:     n
+    PPN:            0x17
+C.  0b010111-1111-00
+D.  CO:             0x0
+    CI:             0xf
+    CT:             0x17
+    Cache hit:      n
+    return byte:    -
+
+9.12
+A.  0b000011-10-101001
+B.  VPN:            0xe
+    TLBI:           0x2
+    TLBT:           0x3
+    TLB hit:        n
+    page fault:     n
+    PPN:            0x11
+C.  0b010001-1010-01
+D.  CO:             0x1
+    CI:             0xa
+    CT:             0x11
+    Cache hit:      n
+    return byte:    -
+
+9.13
+A.  0b000000-01-000000
+B.  VPN:            0x1
+    TLBI:           0x1
+    TLBT:           0x0
+    TLB hit:        n
+    page fault:     y
+
+9.14
+./CSAPP/vm
+
+9.15
+8       0x00000009
+16      0x00000011
+24      0x00000019
+32      0x00000021
+
+9.16
+16
+16
+16
+16
+
+9.17 - 9.18
+./CSAPP/vm/src/mm.rs
+
+9.19
+1.  a:  true, if all allocations are malloc(2^n + 1), a buddy system have to allocate blocks of size 2^(n+1) bytes each
+    b:  false, best-fit have to analyse the size of all the free blocks for each allocation
+        while first-fit stops when a fit is find, twice as fast as best-fit on average
+    c:  false, with boundary tags deallocation is constant time
+    d:  false, external fragmentation in C is is unavoidable
+2.  a:  false, it will have high performance and severe external fragmentation
+        performance will be good (constant time), if the first free block doesn't fit then more memory is needed
+        for repeating small mallocs, big free blocks will be wasted on small data, or splited into small free blocks
+    b:  false, the order doesn't matter that much with best-fit
+    c:  false, smallest
+    d:  true
+3.  a:  false, coalescing is not performed by GC
+    b:  true
+    c:  false, most modern GC scans memory periodically, conservative or not
+    d:  false, they do if no root node points to the cyclic list of memories
+
+9.20
+-
