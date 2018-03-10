@@ -3215,3 +3215,40 @@ Chapter 10
 10.1
 the smallest file descriptor available to this program
 after FILENO_STDIN, FILENO_STDOUT and FILENO_STDERR, fd2 == 3
+
+10.2
+c = f
+the file is opened twice, two file descriptors with independent file offsets starting from 0
+both read will read the first character in the file
+
+10.3
+c = o 
+parent and child processes share the same file table
+the first Read(fd, &c, 1) increments file offset by 1, the second read then reads the second character in foobar.txt
+
+10.4
+dup2(5, FILENO_STDIN)
+
+10.5
+c = o
+Read(fd2, &c, 1) increments file offset of fd2 by 1
+Dup2(fd2, fd1) overwrites fd1 with entries of fd2, including file offset
+Read(fd1, &c, 1) then reads the second character in foobar.txt into c
+
+10.6
+fd2 = 4
+stdin, stdout, stderr, foo.txt and baz.txt are opened at line 11
+fd2 points to baz.txt, which is the fifth file
+
+10.7
+./CSAPP/rio
+
+10.8
+./CSAPP/rio
+
+10.9
+int fd = open("foo.txt", O_RDONLY);
+dup2(fd, STDIN_FILENO);
+
+10.10
+./CSAPP/rio
