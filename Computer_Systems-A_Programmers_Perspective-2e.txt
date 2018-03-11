@@ -3252,3 +3252,25 @@ dup2(fd, STDIN_FILENO);
 
 10.10
 ./CSAPP/rio
+
+Chapter 11
+11.1
+0.0.0.0
+255.255.255.255
+127.0.0.1
+0xcdbca015
+0x400c950d
+0xcdbc9217
+
+11.2 - 11.3
+./CSAPP/network
+
+11.4
+offical hostname: google.com.
+address: 172.217.24.14
+address: 2404:6800:4012::200e
+A.  ipv4 first, ipv6 second
+B.  ?
+
+// web server in C
+// chapter skipped
