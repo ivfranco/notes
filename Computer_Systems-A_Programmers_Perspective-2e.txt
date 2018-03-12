@@ -2804,14 +2804,14 @@ and the normal transpose is derived by
         return s;
     }
     void transpose(int *dst, int *src, int dim) {
-        g_transpose(dst, src, dim, &fst);
+        g_transpose(dst, src, dim, fst);
     }
 col_convert is derived by
     int or(int s, int d) {
         return s || d;
     }
     void col_convert(int *G, int dim) {
-        g_transpose(G, G, dim, &or);
+        g_transpose(G, G, dim, or);
     }
 the optimization of transpose can be applied directly to g_transpose, hence col_convert
 
@@ -3274,3 +3274,77 @@ B.  ?
 
 // web server in C
 // chapter skipped
+
+Chapter 12
+12.1
+when Fork() is called, the child process get its own copy of file descriptor table
+all file entries in open file table have their ref count incremented by 1
+after parent process called Close(connfd), the ref count of connfd is still positive
+
+12.2
+when a process is terminated, the ref counts of files in its file descriptor table is automatically decremented
+so calling exit(0) is equivalent to calling Close(fd) with all file descriptors currently opened in the child process
+
+12.3
+when stdin is at eof, it will never be possible to read more bytes from it (eof is not a character)
+all read requests to stdin will immediately return 0, indicating no byte is read
+thus a request to read 1 byte from stdin will never block
+select will always return immediately with STDIN_FILENO set in fdset
+
+12.4
+select will modifiy this argument
+
+12.5
+peer threads, unlike child processes, will not receive a whole copy of stack, heap and file descriptor table
+they share the same memory space with the main thread
+which means the reference counts will not be incremented when a peer thread is spawned
+therefore a file descriptor only has to be closed once, and only peer threads know when it's no longer needed
+
+12.6
+A.  ptr     y   y   y
+    cnt     n   y   y
+    i.m     y   n   n   // call by value, copied not not shared
+    msgs.m  y   y   y
+    myid.p0 n   y   n
+    myid.p1 n   n   y
+B.  ptr, cnt, msgs.m
+
+12.7
+1 1 H1  —   —   0   
+2 1 L1  0   -   0
+3 2 H2  0   -   0
+4 2 L2  0   0   0
+5 2 U2  0   1   0
+6 2 S2  0   1   1
+7 1 U1  1   1   1
+8 1 S1  1   1   1
+9 1 T1  1   1   1
+10 2 T2 1   1   1
+incorrect
+
+12.8
+A.  safe 
+B.  unsafe
+C.  safe
+
+12.9
+A.  necessary, a produceer must block if
+    1.  the buffer is full, protected by sp.slots
+    2.  the consumer is accessing the buffer, protected sp.mutex
+    same as the consumer
+B.  invariant: sp->slots + sp->items == 0
+    not necessary, a producer must block if
+    1.  the buffer is full, protected by sp.slots
+    2.  the consumer is accessing the buffer
+        the consumer may only access the buffer if: sp->items == 1, which means sp->slots == 0
+        at the end of sbuf_remove, the consumer will increment sp->slots to 1
+        when sp->slots == 1, sp->items == 0 and the consumer will block, cannot access the buffer
+        therefore P(&sp->slots) has the same effect as P(&sp->mutex)
+    symmetrically the consumer
+C.  necessary
+    more than one producers/consumers may try to access the buffer at the same time
+    the mutex makes sure that only one producer/consumer has access, thereby prevents inconsistent states
+
+12.10
+a writer arrives first, then a stream of readers, writer accquires semaphore w
+then a stream of writers arrives, and the kernel always chooses another writer to run next

@@ -41,7 +41,7 @@ fn practice_2_47() {
 }
 
 unsafe fn show_bytes<T>(p: &T) {
-    let p_byte = mem::transmute::<&T, *const u8>(p);
+    let p_byte = p as *const T as *const u8;
     let p_size = mem::size_of::<T>();
     for i in 0..p_size {
         print!("{:02X} ", *p_byte.offset(i as isize));
@@ -60,7 +60,7 @@ fn practice_2_56() {
 fn is_little_endian() -> bool {
     let mask = 0x0000ffffu32;
     unsafe {
-        let p_byte = mem::transmute::<&u32, *const u8>(&mask);
+        let p_byte = &mask as *const u32 as *const u8;
         *p_byte == 0xff
     }
 }
@@ -81,7 +81,8 @@ fn srl(x: usize, k: usize) -> usize {
     let w = mem::size_of::<usize>() * 8;
     assert!(k <= w - 1);
 
-    let xsra = unsafe { mem::transmute::<isize, usize>(mem::transmute::<usize, isize>(x) >> k) };
+    // let xsra = unsafe { mem::transmute::<isize, usize>(mem::transmute::<usize, isize>(x) >> k) };
+    let xsra = (x as isize >> k) as usize;
 
     let mut mask = 0;
     // computing a mask with k leading 1s followd by (w - k) 0s
@@ -100,7 +101,8 @@ fn sra(x: isize, k: usize) -> isize {
     let w = mem::size_of::<isize>() * 8;
     assert!(k <= w - 1);
 
-    let xsrl = unsafe { mem::transmute::<usize, isize>(mem::transmute::<isize, usize>(x) >> k) };
+    // let xsrl = unsafe { mem::transmute::<usize, isize>(mem::transmute::<isize, usize>(x) >> k) };
+    let xsrl = (x as usize >> k) as isize;
 
     // if the leading bit is 0 (which means x >= 0), logical and arithmetic shifting give the same result
     if x >= 0 {
@@ -205,7 +207,8 @@ fn fit_bits(x: isize, n: usize) -> bool {
     assert!(1 <= n && n <= w);
 
     // would be equivalent if inlined the function body of lower_one_mask, no function call
-    let lower_mask = unsafe { mem::transmute::<usize, isize>(lower_one_mask(n)) };
+    // let lower_mask = unsafe { mem::transmute::<usize, isize>(lower_one_mask(n)) };
+    let lower_mask = lower_one_mask(n) as isize;
     // either x is an n-bit negative number extended to w bits (i.e. higher (w - n) bits all equal to 1)
     // or x is an (n-1) bit nonnegative number extended to w bits (i.e. higher (w - n + 1) bits all equal to 0)
     !(x | lower_mask) == 0 || (x & !(lower_mask >> 1)) == 0
@@ -282,21 +285,24 @@ fn practice_2_73() {
 fn unsigned_high_prod(x: u32, y: u32) -> u32 {
     fn signed_high_prod(x: i32, y: i32) -> i32 {
         let p = (x as i64) * (y as i64);
-        let low_and_high = unsafe { mem::transmute::<i64, [i32; 2]>(p) };
-        low_and_high[1]
+        // let low_and_high = unsafe { mem::transmute::<i64, [i32; 2]>(p) };
+        // low_and_high[1]
+        ((p >> 32) & 0xffffffff) as i32
     }
 
     let sig_x = if x > i32::max_value() as u32 { 1 } else { 0 };
     let sig_y = if y > i32::max_value() as u32 { 1 } else { 0 };
-    unsafe {
-        let tx = mem::transmute::<u32, i32>(x);
-        let ty = mem::transmute::<u32, i32>(y);
-        let tp = mem::transmute::<i32, u32>(signed_high_prod(tx, ty));
-        tp.wrapping_add(sig_x * y).wrapping_add(sig_y * x)
-    }
+    // unsafe {
+    //     let tx = mem::transmute::<u32, i32>(x);
+    //     let ty = mem::transmute::<u32, i32>(y);
+    //     let tp = mem::transmute::<i32, u32>(signed_high_prod(tx, ty));
+    //     tp.wrapping_add(sig_x * y).wrapping_add(sig_y * x)
+    // }
+    let tp = signed_high_prod(x as i32, y as i32) as u32;
+    tp.wrapping_add(sig_x * y).wrapping_add(sig_y * x)
 }
 
-fn practice_2_75() {
+fn practice_2_75() -> bool {
     fn arith_high_prod(x: u32, y: u32) -> u32 {
         let p = (x as u64) * (y as u64);
         let low_and_high = unsafe { mem::transmute::<u64, [u32; 2]>(p) };
@@ -308,6 +314,7 @@ fn practice_2_75() {
     let arith_prod = arith_high_prod(x, y);
     let usr_prod = unsigned_high_prod(x, y);
     println!("{}\n{}, {}\n", arith_prod, usr_prod, arith_prod == usr_prod);
+    arith_prod == usr_prod
 }
 
 fn divide_power2(x: isize, k: usize) -> isize {
@@ -531,7 +538,7 @@ fn float_f2i(f: FloatBits) -> i32 {
 fn practice_2_95() -> bool {
     let mut rnd = rand::thread_rng();
     let x: f32 = rnd.gen_range(-2e9, 2e9);
-    let f = unsafe { mem::transmute::<f32, FloatBits>(x) };
+    let f = unsafe { mem::transmute(x) };
     let int_f = float_f2i(f);
     let res = (x as i32) == int_f;
     println!("{} == {}, {}", x as i32, int_f, res);
