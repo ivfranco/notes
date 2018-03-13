@@ -3348,3 +3348,135 @@ C.  necessary
 12.10
 a writer arrives first, then a stream of readers, writer accquires semaphore w
 then a stream of writers arrives, and the kernel always chooses another writer to run next
+
+12.11
+1.  Sp = 1
+2.  Ep = 75%
+3.  Sp = 3
+
+12.12
+privatep can be a shared variable
+if privatep == shardp, then this function is equivalent to thread-unsafe ctime
+
+12.13
+when peer thread reaches line 24, ptr may already be freed in the main thread
+
+12.14
+A.  pass by value instead of by reference
+B.  infeasible when the argument is a big structure
+    or for arguments of dynamically sized types like strings
+
+12.15
+A.  (1,0)   (0,0)   (1,0)   (1,-1)  (1,0)
+    (1,-1)  (0,-1)  (1,-1)  (1,-2)  (1,-1)
+    (1,0)   (0,0)   (1,0)   (1,-1)  (1,0)
+    (0,0)   (-1,0)  (0,0)   (0,-1)  (0,0)
+    (1,0)   (0,0)   (1,0)   (1,-1)  (1,0)
+B.  initially t = 0, so both threads will block at P(t)
+C.  t = 1
+D.  (1,1)   (0,1)   (1,1)   (1,0)   (1,1)
+    (1,0)   (0,0)   (1,0)   (1,-1)   (1,0)
+    (1,1)   (0,1)   (1,1)   (1,0)   (1,1)
+    (0,1)   (-1,1)  (0,1)   (0,0)   (0,1)
+    (1,1)   (0,1)   (1,1)   (1,0)   (1,1)
+
+12.16
+./CSAPP/conc
+
+12.17
+A.  when the main process exits, all peer threads are immediately terminated
+B.  Pthead_join(tid, NULL);
+
+12.18
+A.  unsafe 
+B.  safe
+C.  unsafe 
+
+12.19
+check if readcnt == 0 at the beginning of writer, skip the current iteration if not
+this may raise cpu intensity as the condition is constantly been checked
+may be improved with condvar, which blocks the thread on certain conditions
+
+12.20
+sem_t mutex;    // initially 1
+sem_t slot;     // initially N
+void reader(void) {
+    while (1) {
+        P(&slot);
+        P(&mutex);
+        // critical
+        V(&mutex);
+        V(&slot);
+    }
+}
+void writer(void) {
+    while (1) {
+        P(&mutex);
+        // critical
+        V(&mutex);
+    }
+}
+
+2.21
+basically 12.19 but switching the role of reader and writer
+read_cnt -> write_cnt
+writer increments write_cnt on acquiring mutex, decrements on release
+first writer in the queue locks a mutex r
+last writer in the queue unlocks r
+reader checks write_cnt == 0 at the beginning of the loop, skip current iteration if not
+
+2.22
+change two ifs to a if .. else if .. clause
+
+2.23
+handle echo in a peer thread
+
+2.24
+no, these functions accepts pointers to rio_t and buffers, which may points to shared memory
+
+2.25
+it's thread-safe, accesses to the global variable byte_cnt is protected by a mutex
+it's not reentrant as byte_cnt is shared
+
+2.26
+./CSAPP/conc/gethostbyname_ts.c
+
+2.27
+thanks https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter12/12.27.md
+fdopen(fd, mod) opens a stream associated to a file descriptor fd
+calling fclose on any stream associated to a file descriptor will close the file descriptor as well (why?)
+after fclose(fpin), fpout still associates to the already closed descriptor sockfd
+calling fclose(fpout) will fail and usually cause no harm
+but when a thread started after another called fclose(fpin), the underlying descriptor sockfd will be reused
+and while the first thread is still running, the second thread then calls fclose(fpout)
+sockfd is closed again and cause hazards in the first thread
+
+2.28
+it will not deadlock according to mutex lock ordering rule
+
+2.29
+it cannot deadlock, thread 1 does not hold b and c simultanously
+a is not present in thread 2 and can be ignored
+by mutex lock ordering rule it's deadlock-free
+
+2.30
+A.  1:  (a, b), (a, c)
+    2:  (c, b) 
+    3:  (b, a)
+B.  thread 2 and 3
+C.  unclear how to adjust the lock ordering while maintaining the semantics (if any)
+    assuming variable rewrite
+    thread 2:
+        P(b)
+        P(c)
+        V(c)
+        V(b)
+        P(a)
+        V(a)
+    thread 3:
+        P(c)
+        V(c)
+        P(a)
+        P(b)
+        V(b)
+        V(a)
