@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     init();
     name = argv[1];
-    hostp = gethostbyname_ts("github.com");
+    hostp = gethostbyname_ts(name);
     for (pp = hostp->h_addr_list; *pp != NULL; pp++) {
         addr.s_addr = ((struct in_addr *)*pp) -> s_addr;
         printf("address: %s\n", inet_ntoa(addr));

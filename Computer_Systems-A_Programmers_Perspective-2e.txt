@@ -3417,7 +3417,7 @@ void writer(void) {
     }
 }
 
-2.21
+12.21
 basically 12.19 but switching the role of reader and writer
 read_cnt -> write_cnt
 writer increments write_cnt on acquiring mutex, decrements on release
@@ -3425,23 +3425,23 @@ first writer in the queue locks a mutex r
 last writer in the queue unlocks r
 reader checks write_cnt == 0 at the beginning of the loop, skip current iteration if not
 
-2.22
+12.22
 change two ifs to a if .. else if .. clause
 
-2.23
+12.23
 handle echo in a peer thread
 
-2.24
+12.24
 no, these functions accepts pointers to rio_t and buffers, which may points to shared memory
 
-2.25
+12.25
 it's thread-safe, accesses to the global variable byte_cnt is protected by a mutex
 it's not reentrant as byte_cnt is shared
 
-2.26
+12.26
 ./CSAPP/conc/gethostbyname_ts.c
 
-2.27
+12.27
 thanks https://github.com/DreamAndDead/CSAPP-3e-Solutions/blob/master/chapter12/12.27.md
 fdopen(fd, mod) opens a stream associated to a file descriptor fd
 calling fclose on any stream associated to a file descriptor will close the file descriptor as well (why?)
@@ -3451,15 +3451,15 @@ but when a thread started after another called fclose(fpin), the underlying desc
 and while the first thread is still running, the second thread then calls fclose(fpout)
 sockfd is closed again and cause hazards in the first thread
 
-2.28
+12.28
 it will not deadlock according to mutex lock ordering rule
 
-2.29
+12.29
 it cannot deadlock, thread 1 does not hold b and c simultanously
 a is not present in thread 2 and can be ignored
 by mutex lock ordering rule it's deadlock-free
 
-2.30
+12.30
 A.  1:  (a, b), (a, c)
     2:  (c, b) 
     3:  (b, a)
@@ -3480,3 +3480,17 @@ C.  unclear how to adjust the lock ordering while maintaining the semantics (if 
         P(b)
         V(b)
         V(a)
+
+
+12.31 - 12.33
+raw process and select function not present in safe Rust
+implemented with thread and channel instead
+./CSAPP/conc/src/tfgets.rs
+
+12.34
+./CSAPP/conc
+
+12.35 - 12.37
+// skipped
+
+12.38
