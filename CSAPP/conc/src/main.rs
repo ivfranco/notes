@@ -6,6 +6,7 @@ extern crate scoped_threadpool;
 mod echo;
 mod prethread;
 mod tfgets;
+mod tiny;
 
 use std::env;
 use std::thread;
@@ -13,9 +14,12 @@ use std::time;
 use scoped_threadpool::Pool;
 // use echo::echo_server;
 // use prethread::echo_server;
+use tiny::tiny_server;
 
 fn main() {
-    problem_12_34();
+    if let Err(e) = tiny_server() {
+        eprintln!("{}", e);
+    };
 }
 
 fn problem_12_16() {
