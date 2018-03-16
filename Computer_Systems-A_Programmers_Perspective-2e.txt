@@ -3495,3 +3495,6 @@ implemented with thread and channel instead
 
 12.38
 ./CSAPP/conc/src/tiny.rs
+
+12.39
+-

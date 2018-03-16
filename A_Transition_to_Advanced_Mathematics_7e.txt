@@ -1,0 +1,127 @@
+Exercises 1.1
+1.
+a.  T
+b.  F, if 5π is rational, 5π = a/b and π = a/5b, π is rational too
+c.  T, {41, 43, 47}
+d.  T, {2, 3, 5, 7, 9}
+e.  F
+f.  F 
+g.  T, (5+2i)(5-2i) = 29
+h.  F
+
+2.
+a.  not a proposition
+b.  F
+c.  not a proposition
+d.  not a proposition
+e.  F
+f.  T, (T ∧ T) ∨ F
+g.  F
+h.  T 
+i.  T
+j.  paradox, the second part equals to "this statement is false"
+
+3.
+a.  contradiction
+b.  tautology
+c.  P   Q   P ∧ ~Q
+    T   T   F
+    T   F   T
+    F   T   F
+    F   F   F
+d.  Q ∨ ~Q is a tautology, proposition equivalent to P
+e.  by distribution laws, proposition equivalent to (P ∨ ~Q) ∧ (Q ∨ ~Q)
+    which again equivalent to P ∨ ~Q
+    P   Q   (P ∧ Q) ∨ ~Q
+    T   T   T
+    T   F   T
+    F   T   F
+    F   F   T
+f.  negate of P ∧ Q
+// tedious, see ./Transition/truth-table
+
+4.
+a.  T ∧ (T ∧ F) = F
+b.  T ∨ .. = T
+c.  (T ∨ T) ∧ (T ∨ F) = T
+d.  T, ∨ is associative, ~S is T, the whole propositoin is T
+e.  F
+f.  F, equivalent to (~Q ∧ Q) ∨ S and S by distribution law
+g.  T, equivalent to P ∨ (S ∧ T)
+
+5.
+-
+
+6.
+a.  true
+b.  true
+c.  true, commutative law
+d.  false, by demorgan laws ~P ∨ ~Q = ~(P ∧ Q), P ∧ Q only true when both P and Q are T
+    P ∨ ~Q is also true when P = F and Q = F
+e.  false, ~(P ∧ ~Q) = ~P ∧ Q != ~P ∧ ~Q
+f.  false, ~(P ∧ Q) = ~P ∨ ~Q by demorgan laws
+g.  false, by distribution laws (P ∧ Q) ∨ R = (P ∨ R) ∧ (Q ∨ R) != P ∧ (Q ∨ R)
+h.  false, same to above
+
+7.
+a.  let P = "2 is odd"
+    ~P, T
+b.  let P = "f(x) = e^x is increasing", Q = "f(x) = e^x is concave up"
+    P ∧ Q, T
+c.  let P = "7 is factor of 70", Q = "5 is factors of 70"
+    P ∧ Q, T
+d.  let P = "Perth is located in Europe", Q = "Panama City is ..", R = "Pisa is .."
+    P ∨ Q ∨ R, T
+
+8.
+the property of "having the same truth tables" is reflexive, symmetric and transitive
+a.  symmetric
+b.  transitive
+c.  the negation of the same truth tables are, the same truth tables
+
+9.
+a.  neither
+b.  tautology
+c.  tautology, ~P ∨ ~Q is F iff both P and Q are T, which means P ∧ Q is T
+d.  tautology
+e.  contradiction
+f.  neither, equivalent to P
+
+10.
+a.  contradiction, B always F means _ ∧ B always F
+b.  tautology
+c.  tautology
+d.  tautology
+
+11.
+a.  x is a non-positive integer
+b.  Cleveland will not win the first two games
+c.  5 < 3
+d.  641371 is not a composite integer
+e.  either Roses are not Red or violets are not blue
+f.  T is bounded and T is not compact
+g.  either M is not odd or M is not one-to-one
+h.  either the first or second derivatives of f at x0 is non-positive
+i.  either 2 and 4 are not relative maximum of g or 3 is not a relative minimum of g
+j.  z < s or z <= t
+k.  either R is not transitive or R is reflexive
+
+12.
+a.  (~(~P)) ∨ ((~Q) ∧ (~S))
+b.  (Q ∧ (~S)) ∨ ~((~P) ∧ Q)
+c.  ((P ∧ (∼Q)) ∨ ((∼P) ∧ (∼R))) ∨ ((∼P) ∧ S)
+d.  ((∼P) ∨ ((Q ∧ (∼(∼P))) ∧ Q)) ∨ R
+
+13.
+a.  i.  A   B   A xor B
+        T   T   F
+        T   F   T
+        F   T   T
+        F   F   F
+    ii. quite literally, A ∨ B => "A or B", ~(A ∧ B) => "not both"
+b.  i.  A   B   NAND    NOR
+        T   T   F       F
+        T   F   T       F
+        F   T   T       F
+        F   F   T       T
+    ii. - iii.  truth table
