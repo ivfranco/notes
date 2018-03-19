@@ -177,3 +177,248 @@ d.  assume an array A[p..r] and some q that p < q < r, then the total number of 
         A[i] > A[j]
     which can be calculated in a slightly modified merge function
     ./CLRS/start/mergesort.ts#inversionCount
+
+Chapter 3
+3.1-1
+max(f(n), g(n)) <= f(n) + g(n) for all n
+assume f(n) >= g(n), max(f(n), g(n)) = f(n) = (f(n) + f(n)) / 2 >= (f(n) + g(n)) / 2
+symmetrically when g(n) >= f(n), max(f(n), g(n)) >= (f(n) + g(n)) / 2
+therefore let c1 = 1, c2 = 1/2,
+    1/2(f(n) + g(n)) <= max(f(n), g(n)) <= f(n) + g(n)
+    max(f(n), g(n)) = Θ(f(n) + g(n))
+
+3.1-2
+(n + a)^b = Σ(k ∈ {0..b})(C(b, k) * n^k * a^(b-k))
+the term with highest order is n^b, therefore (n + a)^b = Θ(n^b)
+
+3.1-3
+O(n^2) is an upper bound, the set O(n^2) contains all functions from constant to quadratic
+denote the running time of algorithm A by T(n)
+the statement can then be translated to "T(n) is at least any constant (including 0) for large enough n"
+which is meaningless for a asymptotically non-negative function
+
+3.1-4
+2^(n+1) = 2 * 2^n = Θ(2^n)
+2^2n / 2^n = 2^n, no constant can be asymptotically larger than 2^n
+
+3.1-5
+=>: f(n) = Θ(g(n)), c1g(n) <= f(n) <= c2g(n) for n >= n0, then trivally f(n) = O(g(n)) and f(n) = Ω(g(n))
+<=: f(n) = O(g(n)) implies f(n) <= c1g(n) for n >= n1
+    f(n) = Ω(g(n)) implies f(n) >= c2g(n) for n >= n2
+    take n3 = max(n1, n2), c1g(n) <= f(n) <= c2g(n) for n >= n3, f(n) = Θ(g(n))
+therefore f(n) = Θ(n) <=> f(n) = O(g(n)) and f(n) = Ω(g(n))
+
+3.1-6
+f(n) = Θ(g(n)) => f(n) = O(g(n)), for all inputs g(n) is an upper bound of f(n)
+so even in the worst case f(n) = O(g(n))
+similarly in the best case f(n) = Ω(g(n))
+
+3.1-7
+assume f(n) = o(g(n)) and f(n) = ω(g(n)), then
+lim(f(n) / g(n)) = ∞ and lim(f(n) / g(n)) = 0, contradiction
+so no such f(n) exist, o(g(n)) ∩ ω(g(n)) = ∅
+
+3.1-8
+Ω(g(n, m)) = {f(n, m):  there exist positive constants c, n0, m0 such that
+                        cg(n, m) <= f(n, m) for all n >= n0 or m >= m0 }
+Θ(g(n, m)) = O(g(n, m)) ∩ Ω(g(n, m))
+
+3.2-1
+for n1 >= n2, f(n1) >= f(n2), g(n1) >= g(n2), f(n1) + g(n1) >= f(n2) + g(n2)
+thereby f(n) + g(n) is monotonically increasing
+for n1 >= n2, g(n1) >= g(n2), f(g(n1)) >= f(g(n2))
+thereby f(g(n)) is monotonically increasing
+
+3.2-2
+a^log(b, c) = (b^log(b, a))^log(b, c)
+            = (b^log(b, c))^log(b, a)
+            = c^log(b, a)
+
+3.2-3
+n! = (2πn)^(1/2) * (n/e)^n * (1 + Θ(1/n))
+lg(n!)  = lg((2πn)^(1/2)) + lg((n/e)^n) + lg(1 + Θ(1/n))
+        = 1/2lg(2πn) + nlg(n/e) + lg(1 + Θ(1/n))
+        = Θ(lgn) + Θ(nlgn) + O(lgn)
+        = Θ(nlgn)
+n! = Πn, n! / 2^n = Π(k/2), lim(Π(k/2)) -> ∞, n! = ω(2^n)
+n! / n^n = Π(k/n) <= 1/n, lim(1/n) -> 0, n! = o(n^n)
+
+3.2-4
+lg((lgn)!) = Θ(lgn * lglgn)
+for large enough n,
+c1(lgn * lglgn) <= lg((lgn)!) <= c2(lgn * lglgn)
+e^c1(lgn * lglgn) <= (lgn)!
+n^(c1 * lglgn) <= (lgn)!
+as c1 * lglgn is not a constant, (lgn)! cannot be polynomially bounded
+thanks https://ita.skanev.com/03/02/04.html
+lg((lglgn)!)    = Θ(lglgn * lglglgn)
+                = o(lglgn * lglgn)
+                = o((lglgn)^2)
+                = o(lgn)
+asymptotically,
+lg((lglgn)!) < lgn
+(lglgn)! < e^lgn = n
+therefore (lglgn)! is polynomially bounded
+
+3.2-5
+by definition, 
+lg*lgn = lg*n - 1 = Θ(lg*n)
+lg(lg*n) = Θ(lg(lg*n))
+therefore lg*lgn is asymptotically larger
+
+3.2-6
+((1 + 5^(1/2)) / 2)^2 = (1 + 2 * 5^(1/2) + 5) / 4 = (3 + 5^(1/2)) / 2 = (1 + 5^(1/2)) / 2 + 1
+((1 - 5^(1/2)) / 2)^2 = (1 - 2 * 5^(1/2) + 5) / 4 = (3 - 5^(1/2)) / 2 = (1 - 5^(1/2)) / 2 + 1
+
+3.2-7
+let g and g' denote golden ratio and its conjugate, r5 denotes square root of 5
+g - g' = r5
+g^2 = g + 1, g'^2 = g' + 1
+F1 = 1 = (g - g') / r5
+F2 = 1 = (g^2 - g'^2) / r5
+assume Fi = (g^i - g'^i) / r5, Fi+1 = (g^(i+1) - g'^(i+1)) / r5
+    (g^(i+2) - g'^(i+2)) / r5   = (g^i * g^2 - g'^i * g'^2) / r5
+                                = (g^i * (g + 1) - g'^i * (g' + 1)) / r5
+                                = (g^i - g'^i) / r5 + (g^(i+1) - g'^(i+1)) / r5
+                                = Fi + Fi+1
+                                = Fi+2
+
+3.2-8
+by symmetry law
+    n = Θ(klnk)
+as ln(n) is monotonically increasing
+    c1klnk <= n <= c2klnk
+    ln(c1klnk) <= ln(n) <= ln(c2klnk)
+    lnk + lnlnk + c1' <= ln(n) <= lnk + lnlnk + c2'
+    ln(n) = Θ(lnk)
+    lnk = Θ(ln(n))
+    k = Θ(n) / lnk = Θ(n) / Θ(ln(n)) = Θ(n / ln(n))
+
+3-1
+a.  k >= d, p(n) / n^k = Σ(ai * n^(i - k))
+    each i - k <= 0, therefore lim(p(n) / n^k) <= ad
+    take c = ad + ε, where ε is an arbitrary positive number
+    there must exist n0 such that for n >= n0, lim(p(n) / cn^k) < 1, p(n) = O(n^k)
+b.  k <= d, p(n) / n^k = Σ(ai * n^(i - k))
+    lim(p(n) / n^k) >= ad
+    take c = ad/2, with large enough n, cn^k <= p(n), p(n) = Ω(n^k)
+c.  k == d <=> k <= d && k >= d
+    combine a and b, p(n) = O(n^k) && p(n) = Ω(n^k) => p(n) = Θ(n^k)
+d.  if k > d, lim(p(n) / n^k) = 0, p(n) = o(n^k)
+e.  if k < d, lim(p(n) / n^k) = ∞, p(n) = ω(n^k)
+
+3-2
+a.  y   y   n   n   n
+b.  y   y   n   n   n
+c.  n   n   n   n   n
+    n^sin(n) swings between 1/n and n
+d.  n   n   y   y   n
+    lim(2^n / 2^(n/2)) = lim(2^(n/2)) = ∞
+e.  y   n   y   n   y 
+    by 3.16, n^lgc = c^lgn
+f.  y   n   y   n   y
+    lg(n!) = Θ(nlgn)
+    lg(n^n) = nlgn = Θ(nlgn)
+
+3-3
+a.  1
+    lg(lg*n)
+    lg*(lgn) = lg*n - 1
+    lg*n
+    lnln(n)
+    // polylogarithmics:
+    2^lg*n // unsure
+    (lgn)^(1/2)
+    ln(n)
+    (lgn)! = Θ(lgn * lglgn)
+    (lgn)^2
+    2^((2lgn)^(1/2)) // unsure
+    // polynomials:
+    n^(1/lgn)
+    (2^(1/2))^lgn = n^(1/2)
+    n 
+    2^lgn = n
+    nlgn
+    lg(n!) = Θ(nlgn)
+    n^2
+    4^lgn = n^2
+    n^3
+    // exponentials:
+    (lgn)^lgn = n^lglgn
+    n^lglgn
+    (3/2)^n
+    2^n
+    n * 2^n
+    e^n
+    // super-exponentials:
+    n!
+    (n+1)!
+    2^(2^n)
+    2^(2^(n+1))
+b.  the fastest growing function here is 2^(2^(n+1))
+    2^(2^(n+2)) * |sin(n)|
+
+3-4
+a.  false, n = O(n^2), n^2 != O(n)
+b.  false, let f(n) = n^2, g(n) = n, min(f(n), g(n)) = n, f(n) + g(n) = Θ(n^2) != Θ(n)
+c.  f(n) = O(g(n))
+    f(n) <= c1g(n)
+    lg(f(n)) <= lg(c1(g(n))) = lg(g(n)) + c2 = O(lg(g(n)))
+d.  false
+    f(n) = O(g(n))
+    f(n) <= c1g(n)
+    2^f(n) <= 2^c1g(n) = (2^c1)^g(n)
+    let f(n) = 2n, g(n) = n
+    2^f(n) = 2^2n, 2^g(n) = 2^n, 2^2n != O(2^n)
+e.  false, let f(n) = 1/n, f^2(n) = (1/n)^2 = 1/n^2
+    lim(f(n) / f^2(n)) = ∞, f(n) = ω(f^2(n))
+f.  f(n) = O(g(n))
+    f(n) <= c1g(n)
+    (1/c1)f(n) <= g(n)
+    g(n) = Ω(f(n))
+g.  false, let f(n) = 2^n, f(n/2) = 2^(n/2), lim(f(n) / f(n/2)) = ∞, f(n) = ω(f(n/2))
+h.  for any g(n) ∈ o(f(n)), lim(g(n) / f(n)) = 0
+    for large enough n, lim((f(n) + g(n)) / f(n)) = 1
+    let c1 = 1, c2 = 1 + ε, there must exist n0 such that for n >= n0,
+        c1f(n) <= f(n) + g(n) <= c2f(n)
+    and f(n) + g(n) = Θ(f(n))
+
+3-5
+a.  if f(n) != O(g(n)), there's no n0 and c that cg(n) >= f(n) for all n >= n0
+    let c be an arbitrary constant, if only for finitely many n, f(n) >= cg(n)
+    then take n0 be the greatest of such n, then for n >= n0+1, f(n) < cg(n), f(n) = O(g(n))
+    thereby there must be infinitely many n such that f(n) >= cg(n) >= 0, f(n) = ∞Ω(g(n))
+    so f(n) != O(g(n)) => f(n) = ∞Ω(g(n)) and f(n) != ∞Ω(g(n)) => f(n) = O(g(n))
+    if f(n) = n and g(n) = n * |sin(n)|, then neither f(n) = O(g(n)) or f(n) = Ω(g(n))
+b.  it is the complement of set O(g(n)), may work smoother in certain proofs
+    it's harder to reason and less intuitive, f(n) = ∞Ω(g(n)) no longer gives an lower bound of f(n)
+c.  =>: f(n) = Θ(g(n))  => c1g(n) <= f(n) <= c2g(n)
+                        => f(n) = Ω(g(n)) and f(n) <= c2g(n)
+        let f(n) = -n, g(n) = -n, take c1 = c2 = 1, f(n) = Θ(g(n))
+        but |f(n)| = n > cg(n) for all positive constant c, f(n) != O'(g(n))
+    <=: |f(n)| <= cg(n) => f(n) <= cg(n), so f(n) = O'(g(n)) implies f(n) = O(g(n))
+        therefore f(n) = O'(g(n)) && f(n) = Ω(g(n)) => f(n) = Θ(g(n))
+d.  ~Ωg(n) = {f(n): there exist positive constants c, k and n0 that
+                    0 <= cg(n)lg^k(n) <= f(n) for all n >= n0 }
+    ~Θg(n) = {f(n): there exist positive constants c1, c2, k1, k2 and n0 that
+                    c1g(n)lg^k1(n) <= f(n) <= c2g(n)lg^k2(n) for all n >= n0 }
+    =>: f(n) = ~Θ(g(n)) => c1g(n)lg^k1(n) <= f(n) <= c2g(n)lg^k2(n) for all n >= n0
+        instantly f(n) = ~O(g(n)) and f(n) = ~Ω(g(n))
+    <=: similar, take n0 be the maximum of the two
+
+3-6
+a.  n - c
+b.  lg*(n)
+c.  lg(n)
+d.  lg(n) - 1
+e.  lglg(n)
+f.  ∞
+g.  lglg(n)
+h.  iter 0: n
+    iter 1: n / lgn = (iter 0) / lgn
+    iter 2: (n / lgn) / lg(n / lgn) = (iter 1) / (lgn - lglgn)
+    iter 3: ((n / lgn) / (lgn - lglgn)) / lg((n / lgn) / (lgn - lglgn))
+            = (iter 2) / ((lgn - lglgn) - lg(lgn - lglgn))
+    the divisor is never greater than lgn
+    therefore lower bound is Ω(log(lgn, n)) = Ω(lgn / lglgn)
+    upper bound unknown
