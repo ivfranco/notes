@@ -422,3 +422,307 @@ h.  iter 0: n
     the divisor is never greater than lgn
     therefore lower bound is Ω(log(lgn, n)) = Ω(lgn / lglgn)
     upper bound unknown
+
+Chapter 4
+4.1-1
+still the maximum subarray, the left and right sum is initialized to -Infinity
+
+4.1-2
+./CLRS/start/max-subarray.ts#findMaximumSubarrayBrute
+
+4.1-3
+crossover happens between 1024 <= n0 <= 2048
+mixing recursive and brute-force algorithms then the crossover is no longer noticeable
+
+4.1-4
+return tuple of (Option<Idx>, Option<Idx>, Sum)
+initialize left-sum and right-sum to 0, left-max and right-max to None
+if all array elements between low and high are non-positive, left-max and right-max will not be reassigned
+return value will be (None, None, 0)
+
+4.1-5
+if tail_max is the maximum subarray of the form A[i .. j] in an array A[0 .. j]
+then all subarrays of the form A[k .. i-1] where k <= i-1 sum to non-positive value
+all subarrays of the form A[i .. k] where k < j sum to non-negative value
+considering A[k .. j+1],
+    if k < i
+        the slice can be divided to A[k .. i-1] and A[i .. j+1], where A[k .. i-1] sums to non-positive
+        sum of this slice is not greater than A[i .. j+1]
+    if i < k <= j
+        the sum of the slice can be expressed as sum(A[i .. j+1]) - sum(A[i .. k-1])
+        where k - 1 < j and sum(A[i .. k-1]) >= 0
+        sum of this slice is not greater than A[i .. j+1]
+    if k = j+1
+        the sum equals to A[j+1], and A[j+1] > sum(A[i .. j+1]) only if sum(A[i .. j]) < 0
+therefore the new tail_max is either A[i .. j+1] or A[j+1], depends on whether sum(A[i .. j]) < 0
+./CLRS/start/max-subarray.ts#findMaximumSubarrayLinear
+
+4.2-1
+((1, 3), (7, 5)) * ((6, 8), (4, 2))
+S1 = B12 - B22 = 6;
+S2 = A11 + A12 = 4;
+S3 = A21 + A22 = 12;
+S4 = B21 - B11 = -2;
+S5 = A11 + A22 = 6;
+S6 = B11 + B22 = 8;
+S7 = A12 - A22 = -2;
+S8 = B21 + B22 = 6;
+S9 = A11 - A21 = -6;
+S10 = B11 + B12 = 14;
+P1 = A11 . S1 = 6;
+P2 = S2 . B22 = 8;
+P3 = S3 . B11 = 72;
+P4 = A22 . S4 = -10;
+P5 = S5 . S6 = 48;
+P6 = S7 . S8 = -12;
+P7 = S9 . S10 = -84;
+C11 = P5 + P4 - P2 + P6 = 18;
+C12 = P1 + P2 = 14;
+C21 = P3 + P4 = 62;
+C22 = P5 + P1 - P3 - P7 = 66;
+
+4.2-2
+./CLRS/start/matrix-mul.ts#strassen
+
+4.2-3
+-
+
+4.2-4
+-
+
+4.2-5
+-
+
+4.2-6
+let A = transpose([A1, A2 .. Ak]), B = [B1, B2 .. Bk], each of Ai, Bj is a n x n matrix
+then A . B will be kn x kn
+A . B = (Ai . Bj), k^2 multiplications of n x n matrixes in total
+assume matrix multiplication is O(g(n)), then T(n) = O(k^2 * g(n))
+using strassen's algorithm g(n) = n^ln7, T(n) = O(k^2 * n^ln7)
+
+4.2-7
+let p1 = (a+b)(c+d) = ac + ad + bc + bd
+    p2 = ac
+    p3 = bd
+then 
+    real component = p2 - p3
+    complex component = p1 - p2 - p3
+
+4.3-1
+assume T(n-1) <= (n-1)^2
+T(n)    <= (n-1)^2 + n
+        = n^2 - 2n + 1 + n 
+        <= n^2
+implicitly c = 1, T(n) = O(n^2)
+
+4.3-2
+assume T([n/2]) <= lg(n/2)
+T(n)    <= lg(n/2) + 1
+        = lgn - 1 + 1
+        <= lgn
+implicitly c = 1, T(n) = O(lgn)
+
+4.3-3
+assume T([n/2]) >= c(n/2)lg(n/2)
+T(n)    >= 2 * c(n/2)lg(n/2) + n
+        = cnlg(n/2) + n
+        = cnlgn - cn + n
+take 0 < c < 1, then T(n) >= cnlgn, T(n) = Ω(nlgn)
+
+4.3-4
+assume T([n/2]) <= c(n/2)lg(n/2) + 1
+T(n)    <= 2 * c(n/2)lg(n/2) + 1 + n
+        = cnlgn - cn + n + 1
+        <= cnlgn when c > 2
+T(1)    <= clg1 + 1 = 1
+
+4.3-5
+assume T([n/2]) <= c(n/2)lg(n/2) + 1
+for any c1n = Θ(n)
+T(n)    <= 2 * c(n/2)lg(n/2) + 1 + c1n
+        = cnlgn - cn + 1 + c1n
+        <= cnlgn + 1 when c <= c1
+thus T(n) = O(nlgn)
+assume T([n/2]) >= c(n/2)lg(n/2) + 1
+for any c1n = Θ(n)
+T(n)    >= 2 * c(n/2)lg(n/2) + 1 + c1n
+        = cnlgn - cn + 1 + c1n
+        >= cnlgn + 1 when c <= c1
+thus T(n) = Ω(nlgn)
+T(1)    = clg1 + 1 = 1 = Θ(1)
+therefore T(n) = Θ(nlgn)
+
+4.3-6
+assume T(n) <= nlgn
+T(n)    <= 2 * (n/2 + 17)lg(n/2 + 17) + n
+        <= 2 * (n/2)lg(n/2) + n
+        = nlgn - n + n = nlgn
+T(n) = O(nlgn)
+
+4.3-7
+assume T(n) <= cn^log(3, 4)
+T(n)    <= 4 * c(n/3)^log(3,4) + n
+        = 4 * n^log(3,4)/4 + n
+        = n^log(3,4) + n
+        stuck
+assume T(n) <= c1n^log(3,4) - c2n
+T(n)    <= 4 * c1(n/3)^log(3,4) - 4 * c2(n/3) + n
+        = c1n^log(3,4) - (4/3) * c2n + n
+        <= c1n^log(3,4) - c2n when 4/3 * c2 - 1 >= c2
+T(n) = O(n^log(3,4))
+assume T(n) >= c1n^log(3,4) + c2n
+T(n)    >= 4 * (c1(n/3)^log(3,4) - c2(n/3)) + n
+        = c1n^log(3,4) - (4/3)*c2n + n
+        >= c1n^log(3,4) - c2n when (4/3) * c2 - 1 <= c2
+T(n) = Ω(n^log(3,4))
+therefore T(n) = Θ(n^log(3,4))
+
+4.3-8
+the conclusion is incorrect, the recurrence
+    T(n) = 4T(n/2) + n^2
+is case 2 of master theorem, which means T(n) = Θ(n^2lgn)
+
+4.3-9
+T(n) = 3T(n^(1/2)) + lgn
+let m = lgn, then
+T(2^m)  = 3T((2^m)^(1/2)) + m
+        = 3T(2^(m/2)) + m
+let S(m) = T(2^m)
+S(m) = 3S(m/2) + m
+assume S(m) <= c1m^lg3 - c2m
+S(m)    <= 3c1(m/2)^lg3  - (3/2)c2m + m
+        = c1m^lg3 - (3/2)c2m + m
+        <= c1m^lg3 - c2m when (3/2)c1 - 1 < c2
+S(m) = O(m^lg3)
+similarly, S(m) = Ω(m^lg3), S(m) = Θ(m^lg3)
+T(n) = T(2^m) = S(m) = Θ(m^lg3) = Θ(lgn^lg3)
+
+4.4-1
+T(n) = 3T(n/2) + n
+n/2 every level, lgn levels in total
+for i = 0, 1 .. lgn, ith level has 3^i nodes, each node is n/2^i
+the base level has 3^lgn = n^lg3 nodes, each is Θ(1)
+Σ(3/2)^i will not converge
+T(n)    = Σ(i = {0..lgn})(3/2)^i * n + Θ(n^lg3)
+        = ((3/2)^lgn - 1) / (3/2 - 1) * n + Θ(n^lg3)
+        = 2(n^(lg3 - 1) - 1) * n + Θ(n^lg3)
+        = 2(n^lg3) - n + Θ(n^lg3)
+        = O(n^lg3)
+assume T(n) <= c1n^lg3 - c2n
+T(n)    <= 3c1(n/2)^lg3 - 3c2(n/2) + n
+        = cn^lg3 - (3/2)c2n + n
+        <= c1n^lg3 - c2n when (3/2)c2 - 1 >= c2
+
+4.4-2
+T(n) = T(n/2) + n^2
+n/2 every level, lgn levels in total 
+for i = 0, 1 .. lgn, ith level has a single node, each node is (n/2^i)^2 = n^2/4^i
+the base level has 1 node, Θ(1) in total
+T(n)    = Σ(i = {0 .. lgn})(1/4)^i * n^2 + Θ(1)
+        <= 1/(1 - 1/4) * n^2 + Θ(1)
+        = O(n^2)
+without induction, this must be a tight bound, as T(n) >= n^2
+
+4.4-3
+T(n) = 4T(n/2 + 2) + n, assume it's asymptotically equivalent to T(n) = 4T(n/2) + n
+n/2 every level, lgn levels in total
+for i = 0, 1 .. lgn, ith level has 4^i nodes, each node is n/2^i
+the base level has 4^lgn nodes, Θ(n^2) in total
+T(n)    = Σ(i = {0 .. lgn})2^i * n + Θ(n^2)
+        = (2^lgn - 1) / (2 - 1) * n + Θ(n^2)
+        = (n - 1) * n + Θ(n^2)
+        = O(n^2)
+assume T(n) <= c1n^2 - c2n
+T(n)    <= 4 * (c1(n/2 + 2)^2 - c2(n/2 + 2)) + n
+        = c1n^2 + 4c1n + 4c1 - 2c2n + 8 + n
+        = c1n^2 + (4c1 - 2c2 + 1)n + 8
+        <= c1n^2 - c2n when 2c2 - 4c1 >= c2 and n is big enough
+therefore T(n) = O(n^2)
+
+4.4-4
+n - 1 every level, n levels in total
+for i = 0, 1, .. n, ith level has 2^i nodes, each node is 1
+the base level has 2^n nodes, Θ(2^n) in total
+T(n)    = Σ(i = {0 .. n})2^i + Θ(2^n)
+        = O(2^n)
+assume T(n) <= c2^n - 1
+T(n)    <= 2 * c2^(n-1) - 2 + 1
+        = c2^n - 1
+therefore T(n) = O(2^n)
+
+4.4-5
+T(n) = T(n-1) + T(n/2) + n
+the longest simple path is of length n
+as n - 1 + n/2 < (3/2)n, the sum of ith level is smaller than (3/2)^i * n
+the base level have at most 2^n nodes, Θ(2^n) in total
+T(n)    <= Σ(i = {0 .. n})(3/2)^i * n + Θ(2^n)
+        = Θ((3/2)^n * n) + Θ(2^n)
+        = O(2^n)
+assume T(n) <= c2^n
+T(n)    <= c2^(n-1) + c2^(n/2) + n
+        <= c2^n for large enough n
+
+4.4-6
+thanks https://ita.skanev.com/04/04/06.html
+the shortest simple path from top to root is log(3, n)
+each level still cn, this time the binary tree up to level log(3, n) is guarenteed to be complete
+therefore T(n) >= log(3, n) * cn = Θ(nlgn), T(n) = Ω(nlgn)
+
+4.4-7
+cn
+4c(n/2)
+16c(n/4)
+...
+lgn levels in total, ith level has 4^i nodes, each is cn/2^i
+the base level has 4^lgn = n^2 nodes, Θ(n^2) in total
+T(n)    = Σ(i = {0 .. lgn})2^i * cn + Θ(n^2)
+        = Θ(2^lgn * cn) + Θ(n^2)
+        = Θ(n^2)
+assume T(n) <= c1n^2 - c2n
+T(n)    <= 4 * (c1(n/2)^2 - c2(n/2)) + cn
+        = c1n^2 - 2c2n + cn
+        <= c1n^2 - c2n when c2 >= c
+T(n) = O(n^2), similarly T(n) = Ω(n^2)
+
+4.4-8
+as a is a constant, T(a) = Θ(1)
+T(n) = T(n-a) + Θ(1) + cn
+n/a levels in total, ith level has 1 node, each node c(n - ia) + Θ(1)
+base level a single node of Θ(1)
+T(n)    = Σ(i = {0 .. n/a})(c(n - ia) + Θ(1)) + Θ(1)
+        = Θ(n/a) + cn^2/a - Θ((n/a)^2) * a
+        = Θ(n^2)
+
+4.4-9
+reuse the solution to T(n) = T(n/3) + T(2n/3) + O(n)
+T(n) = Ω(nlgn) and T(n) = O(n^log(max(1/α, 1/(1-α)), 2))
+
+4.5-1
+a.  a = 2, b = 4, log(b, a) = 1/2, f(n) = 1 = n^0, 1/2 > 0
+    T(n) = Θ(n^(1/2))
+b.  a = 2, b = 4, log(b, a) = 1/2, f(n) = n^(1/2) = n^log(b, a)
+    T(n) = Θ(n^(1/2)lgn)
+c.  a = 2, b = 4, log(b, a) = 1/2, f(n) = n, 1/2 < 1
+    T(n) = Θ(n)
+d.  a = 2, b = 4, log(b, a) = 1/2, f(n) = n^2, 1/2 < 2
+    T(n) = Θ(n^2)
+
+4.5-2
+log(4, a) < log(2, 7) = log(4, 49)
+a < 49
+
+4.5-3
+a = 1, b = 2, log(b, a) = 0, f(n) = 1 = n^0 = n^log(b, a)
+T(n) = Θ(lgn)
+
+4.5-4
+a = 4, b = 2, log(b, a) = 2, f(n) = n^2lgn
+f(n) = Ω(n^log(b, a)) but not polynomially larger, master method doesn't apply
+
+4.5-5
+f(n) = n^(ε + |sin(n)|), a = 1, b = 2 for some small positive constant very close to 0
+log(b, a) = 0, ε + |sin(n)| >= ε > 0
+for any n/2 = 2kπ + π/2, sin(n/2) = 1, sin(n) = 0
+af(n/b) = (n/2)^(ε + |sin(n/2)|) >= n/2
+when n is large
+cf(n) <= n^ε < n/2 for infinitely many k and n

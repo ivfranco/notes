@@ -2901,7 +2901,8 @@ the number of subsets of {1 .. 2l} of size l should be greater or equal to the n
     C(2l, l) >= 2^l'
 
 12.9
-a.  for a signature scheme Π = (Gen, Sign, Vrfy) and a PPT adversary A, define experiment Strong-Sign-forge1(A, Π, n) as:
+a.  for a signature scheme Π = (Gen, Sign, Vrfy) and a PPT adversary A
+    define experiment Strong-Sign-forge1(A, Π, n) as:
         run (pk, sk) <- Gen(1^n)
         adversary A is given pk and can ask a single query m' to oracle Sign(sk, _), get σ' = Sign(sk, m')
         A outputs (m, σ), the output of the experiment is defined as 1 iff

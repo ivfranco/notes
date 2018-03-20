@@ -1,7 +1,14 @@
-import { mergeSort, inversionCount } from "./mergesort"
+import { mergeSort, inversionCount } from "./mergesort";
+import {
+  findMaximumSubarray,
+  findMaximumSubarrayBrute,
+  findMaximumSubarrayMix,
+  findMaximumSubArrayLinear
+} from "./max-subarray";
+import { matrixMultiplication, strassen } from "./matrix-mul";
 
 function main() {
-  problem_2_4();
+  problem_4_2_7();
 }
 
 function insertionSort<T>(arr: T[]) {
@@ -139,6 +146,84 @@ function naivePolynomial(x: number, coffs: number[]) {
 function problem_2_4() {
   let A = [2, 3, 8, 6, 1];
   console.log(inversionCount(A, 0, A.length - 1));
+}
+
+function reportTime(f: () => void): number {
+  let now = Date.now();
+  f();
+  let then = Date.now();
+  return then - now;
+}
+
+function benchSubarray(size: number) {
+  let testSet = new Array(size);
+  for (let i = 0; i < size; i++) {
+    testSet[i] = Math.random() - 0.5;
+  }
+
+  let t_recur = reportTime(() => {
+    findMaximumSubarray(testSet, 0, size - 1);
+  });
+  let t_brute = reportTime(() => {
+    findMaximumSubarrayBrute(testSet, 0, size - 1);
+  });
+  let t_mix = reportTime(() => {
+    findMaximumSubarrayMix(testSet, 0, size - 1);
+  });
+  let t_linear = reportTime(() => {
+    findMaximumSubArrayLinear(testSet, 0, size - 1);
+  });
+
+  console.log("Test size:       ", size)
+  console.log("Recurrance time: ", t_recur);
+  console.log("Bruteforce time: ", t_brute);
+  console.log("Mix time:        ", t_mix);
+  console.log("Linear time:     ", t_linear);
+}
+
+function problem_4_1_3() {
+  for (let size = 1; size <= 100000; size <<= 1) {
+    benchSubarray(size);
+    console.log("");
+  }
+}
+
+function problem_4_1_5() {
+  let A = new Array(100);
+  for (let i = 0; i < 100; i++) {
+    A[i] = Math.random() - 0.5;
+  }
+  console.log(findMaximumSubArrayLinear(A, 0, A.length - 1));
+  console.log(findMaximumSubarrayBrute(A, 0, A.length - 1));
+}
+
+function problem_4_2_1() {
+  let A = [
+    [1, 3],
+    [7, 5]
+  ];
+  let B = [
+    [6, 8],
+    [4, 2]
+  ];
+  console.log(matrixMultiplication(A, B));
+  console.log(strassen(A, B));
+}
+
+function complexMultiply(a: number, b: number, c: number, d: number): [number, number] {
+  let p1 = (a + b) * (c + d);
+  let p2 = a * c;
+  let p3 = b * d;
+  return [p2 - p3, p1 - p2 - p3];
+}
+
+function problem_4_2_7() {
+  let a = Math.random() - 0.5;
+  let b = Math.random() - 0.5;
+  let c = Math.random() - 0.5;
+  let d = Math.random() - 0.5;
+  console.log([a * c - b * d, a * d + b * c]);
+  console.log(complexMultiply(a, b, c, d));
 }
 
 main();
