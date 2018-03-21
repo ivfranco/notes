@@ -485,18 +485,34 @@ C22 = P5 + P1 - P3 - P7 = 66;
 ./CLRS/start/matrix-mul.ts#strassen
 
 4.2-3
--
+extend size of matrix to the next power of 2
+assume size of matrix A is n x n, the next power of 2 is 2^b, the extended matrix looks like
+    A   0   and     B   0
+    0T  1           0T  1
+where 1 denotes (2^b - n) x (2^b - n) unit matrix, 0 denotes n x (2^b - n) zero metrix
+the multiplication will be
+    AB  0
+    0T  1
+then AB can be extracted from the result
+as n is not a power of 2, 2^b <= 2n
+the extension takes time at most (2^b)^2 = O((2n)^2) = O(n^2)
+O(n^2) + T(2^b) <= O(n^2) + T(2n) = O(n^2) + Θ((2n)^lg7) = Θ(n^lg7) using strassen's method
 
 4.2-4
--
+assume the meaning of matrices in "3 x 3 matrices" and "n x n matrices" are the same
+the problem didn't state what will happen when n > 3
+it just gives a potentially easier way to calculate the base case, which is Θ(1) anyway
+it's not even clear what kind of multiplication it means by "k multiplications", maybe scalar
+so this assumption will not affect the overall complexity, o(n^lg7) not achievable this way
 
 4.2-5
--
+same as above, only gives an easier way to calculate the base case, which is Θ(1) anyway
+states nothing about the complexity when n > 72
 
 4.2-6
 let A = transpose([A1, A2 .. Ak]), B = [B1, B2 .. Bk], each of Ai, Bj is a n x n matrix
 then A . B will be kn x kn
-A . B = (Ai . Bj), k^2 multiplications of n x n matrixes in total
+A . B = (Ai . Bj), k^2 multiplications of n x n matrices in total
 assume matrix multiplication is O(g(n)), then T(n) = O(k^2 * g(n))
 using strassen's algorithm g(n) = n^ln7, T(n) = O(k^2 * n^ln7)
 
@@ -603,10 +619,10 @@ n/2 every level, lgn levels in total
 for i = 0, 1 .. lgn, ith level has 3^i nodes, each node is n/2^i
 the base level has 3^lgn = n^lg3 nodes, each is Θ(1)
 Σ(3/2)^i will not converge
-T(n)    = Σ(i = {0..lgn})(3/2)^i * n + Θ(n^lg3)
+T(n)    = Σ(i = {0..lgn - 1})(3/2)^i * n + Θ(n^lg3)
         = ((3/2)^lgn - 1) / (3/2 - 1) * n + Θ(n^lg3)
-        = 2(n^(lg3 - 1) - 1) * n + Θ(n^lg3)
-        = 2(n^lg3) - n + Θ(n^lg3)
+        = 2(n^(lg3 - 1)/(3/2) - 1) * n + Θ(n^lg3)
+        = O(n^lg3) + Θ(n^lg3)
         = O(n^lg3)
 assume T(n) <= c1n^lg3 - c2n
 T(n)    <= 3c1(n/2)^lg3 - 3c2(n/2) + n
@@ -618,7 +634,7 @@ T(n) = T(n/2) + n^2
 n/2 every level, lgn levels in total 
 for i = 0, 1 .. lgn, ith level has a single node, each node is (n/2^i)^2 = n^2/4^i
 the base level has 1 node, Θ(1) in total
-T(n)    = Σ(i = {0 .. lgn})(1/4)^i * n^2 + Θ(1)
+T(n)    = Σ(i = {0 .. lgn - 1})(1/4)^i * n^2 + Θ(1)
         <= 1/(1 - 1/4) * n^2 + Θ(1)
         = O(n^2)
 without induction, this must be a tight bound, as T(n) >= n^2
@@ -628,9 +644,9 @@ T(n) = 4T(n/2 + 2) + n, assume it's asymptotically equivalent to T(n) = 4T(n/2) 
 n/2 every level, lgn levels in total
 for i = 0, 1 .. lgn, ith level has 4^i nodes, each node is n/2^i
 the base level has 4^lgn nodes, Θ(n^2) in total
-T(n)    = Σ(i = {0 .. lgn})2^i * n + Θ(n^2)
+T(n)    = Σ(i = {0 .. lgn - 1})2^i * n + Θ(n^2)
         = (2^lgn - 1) / (2 - 1) * n + Θ(n^2)
-        = (n - 1) * n + Θ(n^2)
+        = (n/2 - 1) * n + Θ(n^2)
         = O(n^2)
 assume T(n) <= c1n^2 - c2n
 T(n)    <= 4 * (c1(n/2 + 2)^2 - c2(n/2 + 2)) + n
@@ -643,7 +659,7 @@ therefore T(n) = O(n^2)
 n - 1 every level, n levels in total
 for i = 0, 1, .. n, ith level has 2^i nodes, each node is 1
 the base level has 2^n nodes, Θ(2^n) in total
-T(n)    = Σ(i = {0 .. n})2^i + Θ(2^n)
+T(n)    = Σ(i = {0 .. n - 1})2^i + Θ(2^n)
         = O(2^n)
 assume T(n) <= c2^n - 1
 T(n)    <= 2 * c2^(n-1) - 2 + 1
@@ -655,7 +671,7 @@ T(n) = T(n-1) + T(n/2) + n
 the longest simple path is of length n
 as n - 1 + n/2 < (3/2)n, the sum of ith level is smaller than (3/2)^i * n
 the base level have at most 2^n nodes, Θ(2^n) in total
-T(n)    <= Σ(i = {0 .. n})(3/2)^i * n + Θ(2^n)
+T(n)    <= Σ(i = {0 .. n - 1})(3/2)^i * n + Θ(2^n)
         = Θ((3/2)^n * n) + Θ(2^n)
         = O(2^n)
 assume T(n) <= c2^n
@@ -675,7 +691,7 @@ cn
 ...
 lgn levels in total, ith level has 4^i nodes, each is cn/2^i
 the base level has 4^lgn = n^2 nodes, Θ(n^2) in total
-T(n)    = Σ(i = {0 .. lgn})2^i * cn + Θ(n^2)
+T(n)    = Σ(i = {0 .. lgn - 1})2^i * cn + Θ(n^2)
         = Θ(2^lgn * cn) + Θ(n^2)
         = Θ(n^2)
 assume T(n) <= c1n^2 - c2n
@@ -689,13 +705,13 @@ as a is a constant, T(a) = Θ(1)
 T(n) = T(n-a) + Θ(1) + cn
 n/a levels in total, ith level has 1 node, each node c(n - ia) + Θ(1)
 base level a single node of Θ(1)
-T(n)    = Σ(i = {0 .. n/a})(c(n - ia) + Θ(1)) + Θ(1)
+T(n)    = Σ(i = {0 .. n/a - 1})(c(n - ia) + Θ(1)) + Θ(1)
         = Θ(n/a) + cn^2/a - Θ((n/a)^2) * a
         = Θ(n^2)
 
 4.4-9
-reuse the solution to T(n) = T(n/3) + T(2n/3) + O(n)
-T(n) = Ω(nlgn) and T(n) = O(n^log(max(1/α, 1/(1-α)), 2))
+reuse the solution to T(n) = T(n/3) + T(2n/3) + O(n) in text and problem 4.4-6
+T(n) = Ω(nlgn) and T(n) = O(nlgn), T(n) = Θ(nlgn)
 
 4.5-1
 a.  a = 2, b = 4, log(b, a) = 1/2, f(n) = 1 = n^0, 1/2 > 0
@@ -726,3 +742,270 @@ for any n/2 = 2kπ + π/2, sin(n/2) = 1, sin(n) = 0
 af(n/b) = (n/2)^(ε + |sin(n/2)|) >= n/2
 when n is large
 cf(n) <= n^ε < n/2 for infinitely many k and n
+
+4.6-1
+n0 = n, n1 = [n/b], n2 = [[n/b]/b]
+if b is an integer
+n = kb + r, 0 <= r < b, [n/b] = k if r = 0, k + 1 if r > 0
+as b is an integer, b > 1 => b >= 2, k = k'b + r', 0 <= r' < b, then
+[[n/b]/b]   = k' if r = r' = 0
+            = k' + 1 otherwise
+n = kb + r = (k'b + r')b + r = k'b^2 + r'b + r
+where r < b, r'b <= b(b-1), r'b + r < b^2
+[n/b^2] = k' if r = r' = 0
+        = k' + 1 otherwise
+therefore [[n/b]/b] = [n/b^2] for all integer n
+n2 = [[n/b]/b] = [n/b^2]
+n3 = [n2/b] = [n/b^3]
+...
+nj = [n/b^j]
+
+4.6-2
+f(n) = Θ(n^log(b, a)lg^kn), then
+g(n)    = Σ(j{0 .. log(b, n) - 1})(a^j * f(n/b^j))
+        = {0 .. log(b, n) - 1})(a^j * Θ((n/b^j)^log(b, a) * lg^k(n/b^j)))
+where
+    Θ((n/b^j)^log(b, a) * lg^k(n/b^j)))
+    = Θ((n^log(b, a) / a^j) * lg^k(n/b^j)
+g(n)    <= Σ{0 .. log(b, n) - 1})(a^j * c1(n^log(b, a) / a^j) * lg^k(n/b^j))
+        = Σ(c1 * n^log(b, a) * lg^k(n/b^j))
+        = Σ(c1 * n^log(b, a) * lg(n / b^j)^k)
+        = Σ(c1 * n^log(b, a) * (lgn - j * lgb)^k)
+        <= c1 * n^log(b, a) * Σ(lg^k(n))
+        = c1n^log(b, a) * log(b, n) * lg^k(n)
+        = c1n^log(b, a) * O(lgn) * O(lg^k(n))
+        = O(n^log(b, a) * lg^k+1(n))
+similarly
+g(n)    >= c2 * n^log(b, a) * Σ(j = {0 .. log(b, n) - 1})(lg(n/b^j)^k)
+take only half of the summation terms,
+g(n)    >= c2 * n^log(b, a) * Σ(j = {0 .. log(b, n) / 2})(lg(n/b^j)^k)
+take the minimum over all summation terms
+        >= c2 * n^log(b, a) * Σ(j = {0 .. log(b, n) / 2})(lg(n/b^(log(b, n) / 2))^k)
+        = c2 * n^log(b, a) * (log(b, n) / 2)(lg(n^(1/2))^k)
+        = c2 * n^log(b, a) * (log(b, n) / 2)(1/2 * lgn)^k
+        = c2 * n^log(b, a) * Θ(lgn) * Θ(lg^kn)
+        = Ω(n^log(b, a) * lg^(k+1)(n))
+therefore T(n) = Θ(n^log(b, a)) + Θ(n^log(b, a) * lg^(k+1)(n))
+
+4.6-3
+thanks https://ita.skanev.com/04/06/03.html
+af(n/b) <= cf(n)
+=>  f(n)    >= (a/c)f(n/b)
+            >= (a/c)^2f(n/b^2)
+            ..
+            >= (a/c)^if(n/b^i)
+take i = log(b, n)
+    f(n)    >= (a/c)^log(b, n)f(1)
+            = Θ((a/c)^log(b, n))
+            = Θ(n^log(b, a/c))
+            = Θ(n^(log(b, a) - log(b, c)))
+as c < 1, log(b, c) < 0, -log(b, c) > 0, let ε = -log(b, c)
+    f(n)    >= Θ(n^(log(b, a) + ε))
+    f(n)    = Ω(n^log(b, a) + ε)
+
+4-1
+a.  a = 2, b = 2, log(b, a) = 1, f(n) = n^4, 4 > 1
+    2f(n/2) = n^4 / 8, c = 1/8 < 1
+    T(n) = Θ(n^4)
+b.  a = 1, b = 10/7, log(b, a) = 0, f(n) = n^1, 1 > 0
+    c = 7/10 < 1
+    T(n) = Θ(n)
+c.  a = 16, b = 4, log(b, a) = 2, f(n) = n^2
+    T(n) = Θ(n^2lgn)
+d.  a = 7, b = 3, log(b, a) = log(3, 7) < 2, f(n) = n^2
+    7f(n/3) = 7n/9, c = 7/9
+    T(n) = Θ(n^2)
+e.  a = 7, b = 2, log(b, a) = lg7 > 2, f(n) = n^2
+    T(n) = Θ(n^lg7)
+f.  a = 2, b = 4, log(b, a) = 1/2, f(n) = n^(1/2)
+    T(n) = Θ(n^(1/2)lgn)
+g.  n - 2 every level, n/2 levels in total
+    every level has a single node, each contributes (n - 2i)^2
+    the base level has a single node of Θ(1)
+    T(n)    = Σ(i = {0 .. n/2 - 1})(n - 2i)^2 + Θ(1)
+            <= n/2 * n^2 + Θ(1) = O(n^3)
+    similarly, take only half of the summation terms
+    T(n)    >= Σ(i = {0 .. n/4})(n - 2i)^2 + Θ(1)
+            >= Σ(i = {0 .. n/4})(n - n/2)^2 + Θ(1)
+            = (n/4) * (n/2)^2 + Θ(1) = Ω(n^3)
+    therefore T(n) = Θ(n^3)
+
+4-2
+a.  1.  Θ(lgN) as usual
+    2.  now each call have to copy the whole array
+        the function at most recursively call itself lgn times
+        total cost NlgN
+    3.  T(n) = T(n/2) + n
+        T(N) = Θ(N) by master method
+b.  1.  Θ(NlgN) as usual
+    2.  all recursive call to the function itself forms a complete binary tree of height lgN
+        2^lgN = N nodes in total, the whole array is copied at each node, contributes N * N = N^2 in total
+        the number of merge is half the number of nodes, again Θ(N) and contributes Θ(N^2) in total
+        overall runtime Θ(N^2)
+    3.  T(n) = 2T(n/2) + 2 * (n/2) + n = 2T(n/2) + Θ(n) = Θ(nlgn)
+
+4-3
+a.  a = 4, b = 3, log(b, a) = log(3, 4) > 1, f(n) = nlgn = O(n^(1 + ε))
+    T(n) = Θ(n^log(3, 4))
+b.  T(n) = 3T(n/3) + n/lgn = 3T(n/3) + cn/log(3, n)
+    3/n every level, log(3, n) levels in total
+    ith level has 3^i nodes, contributes 3^i * c(n/3^i) / log(3, (n/3^i)) = cn / (log(3, n) - i)
+    the base level has 3^log(3, n) = n nodes, Θ(n) in total
+    T(n)    = Σ(i = {0 .. log(3, n) - 1})(n / (log(3, n) - i)) + Θ(n)
+            = n * Σ(i = {0 .. log(3, n) - 1}(1 / (log(3, n) - i))) + Θ(n)
+    the harmonic series Σ(i = {0 .. n - 1})(1 / (n - i)) is asymptotically close to ln(n)
+    T(n)    = n * Θ(ln(log(3, n))) + Θ(n)
+            = Θ(nlglgn)
+c.  a = 4, b = 2, log(b, a) = 2, f(n) = n^2.5, 2.5 > 2
+    T(n) = Θ(n^2.5)
+d.  guess with master method, T(n) = Θ(nlgn)
+    assume T(n) <= nlgn - cn
+    T(n)    <= 3((n/3 - 2) * lg(n/3 - 2)) - 3c(n/3 - 2) + n/2
+            <= nlg(n/3 - 2) - 3c(n/3 - 2) + n/2
+            <= nlg(n/3) - cn + 6c + n/2
+            = nlgn - (c + lg3 - 1/2)n + 6c
+            <= nlgn - cn when n is large enough
+    simlarly T(n) >= nlgn + cn for some c, T(n) = Θ(nlgn)
+e.  similar to b, T(n) = Θ(nlglgn)
+f.  the shortest path from bottom to root passes log(8, n) = lgn/3 nodes
+    immediate children of a node of value p has combined value p/2 + p/4 + p/8 = 7p/8
+    therefore ith level contributes (7/8)^i * n
+    there are 3^(lgn/3) = n^(lg3 / 3) nodes at level lgn/3, each Θ(1), Θ(n^(lg3 / 3)) in total
+    T(n)    >= Σ(i = {0 .. lgn/3 - 1})((7/8)^i * n) + Θ(n^(lg3 / 3))
+            = n * ((7/8)^(lgn/3) - 1) / (7/8 - 1) + Θ(n^(lg3 / 3))
+            = 8n * (1 - n^(lg7 / 3) / n) + Θ(n^(lg3 / 3))
+            = Θ(n) - Θ(n^(lg7 / 3)) + Θ(n^(lg3 / 3))
+            = Ω(n)
+    assume T(n) <= cn
+    T(n)    <= c(n/2 + n/4 + n/8) + n
+            = (7/8)cn + n
+            <= cn when c >= 8
+    therefore T(n) = Θ(n)
+g.  n - 1 every level, n levels in total, a single node every level, contributes 1/(n-i)
+    the base level is a single node of Θ(1)
+    T(n)    = Σ(i = {0 .. n-1})(1/(n-i)) + Θ(1), the harmonic series
+            = Θ(ln(n)) + Θ(1)
+            = Θ(lgn)
+h.  n - 1 every level, n levels in total, ith level sums to lg(n - i)
+    T(n)    = Σ(i = {0 .. n-1})(lg(n-i)) + Θ(1)
+            = Θ(nlgn) as int(lgx) = x(lgx - 1)
+i.  n - 2 every level, n/2 levels in total, ith level sums to 1/lg(n - 2i)
+    T(n)    = Σ(i = {0 .. n/2 - 1})(1/lg(n - 2i)) + Θ(1)
+            = Θ(li(n)), where li(n) is the logarithmic integral function
+j.  let n = 2^m, m = lgn, T(n) = T(2^m) = 2^(m/2)T(2^(m/2)) + 2^m
+    let S(m) = T(2^m), S(m) = 2^(m/2)S(m/2) + 2^m
+    m/2 each level, lgm levels in total
+    first level has 2^(m/2) nodes, the next 2^(m/2) * 2^(m/4), ...
+    ith level will have 2^(m - m/2^i) nodes, each contributes 2^(m/2^i), 2^m in total
+    the base level has 2^(m - m/2^(lgm)) = 2^(m-1) nodes, Θ(2^(m-1)) in total
+    S(m)    = lgm * 2^m + Θ(2^(m-1)) = Θ(lgm * 2^m)
+    T(n) = T(2^m) = S(m) = Θ(2^mlgm) = Θ(nlglgn)
+
+4-4
+a.  F(z)    = Σ(i = {0 ..})(Fiz^i)
+    zF(z)   = Σ(i = {0 ..})(Fiz^(i+1))
+            = Σ(i = {1 ..})(F(i-1)z^i)
+            = Σ(i = {2 ..})(F(i-1)z^i)  // as F(0) = 0
+    z^2F(z) = Σ(i = {0 ..})(Fiz^(i+2))
+            = Σ(i = {2 ..})(F(i-2)z^i)
+    z + zF(z) + z^2F(z) = 0 + z + Σ(i = {2 ..})(F(i-1)z^i + F(i-2)^zi)
+                        = 0 + z + Σ(i = {2 ..})(Fiz^i)
+                        = F(z)
+b.  F(z) = z + zF(z) + z^2F(z)
+    F(z) - zF(z) - z^2F(z) = z
+    F(z)(1 - z - z^2) = z
+    F(z) = z / (1 - z - z^2)
+    let g = (1 + r5) / 2, g' = (1 - r5) / 2, r5 = 5^(1/2)
+    (1 - gz)(1 - g'z)   = (1 - (1 + r5)z / 2)(1 - (1 - r5)z / 2)
+                        = 1 - (1 - r5)z / 2 - (1 + r5)z / 2 + (1 + r5)(1 - r5)z^2 / 4
+                        = 1 - z + (-4)z^2 / 4
+                        = 1 - z - z^2
+    (1/r5) * (1 / (1 - gz) - 1 / (1 - g'z))
+    = (1/r5) * (- g'z + gz) / ((1 - gz) * (1 - g'z))
+    = (1/r5) * (r5z) / ((1 - gz)(1 - g'z))
+    = z / ((1 - gz)(1 - g'z))
+
+4-5
+a.  divide the chips into three groups
+    first group of size n1 are good chips, which will always give the correct answer
+    second group of size n2 are bad chips immitating good chips
+    third group of size n3 are other bad chips
+    as the number of bad chips n2 + n3 > n/2
+    it's always possible to take n2 = n1 and n3 = n - n1 - n2 will be non-negative, then
+    1.  chips in the first group will always answer "good" for chips in that group, "bad" for chips in group 2 and 3
+    2.  let chips in group 2 imitate group 1
+        always answer "good" for chips in the same group, "bad" for chips in group 1 and 3
+    3.  let chips in group 3 answer "good" for any chips
+    then chips in group 3 can be easily detected: they answer "good" for all chips, but only n2 < n/2 chips are good
+    however group 1 and 2 are totally symmetric:
+        they both have size n1 = n2 < n/2
+        they only answer "good" for chips in the same group, which also answers "good" in the pairwise test
+        they answer "bad" for chips not in that group
+    no matter how many test is performed, it's impossible to tell if a chip is in group 1 or group 2
+b.  assume n1 in n chips are good, where n1 > n/2
+    starting from a set S containing all n chips, and an empty set S'
+    repeat the following procedure [n/2] times:
+        randomly pop two chips c1 and c2 from S, perform the test
+        if any of the two reports "bad", drop both chips
+        if both chips answer "good", drop c2 and add c1 to S'
+    let n1 be the number of good chips tested, n2 be the number of bad chips tested
+    let n11 be the number of good chips tested against a good chip, n12 otherwise (tested against a bad chip)
+    similarly define n21 and n22, obviously n12 = n21, both n11 and n22 have to be even
+    when n is even, n1 = n11 + n12, n2 = n21 + n22, n1 > n2
+    the number of good chips in S' at the end will be n11 / 2, bad chips n22 / 2
+    n11 = n1 - n12, n22 = n2 - n21 = n2 - n12, so n11 > n22, still more good chips than bad chips in S'
+    when n is odd, one chip cannot be tested
+    if that chip is bad, n1 > n2 + 1, n1 >= n2 + 2, n11 >= n22 + 2, n11/2 >= n22/2 + 1
+    the bad chip must be dropped or number of good and bad chips may equal when n11/2 = n22/2 + 1
+    if that chip is good, n1 >= n2, n1 >= n2, n11/2 >= n22/2
+    the good chip must be included or number of good and bad chips may equal when n11/2 = n22/2
+    thanks http://cseweb.ucsd.edu/classes/su99/cse101/sample1.pdf
+    (n11 + n12) / 2 can be observed as the number of tests answered "good, good"
+    if (n11 + n12) / 2 is even, add the untested chip to S'
+    if (n11 + n12) / 2 is odd, drop the untested chip
+    then the algorithm will act correctly on boundary conditions
+c.  the single good chip can be find in time T(n), where
+        T(n) = T(n/2) + [n/2]
+        T(n) = Θ(n) by master method
+    once a single good chip is found, it can be used to find all other good chips in Θ(n) tests
+    overall time cost Θ(n)
+
+4-6
+a.  given
+        A[i, j] + A[i+1, j+1] <= A[i, j+1] + A[i+1, j]
+    for some r that 1 <= r < m - i, assume
+        A[i, j] + A[i+r, j+1] <= A[i, j+1] + A[i+r, j]
+    combine the assumption with
+        A[i+r, j] + A[i+r+1, j+1] <= A[i+r, j+1] + A[i+r+1, j]
+        A[i, j] + A[i+r+1, j+1] <= A[i, j+1] + A[i+r+1, j]
+    therefore for any 1 <= r < m,
+        A[i, j] + A[i+r, j+1] <= A[i, j+1] + A[i+r, j]
+    similarly, apply the induction on columns
+        A[i, j] + A[i+r, j+c] <= A[i, j+c] + A[i+r, j]
+    for 1 <= r < m - i and 1 <= c < n - j
+    take r = k - i and c = l - j, this is exactly A[i, j] + A[k, l] <= A[i, l] + A[k, j]
+    conversely, take k = i+1, l = j+1, 
+        A[i, j] + A[k, l] <= A[i, l] + A[k, j] => A[i, j] + A[i+1, j+1] <= A[i, j+1] + A[i+1, j]
+b.  change 22 on first line to 24
+c.  if f(i) > f(i+1) instead, by definition of Monge,
+        A[i, f(i+1)] + A[i+1, f(i)] <= A[i+1, f(i+1)] + A[i, f(i)]
+    by definition of f(i), A[i, f(i)] and A[i+1, f(i+1)] is the leftmost minimum of their rows, therefore
+        A[i, f(i+1)] >= A[i, f(i)], A[i+1, f(i)] >= A[i+1, f(i+1)]
+        A[i, f(i+1)] = A[i, f(i)], A[i+1, f(i)] = A[i+1, f(i+1)]
+    A[i, f(i+1)] is also the minimum of row i, but then f(i+1) < f(i) and A[i, f(i)] is not the leftmost minimum
+d.  the leftmost minimum of even rows are
+        f(2), f(4), f(6) ..
+    as proven in part c, f(1) <= f(2) <= f(3) <= ..
+    therefore it's sufficient to search f(1) as the minimum among A[1, 1] .. A[1, f(2)]
+    f(3) among A[3, f(2)] .. A[3, f(4)] and so on
+    at most 2m + n elements have to be compared, Θ(m + n) in total
+e.  the base case of finding the minimum of a row is O(n)
+    T(m, n) = O(n) when m = 1
+            = T(m/2, n) + O(m + n) otherwise
+    the recurrence tree has lgm levels
+    ith level has a single node contributes O(m/2^i + n)
+    the base level is a single node of O(n)
+    T(n)    = Σ(i = {0 .. lgm})O(m/2^i + n) + O(n)
+            <= Σ(i = {0 .. lgm})c1(m/2^i + n) + c2n
+            <= c1m + c1nlgm + c2n
+            = O(m + nlgm)
