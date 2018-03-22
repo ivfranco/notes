@@ -6,9 +6,10 @@ import {
   findMaximumSubArrayLinear
 } from "./max-subarray";
 import { matrixMultiplication, strassen } from "./matrix-mul";
+import { Chip, GoodChip, BadChip, testChips } from "./chip-test";
 
 function main() {
-  problem_4_2_7();
+  problem_4_5();
 }
 
 function insertionSort<T>(arr: T[]) {
@@ -224,6 +225,33 @@ function problem_4_2_7() {
   let d = Math.random() - 0.5;
   console.log([a * c - b * d, a * d + b * c]);
   console.log(complexMultiply(a, b, c, d));
+}
+
+function shuffle<T>(arr: T[]) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    let j = Math.floor(Math.random() * (i + 1));
+    let temp = arr[j];
+    arr[j] = arr[i];
+    arr[i] = temp;
+  }
+}
+
+function problem_4_5(): boolean {
+  let n = Math.floor(Math.random() * 100 + 1);
+  let nBad = Math.floor(n / 3);
+  let nGood = n - nBad;
+  let cs: Chip[] = [];
+  for (let i = 0; i < nBad; i++) {
+    cs.push(new BadChip());
+  }
+  for (let i = 0; i < nGood; i++) {
+    cs.push(new GoodChip());
+  }
+
+  shuffle(cs);
+  let allGood = testChips(cs).every((c) => c.isGood());
+  console.log(allGood);
+  return allGood;
 }
 
 main();
