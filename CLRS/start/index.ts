@@ -254,4 +254,37 @@ function problem_4_5(): boolean {
   return allGood;
 }
 
+function randomAB(a: number, b: number) {
+  return Math.floor(Math.random() * ((b - a) + 1)) + a;
+}
+
+// T: Eq
+function randomSearch<T>(x: T, A: T[]): number | null {
+  let n = A.length;
+  // count of array elements not compared to x yet
+  let cnt = n;
+  // slots[idx] = true if A[idx] has yet been compared to x (and not equal)
+  let slots = new Array(n).fill(true);
+
+  while (cnt > 0) {
+    let idx = randomAB(0, n - 1);
+    // the exact index is generated before, skip this iteration
+    if (slots[idx] == false) {
+      continue;
+    }
+    // equal, search succeeded
+    if (x == A[idx]) {
+      return idx;
+    }
+    // not equal, and the index is not seen before, decrement the count, fill the slot
+    if (slots[idx] == true) {
+      slots[idx] = false;
+      cnt--;
+    }
+  }
+
+  // cnt == 0, all elements of A compared without success, search failed
+  return null;
+}
+
 main();

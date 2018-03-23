@@ -19,7 +19,7 @@ loop invariant:
     none of the first i items in the array equals to v
 initialization:
     i == 0, loop invariant holds trivially
-maintainance:
+maintenance:
     every iteration, A[i] == v is checked
     the loop continues only when A[i] == v is false
 termination:
@@ -122,7 +122,7 @@ b.  invariant:
     initialization:
         j = A.length, the first iteration compares A[A.length] to A[A.length - 1], put the smaller in A[A.length - 1]
         which is the smallest in A[A.length - 1 .. A.length]
-    maintainance:
+    maintenance:
         the smallest number is compared with A[j-1], the smaller of the two is swapped to A[j-1]
         inductively A[j-1] now holds the smallest number in A[j-1 .. A.length]
     termination:
@@ -132,7 +132,7 @@ c.  invariant:
     initialization:
         at the end of the first iteration, the smallest element in A[1 .. A.length] is placed in A[1]
         it is the smallest element, A[1 .. 1] is trivially sorted
-    maintainance:
+    maintenance:
         the inner loop finds the smallest number in A[i .. A.length] and puts it in A[i]
         A[1 .. i-1] consists of the i-1 smallest elements in A, therefore A[i] is the ith smallest number
         by definition A[i] >= A[i-1], A[1..i] is sorted 
@@ -154,7 +154,7 @@ b.  ./CLRS/start/index.ts#naivePolynomial
     overall runtime Θ(n^2) or Θ(nlgn)
 c.  initialization:
         initially y = 0, the sum of an empty sequence
-    maintainance:
+    maintenance:
         y = Σ(k ∈ {0..n-(i+1)})a(k+i+1)x^k = a(i+1) + a(i+2)x + .. + an * x^(n-(i+1)) at the start
         y = ai + xy = ai + a(i+1)x + .. + an * x^(n-i) = Σ(k ∈ {0..n-i})a(k+i)x^k
     termination:
@@ -174,7 +174,7 @@ d.  assume an array A[p..r] and some q that p < q < r, then the total number of 
     2.  the number of inversions in A[q+1..r]
     3.  the number of inversions as pairs (i, j) such that
             i in {p..q}, j in {q+1..r}
-    for every index i in {p..q}, the number of type 3 inversions is exactly the number of indexes j in {q+1..r} that
+    for every index i in {p..q}, the number of type 3 inversions is exactly the number of indices j in {q+1..r} that
         A[i] > A[j]
     which can be calculated in a slightly modified merge function
     ./CLRS/start/mergesort.ts#inversionCount
@@ -1153,3 +1153,229 @@ p(there is at least one in all k people whose birthday is a specific day i)
 -1 >= k(lg(n-1) - lgn)
 k >= 1 / (lgn - lg(n-1))
 k >= 253
+
+5.4-2
+// wasted several hours here by misintepreting the problem as "until all bins contain at least 2 balls"
+the same as the birthday problem
+
+5.4-3
+the exact analysis depends on mutual independence of variables
+the analysis with indicator variables will still apply if the variables are just pairwise independent
+    for any i and j, E[Xij] still is 1/n
+
+5.4-4
+assume their birthday are mutually independent, n = 365, m people in total
+define Xijk as
+    Xijk    = 1 when i, j, k have the same birthday
+            = 0 otherwise
+p(i, j, k have the same birthday)
+= p(j, k have the same birthday as i)
+= 1/n^2
+E[X]    = ΣΣΣ(Xijk)
+        = C(m, 3) * 1/n^2
+        = m!/6(m-3)! * 1/n^2
+        = m(m-1)(m-2)/6n^2 >= 1
+m(m-1)(m-2) > (m-2)^3 >= 6n^2
+m >= 95
+
+5.4-5
+it's the complement of birthday paradox
+a k-string is a k-permutation only if it doesn't repeat any set element
+p   = 1 * 1/(n-1) * 1/(n-2) * .. * 1/(n-k+1)
+    = 1/(n!/(n-k)!)
+    = (n-k)!/n!
+
+5.4-6
+define indicator Xi as
+Xi  = 1 when bin i is empty after n tosses
+    = 0 otherwise
+E[Xi]   = p(bin i is empty after n tosses)
+        = ((n-1)/n)^n
+        = (n-1)^n / n^n
+E[X]    = E[ΣXi]
+        = ΣE[Xi]
+        = n * (n-1)^n / n^n
+        = (n-1)^n / n^(n-1)
+define indicator Yi as
+Yi  = 1 when bin i has 1 ball after n tosses
+    = 0 otherwise
+E[Yi]   = p(bin i has 1 ball after n tosses)
+        = C(n, 1) * (1/n) * ((n-1)/n)^(n-1)
+        = (n-1)^(n-1) / n^(n-1)
+E[Y]    = E[ΣYi]
+        = Σ(E[Yi])
+        = n * (n-1)^(n-1) / n^(n-1)
+        = (n-1)^(n-1) / n^(n-2)
+
+5.4-7
+divide all coin tosses to slices of length lgn - 2lglgn, all slices are mutually independent
+p(a single slice is all head)   = 1/2^(lgn - 2lglgn)
+                                = 1/(2^lgn/2^2lglgn)
+                                = lg^2n / n
+p(no slice is all head) = (1 - lg^2n / n)^(n / (lgn - 2lglgn))
+                        <= e^(-lg^2n / n * (n/(lgn - 2lglgn)))
+                        = e^(-lg^2n / (lgn - 2lglgn))
+                        = n^(-lgn / (lgn - 2lglgn))
+                        <= n^(-lgn / lgn)
+                        = 1/n
+"no slice is all head" is the union of two events:
+    1. the longest head streak is no longer than lgn - 2lglgn - 1
+    2. the longest head streak is longer than lgn - 2lglgn - 1, but is divided between two slices
+therefore 
+p(longest head streak is no longer than lgn - 2lglgn - 1) <= 1/n
+inject this into the original prove,
+E[L] = Ω(lgn - 2lglgn)
+
+5-1
+a.  let Xk be the number represented by i after k increments
+    X0 = 0 = n0
+    assume E[Xk] = n
+    X(k+1)  = Xk + (ni+1 - ni), p = 1/(ni+1 - ni)
+            = Xk, p = 1 - (1 / (ni+1 - ni))
+    E[X(k+1)]   = 1/(ni+1 - ni) * (E[Xk] + (ni+1 - ni)) + (1 - 1/(ni+1 - ni)) * E[Xk]
+                = E[Xk] + 1/(ni+1 - ni) * (ni+1 - ni)
+                = n + 1
+    therefore E[Xn] = n
+b.  i now follows binomial distribution with success rate 1/100
+    Var(i) = np(1-p) = 99n/10000
+    Var(Xn) = Var(100i) = 100^2Var(i) = 99n
+
+5-2
+a.  ./CLRS/start/index.ts#randomSearch
+b.  the number of trials X follows geometric distribution with success rate 1/n
+    E[X] = 1/(1/n) = n
+c.  the same with part b but with success rate k/n
+    E[X] = 1/(k/n) = n/k
+d.  the same as balls and bins 
+    E[X] = n(ln(n) + O(1))
+e.  i <- {1 .. n}, the number of comparsions X = i
+    E[X] = E[i] = (1/n) * n(1+n)/2 = (1+n)/2
+f.  thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch5.pdf
+    define indicator variables {Xi} such that
+    Xi  = 1 when A[i] is compared to x in a search
+        = 0 otherwise
+    when A[i] = x
+        p(Xi = 1)   = p(i is the minimum among all indices that A[i] = x)
+                    = 1/k
+    when A[i] != x
+        p(Xi = 1)   = 1/k+1 // why? what's the distribution of the minimum of a k-subset of {1 .. n}?
+    which gives E[ΣXi] = ΣE[Xi] = k * 1/k + (n-k)/k+1 = (n+1)/(k+1)
+    in worst case, the k matches are the last k elements of the array
+    the algorithm has to perform n-k+1 comparsions
+g.  both average and worst case running time Θ(n)
+h.  exactly the same as part e, f and g
+i.  DETERMINISTIC-SEARCH
+    shuffling an array will cost Θ(n) time, which is similar to deterministic linear searching
+    it's not worth the effort to do the shuffling unless comparsion is expensive and inputs are malicious
+    and the first algorithm is O(nlgn), worse than deterministic linear searching
+
+Chapter 6
+6.1-1
+a complete binary tree of height h has nodes 2^(h+1) - 1
+of height h-1 has nodes 2^h - 1
+therefore a heap with height h will have nodes between 2^h and 2^(h+1) - 1
+
+6.1-2
+as 6.1-1 shows, 2^h <= n <= 2^(h+1) - 1, where h is the height of the heap
+therefore 
+    lg(2^h) <= lgn <= lg(2^(h+1) - 1)
+    h <= [lgn] <= h, h = [lgn]
+
+6.1-3
+for a subtree of a heap, there is a simple path from root to any child node
+for an arbitrary node n, PARENT^(i)(n) = root for some i
+as A[PARENT(n)] >= A[n] for all n, A[n] <= A[PARENT(n)] <= .. <= A[root]
+root is the largest value occuring anywhere in that subtree
+
+6.1-4
+anywhere at the bottom level
+it can not be anywhere else than the bottom level, or it will have children, and A[PARENT(i)] >= A[i] for all i
+as the problem assumed that all values are distinct, A[i] won't be the minimum
+
+6.1-5
+yes, for a sorted array, for any i <= j, A[i] <= A[j]
+as PARENT(i) < i for all i except the root, A[PARENT(i)] <= A[i] for all i, A is a min-heap
+
+6.1-6
+23
+17  14
+6   13  10  1
+5   7   2
+no, 6 has two children 5 and 7, where 7 > 6
+
+6.1-7
+for i >= [n/2] + 1, the index of its left child will be greater than 2 * ([n/2] + 1) = 2 * [n/2] + 2
+if n is even, 2 * [n/2] + 2 = n + 2
+if n is odd, 2 * [n/2] + 2 = n + 1 
+both cases the index of its left child will be greater than n, thereby A[i] must be a leaf
+
+6.2-1
+                27
+            17      3
+        16  13      10  1
+       5 7 12  4   8  9   0
+3 = A[3] swapped with 10 = A[6], then with 9 = A[13]
+
+6.2-2
+./CLRS/sort/heap.ts#maxHeapify#Heap
+the code is abstract, subclasses can instantiate the abstract cmp function to anything they want
+
+6.2-3
+after comparing A[i], A[LEFT(i)] and A[RIGHT(i)]
+the procedure terminates without modifying the underlying array or recursively call itself
+
+6.2-4
+both LEFT(i) and RIGHT(i) will be out-of-bound, defined by <= A.heap-size
+the procedure terminates without modifying the underlying array or recursively call itself
+
+6.2-5
+./CLRS/sort/heap.ts#maxHeapify
+
+6.3-1
+swapped A[3] = 10 and A[7] = 22
+swapped A[2] = 17 and A[5] = 19
+swapped A[1] = 3 and A[4] = 84
+swapped A[0] = 5 and A[1] = 84
+swapped A[1] = 5 and A[3] = 22
+swapped A[3] = 5 and A[7] = 10
+
+6.3-2
+starting from 1, the non-leaf nodes may not meet the condition of MAX-HEAPIFY
+which requires the left and right subtrees of A[i] be a max heap
+
+6.3-3
+for level i, there can only be 2^(h - i - 1) nodes if the level is complete
+2^h <= n <= 2^(h+1) - 1
+[n / 2^(i+1)] >= 2^(h-i-1) 
+
+6.4-1
+swapped A[2] = 2 and A[6] = 20
+swapped A[1] = 13 and A[3] = 25
+swapped A[0] = 5 and A[1] = 25
+swapped A[1] = 5 and A[3] = 13
+swapped A[3] = 5 and A[7] = 8
+swapped A[0] = 4 and A[2] = 20
+swapped A[2] = 4 and A[5] = 17
+swapped A[0] = 5 and A[2] = 17
+swapped A[0] = 2 and A[1] = 13
+swapped A[1] = 2 and A[3] = 8
+swapped A[0] = 4 and A[1] = 8
+swapped A[1] = 4 and A[4] = 7
+swapped A[0] = 4 and A[1] = 7
+swapped A[0] = 2 and A[2] = 5
+swapped A[0] = 2 and A[1] = 4
+[ 2, 4, 5, 7, 8, 13, 17, 20, 25 ]
+
+6.4-2
+initialization:
+    at the start of the first iteration, i = A.length, A[1 .. i] = A is a max heap
+    A[i+1 ..] is empty
+maintenance:
+    assume at the start of ith iteration, A[1 .. i] is a max heap, A[i+1 .. n] contains n-i largest elements sorted
+    the root of the max heap is largest among A[1 .. i] and smaller than any element in A[i+1 .. n]
+    thereby A[1] is the n-i-1th largest element
+    swapping A[1] with A[i], now A[i .. n] contains n-i+1 largest elemented in sorted order
+    decrement the size of the heap and call MAX-HEAPIFY(1), elements in A[1 .. i-1] is now a max heap
+termination:
+    after the end of the last iteration, i = 1, A[2 .. n] contains n-1 largest elementes in sorted order
+    A[1] thus must be the smallest element in A[1 .. n], and A is in sorted order

@@ -1113,7 +1113,7 @@ d.  do the pre-process step in part b
     total time 2^n + 2^n = O(2^n)
 
 5.13
-let i and j be two indexes starting from 0, l0 and l1 denote the two sorted lists
+let i and j be two indices starting from 0, l0 and l1 denote the two sorted lists
 group the elements of l1 by their first entry z, as l1 is sorted this can be done in linear time
 then l1' is a list of elements (z, {k2 | F^-1(k2, y) = z})
 while i < len(l0):

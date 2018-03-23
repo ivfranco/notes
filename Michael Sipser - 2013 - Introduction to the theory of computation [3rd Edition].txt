@@ -166,7 +166,7 @@ b.  sub language can be verified with M ∪ N = N iff M ⊆ N
             
 7.12
 assuming graph representation of adjacency matrix
-the certificate is a permutation of the node indexes
+the certificate is a permutation of the node indices
 for every cell in matrix of H
     1. find the s-th element s' in the certificate
     2. find the t-th element t' in the certificate

@@ -301,7 +301,7 @@ restorenames(R, n) = R(n)
 restorenames(R, (t1 t2)) = restorenames(R, t1) restorenames(R, t2)
 restorenames(R, \. t) = pick an new x in V \ R, \x. restorenames(t)
 
-actually have to shift indexes when going into a lambda abstraction, both my and the offical answer ignored that part
+actually have to shift indices when going into a lambda abstraction, both my and the offical answer ignored that part
 
 6.2.2
 \. \. 1 (0 4)
