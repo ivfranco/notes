@@ -7,6 +7,7 @@ import {
 } from "./max-subarray";
 import { matrixMultiplication, strassen } from "./matrix-mul";
 import { Chip, GoodChip, BadChip, testChips } from "./chip-test";
+import { randomAB } from "../util"
 
 function main() {
   problem_4_5();
@@ -252,10 +253,6 @@ function problem_4_5(): boolean {
   let allGood = testChips(cs).every((c) => c.isGood());
   console.log(allGood);
   return allGood;
-}
-
-function randomAB(a: number, b: number) {
-  return Math.floor(Math.random() * ((b - a) + 1)) + a;
 }
 
 // T: Eq
