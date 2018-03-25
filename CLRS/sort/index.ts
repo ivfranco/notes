@@ -9,9 +9,10 @@ import {
 import { MaxDHeap } from "./d-heap";
 import { randomAB, isSorted } from "../util";
 import { YoungTableau } from "./young-tableau";
+import { quicksort, hoarePartition } from "./quicksort";
 
 function main() {
-  problem_6_3_f();
+  problem_7_1();
 }
 
 function problem_6_3_1() {
@@ -200,6 +201,17 @@ function problem_6_3_f(): boolean {
   console.log("Expected answer: ", inserted);
   console.log("Search result:   ", tableau.find(key));
   return (tableau.find(key) !== null) == inserted;
+}
+
+function problem_7_1_1() {
+  let A = [13, 19, 9, 5, 12, 8, 7, 4, 21, 2, 6, 11];
+  quicksort(A, 0, A.length - 1);
+  console.log(A);
+}
+
+function problem_7_1() {
+  let A = [13, 19, 9, 5, 12, 8, 7, 4, 11, 2, 6, 21];
+  console.log("Return value: ", hoarePartition(A, 0, A.length - 1));
 }
 
 main();

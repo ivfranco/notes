@@ -1538,3 +1538,166 @@ f.  ./CLRS/sort/young-tableau#find
     if Y[i, j] < key, all numbers Y[0, j] to Y[i, j] < key
     the problem size is reduced by 1 row
     as p = i + j is decremented every iteration, overall running time is O(m + n)
+
+Chapter 7
+7.1-1
+Swapped A[0] = 9, A[2] = 13
+[ 9, 19, 13, 5, 12, 8, 7, 4, 21, 2, 6, 11 ]
+Swapped A[1] = 5, A[3] = 19
+[ 9, 5, 13, 19, 12, 8, 7, 4, 21, 2, 6, 11 ]
+Swapped A[2] = 8, A[5] = 13
+[ 9, 5, 8, 19, 12, 13, 7, 4, 21, 2, 6, 11 ]
+Swapped A[3] = 7, A[6] = 19
+[ 9, 5, 8, 7, 12, 13, 19, 4, 21, 2, 6, 11 ]
+Swapped A[4] = 4, A[7] = 12
+[ 9, 5, 8, 7, 4, 13, 19, 12, 21, 2, 6, 11 ]
+Swapped A[5] = 2, A[9] = 13
+[ 9, 5, 8, 7, 4, 2, 19, 12, 21, 13, 6, 11 ]
+Swapped A[6] = 6, A[10] = 19
+[ 9, 5, 8, 7, 4, 2, 6, 12, 21, 13, 19, 11 ]
+Swapped A[7] = 11, A[11] = 12
+[ 9, 5, 8, 7, 4, 2, 6, 11, 21, 13, 19, 12 ]
+Swapped A[0] = 5, A[1] = 9
+[ 5, 9, 8, 7, 4, 2, 6, 11, 21, 13, 19, 12 ]
+Swapped A[1] = 4, A[4] = 9
+[ 5, 4, 8, 7, 9, 2, 6, 11, 21, 13, 19, 12 ]
+Swapped A[2] = 2, A[5] = 8
+[ 5, 4, 2, 7, 9, 8, 6, 11, 21, 13, 19, 12 ]
+Swapped A[3] = 6, A[6] = 7
+[ 5, 4, 2, 6, 9, 8, 7, 11, 21, 13, 19, 12 ]
+Swapped A[0] = 2, A[2] = 5
+[ 2, 4, 5, 6, 9, 8, 7, 11, 21, 13, 19, 12 ]
+Swapped A[1] = 4, A[1] = 4
+[ 2, 4, 5, 6, 9, 8, 7, 11, 21, 13, 19, 12 ]
+Swapped A[2] = 5, A[2] = 5
+[ 2, 4, 5, 6, 9, 8, 7, 11, 21, 13, 19, 12 ]
+Swapped A[4] = 7, A[6] = 9
+[ 2, 4, 5, 6, 7, 8, 9, 11, 21, 13, 19, 12 ]
+Swapped A[5] = 8, A[5] = 8
+[ 2, 4, 5, 6, 7, 8, 9, 11, 21, 13, 19, 12 ]
+Swapped A[6] = 9, A[6] = 9
+[ 2, 4, 5, 6, 7, 8, 9, 11, 21, 13, 19, 12 ]
+Swapped A[8] = 12, A[11] = 21
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+Swapped A[9] = 13, A[9] = 13
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+Swapped A[10] = 19, A[10] = 19
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+Swapped A[11] = 21, A[11] = 21
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+Swapped A[9] = 13, A[9] = 13
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+Swapped A[10] = 19, A[10] = 19
+[ 2, 4, 5, 6, 7, 8, 9, 11, 12, 13, 19, 21 ]
+
+7.1-2
+every number in the array is smaller or equal to pivot
+i = j = r - 1 after the loop
+A[r] exchanged with A[i + 1] = A[r], return value is r
+adding a specific check if all array elements are equal to the pivot, return Math.floor((p + r) / 2)
+./CLRS/sort/quicksort#partition
+
+7.1-3
+the loop on lines 3-6 runs at most p - r + 1 times, bounded by j
+each iteration takes constant time
+other operations not in the loop takes constant times
+T(n)    = Θ(p - r + 1) + Θ(1)
+        = Θ(n)
+
+7.1-4
+change line 4 of PARTITION to
+    if A[j] >= x
+now the loop invariants are
+    1.  if p <= k <= i, A[k] >= x
+    2.  if i+1 <= k <= j-1, A[k] < x 
+    3.  if k = r, A[k] = x
+
+7.2-1
+assume T(n) <= cn^2
+T(n)    <= c(n-1)^2 + dn
+        = cn^2 - 2cn + 1 + dn
+        <= cn^2 by taking c > d/2
+similarly, T(n) >= cn^2 
+T(n) = Θ(n^2)
+
+7.2-2
+without the modification in problem 7.1-2, the problem is partitioned into two subproblems of size n-1 and 0
+T(n) = T(n-1) + Θ(n) = Θ(n^2)
+with the modification in problem 7.1-2, the problem is partitioned into two subproblem of size n/2
+T(n) = 2T(n/2) + Θ(n) = Θ(nlgn)
+
+7.2-3
+when PARTITION is called with a sorted subarray A[p .. r], all elements in the slice is smaller or equal to r
+return value will be r, the problem is partitioned into two sub-problems of size n-1 and 0
+T(n) = Θ(n^2)
+
+7.2-4
+quiksort will take time Θ(n^2) for an already sorted array
+insertion sort will take time Θ(n)
+
+7.2-5
+as α <= 1/2, 1 - α >= α
+the shortest path from root to bottom is has length log(1/α, n) = lgn / lg(1/α) = -lgn/lgα
+the longest path form root to bottom has length log(1/(1-α), n) = -lgn/lg(1-α)
+
+7.2-6
+thanks https://ita.skanev.com/07/02/06.html
+as the input is uniformly random
+the chance that the pivot falls within the αn smallest numbers or (1-α)n largest numbers is
+    p = α + α = 2α
+thereby with probability 1 - 2α, αn <= q <= (1-α)n, the partition is better than α to 1-α
+
+7.3-1
+the worst case of a randomized algorithm occurs rarely, also independent to the input
+
+7.3-2
+RANDOM is called once for each call to PARTITION, PARTITION is called for each call to QUICKSORT
+for worst case, all partition are of size n - 1 and 0, PARTITION is called Θ(n) times
+for best case, all partition are of size n/2
+the number of calls to PARTITION is the same to the internal nodes in the recurrence tree
+which is the number of nodes of a binary tree of height Θ(lgn), which is Θ(n)
+
+7.4-1
+assume T(n) >= cn^2
+T(n)    >= max(cq^2 + c(n - q - 1)^2) + dn
+        >= cn^2 - 2cn + 1 + dn
+        >= cn^2 when c < d/2
+T(n) = Ω(n^2)
+
+7.4-2
+T(n) = Θ(nlgn) => T(n) = Ω(nlgn)
+
+7.4-3
+the text already showed that the function is convex
+
+7.4-4
+E[X]    = Σ(i = {1 .. n-1})(Σ(k = {1 .. n-i})(2/(k+1)))
+        = Σ(i = {1 .. n-1})(Σ(k = {1 .. n-i})(2/k) - 2)
+        = Σ(i = {1 .. n-1})(Θ(lg(n-i)))
+        = Θ(lg((n-1)!))
+        = Ω(nlgn)
+
+7.4-5
+this time Xij = 1 only if i - j + 1 > k
+E[X]    = Σ(i = {1 .. n-1})(Σ(j = {k+1 .. n-i})(2/(j+1)))
+        <= Σ(i = {1 .. n-1})(Σ(k = {k+1 .. n})(2/j))
+        = Σ(i = {1 .. n-1})(O(lgn) - O(lgk))
+        = O(nlg(n/k))
+the quicksort stops when the subarray has length <= k
+thereby an element A[i] is guarenteed to be greater or equal to A[i - k]
+when looking for a position to insert A[i], the insertion sort procedure will never have to search beyond A[i-k]
+for all 0 <= i <= n-1, O(nk) in total
+overall O(nk + nlg(n/k))
+
+7.4-6
+the median order of the three random variables falls within [αn, (1-α)n] only if at least two of them is in that range
+it's a binomial distribution with success rate (1 - 2α)
+P(X >= 2)   = C(3, 2)(1-2α)^2(2α) + C(3, 3)(1-2α)^3
+            = 6α(1-2α)^2 + (1-2α)^3
+
+7-1
+Swapped A[0] = 6, A[10] = 13
+[ 6, 19, 9, 5, 12, 8, 7, 4, 11, 2, 13, 21 ]
+Swapped A[1] = 2, A[9] = 19
+[ 6, 2, 9, 5, 12, 8, 7, 4, 11, 19, 13, 21 ]
+Return value:  8
