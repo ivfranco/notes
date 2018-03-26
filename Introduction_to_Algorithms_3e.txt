@@ -51,7 +51,7 @@ assuming comparsion of integers takes constant time
 2.2-4
 hard-code the solution of a specific input in the program 
 if input equals to the specific input, returns that solution immediately
-base-case runtime reduced to time required to check the input
+base-case running time reduced to time required to check the input
 
 2.3-1
 [ 3, 41, 52, 26, 38, 57, 9, 49 ]
@@ -106,13 +106,13 @@ overall: Θ(nlgn) + Θ(nlgn) = Θ(nlgn)
 
 2-1
 a.  insertion sort on an array of length k takes time Θ(k^2)
-    there are n/k such arrays, overall runtime Θ(k^2) * n / k = Θ(nk)
+    there are n/k such arrays, overall running time Θ(k^2) * n / k = Θ(nk)
 b.  the same with figure 2.5
     the height of the tree is reduced to lg(n/k)
     base level performs n/2k merges with arrays of length k, n/2k * Θ(k) = Θ(n) in total
-    overall runtime Θ(nlg(n/k))
+    overall running time Θ(nlg(n/k))
 c.  T(n) = Θ(nk + nlg(n/k))
-    if k = ω(lgn), Θ(nk) = ω(nlgn), the runtime of the modified algorithm then is asymptotically greater
+    if k = ω(lgn), Θ(nk) = ω(nlgn), the running time of the modified algorithm then is asymptotically greater
 d.  k = O(lgn), the precise value of k depends on cache size, hidden constant factors in algorithms, etc.
 
 2-2
@@ -142,16 +142,16 @@ c.  invariant:
         A is sorted in non-decreasing order
 d.  inner loop Θ(n)
     outer loop run n - 1 times
-    overall runtime (n-1) * Θ(n) = Θ(n^2)
+    overall running time (n-1) * Θ(n) = Θ(n^2)
     both the best and worst case of bubble sort performs Θ(n^2) comparsions
-    while insertion sort in best case has runtime Θ(n)
+    while insertion sort in best case has running time Θ(n)
 
 2-3
 a.  the algorithm performs n additions and n multiplications
     assuming both are contant time, T(n) = Θ(n)
 b.  ./CLRS/start/index.ts#naivePolynomial
     k = Θ(n), Math.pow(x, k) = x^k if implemented naively takes time Θ(k), if not takes time Θ(lgk)
-    overall runtime Θ(n^2) or Θ(nlgn)
+    overall running time Θ(n^2) or Θ(nlgn)
 c.  initialization:
         initially y = 0, the sum of an empty sequence
     maintenance:
@@ -168,7 +168,7 @@ b.  [n, n-1 .. 1], every pair is an inversion
     there are C(n, 2) = n(n-1)/2 pairs
 c.  every assignment in the insertion sort reduces the total number of inversions by 1
     the sorted array has no inversions
-    therefore the number of inversions in an array is a lower bound of the runtime of insertion sort
+    therefore the number of inversions in an array is a lower bound of the running time of insertion sort
 d.  assume an array A[p..r] and some q that p < q < r, then the total number of inversions in A[p..r] is the sum of
     1.  the number of inersions in A[p..q]
     2.  the number of inversions in A[q+1..r]
@@ -842,7 +842,7 @@ b.  1.  Θ(NlgN) as usual
     2.  all recursive call to the function itself forms a complete binary tree of height lgN
         2^lgN = N nodes in total, the whole array is copied at each node, contributes N * N = N^2 in total
         the number of merge is half the number of nodes, again Θ(N) and contributes Θ(N^2) in total
-        overall runtime Θ(N^2)
+        overall running time Θ(N^2)
     3.  T(n) = 2T(n/2) + 2 * (n/2) + n = 2T(n/2) + Θ(n) = Θ(nlgn)
 
 4-3
@@ -1696,8 +1696,150 @@ P(X >= 2)   = C(3, 2)(1-2α)^2(2α) + C(3, 3)(1-2α)^3
             = 6α(1-2α)^2 + (1-2α)^3
 
 7-1
-Swapped A[0] = 6, A[10] = 13
-[ 6, 19, 9, 5, 12, 8, 7, 4, 11, 2, 13, 21 ]
-Swapped A[1] = 2, A[9] = 19
-[ 6, 2, 9, 5, 12, 8, 7, 4, 11, 19, 13, 21 ]
-Return value:  8
+a.  Swapped A[0] = 6, A[10] = 13
+    [ 6, 19, 9, 5, 12, 8, 7, 4, 11, 2, 13, 21 ]
+    Swapped A[1] = 2, A[9] = 19
+    [ 6, 2, 9, 5, 12, 8, 7, 4, 11, 19, 13, 21 ]
+    Return value:  8
+b.  invariant: at the end of each iteration, p <= i, j <= r
+    initialization:
+        repeat clauses will be executed at least once, so i and j start with p and r
+        as x = A[p], i will always be p after the first iteration
+        if there's no element <= A[p] in the subarray, j will be p after the first iteration, !(i < j) and termination
+        if there's some element <= A[p] in the subarray, the procedure swaps the element with A[p]
+        denote this index as q
+        after the first iteration:
+            A[i] = A[p] <= x
+            A[j] = A[q] = x
+    maintenance:
+        i and j is incremented at least once in each iteration
+        the value they originally point to will not be changed
+    termination:
+        either j first reaches p or i first reaches q
+        as A[p] <= x, j will stop at j = p
+        i = p in the first iteration, thus i > p in this iteration, !(i < j) and the procedure is terminated 
+        similarly, as A[q] = x, i will stop at i = q
+        !(i < j) and termination
+        therefore p <= i, j <= q <= r
+c.  refine part 1 a little bit with assumption that r >= p + 1, subarray at least has length 2
+    the procedure is only terminated at the first iteration when i = j = p, which means j < r
+    otherwise j is decremented at least twice, j <= (r+1) - 2 = r - 1, j < r
+d.  invariant:
+        at the start of each iteration,
+        A[p .. i-1] contains elements smaller or equal to the pivot
+        A[j+1 .. r] contains elements greater or equal to the pivot
+    initialization:
+        A[p .. i-1] and A[j+1 .. r] are empty
+    maintenance:
+        after the two repeat clauses:
+            A[p .. i-1] contains elements <= x
+            A[j+1 .. r] contains elements >= x
+            A[i] >= x
+            A[j] <= x
+        swap A[i] and A[j] then invariant maintained
+    termination:
+        !(i < j) => i >= j
+        i = j only when A[i] >= x and A[i] <= x, A[i] = x
+        every element in A[p .. i] = A[p .. j] <= x
+        every element in A[j+1 .. r] >= x
+    therefore every element in A[p .. i-1] <= x <= every element in A[j+1 .. r]
+e.  ./CLRS/sort/quicksort.ts#hoareQuicksort
+
+7-2
+a.  any pivot will be equal to all array elements 
+    the return of PARTITION will always be r, subarray partitioned to size n-1 and 0
+    T(n) = Θ(n^2)
+b.  ./CLRS/sort/quicksort.ts#partition2
+    k incremented every iteration, starting from p, end condition is k > r - 1
+    T(n) = Θ(p - r)
+c.  ./CLRS/sort/quicksort.ts#quicksort2
+d.  with QUICKSORT',
+        if zi < x < zj, zi and zj will not be compared
+        if zi or zj is first chosen as a pivot among {zi .. zj}, zi and zj will be compared
+        if x = zi but not zi itself is first chosen as a pivot among {zi .. zj}
+            zi will be in neither subproblems, zi will not be compared to zj
+        simlarly if x = zj but not zj itself, zi will not be compared to zj
+    the expected time analysis is still valid, E[X] = Θ(nlgn)
+
+7-3
+a.  pivot is chosen randomly from A[1] to A[n], 1/n for any particular element
+    E[Xi] = 1/n
+b.  if the qth smallest element is chosen as the pivot
+    exactly q elements are smaller or equal
+    the problem is partitioned into two subproblems of size q-1 and n-q
+    T(n)    = ΣXq(T(q-1) + T(n-q) + Θ(n))
+    as for a particular run, only one Xq can be 1, all others 0
+    E[T(n)] = E[ΣXq(T(q-1) + T(n-q) + Θ(n))]
+c.  the subproblems are independent to the value of Xq
+    E[T(n)] = Σ(E[Xq](E[T(q-1)] + E[T(n-q)] + Θ(n)))
+            = 1/n * Σ(E[T(q-1)] + E[T(n-q)] + Θ(n))
+            = 1/n * (ΣE[T(q-1)] + ΣE[T(n-q)] + nΘ(n))
+            = 1/n * (2ΣE[T(q)] + nΘ(n))
+            = 2/n * ΣE[T(q)] + Θ(n)
+d.  Σ(k = {2 .. n-1})(klgk)
+    = Σ(k = {2 .. n/2 - 1})(klgk) + Σ(k = {n/2 .. n-1})(klgk)
+    <= Σ(k = {1 .. n/2 - 1})(klg(n/2)) + Σ(k = {n/2 .. n-1})(klgn)
+    <= (lgn - 1)(n/2)n/4 + lgn(3n/2 - 1)n/4
+    = n^2lgn/8 - n^2/8 + 3n^2lgn/8 - Θ(nlgn)
+    <= n^2lgn/2 - n^2/8
+e.  assume E[T(n)] <= anlgn
+    E[T(n)] <= 2/n * Σ(q = {2 .. n-1})(aqlgq) + dn
+            <= 2/n * a(n^2lgn/2 - n^2/8) + dn
+            = anlgn - an/4 + dn
+            <= anlgn when a/4 > d
+    E[T(n)] = O(nlgn)
+    the best case is Ω(nlgn), so E[T(n)] = Ω(nlgn), E[T(n)] = Θ(nlgn)
+
+7-4
+a.  induction on problem size
+    when p == r, the slice of one element is trivially sorted
+    when p < r, after calling PARTITION(A, p, r),
+        every element in A[p .. q-1] <= A[q]
+        every element in A[q+1 .. r] > A[q]
+    by induction assumption, TAIL-RECURSIVE-QUICKSORT(A, p, q-1) correctly sorts A[p, q-1]
+    p set to q+1, equivalent to calling TAIL-RECURSIVE-QUICKSORT(A, q+1, r)
+    by induction assumption, starting from the second iteration the procedure correctly sorts A[q+1, r]
+    every element in A[p .. q-1] <= A[q] <= every element in A[q+1 .. r], therefore A[p .. r] is sorted
+b.  the worst case of partition, subproblems of size n-1 and 0
+    q = r - 1, TAIL-RECURSIVE-QUICKSORT(A, p, r) calls TAIL-RECURSIVE(A, p, r-1) recursively
+    the stack keeps growing until p = r
+    stack depth r - p + 1 = Θ(n)
+c.  recursively solve the smaller subproblem first
+    as the smaller of the subproblem has size <= n/2, stack depth <= lgn
+
+7-5
+a.  the three element chosen can be any 3-subset {Ap, Aq, Ar} of {A'1 .. A'n}
+    for the median to be a particular i, 
+        one of them should be Ai
+        one of them should be smaller than Ai
+        one of them should be greater than Ai
+    pi = 1/n * (i-1)/n * (n-i)/n * A(3, 3) = 6(i-1)(n-i)/n^3
+b.  with ordinary implementation, A'[(n+1)/2] is chosen with probability 1/n, the same with any other element
+    with median-of-3 implementation, p = 6(n/2)(n/2)/n^3 = 3/2 * 1/n
+    limit = 3/2
+c.  for random pivot: p = Σ(i = {n/3 .. 2n/3})(1/n) = 1/3
+    for median-of-3 pivot:
+        p   = Σ(i = {n/3 .. 2n/3})(6(i-1)(n-i)/n^3)
+            ≒ int(n/3 <= i <= 2n/3, 6(i-1)(n-i)/n^3)
+            = 13/27 - 1/n
+    as n -> ∞, p -> 13/27, better than 1/3 = 9/27
+d.  as best possible split still gives Ω(nlgn) running time
+    median-of-3 implementation can only be a constant factor better than the ordinary implementation on average
+
+7-6
+a.  the same idea as problem 7-2 can be used here 
+    by comparing with a pivot interval [ap, bp], an array of interval [a, b] can be divided into three groups:
+        1. strictly smaller than the pivot, b < ap
+        2. strictly greater than the pivot, a > bp
+        3. overlaps with the pivot, b >= ap && a <= bp
+    the problem is the relation of overlapping is not transitive:
+        [1, 2] overlaps with [2, 3]
+        [2, 3] overlaps with [3, 4]
+        [1, 2] doesn't overlap with [3, 4]
+    thus group 3 may not overlap with each other
+    the procedure must then maintain an interval that's the intersection of all overlapping intervals
+    an interval must not be added to group 3 if it will make the intersection interval empty
+    the intersection also must be computed beforehand, the left bound of the pivot must be constant during partition    
+    ./CLRS/sort/quicksort.ts#fuzzysort
+b.  the procedure is equivalent to quicksort in 7-2 on running time 
+    which is Θ(nlgn) on average, Θ(n) when all elements are equivalent (i.e. contains the intersection)

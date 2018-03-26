@@ -52,14 +52,14 @@ export function minimumOn<A, B>(arr: A[], f: (a: A) => B): A {
   return arr.reduce((lhs, rhs) => minOn(lhs, rhs, f));
 }
 
-export function swap<T>(A: T[], i: number, j: number) {
+export function SWAP<T>(A: T[], i: number, j: number) {
   let temp = A[i];
   A[i] = A[j];
   A[j] = temp;
 }
 
 export function swapReport<T>(A: T[], i: number, j: number) {
-  swap(A, i, j);
+  SWAP(A, i, j);
   console.log(`Swapped A[${i}] = ${A[i]}, A[${j}] = ${A[j]}`);
   console.log(A);
 }

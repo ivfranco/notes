@@ -9,10 +9,23 @@ import {
 import { MaxDHeap } from "./d-heap";
 import { randomAB, isSorted } from "../util";
 import { YoungTableau } from "./young-tableau";
-import { quicksort, hoarePartition } from "./quicksort";
+import {
+  quicksort,
+  hoarePartition,
+  hoareQuicksort,
+  quicksort2,
+  tailRecursiveQuicksort,
+  fuzzysort,
+  isFuzzySorted,
+} from "./quicksort";
 
 function main() {
-  problem_7_1();
+  for (let i = 0; i < 1000; i++) {
+    let [pass, A] = problem_7_6();
+    if (!pass) {
+      console.error(A);
+    }
+  }
 }
 
 function problem_6_3_1() {
@@ -212,6 +225,41 @@ function problem_7_1_1() {
 function problem_7_1() {
   let A = [13, 19, 9, 5, 12, 8, 7, 4, 11, 2, 6, 21];
   console.log("Return value: ", hoarePartition(A, 0, A.length - 1));
+
+  hoareQuicksort(A, 0, A.length - 1);
+  console.log(A);
+}
+
+function problem_7_2() {
+  let n = randomAB(1, 10000);
+  let A = [];
+  for (let i = 0; i < n; i++) {
+    A.push(randomAB(1, 100));
+  }
+  quicksort2(A, 0, A.length - 1);
+  return isSorted(A);
+}
+
+function problem_7_4() {
+  let n = randomAB(1, 10000);
+  let A = [];
+  for (let i = 0; i < n; i++) {
+    A.push(randomAB(1, 100));
+  }
+  tailRecursiveQuicksort(A, 0, A.length - 1);
+  return isSorted(A);
+}
+
+function problem_7_6() {
+  let n = randomAB(1, 10000);
+  let A: [number, number][] = [];
+  for (let i = 0; i < n; i++) {
+    let a = randomAB(0, 100);
+    let b = a + randomAB(0, 100);
+    A.push([a, b]);
+  }
+  fuzzysort(A, 0, A.length - 1);
+  return [isFuzzySorted(A), A];
 }
 
 main();
