@@ -1,3 +1,7 @@
+export function id<T>(a: T): T {
+  return a;
+}
+
 export function randomAB(a: number, b: number) {
   if (a > b) {
     throw "Error: lower bound greater than higher bound";

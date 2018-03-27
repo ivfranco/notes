@@ -1843,3 +1843,189 @@ a.  the same idea as problem 7-2 can be used here
     ./CLRS/sort/quicksort.ts#fuzzysort
 b.  the procedure is equivalent to quicksort in 7-2 on running time 
     which is Θ(nlgn) on average, Θ(n) when all elements are equivalent (i.e. contains the intersection)
+
+Chapter 8
+8.1-1
+let array elements be vertices of a undirected graph
+edge exists between vertices a and b iff a and b are compared
+if the graph is not connected, i.e. array elements can be divided into two non-empty sets A1 and A2 that,
+comparsions are only performed within these two sets but not between them
+then any comparsion result between an elements from A1 and A2 are uncertain, the sort may not be accurate
+thus for the comparsion sort algorithm to be correct, the graph must be connected
+connected graph with n vertices has at least n-1 edges, which is the lower bound of comparsions
+this lower bound is achievable
+assume the input array is in sorted order, insertion sort only performs n-1 comparsions
+
+8.1-2
+Σ(k = {1 .. n})(lgk)    = lg(n!)
+Σ(k = {1 .. n})(lgk)    <= Σ(k = {1 .. n})(lgn)
+                        = nlgn = O(nlgn)
+Σ(k = {1 .. n})(lgk)    = Σ(k = {1 .. n/2})(lgk) + Σ(k = {n/2 + 1 .. n})(lgk)
+                        >= n/2 * lg(n/2)
+                        = n/2 * (lgn - 1)
+                        = Ω(nlgn)
+lg(n!) = Θ(nlgn)
+
+8.1-3
+the unique simple path to half of n! leaves of a comparsion tree have length O(n)
+a complete binary tree of height O(n) may only have 2^O(n) leaves
+if it's possible, n!/2 = O(2^O(n)), n! = O(2^O(n)), which is not true
+change 1/2 to any constant fraction and the argument still holds
+n!/2^n = (1/2) * (2/2) * (3/2) ... >= (n/2)! = ω(2^O(n/2)) = ω(2^O(n))
+it's not possible even for a 2^n fraction
+
+8.1-4
+each permutation of each subsequence is a possible sub-result, there are k! permutations for a length k subsequence
+overall there are (k!)^(n/k) results, height of the comparsion tree at least 
+    lg((k!)^(n/k))  = n/k * lg(k!)
+                    = n / k * Ω(klgk)
+                    = Ω(nlgk)
+which is a lower bound of the worst case performance
+
+8.2-1
+[ 2, 4, 6, 8, 9, 9, 11 ]
+[ null, null, null, null, null, 2, null, null, null, null, null ]
+[ 2, 4, 5, 8, 9, 9, 11 ]
+[ null, null, null, null, null, 2, null, 3, null, null, null ]
+[ 2, 4, 5, 7, 9, 9, 11 ]
+[ null, null, null, 1, null, 2, null, 3, null, null, null ]
+[ 2, 3, 5, 7, 9, 9, 11 ]
+[ null, null, null, 1, null, 2, null, 3, null, null, 6 ]
+[ 2, 3, 5, 7, 9, 9, 10 ]
+[ null, null, null, 1, null, 2, null, 3, 4, null, 6 ]
+[ 2, 3, 5, 7, 8, 9, 10 ]
+[ null, null, null, 1, null, 2, 3, 3, 4, null, 6 ]
+[ 2, 3, 5, 6, 8, 9, 10 ]
+[ null, null, 1, 1, null, 2, 3, 3, 4, null, 6 ]
+[ 2, 2, 5, 6, 8, 9, 10 ]
+[ null, 0, 1, 1, null, 2, 3, 3, 4, null, 6 ]
+[ 1, 2, 5, 6, 8, 9, 10 ]
+[ null, 0, 1, 1, 2, 2, 3, 3, 4, null, 6 ]
+[ 1, 2, 4, 6, 8, 9, 10 ]
+[ 0, 0, 1, 1, 2, 2, 3, 3, 4, null, 6 ]
+[ 0, 2, 4, 6, 8, 9, 10 ]
+[ 0, 0, 1, 1, 2, 2, 3, 3, 4, 6, 6 ]
+
+8.2-2
+assume Al = Ak, l < k
+as j iters from A.length down to 1
+Ak will first be placed into B at B[C[A[k]]]
+C[A[j]] is then decremented by 1
+as l < k, when j = l, C[A[l]] = C[A[k]] is smaller than when it was in iteration j = k
+therefore if Al = Ak, l < k, they are placed at Bi, Bj that i < j
+for n elements that are mutually equivalent
+as the relative order of any two of them are preserved, the overall order must also be preserved
+
+8.2-3
+the argument in the text didn't specify the order of A[j]
+reversing the order of A[j] and the argument still holds
+but this time any two Al = Ak, l < k, are placed in Bi, Bj, i > j
+the sorting algorithm is no longer stable
+
+8.2-4
+the array C can be used to solve this problem:
+the number of elements falls into the range [a .. b]
+can be computed as the number of elements equal or less than b - the number of elements equal or less than a - 1
+which in turn is C[b] - C[a-1]
+./CLRS/sort/linear-sort.ts#countingRange
+
+8.3-1
+[ 'SEA', 'TEA', 'MOB', 'TAB', 'DOG', 'RUG', 'DIG', 'BIG', 'BAR', 'EAR', 'TAR', 'COW', 'ROW', 'NOW', 'BOX', 'FOX' ]
+[ 'TAB', 'BAR', 'EAR', 'TAR', 'SEA', 'TEA', 'DIG', 'BIG', 'MOB', 'DOG', 'COW', 'ROW', 'NOW', 'BOX', 'FOX', 'RUG' ]
+[ 'BAR', 'BIG', 'BOX', 'COW', 'DIG', 'DOG', 'EAR', 'FOX', 'MOB', 'NOW', 'ROW', 'RUG', 'SEA', 'TAB', 'TAR', 'TEA' ]
+
+8.3-2
+insertion sort:
+    stable, two element will be swapped only if the later is smaller than the former
+merge sort:
+    stable, in the merge procedure
+    when element from left subarray is equal to the right one, the left one is always copied to A first
+    within left or right subarray, elements are copied to A in the original order
+heap sort:
+    not stable
+    e.g. [1a, 1b, 3]
+        after BUILD-MAX-HEAP, will be [3, 1b, 1a]
+        after first swap, will be [1a, 1b, 3]
+        after second swap, will be [1b, 1a, 3]
+quick sort:
+    not stable     
+    an element can be swapped to arbitrary place to its right if
+        it is currently the first element greater than the pivot
+        the element examined in the current iteration is smaller or equal to the pivot
+    the original order of equivalent elements may not hold
+zip the array with its index
+comparsion now compares the index in the original array whenever two elements are equal
+as array indices are distinct, the sort must be stable
+
+8.3-3
+invariant:
+    after ith iteration, the array is sorted according to the i least significant digits of elements
+inititialization:
+    considering 0 digits (nothing), all elements are equal, trivially satisfied
+maintenance:
+    at the beginning of ith iteration, elements are sorted according to i-1 least significant digits 
+    they are then sorted according to ith least significant digit
+    at the end of ith iteration
+        1.  they are sorted according to the ith least significant digit
+        2.  for elements that have same ith least significant digit, the original order is preserved (stable)
+            i.e. they are sorted according to i-1 least significant digits
+    therefore the array is sorted according to i least significant digits
+termination:
+    i = d, the array is sorted
+
+8.3-4
+b = lg(n^3) = 3lgn >= lgn
+choose r = lgn yields Θ(bn/lgn) = Θ(3nlgn/lgn) = Θ(3n) = O(n)
+
+8.3-5
+assume in n elements, Xi starts with digit i, Σ(i = {0 .. r-1})Xi = n, r is the radix
+T(n, d) = Σ(T(Xi, d-1)) + Θ(n)
+the height of the recurrence tree solely depends on d
+in the worst case, n is evenly divided, the recurrence tree is a complete d-ary tree
+number of sorting pass equals the number of interal nodes = r^d
+a single call to the procedure creates r bins
+when called recursively, the procedure keeps track of bins at most r * number of nodes in longest path = d
+
+8.4-1
+bucket 0:  []
+bucket 1:  [ 0.13, 0.16 ]
+bucket 2:  [ 0.2 ]
+bucket 3:  [ 0.39 ]
+bucket 4:  [ 0.42 ]
+bucket 5:  [ 0.53 ]
+bucket 6:  [ 0.64 ]
+bucket 7:  [ 0.79, 0.71 ]
+bucket 8:  [ 0.89 ]
+bucket 9:  []
+bucket 0 (sorted):  []
+bucket 1 (sorted):  [ 0.13, 0.16 ]
+bucket 2 (sorted):  [ 0.2 ]
+bucket 3 (sorted):  [ 0.39 ]
+bucket 4 (sorted):  [ 0.42 ]
+bucket 5 (sorted):  [ 0.53 ]
+bucket 6 (sorted):  [ 0.64 ]
+bucket 7 (sorted):  [ 0.71, 0.79 ]
+bucket 8 (sorted):  [ 0.89 ]
+bucket 9 (sorted):  []
+[ 0.13, 0.16, 0.2, 0.39, 0.42, 0.53, 0.64, 0.71, 0.79, 0.89 ]
+
+8.4-2
+when every element falls within the same bucket, insertion sort have to sort n elements in Θ(n^2) time
+use better in-place algorithm than insertion sort when sorting the buckets
+
+8.4-3
+X ~ Bin(2, 1/2)
+E[X]^2 = 1
+E[X^2] = Var[X] + E[X]^2 = 3/2
+
+8.4-4
+the area is proportional to d^2
+kth bucket should contain elements that 
+    k/n <= di^2 < (k+1)/n
+    k <= di^2 * n < k+1
+    k = Math.floor(di^2 * n)
+
+8.4-5
+same as 8.4-4,
+kth bucket should contains elements that
+    k/n <= P(x) <= (k+1)/n

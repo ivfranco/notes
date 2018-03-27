@@ -7,7 +7,7 @@ import {
   mergeArrays
 } from "./heap";
 import { MaxDHeap } from "./d-heap";
-import { randomAB, isSorted } from "../util";
+import { randomAB, isSorted, id } from "../util";
 import { YoungTableau } from "./young-tableau";
 import {
   quicksort,
@@ -18,14 +18,10 @@ import {
   fuzzysort,
   isFuzzySorted,
 } from "./quicksort";
+import { countingSort, radixSort, bucketSort } from "./linear-sort";
 
 function main() {
-  for (let i = 0; i < 1000; i++) {
-    let [pass, A] = problem_7_6();
-    if (!pass) {
-      console.error(A);
-    }
-  }
+  problem_8_4_1();
 }
 
 function problem_6_3_1() {
@@ -260,6 +256,26 @@ function problem_7_6() {
   }
   fuzzysort(A, 0, A.length - 1);
   return [isFuzzySorted(A), A];
+}
+
+function problem_8_2_1() {
+  let A = [6, 0, 2, 0, 1, 3, 4, 6, 1, 3, 2];
+  console.log(isSorted(countingSort(A, 6, id)));
+}
+
+function problem_8_3_1() {
+  const CODE_A = "A".charCodeAt(0);
+  function extract(w: string, i: number): number {
+    return w.charCodeAt(w.length - i) - CODE_A;
+  }
+  let A = ["COW", "DOG", "SEA", "RUG", "ROW", "MOB", "BOX", "TAB", "BAR", "EAR",
+    "TAR", "DIG", "BIG", "TEA", "NOW", "FOX"];
+  console.log(isSorted(radixSort(A, 3, 26, extract)));
+}
+
+function problem_8_4_1() {
+  let A = [.79, .13, .16, .64, .39, .20, .89, .53, .71, .42];
+  console.log(bucketSort(A));
 }
 
 main();
