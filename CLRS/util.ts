@@ -9,6 +9,15 @@ export function randomAB(a: number, b: number) {
   return Math.floor(Math.random() * ((b - a) + 1)) + a;
 }
 
+export function randomStr(len: number) {
+  let chars = [];
+  for (let i = 0; i < len; i++) {
+    // little case characters 
+    chars.push(randomAB(0x61, 0x7a));
+  }
+  return String.fromCharCode(...chars);
+}
+
 export function shuffle<T>(arr: T[]) {
   for (let i = arr.length - 1; i > 0; i--) {
     let j = Math.floor(Math.random() * (i + 1));

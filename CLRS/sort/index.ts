@@ -7,7 +7,7 @@ import {
   mergeArrays
 } from "./heap";
 import { MaxDHeap } from "./d-heap";
-import { randomAB, isSorted, id } from "../util";
+import { randomAB, isSorted, id, randomStr } from "../util";
 import { YoungTableau } from "./young-tableau";
 import {
   quicksort,
@@ -18,10 +18,16 @@ import {
   fuzzysort,
   isFuzzySorted,
 } from "./quicksort";
-import { countingSort, radixSort, bucketSort } from "./linear-sort";
+import {
+  countingSort,
+  radixSort,
+  bucketSort,
+  inplaceCountingSort,
+  stringSort
+} from "./linear-sort";
 
 function main() {
-  problem_8_4_1();
+  console.log(problem_8_3());
 }
 
 function problem_6_3_1() {
@@ -276,6 +282,26 @@ function problem_8_3_1() {
 function problem_8_4_1() {
   let A = [.79, .13, .16, .64, .39, .20, .89, .53, .71, .42];
   console.log(bucketSort(A));
+}
+
+function problem_8_2(): boolean {
+  let n = randomAB(1, 10000);
+  let A = [];
+  for (let i = 0; i < n; i++) {
+    A[i] = randomAB(0, 20);
+  }
+  inplaceCountingSort(A, 20);
+  return isSorted(A);
+}
+
+function problem_8_3(): boolean {
+  let n = randomAB(1, 10);
+  let A = [];
+  for (let i = 0; i < n; i++) {
+    A.push(randomStr(randomAB(0, 10)));
+  }
+  let sorted = stringSort(A);
+  return isSorted(sorted);
 }
 
 main();

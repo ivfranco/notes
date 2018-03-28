@@ -2029,3 +2029,154 @@ kth bucket should contain elements that
 same as 8.4-4,
 kth bucket should contains elements that
     k/n <= P(x) <= (k+1)/n
+
+8-1
+a.  each one of n! permutations of orders happens equally likely, with probaility 1/n!
+    each one corresponds to a leaf in the comparsion tree as that's the only way to distinguish between them
+    also an order of input can only corresponds to a single leaf
+    if two leaves have the same value, as they start from the same root, they must have branched somewhere
+    but for a fixed input, no comparsion can give different result on two runs
+    the comparsion tree thus has n! leaves with 1/n! probability, other leaves unreachable
+b.  assume LT has lk leaves, RT has rk leaves
+    lk + rk = k, also when considered as the leaves of T their depth is one higher than in LT or RT
+    D(T)    = D(LT) + lk + D(RT) + rk
+            = D(LT) + D(RT) + k
+c.  basically dynamic programming 
+    the minial tree may have 0 <= i <= k leaves in its left subtree and k-i leaves in its right subtree
+    if the left subtree didn't achieve d(i), swap one that does will reduce D(T)
+    similarly the right subtree must have achieved d(k-i)
+    d(k) = min(0 <= i <= k)(d(i) + d(k-i) + k)
+    also when i = 0 or k, d(i) + d(k-1) + k = d(k) + k, which cannot be the minimal
+    d(k) = min(1 <= i <= k-1)(d(i) + d(k-i) + k)
+d.  d/di(ilgi + (k-1)lg(k-1))   = (lni - ln(k - x))/ln(2)
+    has root i = k/2
+    for 1 <= i < k/2, the first derivative is negative
+    for k/2 < i <= k-1, the first derivative is positive
+    therefore i = k/2 is a local maximum in range [1, k-1]
+    assume d(k) >= cklgk
+    d(k)    >= min{cilgi + c(k-i)lg(k-i) + k}
+            = c(k/2)lg(k/2) + c(k/2)lg(k/2) + k
+            = ck(lgk - 1) + k
+            = cklgk - ck + k
+            >= cklgk when c < 1
+    d(k) = Ω(klgk)
+e.  as d(k) is the minimum of D(k), D(k) = Ω(klgk), the average depth of leaves is D(k)/k = Ω(klgk) / k = Ω(lgk)
+    D(T) = D(n!) = Ω(n!lgn!)
+    average-case time is Ω(lgn!) = Ω(nlgn)
+f.  as a randomization node didn't compare any two elements of the array, it gains no information of the order
+    thus a randomization node didn't eliminate any possbility of the order of an array
+    all children of a randomization node therefore must have the same set of leaves
+    replace all randomization node with its child with minimal D(T)
+    the result is still a valid comparsion tree which contains all possible n! permutations as leaves
+    but the resulting tree will be deterministic
+    as the child is chosen as having minimal D(T), the resulting tree has no worse average-case performance
+
+8-2
+a.  counting sort
+b.  one pass of quicksort
+c.  heap sort
+d.  with counting sort, each bit has maximum 2, counting sort takes Θ(n + 2) = Θ(n)
+    radix sort in turn takes Θ(bΘ(n)) = Θ(bn)
+e.  ./CLRS/sort/linear-sort.ts#inplaceCountingSort
+    not stable, whatever in C[A[i]] is swapped with A[i], it may not be the last element that equals to A[i]
+
+8-3
+a.  1.  divide numbers of different order of magnitudes into different sets
+        the order of magnitude of a number k can be find in time d = log10(k) by repeatedly dividing 10
+        the order of all numbers thereby can be computed in time Σd = n
+    2.  radix sort each set of size ni, contains number with di digits
+        each set takes time Θ(di * ni), Σdini = n, Θ(n) in total
+    3.  concat the results in the correct order
+        a number with more digits is always greater than a number with less digits
+        as Σni <= n, this step takes O(n) time
+    overall Θ(n)
+b.  1.  first divide strings of different length into different list L[i]
+        the length of all strings can be computed in time O(n)
+    2.  initialize i as length of the longeset string, S an empty list, repeatedly:
+            S = concat L[i] and S
+            counting sort S with ith character (by definition of L, all strings in S now has i characters at least)
+            decrement i
+        when i > 0
+        let ni = number of strings with at least i characters 
+        each iteration takes O(ni) and Σni = n
+    3.  on termination, S contains all strings of length at least 1 in sorted order
+        return concatenation of all empty strings in L[0] with S
+    overall Θ(n)
+    at the start of each iteration, S contains strings sorted according to i+1th and later characters
+    strings in L[i] has length i, can be treated as empty strings (i.e. least) considering i+1th and later characters
+    thus prepending L[i] to S, the resulting list still sorted according to i+1th and later characters
+    counting sort with ith character and the invariant carried to the next iteration
+    ./CLRS/sort/linear-sort.ts#stringSort
+
+8-4
+a.  pick one red jug, test it with all blue jugs, repeat for all red jugs
+    T(n) = n * n = Θ(n^2)
+b.  for a fixed permutation of red jugs, any permutation of blue jugs may be the correct grouping
+    n! possible results and the comparsion tree has height at least nlgn
+    the worst case performance of the algorithm is Ω(nlgn) 
+c.  by simultaneously quicksort red and blue jugs, repeatedly:
+        1.  pick a random red jug r, test with all blue jugs
+            divide blue jugs into groups that 
+                R1: hold more water than r
+                R2: hold less water than r
+                R3: hold the same amount water as r (denote this jug as b)
+        2.  test all red jugs with b, similarly divide red jugs into three groups B1, B2 and B3
+        3.  recursively solve (R1, B1), (R2, B2)
+    the set of red and blue jugs R and B can be treated as two equivalent set of numbers
+    by picking r randomly, r works as a random pivot of B
+    as b = a, R is partitioned in exactly the same way as B
+    expected running time analysis of quicksort than applies
+
+8-5
+a.  just sorted normally
+b.  1, 3, 2, 4, 5, 6, 7, 8, 9, 10 
+c.  for any i,
+        Σ(j = {i .. i+k-1})(A[j])/k <= Σ(j = {i+1 .. i+k})(A[j])/k
+        A[i] <= A[i+k]  // other array elements cancelled each other
+    conversely,
+        A[i] <= A[i+k]
+        //  add Σ(j = {i+1 .. i+k-1})(A[j]) to both sides
+        Σ(j = {i .. i+k-1})(A[j]) <= Σ(j = {i+1 .. i+k})(A[j])
+        Σ(j = {i .. i+k-1})(A[j])/k <= Σ(j = {i+1 .. i+k})(A[j])/k
+d.  divides the array into k subarrays, each of length n/k
+    sort each in time O(n/klg(n/k)), O(nlg(n/k)) in total
+    merge the sorted subarrays to form A' that
+        A'[i], A'[i+k], A'[i+2k] .. are from ith sorted subarray
+    overall running time O(nlg(n/k))
+e.  for 0 <= i <= k-1,
+        A[i] <= A[i+k] <= A[i+2k] ..
+    hence a k-sorted array can be divided into k sorted arrays
+    by 6.5-9, k sorted arrays of length n/k can be merged into a single sorted array in time O(nlgk)
+f.  when k is a constant, O(nlgk) = O(n)
+    if k-sorting an array of size n can be done in time o(nlgn)
+    o(nlgn) + O(n) = o(nlgn), the array can be completely sorted in time o(nlgn)
+    in contradiction to Ω(nlgn) lower bound
+    therefore k-sorting an array of size n must take Ω(nlgn)
+
+8-6
+a.  there are C(2n, n) ways to choose n elements from 2n ones
+    C(2n, n) = (2n)! / (n!)^2
+    the other n elements are automatically what not chosen
+b.  all C(2n, n) leaves must be reachable from the root of the decision tree
+    height of the tree at least lg(C(2n, n))
+    by Stirling's approximation, 
+        (2n)! / (n!)^2  = (4πn)^(1/2) * (2n/e)^2n * (1 + d/2n) / (2πn * (n/e)^2n * (1 + d/n)^2)
+                        = (2^2n / (πn)^(1/2)) * (1 + d/2n) / (1 + d/n)^2
+    where
+        (1 + d/2n) / (1 + d/n)^2    = (1 + d/n - d/2n) / (1 + d/n)^2
+                                    = 1/(1 + d/n) + (d/2n) / (1 + d/n)^2
+                                    = 1 + O(1/n) as n -> ∞
+        (2n)! / (n!)^2  = (2^2n)(1 + O(1/n)) / (πn)^(1/2)
+    lg(C(2n, n))    = 2n + lg(1 + O(1/n)) - lg(πn)/2
+                    = 2n - o(n) as n -> ∞
+c.  if two elements a and b should be placed consecutively in sorted order, a <= b
+    if a and b are not compared
+        any element smaller than or equal to a will be smaller than or equal to b
+        any element greatre than a will be greater than b
+    no matter how much comparsions are made, a and b cannot be distinguished
+    for the result to be correctly sorted, a and b must be compared
+d.  there are 2n-1 consecutive pairs in an array of size 2n
+    thus 2n-1 comparsions at least
+
+8-7
+-
