@@ -5,7 +5,9 @@ export {
   quicksort2,
   tailRecursiveQuicksort,
   fuzzysort,
-  isFuzzySorted
+  isFuzzySorted,
+  partition,
+  randomPivoter
 };
 
 import { SWAP, randomAB, swapReport } from "../util";

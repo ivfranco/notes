@@ -1,12 +1,16 @@
-export function insertionSort<T>(arr: T[]) {
-  for (let j = 1; j < arr.length; j++) {
-    let key = arr[j];
+export function insertionSort<T>(A: T[]) {
+  insertionSortSlice(A, 0, A.length - 1);
+}
+
+export function insertionSortSlice<T>(A: T[], p: number, r: number) {
+  for (let j = p; j <= r; j++) {
+    let key = A[j];
     let i = j - 1;
-    while (i >= 0 && arr[i] > key) {
-      arr[i + 1] = arr[i];
+    while (i >= 0 && A[i] > key) {
+      A[i + 1] = A[i];
       // console.log(arr);
       i--;
     }
-    arr[i + 1] = key;
+    A[i + 1] = key;
   }
 }

@@ -2180,3 +2180,174 @@ d.  there are 2n-1 consecutive pairs in an array of size 2n
 
 8-7
 -
+
+Chapter 9
+9.1-1
+thanks https://ita.skanev.com/09/01/01.html
+recursively:
+    1.  divide the array into two
+    2.  recursively find minimum of both subarrays, each with a list of elements compared to the minimum associated 
+    3.  find minimum of the array as smaller of the two
+    4.  append the greater to the list associated to the smaller
+when the procedure terminates, it returns a list of elements been comapared to the minimum so far
+number of comparsions performed equals to the number of internal nodes, which is n - 1
+the list has size equal to the height of the recurrence tree, which is lgn
+invariant:
+    at each level, all elements in the subarray except the minimum is greater of equal to an element in the list
+initialization:
+    array size is 1, consists of a single element, which is the minimum, trivially satistied
+maintenance:
+    assume l, r are minimum of subarrays
+    L, R are lists associated to them
+    without loss of generality, if l <= r, L' = L ∪ {r} is the new list
+    all elements in the left subarray except l >= one element in L
+    all elements in the right subarray are >= r, thus >= one element in L'
+termination:
+    -
+therefore the second minimum must be in the list associated to the minimum value
+the minimum of them can be find with lgn - 1 comparsions, n - 1 + lgn - 1 = n + lgn - 2 in total
+
+9.1-2
+initially any element can be the maximum or the minimum
+the number of potential maximum and minimum both equal to n, denote them as MIN and MAX
+assume all elements are distinct, elements can be divided into 4 groups:
+    1.  may be either maximum or minimum
+    2.  may be maximum, may not be minimum
+    3.  may be minimum, may not be maximum
+    4.  may be neither maximum or minimum
+comparing two elements a and b from group 1 will:
+    if a < b, a now in group 3, b now in group 2, both MIN and MAX decremented by 1
+comparsions between any combinations of elements from 2, 3 or 4, depends on the result, may be in vain
+comparsions between a from group 1 and b from group 2, 3 or 4, depends on the result, may only decrement MIN+MAX by 1
+thereby in worst case, it's optimal to perform comparsions between elements in group 1 first until group 1 is empty
+such comparsions can only be performed n/2 times, eliminate n/2 potential maximum and minimum independent of the input
+then the input array is divided into two disjoint groups, n/2 potential maximum and n/2 potential minimum
+in worst case, maximum and minimum can be find among them in (n/2 - 1) * 2 = n - 2 comparsions
+n/2 + n - 2 = 3n/2 - 2 in total
+
+9.2-1
+assume initially p < r, 1 <= i <= r - p + 1
+if the left subproblem is empty, q = p, k = p - p + 1 = 1
+i cannot be less than 1, so the procedure will not recursively solve the left subproblem
+if the right subproblem is empty, q = r, k = r - p + 1
+i cannot be greater than r - p + 1, so the procedure will not recursively solve the right subproblem
+
+9.2-2
+T(max(k-1, n-k)) is the same whether Xk = 0 or Xk = 1
+
+9.2-3
+./CLRS/sort/order.ts#randomizedSelect2
+
+9.2-4
+when pivot is always the maximum value
+
+9.3-1
+when divided into groups of 7, 
+number of elements greater than x is at least
+    4(1/2 * n/7 - 2) >= 2n/7 - 8
+T(n)    <= c[n/7] + c(5n/7 + 8) + dn
+        = 6cn/7 + 8c + dn
+        = cn + (8c + dn - cn/7)    
+        <= cn for c > 7d and large enough n
+when divided into groups of 3,
+number of elements greater than x is at least
+    2(1/2 * n/3 - 2) >= n/3 - 4
+T(n)    = T(n/3) + T(2n/3 + 4) + O(n)
+        >= T(n/3) + T(2n/3) + O(n)
+        = Θ(nlgn), no longer linear
+
+9.3-2
+3n/10 - 6 >= n/4
+6n - 120 >= 5n
+n >= 120
+
+9.3-3
+the lower median can be find in time O(n)
+by finding the index of the lower median in O(n)
+the array can be partitioned into subproblems of equal size in O(n)
+a good split is then guarenteed, worst case running time thus O(nlgn)
+
+9.3-4
+assume all elements are distinct
+let array elements be vertices of a graph, an edge a -> b exists iff some comparsion gives a > b
+for vertices a and b
+    if there is a path a -> b, a > b
+    if there is a path b -> a, b > a
+    otherwise it's uncertain whether a > b or b > a
+also the graph is acyclic, otherwise for some element a on the cycle, a > a
+for a procedure to correctly find the ith smallest element x, the comparsions it makes must ensure that:
+    i-1 elements are smaller than x
+    n-i elements are greater than x
+therefore by additionally update the graph according to every comparsion
+the set of i-1 elements smaller than x can be found by dfs from the vertex x
+the set of i-1 elements greater than x can be found by dfs the reverse graph from the vertex x
+
+9.3-5
+by simulating binary search
+let mid be the order of lower median, to find the ith smallest element
+    if i = mid, one run of black-box can solve the problem
+    if i > mid:
+        find the median in O(n)
+        filter elements smaller than the median from the array, O(n)
+        find (i - mid)th smallest element in the resulting array recursively
+    if i < mid:
+        similarly filter the array
+        find ith smallest element in the resulting array recursively
+T(n) = T(n/2) + O(n) = O(n)
+
+9.3-6
+using select, an array can be partitioned around the median in time O(n)
+therefore in time O(nlgk), the array can be divided into n/k chunks that
+    1.  each chunk is of length k
+    2.  elements in each chunk is greater than elements in previous chunks, smaller than elements in succeeding ones
+then the maximum of each chunk forms the kth quantiles, which can be found in time O(n)
+O(nlgk) + O(n) = O(nlgk) in total
+
+9.3-7
+find S in O(n)
+substract S from every element, take abstract value in O(n)
+find kth smallest element x of these abstract value in O(n)
+filter the original input array for elements that has distance to S smaller or equal to x in O(n)
+
+9.3-8
+thanks https://ita.skanev.com/09/03/08.html
+recursively:
+    1.  find the medians ma, mb of the two array A, B
+    2.  if the two medians equal, return either one
+    3.  if ma > mb
+            more than half of the elements in both arrays are greater than mb
+            more than half of the elements in both arrays are smaller than ma
+            the median of both arrays must be between ma and mb
+            by dropping same amount of elements > ma and < mb, the overall median will not change
+        drop elements > ma in A, elements < mb in B, get a subproblem of half size
+
+9.3-9
+denote the y coordinate of the main pipeline as y0, then
+    y0 = min{Σ(|yi - y|)}
+where (xi, yi) is the coordiante of ith well
+when y is greater than the y coordinate of k wells and smaller than n-k,
+    increasing y by an amount of ε will increase cost by εk, while decrease cost by ε(n-k) at the same time
+therefore before k = n/2, increasing y will improve the solution
+starting from = n/2 + 1, increasing y will increase the total cost
+the problem is equivalent to finding the median of all y coordinates
+the optimal solution is either the median, or any value between lower and higher medians
+
+9-1
+a.  O(nlgn)
+b.  O(n) + O(nlgi)
+c.  O(n) + O(ilgi)
+
+9-2
+a.  the median satisfies that, exactly [n/2] - 1 numbers are smaller than it
+    each one has weight 1/n
+        Σ(i = {1 .. [n/2] - 1})(1/n)
+        = ([n/2] - 1)(1/n) < 1/2
+        Σ(i = {[n/2] + 1 .. n})(1/n)
+        = ([n/2] - 1)(1/n) < 1/2
+b.  sort the elements
+    find the greatest k that Σwi < 1/2 in sorted order
+    then
+        Σ(i = {1 .. k})(wi) < 1/2
+        Σ{i = {1 .. k+1}}(wi) >= 1/2
+        Σ(i = {k+2 .. n})(wi) >= 1/2
+    and xk+1 is the median

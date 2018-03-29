@@ -7,7 +7,7 @@ import {
   mergeArrays
 } from "./heap";
 import { MaxDHeap } from "./d-heap";
-import { randomAB, isSorted, id, randomStr } from "../util";
+import { randomAB, isSorted, id, randomStr, shuffle } from "../util";
 import { YoungTableau } from "./young-tableau";
 import {
   quicksort,
@@ -25,9 +25,15 @@ import {
   inplaceCountingSort,
   stringSort
 } from "./linear-sort";
+import { randomizedSelect2 } from "./order";
 
 function main() {
-  console.log(problem_8_3());
+  for (let i = 0; i < 100; i++) {
+    if (!problem_9_2_3()) {
+      throw "Fail";
+    }
+  }
+  console.log("Pass");
 }
 
 function problem_6_3_1() {
@@ -302,6 +308,17 @@ function problem_8_3(): boolean {
   }
   let sorted = stringSort(A);
   return isSorted(sorted);
+}
+
+function problem_9_2_3(): boolean {
+  let n = randomAB(1, 10000);
+  let A = [];
+  for (let i = 0; i < n; i++) {
+    A[i] = i + 1;
+  }
+  shuffle(A);
+  let m = randomAB(1, n);
+  return randomizedSelect2(A, 0, A.length - 1, m) == m;
 }
 
 main();
