@@ -2351,3 +2351,210 @@ b.  sort the elements
         Σ{i = {1 .. k+1}}(wi) >= 1/2
         Σ(i = {k+2 .. n})(wi) >= 1/2
     and xk+1 is the median
+c.  by modifying SELECT
+    still partition the array around median of medians
+    then compute the weight sum of elements smaller and greater than the pivot wl and wg
+    if wl < 1/2 and wg <= 1/2, pivot is the weighted median
+    if wl >= 1/2, the weighted median is among elements smaller than the pivot
+        recursively find the weighted median in the subproblem
+    if wg > 1/2, the weighted median is among elements greater than the pivot
+        recursively find the element that's greater than elements sum to (1/2 - wl) in the subproblem
+    running time O(n) as in text
+d.  the same argument as 9.3-9
+    increasing p a small amount ε will increase the sum by Σ(pi < p)(wiε) and decrease the sum by Σ(pi > p)(wiε)
+    thus when Σ(pi > p)(wi) > 1/2, increasing p will reduce the total sum of weights
+    when Σ(pi > p) < 1/2, inceasing p will increase the total sum of weights
+    the minimum therefore is at greatest p where Σ(pi > p) >= 1/2
+d.  min(p){Σd(a, b)} = min(x, y){Σ|xi - x| + Σ|yi - y|} = min(x){Σ|xi - x|} + min(y){Σ|yi - y|}
+    when the x or y coordiate of the solution is changed, the other half of the sum won't change
+    by finding the weighted median of x and y seperately, both part are minimized
+
+9-3
+a.  ?
+b.  assuming Ui(n) <= n + cT(2i)lg(n/i)
+    Ui(n)   <= n/2 + (n/2 + cT(2i)lg(n/2i)) + T(2i)
+            = n + cT(2i)(lg(n/i) - 1) + T(2i)
+            = n + cT(2i)lg(n/i) - cT(2i) + T(2i)
+            <= n + cT(2i)lg(n/i) when c >= 1
+c.  when i is constant,
+    Ui(n)   = n + O(T(2i)lg(n/i))
+            = n + O(lgn)
+d.  when when i = n/k,
+    Ui(n)   = n + O(T(2i)lg(n/i))
+            = n + O(T(2n/k)lg(n/(n/k)))
+            = n + O(T(2n/k)lgk)
+
+9-4
+a.  same as quicksort, zi and zj will be compared only if either zi or zj is first chosen as the pivot
+    but this time, if i < j < k and an element between zj and zk is first chosen as pivot,
+    the procedure will not recurse into the subproblem containing zi and zj
+    Xijk = 1 only when zi or zj are the first pivot among {zi .. zk}
+    similarly when k < i < j and an element between zk and zi is first chosen as pivot, zi and zj will not be compared
+    Xijk = 1 only when zi or zj are the first pivot among {zk .. zj}
+    namely
+        E[Xijk] = 2/(k - i + 1) if i < j < k
+                = 2/(j - k + 1) if k < i < j
+                = 2/(j - i + 1) if i <= k <= j, i < j
+                = 0 if i = j
+b.  E[Xk]   = E[Σ(i = {1 .. n})(Σ(j = {i .. n})(Xijk))]
+            = E[Σ(i = {1 .. k})(Σ(j = {k .. n})(Xijk))]
+            + E[Σ(i = {k+1 .. n})(Σ(j = {i .. n})(Xijk))]
+            + E[Σ(i = {1 .. k})(Σ(j = {i .. k-1})(Xijk))]
+            = Σ(i = {1 .. k})(Σ(j = {k .. n})(2/(j - i + 1)))
+            + Σ(i = {k+1 .. n})(Σ(j = {i .. n})(2/(j - k + 1)))
+            + Σ(i = {1 .. k-2})(Σ(j = {i .. k-1})(2/(k - i + 1)))
+            = 2Σ(i = {1 .. k})(Σ(j = {k .. n})(1/(j - i + 1)))
+            + 2Σ(j = {k+1 .. n})(Σ(i = {k+1 .. j})(1/(j - k + 1)))
+            + 2Σ(i = {1 .. k-2}(k-i-1)/(k-i+1))
+            <= 2Σ(i = {1 .. k})(Σ(j = {k .. n})(1/(j - i + 1)))
+            + 2Σ(j = {k+1 .. n})(j - k - 1)/(j - k + 1))
+            + 2Σ(i = {1 .. k-2}(k-i-1)/(k-i+1))
+c.  (j - k - 1)/(j - k + 1) < 1
+    (k - i - 1)/(k - i + 1) < 1
+    2Σ(j = {k+1 .. n})(j - k - 1)/(j - k + 1)) + 2Σ(i = {1 .. k-2}(k-i-1)/(k-i+1))
+    <= Σ(i = {1 .. n}1) = n
+    2Σ(i = {1 .. k})(Σ(j = {k .. n})(1/(j - i + 1)))
+    = 1/k + 1/(k+1) + .. + 1/n
+    + 1/(k-1) + 1/k + .. + 1/(n-1)
+    + ...
+    + 1/1 + 1/2 + .. + 1/(n-k+1)
+    starting from 1/1, the term 1/i appears at most on i lines
+    therefore the sum <= Σi/i = n
+    E[Xk] <= 2 * 2n = 4n
+d.  as E[Xk] <= 4n = O(n)
+
+Chapter 10 
+10.1-1
+[ 4 ]
+[ 4, 1 ]
+[ 4, 1, 3 ]
+Pop:  3
+[ 4, 1 ]
+[ 4, 1, 8 ]
+Pop:  8
+[ 4, 1 ]
+
+10.1-2
+two stacks, one starts from index 0 and grows upward, one starts from index n - 1 and grows downward
+
+10.1-3
+head: 0, tail: 1
+[ 4, <5 empty items> ]
+head: 0, tail: 2
+[ 4, 1, <4 empty items> ]
+head: 0, tail: 3
+[ 4, 1, 3, <3 empty items> ]
+Dequeue:  4
+head: 1, tail: 3
+[ 4, 1, 3, <3 empty items> ]
+head: 1, tail: 4
+[ 4, 1, 3, 8, <2 empty items> ]
+Dequeue:  1
+head: 2, tail: 4
+[ 4, 1, 3, 8, <2 empty items> ]
+
+10.1-4
+./CLRS/collection/queue.ts#Queue
+by maintaining the size of the queue explicitly
+
+10.1-5
+./CLRS/collection/queue.ts#Deque
+
+10.1-6
+two stacks A and B
+enqueue push elements into A
+dequeue pops elements from B
+when B is empty, pop all elements from A and push into B in turn
+enqueue: constant time
+dequeue: amortized constant time
+
+10.1-7
+keep track of the number of elements in the queue A
+push enqueues an element into A
+when currently there are n elements in the queue, repeat n - 1 times:
+    dequeue an element
+    enqueue it immediately
+then the next element dequeued is the last element pushed 
+one queue is sufficient 
+push: constant time
+pop: linear time
+
+10.2-1
+insert still O(1), inserted before the head of the list
+delete is now O(n), the previous node of can no longer be find in O(1), must traverse the list
+
+10.2-2
+PUSH:   insert a new node at the head of the list
+POP:    delete the head, make head.next the new head, return the value contained by the head
+        if head = NIL, throw underflow
+
+10.2-3
+additionally maintain the tail of the list
+ENQUEUE:    append a new node to the tail of the list, update the tail to the new node
+DEQUEUE:    delete the head, make head.next the new head, return the value contained by the head
+            if head = NIL, throw underflow
+
+10.2-4
+set L.nil.key = k before the loop
+when the loop terminates, either x = L.nil or another node x.key = k is found
+
+10.2-5
+./CLRS/collection/slist.ts#SList
+INSERT: O(1)
+DELETE: O(n)
+SEARCH: O(n)
+
+10.2-6
+by explicitly maintaining the tail of the list as a field
+./CLRS/collection/dlist.ts#concat
+
+10.2-7
+traverse the list, repeatedly delete and insert nodes
+./CLRS/collection/slist.ts#reverse
+
+10.2-8
+assume the pointer to NIL is NULL = 0x0
+this.head.np = this.head.next ^ NULL = this.head.next
+for any two conservative nodes x and y,
+    x.np = x.prev ^ x.next = x.prev ^ &y
+    y.np = y.prev ^ y.next = &x ^ y.next
+starting from any two concervative nodes, the dlist can be traversed in any direction
+hence search can be performed in a similar manner
+insert updates this.head.np to this.head.np ^ &new_head
+delete cannot be performed in constant time, must traverse the list to get two conservative nodes
+by swapping the value of head and tail, the list is reversed in constant time
+
+10.3-1
+double list
+        1   2   3   4   5   6
+next    2   3   4   5   6   -
+key     13  4   8   19  5   11
+prev    -   1   2   3   4   5
+single list
+        1   2   3   4   5   6
+next    2   3   4   5   6   -
+key     13  4   8   19  5   11
+
+10.3-2
+the same procedure
+x.next now points to the word at x+1
+
+10.3-3
+the procedure never need to traverse the free list, only insert and delete from head
+insertion only have to set the next of the new head
+deletion only have to follow the next of the current head
+
+10.3-4
+will have to copy and move nodes as long as a node can be deleted from the middle of the list
+
+10.3-5
+assume a move operation that moves the content of node x to y
+overwrites array entry y, while maintains the correctness of prev and next pointers
+traverse the list L, for ith list node x
+    inspect node in ith entry of the array
+    if ith entry is free, move x to ith entry, free x
+    if ith entry is another list node, allocate a new object y, move i to y, move x to i, free x
+after n iterations, ith list node is stored at ith entry of the list
+
+10.4-1
+-
