@@ -2558,3 +2558,123 @@ after n iterations, ith list node is stored at ith entry of the list
 
 10.4-1
 -
+
+10.4-2
+./CLRS/collection/tree.ts#printTree
+
+10.4-3
+./CLRS/collection/tree.ts#printTreeStack
+
+10.4-4
+./CLRS/collection/tree.ts#printSiblingTree
+
+10.4-5
+./CLRS/collection/tree.ts#printTreeConstant
+
+10.4-6
+use a boolean is_last_child to indicate whether this child is the last one of its parent
+the first pointer is still the left-child
+the second pointer, when is_last_child == false, is still the right-sibling
+when is_last_child == true, the second pointer points to the parent
+
+10-1
+search      O(n)    O(n)    O(n)    O(n)
+    search is always linear
+    there's no way in linked list to reach a particular node without traversing all nodes before it
+insert      O(1)    O(n)    O(1)    O(n)
+    insert into unsorted lists can be done in constant time by inserting to the head
+    while insertion into sorted lists have to maintain the order
+delete      O(n)    O(1)    O(n)    O(1)
+    deletion always has to modify the previous node
+    in singly linked list, there's no efficient way to find the previous node, have to traverse from the head
+successor   O(n)    O(1)    O(n)    O(1)
+    in unsorted lists, successor have to search the whole list
+    in sorted lists, successor only have to call next on the input node
+predecessor O(n)    O(n)    O(n)    O(1)
+    in unsorted lists, predecessor have to search the whole list
+    in sorted lists, successor only have to call prev on the input node
+    but singly linked list have no pointer points to the previous node, have to traverse the whole list
+minimum     O(n)    O(1)    O(n)    O(1)
+    have to search the whole lists when unsorted
+    in sorted list minimum is just the head
+maximum     O(n)    O(1)    O(n)    O(1)
+    assumes the tail of the list is explicitly maintained
+    otherwise if the lists are circular, O(1) for doubly linked sorted list, O(n) for singly linked
+    both O(n) if the lists are not circular
+
+10-2
+a.  insert:         have to find the right position of the key, O(n)
+    minimum:        at the head, O(1)
+    extract-min:    delete and return the head, O(1)
+    union:          merging two sorted list, O(n)
+b.  insert:         insert at the head, O(1)
+    minimum:        by searching the whole list, O(n)
+    extract-min:    by searching the whole list then delete, O(n)
+    union:          must dedup, O(n^2) by naive double loop
+                    can be improved to O(nlgn) by first sort both lists then merge
+c.  same to b except
+    union:          dedup not necessary, simple concatenation will suffice, O(1)
+
+10-3
+a.  both algorithm is correct, returning the first node i in the list that key[i] = k or NIL if no such node exists
+    if the while loop of COMPACT-LIST-SEARCH takes t iterations
+    then none of the first t-1 random j can have key[j] == k
+    otherwise by the loop condition, key[i] < k, i will be updated to j, the procedure will return at line 7
+    therefore the for loop of COMPACT-LIST-SEARCH' will run for at least t iterations
+b.  the for loop runs for t iterations, each O(1)
+    after t iterations of the for loop, the distance from i to key k will be Xt
+    the while loop sets i = next[i], thus will run for Xt iterations
+    T(n) = O(n + Xt)
+    E[T(n)] = O(n + E[Xt])
+c.  for a particular r, there are
+        1.  nodes with distance to the key greater or equal than r
+        2.  nodes with distance to the key smaller than r
+        3.  nodes after the key
+    there are exactly r nodes in group 2
+    if no random node j falls within group 2, Xt >= r
+    E[Xt]   <= ΣP[Xt >= r]
+            = Σ(1 - r/n)^t
+d.  bounding by integral
+    Σ(r = {0 .. n-1})(r^t)  <= int(0 <= r <= n, r^t)
+                            = n^(t+1)/(t+1) - 0^(t+1)/(t+1)
+                            <= n^(t+1)/(t+1)
+e.  E[Xt]   <= Σ(1 - r/n)^t
+            = Σ((n-r)/n)^t
+            = Σ(r = {1 .. n})((n-r)^t)/n^t
+            = Σ(r = {0 .. n-1})(r^t)/n^t
+            <= n^(t+1)/(t+1)n^t
+            = n/(t+1)
+f.  combine b. and e.
+g.  ?
+h.  otherwise even node j is further down the list than i, i will not be updated to j as key[i] = key[j]
+    when all but the last node contains the same key k
+    searching any key smaller or equal to will be O(1)
+    searching any key greater than k will be O(n) with or without random skip
+
+Chapter 11
+11.1-1
+examine every slot, compare with the current maximum and update if not empty 
+O(m), m the number of slots in the array
+
+11.1-2
+make a bijection between elements and a finite number set {0 .. n - 1} of size n
+A[i] = 1 if i ∈ S, A[i] = 0 otherwise
+INSERT(i) sets A[i] to 1, DELETE(i) set A[i] = 0
+SEARCH(i) returns A[i] == 1
+
+11.1-3
+each slot stores a pointer to a doubly linked list
+SEARCH(k) inspects whether the linked list at slot k is empty
+INSERT(k) inserts at the head of the list
+DELETE(x) removes the nodes from the list
+
+11.1-4
+thanks Instructor's Manual
+by initializing two huge arrays which validate each other
+array A stores index of array S, array S stores index of array A
+additionally array S has a field S.top
+if array A contains key k, A[k] < S.top && S[A[k]] == k, both insert and delete maintains this property
+if array A does not contain key k, A[k] is not initialized thus can be any number
+if A[k] >= S.top, A[k] is trivially invalid
+if A[k] < S.top, it must be set by INSERT(k') with a different k', so S[A[k]] !== k
+

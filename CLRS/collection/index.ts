@@ -1,9 +1,18 @@
+import { randomAB } from "../util";
 import { Queue } from "./queue";
 import { SList, SNode } from "./slist";
 import { DList, DNode } from "./dlist";
+import {
+  TreeNode,
+  randomTree,
+  printTree,
+  printTreeStack,
+  printTreeConstant
+} from "./tree";
+import { Huge } from "./direct";
 
 function main() {
-  problem_10_2_7();
+  problem_11_1_4();
 }
 
 function problem_10_1_1() {
@@ -67,6 +76,33 @@ function problem_10_2_7() {
   }
   slist.reverse();
   console.log(slist.show());
+}
+
+function problem_10_4_2() {
+  let node = randomTree(randomAB(1, 10));
+  printTree(node);
+  console.log("");
+  printTreeStack(node);
+  console.log("");
+  printTreeConstant(node);
+}
+
+function problem_11_1_4() {
+  let huge = new Huge();
+  let copy = new Set();
+  for (let i = 0; i < 10; i++) {
+    let n = randomAB(0, 10);
+    huge.insert(n);
+    copy.add(n);
+  }
+  for (let i = 0; i < 10; i++) {
+    let n = randomAB(0, 10);
+    huge.delete(n);
+    copy.delete(n);
+  }
+
+  console.log(copy);
+  console.log(huge.list());
 }
 
 main();
