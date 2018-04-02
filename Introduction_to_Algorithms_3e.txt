@@ -2678,3 +2678,118 @@ if array A does not contain key k, A[k] is not initialized thus can be any numbe
 if A[k] >= S.top, A[k] is trivially invalid
 if A[k] < S.top, it must be set by INSERT(k') with a different k', so S[A[k]] !== k
 
+11.2-1
+define indicator variable Xij as
+    Xij = 1 when h(ki) = h(kj)
+        = 0 otherwise
+by simple uniform hashing, Pr{Xij = 1} = 1/m
+the expected total number of collisions is
+    E[Σ(i = {1 .. n})(Σ(j = {i+1 .. n})(Xij))]
+    = C(n, 2)(1/m)
+    = n(n-1)/m
+
+11.2-2
+A = [5, 28, 19, 15, 20, 33, 12, 17, 10]
+B = A.map(n => n % 9);
+B = [5, 1, 1, 6, 2, 6, 3, 8, 1]
+three collisions in slot 1
+two collisions in slot 6
+
+11.2-3
+deletion still O(1)
+insertion now has to insert the key to the correct position, equivalent to unsuccessful search in average performance
+unsuccessful search now stops when the node examined has a key larger than the search key
+assume all inserted elements are drawn from a uniform distribution
+about half of the α keys that collide with the search key will be smaller or greater than it
+expected running time O(1 + α/2), which is O(1 + α)
+performance of successful search now depends not on the keys inserted after k, but the keys smaller than k
+    Pr{ Xij = 1 } = Pr{ h(ki) = h(kj) ∧ hi > hj } = 1/2m
+expected number of nodes examined when searching ki is then
+    E[1 + Σ(j = {1 .. n} - i)(Xij)]
+    = 1 + (n-1)/2m
+on average over all i:
+    1/n * n(1 + (n-1)/2m)
+    = 1 + (n-1)/2m
+    = 1 + α/2 - 1/2m
+    = Θ(1 + α)
+so search and delete are asymptotically the same to unsorted lists
+insertion performance is reduced from O(1) to (1 + α)
+
+11.2-4
+set a slot in the hash table not in the range of the hash function
+that is, for a h_free, no k will give h(k) = h_free
+can add 1 to any existing hash function, so the range changes from {1 .. m} to {2 .. m+1}
+slot 1 then is the free slot now
+search does not involve allocation and deallocation
+insert operation now has to acquire a free node from the free list
+    simply delete the head from list in slot h_free, O(1)
+delete operation now has to return the node to the free node
+    simply prepend the node to list in slot h_free, O(1)
+a simply linked list will suffice
+
+11.2-5
+pigeonhole principle
+if all slots contains list of length smaller than n
+the total number of keys stored in the hash table is smaller than nm = |U|
+thereby at least one slot contains a list of length greater or equal to n
+
+11.2-6
+thanks https://stackoverflow.com/questions/8629447/
+repeatedly:
+    1.  select a slot <- {1 .. m}
+    2.  select a number i <- {1 .. L}
+        if i <= length of the list in this slot, take the key in ith node
+        otherwise go back to 1.
+the procedure succeeds when i <= length of the list
+as the expected length of list is α, success rate is α/L
+expected number of trials is then L/α by geometric distribution
+then ith node is retrieved in time O(L), O(L + L/α) = O(L(1 + 1/α)) in total
+consider the hash table as a m x L 2d-array with n entries non-empty
+this procedure than uniformly chooses a slot from all m x L entries, both empty and non-empty
+as the procedure is redone when an empty entry is chosen, it's a uniform sampling of non-empty entry
+
+11.3-1
+compare h(k) to the stored hash value first, only compare the stored strings when hash values equal
+comparing two strings will take time proportional to the length of the shorter string
+comparing two hash values usually will be constant time
+
+11.3-2
+the number s represented by the string is Σ(i = {1 .. r})128^(r-i)ci
+assume rk is the number represented by the first k characters of the string modulo m
+    rk      = Σ(i = {0 .. k})(128^(r-i)ci) mod m
+    rk+1    = Σ(i = {0 .. k+1})(128^(r-i)ci) mod m
+            = (Σ(i = {0 .. k})(128^(r-i)ci) + ck+1) mod m
+            = 128rk mod m + ck+1 mod m
+therefore s mod m can be computed iteratively
+
+11.3-3
+let x = c1 .. cn
+h(x)    = Σ(i = {1 .. n})((2^p)^(n-i)ci) mod 2^p - 1
+        = Σ(i = {1 .. n})(2^p(n-i)ci mod 2^p - 1)
+        = Σ(i = {1 .. n})(ci)
+therefore any permutation y of x has h(y) = h(x)
+
+11.3-4
+[ 700, 318, 936, 554, 172 ]
+
+11.3-5
+assume there are |B| slots containing b1 .. b|B| keys
+    Σ(i = {1 .. |B|})bi = |U|
+then the number of collisions is
+    Σ(i = {1 .. |B|})(bi(bi - 1))
+    = Σbi^2 - Σbi
+by Cauchy-Schwarz inequality,
+    (Σbi)^2 <= |B|Σbi^2
+    Σbi^2 >= |U|^2 / |B|
+    Σ(bi(bi - 1)) >= |U|^2/|B| - |U|
+assume Pr{h(x) = h(y)} < 1/|B| - 1/|U|
+then the total number of collisions is less than
+    C(|U|, 2) * (1/|B| - 1/|U|)
+    = |U|(|U| - 1) * (1/|B| - 1/|U|)
+    = (|U| - 1)(|U|/|B| - 1)
+    < |U|^2/|B| - |U|
+therefore it must has Pr{h(x) = h(y)} >= 1/|B| - 1/|U|
+
+11.3-6
+-
+

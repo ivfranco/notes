@@ -12,7 +12,7 @@ import {
 import { Huge } from "./direct";
 
 function main() {
-  problem_11_1_4();
+  problem_11_3_4();
 }
 
 function problem_10_1_1() {
@@ -103,6 +103,14 @@ function problem_11_1_4() {
 
   console.log(copy);
   console.log(huge.list());
+}
+
+function problem_11_3_4() {
+  let keys = [61, 62, 63, 64, 65];
+  let A = (Math.sqrt(5) - 1) / 2;
+  let m = 1000;
+
+  console.log(keys.map(k => Math.floor(m * ((k * A) % 1))));
 }
 
 main();
