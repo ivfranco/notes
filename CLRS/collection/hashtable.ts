@@ -1,17 +1,14 @@
+export {
+  LinearProbing,
+  QuadraticProbing,
+  DoubleHashing
+};
+
 import { DList, DNode } from "./dlist";
 
-function dHash(m: number, k: number): number {
-  return k % m;
-}
-
-function mHash(m: number, k: number): number {
-  const A = (Math.sqrt(5) - 1) / 2;
-  return Math.floor(m * ((A * k) % 1));
-}
-
 abstract class Chaining<T> {
-  m: number;
-  T: DList<T>[];
+  protected m: number;
+  protected T: DList<T>[];
 
   constructor(m: number) {
     this.m = m;
@@ -23,14 +20,7 @@ abstract class Chaining<T> {
     this.T = T;
   }
 
-  abstract mapping(a: T): number;
-
-  hash(a: T): number {
-    let m = this.m;
-    let key = this.mapping(a);
-
-    return mHash(m, key);
-  }
+  abstract hash(a: T): number;
 
   search(a: T): DNode<T> | null {
     let T = this.T;
@@ -51,5 +41,98 @@ abstract class Chaining<T> {
     let h = this.hash(x.key);
 
     T[h].delete(x);
+  }
+}
+
+const DELETED = Symbol("DELETED");
+
+abstract class OpenAddressing<T> {
+  protected m: number;
+  protected T: (T | null | typeof DELETED)[];
+
+  constructor(m: number) {
+    this.m = m;
+    this.T = new Array(m);
+    this.T.fill(null);
+  }
+
+  abstract hash(k: T, i: number): number;
+
+  search(a: T): number | null {
+    let T = this.T;
+    let m = this.m;
+
+    let i = 0;
+    while (i < m) {
+      let h = this.hash(a, i);
+      if (T[h] === a) {
+        return h;
+      }
+      if (T[h] === null) {
+        return null;
+      }
+      i++;
+    }
+    return null;
+  }
+
+  insert(a: T): number {
+    let T = this.T;
+    let m = this.m;
+
+    let i = 0;
+    while (i < m) {
+      let h = this.hash(a, i);
+      if (T[h] === a) {
+        return h;
+      }
+      if (T[h] === DELETED || T[h] === null) {
+        T[h] = a;
+        return h;
+      }
+      i++;
+    }
+
+    throw "Error: Hashtable overflow";
+  }
+
+  delete(i: number) {
+    let T = this.T;
+    let m = this.m;
+
+    if (i < 0 || i >= m) {
+      throw "Error: Out of bound access";
+    }
+
+    T[i] = DELETED;
+  }
+
+  report() {
+    console.log(this.T);
+  }
+}
+
+class LinearProbing extends OpenAddressing<number> {
+  hash(k: number, i: number): number {
+    return (k + i) % this.m;
+  }
+}
+
+class QuadraticProbing extends OpenAddressing<number> {
+  hash(k: number, i: number): number {
+    return (k + i + 3 * (i ** 2)) % this.m;
+  }
+}
+
+class DoubleHashing extends OpenAddressing<number> {
+  h1(k: number): number {
+    return k;
+  }
+  h2(k: number): number {
+    return 1 + (k % (this.m - 1));
+  }
+
+  hash(k: number, i: number): number {
+    return (this.h1(k) + i * this.h2(k)) % this.m;
   }
 }

@@ -10,9 +10,14 @@ import {
   printTreeConstant
 } from "./tree";
 import { Huge } from "./direct";
+import {
+  LinearProbing,
+  QuadraticProbing,
+  DoubleHashing
+} from "./hashtable";
 
 function main() {
-  problem_11_3_4();
+  problem_11_4_1();
 }
 
 function problem_10_1_1() {
@@ -111,6 +116,26 @@ function problem_11_3_4() {
   let m = 1000;
 
   console.log(keys.map(k => Math.floor(m * ((k * A) % 1))));
+}
+
+function problem_11_4_1() {
+  let A = [10, 22, 31, 4, 15, 28, 17, 88, 59];
+  let m = 11;
+
+  let linear = new LinearProbing(m);
+  let quadratic = new QuadraticProbing(m);
+  let double = new DoubleHashing(m);
+  for (let k of A) {
+    linear.insert(k);
+    quadratic.insert(k);
+    double.insert(k);
+  }
+  console.log("Linear probing:");
+  linear.report();
+  console.log("Quadratic probing:")
+  quadratic.report();
+  console.log("Double hashing:")
+  double.report();
 }
 
 main();
