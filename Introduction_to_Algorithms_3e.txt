@@ -2914,3 +2914,142 @@ b.  assume (j + k(k+1)/2) ≡ (j + l(l+1)/2) mod m for some 0 <= k < l <= m-1
 
 11-4
 -
+
+Chapter 12
+12.1-1
+Height 2:
+  ┌-21
+┌-17
+| └-16
+10
+| ┌-5
+└-4
+  └-1
+Height 3:
+  ┌-21
+┌-17
+| └-16
+10
+└-5
+  | ┌-4
+  └-1
+Height 4:
+21
+|   ┌-17
+|   | └-16
+| ┌-10
+└-5
+  └-4
+    └-1
+Height 5:
+┌-21
+17
+└-16
+  | ┌-10
+  | | | ┌-5
+  | | └-4
+  └-1
+Height 6:
+  ┌-21
+  | | ┌-17
+  | | | | ┌-16
+  | | | └-10
+  | └-5
+┌-4
+1
+12.1-2
+binary search tree:
+    left <= parent <= right
+min heap:
+    left >= parent, right >= parent
+it cannot print elements in sorted order in O(n)
+as building a min heap takes time O(n)
+if it can traverse its element in sorted order in O(n), n elements can be sorted in time O(n)
+which is lower than the lower bound of comparsion sort Ω(nlgn)
+
+12.1-3
+the same idea as 10.4-5
+adjusted when a the key is yielded as 10.4-5 is preorder
+./CLRS/collection/tree.ts#inorder
+
+12.1-4
+./CLRS/collection/tree.ts#preorder
+./CLRS/collection/tree.ts#postorder
+
+12.1-5
+as inorder traverses the tree keys in sorted order in O(n)
+if a binary search tree can be built from n elements in time o(nlgn), n elements can be sorted in time o(nlgn)
+therefore building a binary search tree must take time Ω(nlgn)
+
+12.2-1
+by the nature of search tree structure, for any sequences of nodes examined and an index i,
+    if A[i] >= A[i+1], A[i] >= A[j] for all j >= i+1
+    if A[i] <= A[i+1], A[i] <= A[j] for all j >= i+1
+c is not possible as 911 > 240 but 911 < 912
+
+12.2-2
+./CLRS/collection/tree.ts#treeMinimum
+./CLRS/collection/tree.ts#treeMaximum
+
+12.2-3
+./CLRS/collection/tree.ts#treePredecessor
+
+12.2-4
+  ┌-21
+┌-17
+| └-16
+10
+| ┌-5
+└-4
+  └-1
+search for 21, 10 on path, 16 to the left, 16 > 10
+search for 1, 10 on path, 5 to the right, 5 < 10
+
+12.2-5
+assume all keys are distinct, current node x has key k
+the successor s has key greater than k
+it's either 
+    1.  in the right subtree of x, or, 
+    2.  at some level from the root, x is in the left subtree and s is the parent
+then all nodes in case 1 have keys smaller than all nodes in case 2
+as x has two children, it's successor must be case 1, in the right subtree of x
+then if s has a left child, it has key smaller than s but greater than x
+in contradiction to s being the successor of x
+similarly the predecessor has no right child
+
+12.2-6
+any node s greater than x is either
+    1.  in the right subtree of x, or, 
+    2.  at some level from the root, x is in the left subtree and s is the parent / in the right subtree
+in case 2, as all nodes in the right subtree are greater than the parent, case 2 can be refined to
+    2.  at some level from the root, x is in the left subtree and s is the parent
+when there's no nodes in case 1, the smallest node in case 2 is the successor of x
+consider two nodes s1 and s2, where s2 is higher in the tree than s1
+by definition s1 is in the left subtree of s2, s2 > s1
+thereby the smallest node in case 2 is just the lowest node in case 2
+which in turn is the lowest ancestor of x that has x in its left subtree / whose left child is also an ancestor of x
+
+12.2-7
+see 12.2-8, as h = O(n), k = O(n), k + h = O(2n) = O(n)
+
+12.2-8
+consider the subtree formed by nodes traversed by the k calls to SUCCESSOR
+exactly k nodes is yielded during the traverse
+the subtree may contain nodes smaller than the minimum of the k nodes on the path from root to the minimum
+similary the subtree may contains nodes greater than the maximum
+both path has at most h nodes
+the number of nodes in the subtree is at most O(k + 2h)
+for any node x in the subtree, x is traversed first from its parent p
+either during call to SUCCESSOR(p) or SUCCESSOR(y) for some y
+both case the left subtree of x will be traversed before x is visited again
+then if x has a right child, its right subtree will be traversed before x is visited the third time
+once m the maximum node in the right subtree of x is traversed, SUCCESSOR will go directly to p
+if x = p.left, SUCCESSOR(m) = p, the left subtree of p will never be visited again
+if x = p.right, SUCCESSOR(m) = p' for which x is in the left subtree of p', the same to above
+therefore a node will be visited at most 3 times
+T(k) = 3O(k + 2h) = O(k + h)
+
+12.2-9
+when x is a leaf node, it has no left nor right child
+either SUCCESSOR(x) will return y or PREDECESSOR(x) will return y, depends on x being left or right child of y
+

@@ -1,4 +1,4 @@
-import { randomAB } from "../util";
+import { randomAB, shuffle, isSorted } from "../util";
 import { Queue } from "./queue";
 import { SList, SNode } from "./slist";
 import { DList, DNode } from "./dlist";
@@ -17,7 +17,7 @@ import {
 } from "./hashtable";
 
 function main() {
-  problem_11_4_1();
+  problem_12_1_1();
 }
 
 function problem_10_1_1() {
@@ -84,7 +84,7 @@ function problem_10_2_7() {
 }
 
 function problem_10_4_2() {
-  let node = randomTree(randomAB(1, 10));
+  let node = randomTree([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   printTree(node);
   console.log("");
   printTreeStack(node);
@@ -136,6 +136,35 @@ function problem_11_4_1() {
   quadratic.report();
   console.log("Double hashing:")
   double.report();
+}
+
+function treeOfHeight(h: number): TreeNode<number> {
+  let A = [1, 4, 5, 10, 16, 17, 21];
+  let node = randomTree(A);
+  while (node.height() !== h) {
+    node = randomTree(A);
+  }
+  return node;
+}
+
+function problem_12_1_1() {
+  for (let i = 2; i <= 6; i++) {
+    console.log(`Height ${i}:`);
+    console.log(treeOfHeight(i).show());
+  }
+}
+
+function problem_12_1_3() {
+  let A = [1, 4, 5, 10, 16, 17, 21];
+  let node = randomTree(A);
+  let sorted = [];
+  for (let a of node.inorder()) {
+    sorted.push(a);
+  }
+  console.log(node.show());
+  printTreeConstant(node);
+  console.log(sorted);
+  return isSorted(sorted);
 }
 
 main();
