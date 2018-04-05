@@ -4,7 +4,8 @@ export {
   printTree,
   printTreeStack,
   printTreeConstant,
-  randomTree
+  randomTree,
+  treeParent
 };
 
 import { randomAB, shuffle } from "../util";
@@ -106,7 +107,7 @@ abstract class SearchTreeNode<T> {
 }
 
 class Tree<T> {
-  private root: TreeNode<T> | null;
+  root: TreeNode<T> | null;
 
   constructor() {
     this.root = null;
@@ -114,6 +115,14 @@ class Tree<T> {
 
   isEmpty() {
     return this.root === null;
+  }
+
+  search(k: T): TreeNode<T> | null {
+    if (this.root === null) {
+      return null;
+    } else {
+      return treeSearch(k, this.root);
+    }
   }
 
   insert(k: T) {
@@ -203,6 +212,21 @@ function printTreeStack<T>(node: TreeNode<T>) {
       return;
     }
   }
+}
+
+function treeSearch<T>(k: T, node: TreeNode<T>): TreeNode<T> | null {
+  let cursor: TreeNode<T> | null = node;
+  while (cursor !== null) {
+    if (k === cursor.key) {
+      return cursor;
+    } else if (k < cursor.key) {
+      cursor = cursor.left;
+    } else {
+      cursor = cursor.right;
+    }
+  }
+
+  return null;
 }
 
 function treeInsert<T>(k: T, node: TreeNode<T>) {
@@ -312,7 +336,7 @@ function treeMaximum<T>(node: TreeNode<T>): TreeNode<T> {
   if (node.right === null) {
     return node;
   } else {
-    return treeMinimum(node.right);
+    return treeMaximum(node.right);
   }
 }
 
@@ -342,4 +366,41 @@ function treePredecessor<T>(node: TreeNode<T>): TreeNode<T> | null {
     }
     return y;
   }
+}
+
+function treeInsertRecur<T>(k: T, node: TreeNode<T>) {
+  if (k <= node.key) {
+    if (node.left === null) {
+      node.left = new TreeNode(k);
+      node.left.parent = node;
+    } else {
+      treeInsertRecur(k, node.left);
+    }
+  } else {
+    if (node.right === null) {
+      node.right = new TreeNode(k);
+      node.right.parent = node;
+    } else {
+      treeInsertRecur(k, node.right);
+    }
+  }
+}
+
+function treeParent<T>(node: TreeNode<T>, T: Tree<T>): TreeNode<T> | null {
+  let root = <TreeNode<T>>T.root;
+  let max = treeMaximum(node);
+  let succ = treeSuccessor(max);
+
+  if (succ !== null && succ.left === node) {
+    return succ;
+  }
+  if (node === root) {
+    return null;
+  }
+
+  let cursor = succ === null ? root : <TreeNode<T>>succ.left;
+  while (cursor.right !== null && cursor.right !== node) {
+    cursor = cursor.right;
+  }
+  return cursor;
 }

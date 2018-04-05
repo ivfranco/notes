@@ -3053,3 +3053,193 @@ T(k) = 3O(k + 2h) = O(k + h)
 when x is a leaf node, it has no left nor right child
 either SUCCESSOR(x) will return y or PREDECESSOR(x) will return y, depends on x being left or right child of y
 
+12.3-1
+./CLRS/collection/tree.ts#treeInsertRecur
+
+12.3-2
+TREE-INSERT and TREE-SEARCH are equivalent until a null leaf
+search operation will traverse exactly the same path as insert
+plus one final node which was NIL at the end of insertion
+
+12.3-3
+worst case:
+    the element inserted is strictly increasing or decreasing
+    before the ith insertion, the tree has height i-2, so ith insertion takes time Θ(i - 2) = Θ(i)
+    T(n) = T(n-1) + Θ(n) = Θ(n^2)
+best case:
+    the tree is perfectly balanced
+    T(n) = T(n-1) + Θ(lgn) = Θ(nlgn)
+
+12.3-4
+let x be a node with two children, y be its left child, y is a leaf
+deleting x first will replace x with its successor without modifying its left child
+then deleting y simply removes y
+deleting y first will simply remove y
+then x becomes case a in figure 12.4, the x is replaced by its right subtree
+two results may be different if the right child of x has a left child
+
+12.3-5
+search doesn't reference parents
+insert also doesn't reference parents
+succ, the successor of the maximum node in the subtree rooted at x will be the first "right ancestor" of x
+thereby if succ is NIL, x on the right-most branch of the tree
+parent of x can be found by travering downward from the root and check if right child of the cursor is x
+if succ is not NIL, x is on the right-most branch of the subtree rooted at the left child of succ
+./CLRS/collection/tree.ts#treeParent
+this procedure will only traverse from root to the bottom at most twice, running time is O(h)
+both TRANSPLANT and TREE-DELETE only refers parent costant times, so TREE-DELETE takes time O(h)
+
+12.3-6
+the predecessor pred will be the maximum of the subtree rooted at the left child of z
+then pred have to be first replaced by its left child before replacing z, if pred is not the left child of z
+the two strategy can be defined as two seperate procedures, which are called with 1/2 probability each
+
+12.4-1
+when n = 1, ΣC(i+3, 3) = C(3, 3) = C(n+3, 4) = C(4, 4) = 1
+assume Σ(i = {0 .. n-1})C(i+3, 3) = C(n+3, 4)
+Σ(i = {0 .. n})C(i+3, 3)
+= Σ(i = {0 .. n-1})C(i+3, 3) + C(n+3, 3)
+= C(n+3, 4) + C(n+3, 3)
+= C(n+4, 4)
+so for all n >= 1, Σ(i = {0 .. n-1})C(i+3, 3) = C(n+3, 4)
+
+12.4-2
+let tree T' be a perfectly balanced tree with k nodes
+then the height of T' will be O(lgk)
+let tree T be a tree that:
+    left subtree of T is T'
+    right subtree of T is s single chain of length n - k - 1
+then the average height in left subtree will be 1 + O(lgk) = O(lgk)
+the average height in right subtree will be 1 + O(n-k) = O(n-k)
+overall average will be
+    (kO(lgk) + (n-k)O(n-k)) / n
+    <= (nO(lgk) + (n-k)O(n-k)) / n
+    = O(lgk) + O((n-k)^2 / n)
+for the overall average be O(lgn), O((n-k)^2 / n) must be O(lgn)
+    (n-k)^2 = O(nlgn)
+    n-k = O((nlgn)^(1/2))
+therefore the height of a tree of average height O(lgn) is O((nlgn)^(1/2))
+
+12.4-3
+let V(n) denote the variations of trees of n nodes
+when the root has ith order, its left subtree has i-1 nodes, its right subtree has n-i nodes
+    V(n) = Σ(i = {1 .. n})(V(i-1)V(n-i))
+specifically:
+    V(0) = 1
+    V(1) = 1
+    V(2) = 2
+    V(3) = 5
+when n = 3, a randomly chosen tree has 5 variations:
+v1:
+    3
+    │ ┌─2
+    └─1
+v2:
+    ┌─3
+    2
+    └─1
+v3:
+    3
+    └─2
+      └─1
+v4:
+    ┌─3
+    │ └─2
+    1
+v5:
+      ┌─3
+    ┌─2
+    1
+when the tree is randomly chosen, each tree will be picked with probability 1/5
+but 3! = 6, the 6 variations of inputs cannot be evenly divided into the 5 cases
+
+12.4-4
+f(x) = 2^x
+(d/d^2x)f(x) = 2^x(ln2)^2 >= 0
+2^x is convex
+
+12.4-5
+the randomized quicksort 
+    1.  chooses a random pivot
+    2.  compare all other elements with the pivot, partitions them into two subarray
+    3.  repeat step 1. for both subarrays
+this procedure is equivalent to
+    1.  choose a random element as the root of the tree
+    2.  compare all other elements with the root, decide whether they belongs to the left or right subtree
+    3.  repeat step 1. for the two groups to build the two subtrees
+which is in turn equivalent to build a random tree by insertion
+the height of an element then is number of comparsions performed with its key as an operand
+the total height bounds the total number of comparsions performed by randomized quicksort
+as the expected height of the tree is O(lgn), the total height is O(nlgn)
+thanks https://cs.stackexchange.com/questions/86149
+the original bound O(lgn) in 12.4 can be strengthened 
+as E[Yn] = E[2^Xn] <= C(n+3, 3)/4 = O(n^3), by Markov's inequality
+    Pr{Xn >= lgt} = Pr{2^Xn >= t} <= E[2^Xn] / t = O(n^3/t)
+choose t = n^(3+k),
+    Pr{Xn >= (k+3)lgn} = O(n^-k)
+therefore probability of running time of quicksort exceeds (k+3)nlgn = O(nlgn) is O(1/n^k) for any k > 0
+
+12-1
+a.  as k is inserted to the left of the current node when k <= node.key, the resulting tree will be a single chain
+    ith insertion takes time Ω(i), total time Ω(n^2)
+b.  for each node in the tree, the left subtree may have nodes at most one more than the right subtree
+    let T(h) be the lower bound of number of nodes in such a tree of height h, then
+        T(1)    = 1
+        T(h)    = 1 + T(h-1) + (T(h-1) - 1) = 2T(h-1)
+                = 2^(h-1) = Ω(2^h)
+    therefore h = O(lgn), the tree is balanced
+    expected time of n insertion is then nO(h) = O(nlgn)
+c.  all nodes will be in the list associated with the root
+    each insertion takes time O(1) of list insertion, O(n) in total
+d.  in worst case the resulting tree is a single chain, Ω(n^2) in total
+    on average it's roughly equivalent to building a tree by random sequences of insertion
+    average height h = O(lgn), expected running time O(nlgn)
+
+12-2
+insertion is stright forward, takes time proportional to the length of the string, O(n) in total
+nodes have to keep an additional boolean field indicating whether they are end of a string
+then the total nodes in the tree is O(n)
+instead of inorder, the tree has to be traversed in preorder to give sorted sequence
+the path taken so far during the preorder traverse can be maintained in a stack-like structure
+as both pop and push to the top of the stack takes O(1), this will not change the performance asymptotically
+reconstructing the string from nodes takes time proportional to the length of the path
+which in turn is the length of the originally inserted string, the combined length is O(n)
+hence overall running time is O(n)
+./CLRS/collection/radix-tree.ts#RadixTree
+
+12-3
+a.  there are n nodes in total
+    each node x has depth d(x, T)
+    average depth is Σd(x, T) / n = P(T) / n
+b.  the root has depth 0
+    total depth of nodes in left subtree is P(TL) + |TL|
+    total depth of nodes in right subtree is P(TR) + |TR|
+    |TL| + |TR| = n - 1
+    P(T) = P(TL) + P(TR) + |TL| + |TR| = P(TL) + P(TR) + n - 1
+c.  the root of the tree can have order from 1 to n uniformly
+    if the root has order i, its left subtree has i-1 nodes, right subtree n-i nodes
+    combine with part b.
+    P(n)    = Σ(i = {1 .. n})(P(i-1) + P(n-i) + n - 1)
+            = Σ(i = {0 .. n-1})(P(i) + P(n-i-1) + n - 1)
+d.  each P(i) for i = {0 .. n-1} appears twice
+    P(n)    = (2Σ(i = {0 .. n-1})P(i) + n(n-1)) / n
+            = 2Σ(i = {0 .. n-1})P(i) / n + (n-1)
+            = 2Σ(i = {0 .. n-1})P(i) / n + Θ(n)
+e.  the same as 7-3
+f.  randomized quicksort, as argued in 12.4-5
+
+12-4
+a.  see 12.4-3
+b.  B(x)^2  = (Σ(n = {0..})bnx^n)^2
+            = Σ(i = {0 ..})(Σ(j = {0 ..})(bibjx^(i+j)))
+    which is the sum of a matrix where entry (i, j) is bibjx^(i+j)
+    consider each diagonal line on which i+j = n >= 1, entries on that line sums to
+    Σ(k = {0 .. n})bkbn-kx^n = bn+1x^n
+    for n = 0, b0 = 1, b0b0x^0 = b1x^0
+    B(x)^2  = Σ(n = {0 ..})(bn+1x^n)
+    xB(x)^2 = Σ(n = {0 ..})(bn+1x^n+1)
+            = Σ(n = {1 ..})(bnx^n)
+    xB(x)^2 + 1 = B(x)
+c.  routine
+d.  Stirling's approximation
+

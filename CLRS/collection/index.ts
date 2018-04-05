@@ -3,11 +3,13 @@ import { Queue } from "./queue";
 import { SList, SNode } from "./slist";
 import { DList, DNode } from "./dlist";
 import {
+  Tree,
   TreeNode,
   randomTree,
   printTree,
   printTreeStack,
-  printTreeConstant
+  printTreeConstant,
+  treeParent
 } from "./tree";
 import { Huge } from "./direct";
 import {
@@ -15,9 +17,10 @@ import {
   QuadraticProbing,
   DoubleHashing
 } from "./hashtable";
+import { RadixTree } from "./radix-tree";
 
 function main() {
-  problem_12_1_1();
+  problem_12_2();
 }
 
 function problem_10_1_1() {
@@ -165,6 +168,40 @@ function problem_12_1_3() {
   printTreeConstant(node);
   console.log(sorted);
   return isSorted(sorted);
+}
+
+function problem_12_3_5() {
+  let A = [1, 4, 5, 10, 16, 17, 21];
+  let k = A[randomAB(0, A.length - 1)];
+  let T = new Tree();
+  T.root = randomTree(A);
+
+  let p = treeParent(<TreeNode<number>>T.search(k), T);
+  console.log(T.root.show());
+  console.log(k)
+  console.log(p !== null ? p.key : null);
+}
+
+function problem_12_4_3() {
+  let A = [1, 2, 3];
+  for (let i = 0; i < 10; i++) {
+    let node = randomTree(A);
+    console.log(node.show());
+  }
+}
+
+function problem_12_2() {
+  let A = ["0", "011", "10", "100", "1011"];
+  shuffle(A);
+  let rtree = new RadixTree();
+  for (let str of A) {
+    rtree.insert(str);
+  }
+  let sorted = [];
+  for (let str of rtree.preorder()) {
+    sorted.push(str);
+  }
+  console.log(sorted);
 }
 
 main();
