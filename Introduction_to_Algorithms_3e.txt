@@ -3243,3 +3243,150 @@ b.  B(x)^2  = (Σ(n = {0..})bnx^n)^2
 c.  routine
 d.  Stirling's approximation
 
+Chapter 13
+13.1-1
+bh(T.root) = 2:
+    ┌─15r
+  ┌─14b
+  │ └─13r
+┌─12r
+│ │ ┌─11r
+│ └─10b
+│   └─9r
+8b
+│   ┌─7r
+│ ┌─6b
+│ │ └─5r
+└─4r
+  │ ┌─3r
+  └─2b
+    └─1r
+bh(T.root) = 3:
+    ┌─15b
+  ┌─14r
+  │ └─13b
+┌─12b
+│ │ ┌─11b
+│ └─10r
+│   └─9b
+8b
+│   ┌─7b
+│ ┌─6r
+│ │ └─5b
+└─4b
+  │ ┌─3b
+  └─2r
+    └─1b
+bh(T.root) = 4:
+    ┌─15b
+  ┌─14b
+  │ └─13b
+┌─12b
+│ │ ┌─11b
+│ └─10b
+│   └─9b
+8b
+│   ┌─7b
+│ ┌─6b
+│ │ └─5b
+└─4b
+  │ ┌─3b
+  └─2b
+    └─1b
+
+13.1-2
+36 will be inserted as the right child of 35
+as 35 is red
+    if 36 is inserted as a red node, property 4 is broken
+    the red node 35 has a red child
+    if 36 is inserted as a black node, property 5 is broken
+    the path from root to 36 contains one more black node than other paths
+
+13.1-3
+property 1
+    trivially satisfied
+property 2
+    satisfied
+property 3
+    satisfied
+property 4
+    only the root is colored black from red
+    each red node in either the left or right subtree satisfies property 4
+    the root is now black, so each red node satisfies property 4
+property 5
+    each node satisfies property 5 before the root is re-colored
+    for each node in either left or right subtree, property 5 still holds after the re-coloring
+    for the root, each path has one more black node after the re-coloring, property 5 still holds for all nodes
+
+13.1-4
+as red nodes must have black children, the parent of a red node must be black
+then the red node itself also can only have black children
+so after the "absorb", the parent of a red node may have at most 4 black children
+
+13.1-5
+both paths contain the same amount of black nodes bh(x)
+as each red node must have black children
+the longest such path may contain at most bh(x) red nodes, 2bh(x) combined
+the shortest path has at least bh(x) nodes
+
+13.1-6
+by 13.1-5
+T is at most a complete tree of height 2bh(T.root) = 2k, 2^(2k + 1) - 1 nodes in total
+T is at least a complete tree of height bh(T.root)-1 = k-1, 2^k - 1 nodes in total
+
+13.1-7
+largest possible:
+    root is black or red
+    if one level contains red / black nodes only, the next level contains only the opposite color
+    let 2^k - 1 <= n < 2^(k+1) - 1
+    if k is odd, the first k levels contains 1/3 or 2/3 red nodes if the root is not counted
+    the ratio increases / decreases towards 2/3 or 1/3 depends on whether root is red or black
+    if k is even, the same to when k is odd, but this time the root can be counted
+    the largest possible ratio then is between 2/3 and 1/2
+smallest possible:
+    if n = 2^k - 1, the tree is complete and all nodes can be black
+    if 2^k - 1 < n < 2^(k+1) - 1, red nodes have to be inserted so property 5 holds
+    if exactly half of the bottom level is filled and they are all decendents of the same subtree of the root
+    by color the corresponding child of root to red, property 5 is maintained, red ratio is 1/n
+    starting from a tree where all but the bottom nodes are black
+    then for any black node one level above the bottom level which has two red children:
+        color the children black and the parent red still maintains property 5
+    thus the necessary number of red nodes is no more than lg(number of nodes at bottom level), which is <= lg(n/2)
+    smallest possible red ratio is somewhere between 0 and (lgn - 1)/n
+
+13.2-1
+./CLRS/collection/redblack-tree.ts#rightRotate
+
+13.2-2
+there is a rotation for each edge between two internal nodes
+for a tree with n nodes, there are exactly n-1 edges between internal nodes, thus n-1 possible rotations
+
+13.2-3
+depth of a increases by 1
+depth of b won't change
+depth of c decreases by 1
+
+13.2-4
+if the tree is not a right-going chain, some node on the right-most branch of the tree has a left child
+then by right-rotating the node, its left child is now on the right-most branch
+the right-most branch contains exactly one more node
+so after at most n-1 right rotations, every tree can be transformed into a right-going chain
+a right-going chain can be transformed into any tree by reversing the right rotations by left rotations
+then every tree can be transformed into any other tree within 2n-2 rotations
+
+13.2-5
+let T1 be a right-going chain
+no right rotation can be performed within T1, as no node in T1 has a left child
+therefore T1 cannot be right-converted to any T2 that's not a right-going chain
+thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch13.pdf
+consider nodes x, y and a, b, and c in subtrees α, β and γ, after a right rotation
+the path from root to the node contains certain numbers of left-going edges, denote it by l(x)
+    for a and x, l(a) and l(x) is decreased by 1
+    for b, l(b) won't change (the order of one left-going and one right-going edge exchanged)
+    for y and c, l(y) and l(c) won't change (the number of right-going edges increased by 1)
+thus Σl(x) for all x in the tree is decreased by at least 1 after a right rotation
+when Σl(x) = 0, the tree is a right-going chain, cannot be right-converted to any other trees
+as l(x) can be at most n-1 for any node in a tree containing n keys
+Σl(x) = O(n^2), any tree will become a right-going chain after at most O(n^2) right rotation
+therefore if T1 can be right-converted to T2, it must happen within O(n^2) right rotaions
+

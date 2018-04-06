@@ -20,7 +20,7 @@ import {
 import { RadixTree } from "./radix-tree";
 
 function main() {
-  problem_12_2();
+  problem_13_1_1();
 }
 
 function problem_10_1_1() {
@@ -202,6 +202,15 @@ function problem_12_2() {
     sorted.push(str);
   }
   console.log(sorted);
+}
+
+function problem_13_1_1() {
+  let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  let node = randomTree(A);
+  while (node.height() !== 3) {
+    node = randomTree(A);
+  }
+  console.log(node.show());
 }
 
 main();

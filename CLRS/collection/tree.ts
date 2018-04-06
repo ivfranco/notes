@@ -1,11 +1,13 @@
 export {
   Tree,
   TreeNode,
+  SearchTreeNode,
   printTree,
   printTreeStack,
   printTreeConstant,
   randomTree,
-  treeParent
+  treeParent,
+  treeInsert
 };
 
 import { randomAB, shuffle } from "../util";
@@ -16,6 +18,8 @@ abstract class SearchTreeNode<T> {
   abstract parent: SearchTreeNode<T> | null;
   abstract left: SearchTreeNode<T> | null;
   abstract right: SearchTreeNode<T> | null;
+
+  abstract nodeStringify(): string;
 
   private toLines(): [number, string[]] {
     let [left_top, left_lines] = this.left === null ? [0, []] : this.left.toLines();
@@ -41,7 +45,7 @@ abstract class SearchTreeNode<T> {
       }
     });
 
-    let lines = [...right_lines, this.key.toString(), ...left_lines];
+    let lines = [...right_lines, this.nodeStringify(), ...left_lines];
 
     return [right_lines.length, lines];
   }
@@ -126,10 +130,11 @@ class Tree<T> {
   }
 
   insert(k: T) {
+    let z = new TreeNode(k);
     if (this.root === null) {
-      this.root = new TreeNode(k);
+      this.root = z;
     } else {
-      treeInsert(k, this.root);
+      treeInsert(z, this.root);
     }
   }
 
@@ -184,6 +189,10 @@ class TreeNode<T> extends SearchTreeNode<T> {
   isLeaf(): boolean {
     return this.left === null && this.right === null;
   }
+
+  protected nodeStringify(): string {
+    return this.key.toString();
+  }
 }
 
 function printTree<T>(node: TreeNode<T>) {
@@ -229,25 +238,24 @@ function treeSearch<T>(k: T, node: TreeNode<T>): TreeNode<T> | null {
   return null;
 }
 
-function treeInsert<T>(k: T, node: TreeNode<T>) {
-  let p: TreeNode<T> = node;
-  let x: TreeNode<T> | null = node;
+function treeInsert<T>(z: SearchTreeNode<T>, node: SearchTreeNode<T>) {
+  let p: SearchTreeNode<T> = node;
+  let x: SearchTreeNode<T> | null = node;
 
   while (x !== null) {
     p = x;
-    if (k <= p.key) {
+    if (z.key <= p.key) {
       x = p.left;
     } else {
       x = p.right;
     }
   }
 
-  if (k <= p.key) {
-    p.left = new TreeNode(k);
-    p.left.parent = p;
+  z.parent = p;
+  if (z.key <= p.key) {
+    p.left = z;
   } else {
-    p.right = new TreeNode(k);
-    p.right.parent = p;
+    p.right = z;
   }
 }
 
@@ -255,7 +263,8 @@ function randomTree<T>(A: T[]): TreeNode<T> {
   shuffle(A);
   let node = new TreeNode(A[0]);
   for (let i = 1; i < A.length; i++) {
-    treeInsert(A[i], node);
+    let z = new TreeNode(A[i]);
+    treeInsert(z, node);
   }
   return node;
 }
