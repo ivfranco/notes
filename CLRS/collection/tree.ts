@@ -1,25 +1,78 @@
 export {
   Tree,
   TreeNode,
+  SearchTree,
   SearchTreeNode,
   printTree,
   printTreeStack,
   printTreeConstant,
   randomTree,
   treeParent,
-  treeInsert
+  treeInsert,
+  treeMinimum
 };
 
 import { randomAB, shuffle } from "../util";
 
+abstract class SearchTree<T, N extends SearchTreeNode<T>> {
+  abstract root: N | null;
+
+  //  replace u by v, fix the link between u.parent and v
+  //  the link between v and children of u is not fixed
+  //  parent of u is returned to mimic the behavior of text-book RB-TRANSPLANT which sets parent of T.nil
+  protected transplant(u: N, v: N | null): N | null {
+    if (u.parent === null) {
+      this.root = v;
+    } else if (u === u.parent.left) {
+      u.parent.left = v;
+    } else {
+      u.parent.right = v;
+    }
+
+    if (v !== null) {
+      v.parent = u.parent;
+    }
+
+    return u.parent;
+  }
+
+  isEmpty() {
+    return this.root === null;
+  }
+
+  abstract insert(k: T): void;
+  abstract delete(z: N): void;
+
+  search(k: T): N | null {
+    if (this.root === null) {
+      return null;
+    } else {
+      return treeSearch(k, this.root);
+    }
+  }
+
+  show(): string {
+    if (this.root === null) {
+      return "Empty tree";
+    } else {
+      return this.root.show();
+    }
+  }
+
+  *[Symbol.iterator](): IterableIterator<T> {
+    if (this.root) {
+      yield* this.root.inorder();
+    }
+  }
+}
 
 abstract class SearchTreeNode<T> {
   abstract key: T;
-  abstract parent: SearchTreeNode<T> | null;
-  abstract left: SearchTreeNode<T> | null;
-  abstract right: SearchTreeNode<T> | null;
+  abstract parent: this | null;
+  abstract left: this | null;
+  abstract right: this | null;
 
-  abstract nodeStringify(): string;
+  protected abstract nodeStringify(): string;
 
   private toLines(): [number, string[]] {
     let [left_top, left_lines] = this.left === null ? [0, []] : this.left.toLines();
@@ -110,23 +163,12 @@ abstract class SearchTreeNode<T> {
   }
 }
 
-class Tree<T> {
+class Tree<T> extends SearchTree<T, TreeNode<T>> {
   root: TreeNode<T> | null;
 
   constructor() {
+    super();
     this.root = null;
-  }
-
-  isEmpty() {
-    return this.root === null;
-  }
-
-  search(k: T): TreeNode<T> | null {
-    if (this.root === null) {
-      return null;
-    } else {
-      return treeSearch(k, this.root);
-    }
   }
 
   insert(k: T) {
@@ -135,20 +177,6 @@ class Tree<T> {
       this.root = z;
     } else {
       treeInsert(z, this.root);
-    }
-  }
-
-  private transplant(u: TreeNode<T>, v: TreeNode<T> | null) {
-    if (u.parent === null) {
-      this.root = v;
-    } else if (u === u.parent.left) {
-      u.parent.left = v;
-    } else {
-      u.parent.right = v;
-    }
-
-    if (v !== null) {
-      v.parent = u.parent;
     }
   }
 
@@ -173,9 +201,9 @@ class Tree<T> {
 
 class TreeNode<T> extends SearchTreeNode<T> {
   key: T;
-  parent: TreeNode<T> | null;
-  left: TreeNode<T> | null;
-  right: TreeNode<T> | null;
+  parent: this | null;
+  left: this | null;
+  right: this | null;
 
   constructor(k: T) {
     super();
@@ -195,7 +223,7 @@ class TreeNode<T> extends SearchTreeNode<T> {
   }
 }
 
-function printTree<T>(node: TreeNode<T>) {
+function printTree<T>(node: SearchTreeNode<T>) {
   console.log(node.key);
   if (node.left !== null) {
     printTree(node.left);
@@ -205,8 +233,8 @@ function printTree<T>(node: TreeNode<T>) {
   }
 }
 
-function printTreeStack<T>(node: TreeNode<T>) {
-  let stack: TreeNode<T>[] = [];
+function printTreeStack<T>(node: SearchTreeNode<T>) {
+  let stack: SearchTreeNode<T>[] = [];
 
   while (true) {
     console.log(node.key);
@@ -216,15 +244,15 @@ function printTreeStack<T>(node: TreeNode<T>) {
     if (node.left !== null) {
       node = node.left;
     } else if (stack.length !== 0) {
-      node = <TreeNode<T>>stack.pop();
+      node = <SearchTreeNode<T>>stack.pop();
     } else {
       return;
     }
   }
 }
 
-function treeSearch<T>(k: T, node: TreeNode<T>): TreeNode<T> | null {
-  let cursor: TreeNode<T> | null = node;
+function treeSearch<T, N extends SearchTreeNode<T>>(k: T, node: N): N | null {
+  let cursor: N | null = node;
   while (cursor !== null) {
     if (k === cursor.key) {
       return cursor;
@@ -333,7 +361,7 @@ function printTreeConstant<T>(node: TreeNode<T>) {
   }
 }
 
-function treeMinimum<T>(node: TreeNode<T>): TreeNode<T> {
+function treeMinimum<T, N extends SearchTreeNode<T>>(node: N): N {
   if (node.left === null) {
     return node;
   } else {
@@ -341,7 +369,7 @@ function treeMinimum<T>(node: TreeNode<T>): TreeNode<T> {
   }
 }
 
-function treeMaximum<T>(node: TreeNode<T>): TreeNode<T> {
+function treeMaximum<T, N extends SearchTreeNode<T>>(node: N): N {
   if (node.right === null) {
     return node;
   } else {
@@ -349,7 +377,7 @@ function treeMaximum<T>(node: TreeNode<T>): TreeNode<T> {
   }
 }
 
-function treeSuccessor<T>(node: TreeNode<T>): TreeNode<T> | null {
+function treeSuccessor<T, N extends SearchTreeNode<T>>(node: N): N | null {
   let x = node;
   if (x.right !== null) {
     return treeMinimum(x.right);
@@ -363,7 +391,7 @@ function treeSuccessor<T>(node: TreeNode<T>): TreeNode<T> | null {
   }
 }
 
-function treePredecessor<T>(node: TreeNode<T>): TreeNode<T> | null {
+function treePredecessor<T, N extends SearchTreeNode<T>>(node: N): N | null {
   let x = node;
   if (x.left !== null) {
     return treeMaximum(x.left);

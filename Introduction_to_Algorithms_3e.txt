@@ -3390,3 +3390,49 @@ as l(x) can be at most n-1 for any node in a tree containing n keys
 Σl(x) = O(n^2), any tree will become a right-going chain after at most O(n^2) right rotation
 therefore if T1 can be right-converted to T2, it must happen within O(n^2) right rotaions
 
+13.3-1
+property 5 is violated then
+
+13.3-2
+┌─41b
+38b
+│ ┌─31b
+└─19r
+  └─12b
+    └─8r
+
+13.3-3
+13.5:
+    α:  the color of A and C swapped, bh still k
+    β:  still only one black node among A, B and C, bh still k
+    γ:  still only one black node among A, B and C, bh still k
+    δ:  the color of C and D swapped, bh still k
+    ε:  the color of C and D swapped, bh still k
+13.6:
+    as both A and B are red, the left rotation will not change bh of any node
+    considering only the transformation from case 3 to a proper red black tree
+    α:  C replaced by B, both black, bh still k
+    β:  same to α
+    γ:  before Cb -> Br -> γ, now Bb -> Cr -> γ, bh still k
+    δ:  path from root to δ now contains one more red node, bh still k
+
+13.3-4
+by loop invariation, z is red at the start of each iteration, so z cannot be T.nil
+then immediately the loop tests whether z.p.color == RED, terminates if z.p.color != RED
+by loop invariation, if z and z.p both red, T.root is black, which means neither z or z.p is the root
+so z, z.p, z.p.p all exists, none of them is T.nil
+the uncle of z, z.p.p.right, is only modified when its color is red, so it cannot be T.nil too
+as these are the only nodes ever get modified in an iteration of RB-INSERT-FIXUP, T.nil will not be colored red
+
+13.3-5
+the node will first be inserted as a red node
+during RB-INSERT-FIXUP, the node z is always a red node
+z may only be colored black at the end of RB-INSERT-FIXUP if z is the new root
+which only happens when the tree is previously empty, n = 1
+so for n > 1, z will point to a red node when RB-INSERT-FIXUP terminates, the tree contains at least one red node
+
+13.3-6
+during the initial insertion, where the new node z is placed somewhere at the bottom level
+the path traversed are all ancestors of the node z
+by pushing all the ancestors into a stack, z.p can be poped from the stack in time O(1)
+

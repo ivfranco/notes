@@ -18,9 +18,10 @@ import {
   DoubleHashing
 } from "./hashtable";
 import { RadixTree } from "./radix-tree";
+import { RBTree } from "./redblack-tree";
 
 function main() {
-  problem_13_1_1();
+  problem_13_3_2();
 }
 
 function problem_10_1_1() {
@@ -211,6 +212,28 @@ function problem_13_1_1() {
     node = randomTree(A);
   }
   console.log(node.show());
+}
+
+function problem_13_3_2() {
+  let A = [41, 38, 31, 12, 19, 8];
+  let rb = new RBTree();
+
+  for (let k of A) {
+    rb.insert(k);
+  }
+
+  console.log(rb.show());
+
+  for (let k of A) {
+    let z = rb.search(k);
+    if (z === null) {
+      throw "Error: Search fail";
+    } else {
+      rb.delete(z);
+    }
+    console.log(rb.show());
+  }
+
 }
 
 main();
