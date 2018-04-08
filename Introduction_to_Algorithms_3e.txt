@@ -1,4 +1,4 @@
-// rereading, lost all the notes / codes of the previous reading
+// rereading, lost all the notes / code of the previous reading
 
 Chapter 2
 2.1-1
@@ -3436,3 +3436,216 @@ during the initial insertion, where the new node z is placed somewhere at the bo
 the path traversed are all ancestors of the node z
 by pushing all the ancestors into a stack, z.p can be poped from the stack in time O(1)
 
+13.4-1
+root can only be red if y was the root and its red child x becomes the new root
+then in RB-DELETE-FIXUP, the loop immediately terminates, and x is set to black
+so the root after deletion is guarenteed to be black
+
+13.4-2
+if both x and x.p are red, the extra black can be fixed by setting x to black
+then both property 1 and property 4 are restored
+
+13.4-3
+┌─41b
+38b
+│ ┌─31b
+└─19r
+  └─12b
+    └─8r
+Deleting 8
+┌─41b
+38b
+│ ┌─31b
+└─19r
+  └─12b
+Deleting 12
+┌─41b
+38b
+│ ┌─31r
+└─19b
+Deleting 19
+┌─41b
+38b
+└─31b
+Deleting 31
+┌─41r
+38b
+Deleting 38
+41b
+Deleting 41
+Empty tree
+
+13.4-4
+anywhere examines or modifies x, as x may be T.nil
+
+13.4-5
+case 1:
+    α:  A + B = 2 + 1 = 3 => A + B + D = 2 + 0 + 1 = 3
+    β:  same to α
+    γ:  B + D + C = 1 + 0 + 1 = 2 => D + B + C = 1 + 0 + 1 = 2
+    δ:  same to γ
+    ε:  B + D + E = 1 + 0 + 1 = 2 => D + E = 1 + 1 = 2
+    ζ:  same to ε
+case 2:
+    α:  B + A = count(c) + 2 => B + A = count(c) + 1 + 1 = count(c) + 2
+    β:  same to α
+    γ:  B + D + C = count(c) + 1 + 1 = count(c) + 2 => B + D + C = count(c) + 1 + 0 + 1 = count(c) + 2
+    δ:  same to γ
+    ε:  B + D + E = count(c) + 1 + 1 = count(c) + 2 => B + D + E = count(c) + 1 + 0 + 1 = count(c) + 2
+    ζ:  same to ε
+case 3:
+    α:  not modified
+    β:  same to α
+    γ:  B + D + C = count(c) + 1 + 0 = count(c) + 1 => B + C = count(c) + 1
+    δ:  B + D + C = count(c) + 1 + 0 = count(c) + 1 => B + C + D = count(c) + 1 + 0 = count(c) + 1
+    ε:  B + D + E = count(c) + 1 + 1 = count(c) + 2 => B + C + D + E = count(c) + 1 + 0 + 1 = count(c) + 2
+    ζ:  same to ε
+case 4:
+    α:  B + A = count(c) + 2 => D + B + A = count(c) + 1 + 1 = count(c) + 2
+    β:  same to α
+    γ:  B + D + C = count(c) + 1 + count(c') => D + B + C = count(c) + 1 + count(c')
+    δ:  same to γ
+    ε:  B + D + E = count(c) + 1 + 0 = count(c) + 1 => D + E = count(c) + 1
+    ζ:  same to ε
+
+13.4-6
+before calling RB-DELETE-FIXUP, the tree up to x is correct in property 4
+as the sibling of x is red, x.p must be black
+
+13.4-7
+consider case (a) in figure 13.5
+after insertion of node B, A and D is colored black, then C the root is colored red
+RB-INSERT-FIXUP then fixes the color of C to black
+deletion of node B will be simple, without calling RB-DELETE-FIXUP
+but now the color of A and D is modified
+
+13-1
+a.  insertion:
+        the new node will be inserted at the bottom level of the tree
+        its parent must be copied or the new node may not be accessible from the root
+        similarly its grandparent must be copied or the parent of the new node may not be accessible
+        all O(h) ancestors of the new node must be copied
+    deletion:
+        if the deleted node y has no or one child, only its parent have to be copied and modified
+        its parent now has NIL or y's sole child as a new child
+        no modification to the subtree rooted at y's sole child is necessary
+        if y has two children, then the successor of y is moved to its place
+        every node on the path then has to be modified and copied, O(h) nodes at most
+b.  ./CLRS/collection/persistent-tree.ts#PTree
+c.  shallow copying the current node is O(1)
+    if z.key <= copy.key and copy.left == null, the loop recursion terminates, similarly when z.key > copy.key
+    otherwise the procedure recursively calls itself with copy.left or copy.right, which has depth one more than copy
+    time complexity is T(h) = T(h-1) + O(1) = O(h)
+    each recursive call shallow copies the current node, which consistents of a key and two pointers, takes O(1) space
+    space complexity is T(h) = T(h-1) + O(1) = O(h) 
+d.  PERSISTENT-TREE-INSERT must modify and copy the root to make a new tree
+    then the left and right child of the root must be modified too
+    otherwise their parent pointer points to the old root, the tree is no longer persistent
+    so the children of the root also have to be copied
+    recursively all nodes in the tree have to be copied, the procedure will take O(n) time and space
+e.  RB-INSERT-FIXUP and RB-DELETE-FIXUP only ever modifies nodes as far as children of siblings
+    when copying all the ancestors, also copy all the siblings and chlidren of siblings
+    at most 4 times more nodes are copied, time and space complexity still O(h)
+    then apply reb black fixup to the tree after insertion and deleteion, the height of the tree is O(lgn)
+
+13-2
+a.  as insertion and deletion in reb black tree maintains property 5
+    the black height after insertion or deletion can be determined by traversing s simple path from root to any leaf
+    length of that path will be O(lgn) as the property of red black tree
+    so the complexity of insertion or deletion still O(lgn)
+    by keeping a counter of black nodes, starting from T.bh, decrements every time a black node is visited
+    T(n) = T(l) + T(r) + O(1), where l + r + 1 = n
+    therefore T(n) = O(n) and T(n)/n = O(1)
+b.  as each simple path from root to leaf contains the same number of black nodes
+    also descending one level in the tree at most decreases the black height by 1
+    thereby each simple path from root to leaf contains node with black height k for each k in {1 .. T.bh}
+    starting from x = T.root and always go from x to x.right
+    the last node has black height T2.bh is the maximum among all such nodes
+c.  as node in Ty <= x <= node in T2, make a new tree that:
+        x is the root
+        left subtree is Ty
+        right subtree is T2
+    then as binary search tree property holds within Ty and T2, it also holds in the new tree
+    y is chosen as the maximum node among all nodes in T1 with bh = T2.bh, each node in Ty is greater than y.p
+    therefore each node in the new tree is greater than y.p, the new tree is in the right position within T1
+d.  Ty has black height T2.bh, same to T2
+    T2.root is black, the color of y uncertain
+    x must be red or any simple path through x contains one more black node
+    but then
+        x may be the root after join
+        x and T2.root may both be red
+    if x is the new root, coloring it black will fix both proerty 2 and 4
+    if x is not root and both T2.root and x are red
+    the tree now satisfies the invariants in RB-INSERT-FIXUP with z = T2.root, or z = x.right
+    so calling RB-INSERT-FIXUP(x.right) will fix the red black tree properties
+e.  then T1 is inserted to the maximum node in T2 which has bh = T1.bh
+f.  finding y: O(lgn)
+    constructing the new subtree: O(1)
+    RB-INSERT-FIXUP: O(lgn)
+    overall runtime O(lgn)
+
+13-3
+a.  let L(h) denote the least number of nodes a height-h AVL tree may contain
+        L(0) = 1
+    x.h = 1 + max(x.left.h, x.right.h), so the height of subtrees are at least x.h - 1 and x.h - 2
+        L(h)    = L(h-1) + L(h-2) + 1
+                > L(h-1) + L(h-2)
+                = Fh
+    as Fibonacci number grows exponentially, h = O(lgn)
+b.  when |x.right.h - x.left.h| <= 1, the subtree is balanced
+    when x.right.h = x.left.h + 2, both subtree are balanced but the height of right subtree is 2 higher than left
+    denote:
+        h = x.h, the current height of x
+        y = x.right
+        α = left subtree of x
+        β = left subtree of y
+        γ = right subtree of y
+    then
+        h(x) = h 
+        h(y) = h - 1
+        h(α) = h - 3
+        h - 3 <= h(β), h(γ) <= h - 2
+    after a left rotation at x,
+        h(x.left) = h(α) = h - 3
+        h - 3 <= h(x.right) = h(β) <= h - 2
+    x is balanced
+        h - 2 <= h(y.left) = 1 + max(h(α), h(β)) <= h - 1
+        h - 3 <= h(y.right) = h(γ) <= h - 2
+    y may not be balanced if h(γ) = h - 3 and h(β) = h - 2
+    a right rotation at y can prevent that situation, but also possibly introduces unbalance to y
+    // stuck
+    thanks http://courses.csail.mit.edu/6.046/spring04/handouts/ps5-sol.pdf
+    the possible unbalance introduced by right rotation at y will be eliminated by a left rotation
+    denote
+        h = x.h
+        z = y.left
+        α = left subtree of x
+        β = left subtree of z
+        γ = right subtree of z
+        δ = right subtree of y
+    then
+        h(α) = h - 3
+        h(z) = h - 2
+        h(δ) = h - 3
+        h - 4 <= h(β), h(γ) <= h - 3
+    after right rotation at y,
+        h - 4 <= h(y.left) = h(γ) <= h - 3
+        h(y.right) = h(δ) = h - 3
+    y is balanced, and h(y) = h - 2
+    after left rotation at z,
+        h(x.left) = h(α) = h - 3
+        h - 4 <= h(x.right) = h(β) <= h - 3
+    x is balanced, and h(x) = h - 2
+    z now is balanced with h(z) = h - 1
+    ./CLRS/collection/avl-tree.ts#balance
+c.  ./CLRS/collection/avl-tree.ts#insert
+d.  depends on whether it's necessary to fix the height of all the ancestors after calling BALANCE
+    BALANCE(x) decreases height of the subtree rooted at x by 1
+    this decrement may be propagated all the way to the top, change the height of all the ancestors of x
+    but during insertion, this propagation can be compensated by fix the height of roots recursively
+    so BALANCE takes O(1), INSERT takes O(h) = O(lgn)
+    as BALANCE(x) decrements the height of subtree rooted at x by 1
+    one BALANCE(x) is called for some node x, none of the ancestors of x will be unbalanced
+    (they are balanced before the insertion
+    and the possible height increase caused by insertion solved at x)
+    so BALANCE(x) may only be fully executed once and O(1) rotations are performed

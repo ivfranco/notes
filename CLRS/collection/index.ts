@@ -19,9 +19,11 @@ import {
 } from "./hashtable";
 import { RadixTree } from "./radix-tree";
 import { RBTree } from "./redblack-tree";
+import { PTree } from "./persistent-tree";
+import { AVLTree } from "./avl-tree";
 
 function main() {
-  problem_13_3_2();
+  problem_13_3();
 }
 
 function problem_10_1_1() {
@@ -223,17 +225,53 @@ function problem_13_3_2() {
   }
 
   console.log(rb.show());
+}
+
+function problem_13_4_3() {
+  let A = [41, 38, 31, 12, 19, 8];
+  let D = [8, 12, 19, 31, 38, 41];
+
+  let rb = new RBTree();
 
   for (let k of A) {
+    rb.insert(k);
+  }
+
+  console.log(rb.show());
+
+  for (let k of D) {
+    console.log(`Deleting ${k}`);
     let z = rb.search(k);
-    if (z === null) {
-      throw "Error: Search fail";
-    } else {
+    if (z) {
       rb.delete(z);
     }
     console.log(rb.show());
   }
+}
 
+function problem_13_1() {
+  let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  shuffle(A);
+  let trees: PTree<number>[] = [];
+  let ptree: PTree<number> = new PTree();
+  for (let k of A) {
+    ptree = ptree.insert(k);
+    trees.push(ptree);
+  }
+  for (let t of trees) {
+    console.log(t.show());
+  }
+}
+
+function problem_13_3() {
+  let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  shuffle(A);
+  let avl = new AVLTree();
+  for (let k of A) {
+    console.log(`Inserting ${k}`)
+    avl.insert(k);
+    console.log(avl.show());
+  }
 }
 
 main();

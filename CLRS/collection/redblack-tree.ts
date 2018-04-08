@@ -26,57 +26,6 @@ class RBTree<T> extends SearchTree<T, RBNode<T>> {
     this.root = null;
   }
 
-  private leftRotate(x: RBNode<T>) {
-    if (x.right === null) {
-      throw "Error: left rotate with no right child";
-    }
-
-    let y = x.right;
-    //  each key in left subtree of y is greater than x
-    //  left subtree of y should be right subtree of x
-    x.right = y.left;
-    if (y.left !== null) {
-      y.left.parent = x;
-    }
-    //  put y in the position of x
-    y.parent = x.parent;
-    //  fix the pointer of the parent of x, if exist
-    if (x.parent === null) {
-      this.root = y;
-    } else if (x === x.parent.left) {
-      x.parent.left = y;
-    } else {
-      x.parent.right = y;
-    }
-    //  fix the edge between x and y
-    y.left = x;
-    x.parent = y;
-  }
-
-  private rightRotate(y: RBNode<T>) {
-    if (y.left === null) {
-      throw "Error: right rotate with no left child";
-    }
-
-    let x = y.left;
-    //  each key in right subtree of x is smaller than y
-    //  left subtree of y should be right subtree of x
-    y.left = x.right;
-    if (x.right !== null) {
-      x.right.parent = y;
-    }
-    x.parent = y.parent;
-    if (y.parent === null) {
-      this.root = x;
-    } else if (y === y.parent.left) {
-      y.parent.left = x;
-    } else {
-      y.parent.right = x;
-    }
-    x.right = y;
-    y.parent = x;
-  }
-
   insert(k: T) {
     let root = this.root;
     // initially black, the proper color for root
@@ -216,16 +165,11 @@ class RBTree<T> extends SearchTree<T, RBNode<T>> {
         }
       } else {
         //  symmetric
-        //  as x is double-black, w cannot be T.nil
-        //  otherwise the black height won't equal
         let w = <RBNode<T>>p.left;
         if (isRed(w)) {
           w.color = BLACK;
           p.color = RED;
           this.rightRotate(p);
-          //  w is red, x.parent must be black
-          //  as x is double-black, none of w's children can be T.nil
-          //  otherwise the black height won't equal
           w = <RBNode<T>>p.left;
         }
         if (isBlack(w.left) && isBlack(w.right)) {
@@ -237,13 +181,10 @@ class RBTree<T> extends SearchTree<T, RBNode<T>> {
             w.right.color = BLACK;
             w.color = RED;
             this.leftRotate(w);
-            //  w.left is red and rotated to p.right, so p.right cannot be T.nil
             w = <RBNode<T>>p.left;
           }
           w.color = p.color;
           p.color = BLACK;
-          //  w.right must be red, so w.right cannot be T.nil
-          //  conditional here only to bypass the type system
           if (w.left) {
             w.left.color = BLACK;
           }
@@ -276,7 +217,7 @@ class RBNode<T> extends SearchTreeNode<T> {
 
   protected nodeStringify(): string {
     let color_bit = isBlack(this) ? "b" : "r";
-    return this.key.toString() + color_bit;
+    return `${this.key}${color_bit}`;
   }
 }
 

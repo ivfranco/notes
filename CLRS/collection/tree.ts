@@ -2,6 +2,7 @@ export {
   Tree,
   TreeNode,
   SearchTree,
+  BinaryTreeNode,
   SearchTreeNode,
   printTree,
   printTreeStack,
@@ -36,8 +37,55 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
     return u.parent;
   }
 
-  isEmpty() {
-    return this.root === null;
+  protected leftRotate(x: N) {
+    if (x.right === null) {
+      throw "Error: left rotate with no right child";
+    }
+
+    let y = x.right;
+    //  each key in left subtree of y is greater than x
+    //  left subtree of y should be right subtree of x
+    x.right = y.left;
+    if (y.left !== null) {
+      y.left.parent = x;
+    }
+    //  put y in the position of x
+    y.parent = x.parent;
+    //  fix the pointer of the parent of x, if exist
+    if (x.parent === null) {
+      this.root = y;
+    } else if (x === x.parent.left) {
+      x.parent.left = y;
+    } else {
+      x.parent.right = y;
+    }
+    //  fix the edge between x and y
+    y.left = x;
+    x.parent = y;
+  }
+
+  protected rightRotate(y: N) {
+    if (y.left === null) {
+      throw "Error: right rotate with no left child";
+    }
+
+    let x = y.left;
+    //  each key in right subtree of x is smaller than y
+    //  left subtree of y should be right subtree of x
+    y.left = x.right;
+    if (x.right !== null) {
+      x.right.parent = y;
+    }
+    x.parent = y.parent;
+    if (y.parent === null) {
+      this.root = x;
+    } else if (y === y.parent.left) {
+      y.parent.left = x;
+    } else {
+      y.parent.right = x;
+    }
+    x.right = y;
+    y.parent = x;
   }
 
   abstract insert(k: T): void;
@@ -66,9 +114,8 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
   }
 }
 
-abstract class SearchTreeNode<T> {
+abstract class BinaryTreeNode<T> {
   abstract key: T;
-  abstract parent: this | null;
   abstract left: this | null;
   abstract right: this | null;
 
@@ -114,6 +161,33 @@ abstract class SearchTreeNode<T> {
     return 1 + Math.max(left_height, right_height);
   }
 
+  *preorder(): IterableIterator<T> {
+    yield this.key;
+    if (this.left !== null) {
+      yield* this.left.preorder();
+    }
+    if (this.right !== null) {
+      yield* this.right.preorder();
+    }
+  }
+
+  *postorder(): IterableIterator<T> {
+    if (this.left !== null) {
+      yield* this.left.preorder();
+    }
+    if (this.right !== null) {
+      yield* this.right.preorder();
+    }
+    yield this.key;
+  }
+}
+
+abstract class SearchTreeNode<T> extends BinaryTreeNode<T> {
+  abstract key: T;
+  abstract parent: this | null;
+  abstract left: this | null;
+  abstract right: this | null;
+
   *inorder(): IterableIterator<T> {
     let cursor: SearchTreeNode<T> | null = this;
 
@@ -140,26 +214,6 @@ abstract class SearchTreeNode<T> {
         }
       }
     }
-  }
-
-  *preorder(): IterableIterator<T> {
-    yield this.key;
-    if (this.left !== null) {
-      yield* this.left.preorder();
-    }
-    if (this.right !== null) {
-      yield* this.right.preorder();
-    }
-  }
-
-  *postorder(): IterableIterator<T> {
-    if (this.left !== null) {
-      yield* this.left.preorder();
-    }
-    if (this.right !== null) {
-      yield* this.right.preorder();
-    }
-    yield this.key;
   }
 }
 
