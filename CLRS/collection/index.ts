@@ -21,9 +21,11 @@ import { RadixTree } from "./radix-tree";
 import { RBTree } from "./redblack-tree";
 import { PTree } from "./persistent-tree";
 import { AVLTree } from "./avl-tree";
+import { Treap } from "./treap";
+import { OSTree } from "./augmented-redblack-tree";
 
 function main() {
-  problem_13_3();
+  problem_14_1_1();
 }
 
 function problem_10_1_1() {
@@ -90,12 +92,14 @@ function problem_10_2_7() {
 }
 
 function problem_10_4_2() {
-  let node = randomTree([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  printTree(node);
+  let tree: Tree<number> = new Tree();
+  randomTree(tree, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  let root = <TreeNode<number>>tree.root;
+  printTree(root);
   console.log("");
-  printTreeStack(node);
+  printTreeStack(root);
   console.log("");
-  printTreeConstant(node);
+  printTreeConstant(root);
 }
 
 function problem_11_1_4() {
@@ -146,11 +150,12 @@ function problem_11_4_1() {
 
 function treeOfHeight(h: number): TreeNode<number> {
   let A = [1, 4, 5, 10, 16, 17, 21];
-  let node = randomTree(A);
-  while (node.height() !== h) {
-    node = randomTree(A);
+  let tree: Tree<number> = new Tree();
+  randomTree(tree, A);
+  while (!tree.root || tree.root.height() !== h) {
+    randomTree(tree, A);
   }
-  return node;
+  return tree.root;
 }
 
 function problem_12_1_1() {
@@ -162,13 +167,15 @@ function problem_12_1_1() {
 
 function problem_12_1_3() {
   let A = [1, 4, 5, 10, 16, 17, 21];
-  let node = randomTree(A);
+  let tree: Tree<number> = new Tree();
+  randomTree(tree, A);
   let sorted = [];
-  for (let a of node.inorder()) {
+  for (let a of tree) {
     sorted.push(a);
   }
-  console.log(node.show());
-  printTreeConstant(node);
+  console.log(tree.show());
+  let root = <TreeNode<number>>tree.root;
+  printTreeConstant(root);
   console.log(sorted);
   return isSorted(sorted);
 }
@@ -176,11 +183,11 @@ function problem_12_1_3() {
 function problem_12_3_5() {
   let A = [1, 4, 5, 10, 16, 17, 21];
   let k = A[randomAB(0, A.length - 1)];
-  let T = new Tree();
-  T.root = randomTree(A);
+  let T: Tree<number> = new Tree();
+  randomTree(T, A);
 
   let p = treeParent(<TreeNode<number>>T.search(k), T);
-  console.log(T.root.show());
+  console.log(T.show());
   console.log(k)
   console.log(p !== null ? p.key : null);
 }
@@ -188,8 +195,9 @@ function problem_12_3_5() {
 function problem_12_4_3() {
   let A = [1, 2, 3];
   for (let i = 0; i < 10; i++) {
-    let node = randomTree(A);
-    console.log(node.show());
+    let tree: Tree<number> = new Tree();
+    randomTree(tree, A);
+    console.log(tree.show());
   }
 }
 
@@ -209,11 +217,12 @@ function problem_12_2() {
 
 function problem_13_1_1() {
   let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
-  let node = randomTree(A);
-  while (node.height() !== 3) {
-    node = randomTree(A);
+  let tree: Tree<number> = new Tree();
+  while (tree.height() !== 3) {
+    tree = new Tree();
+    randomTree(tree, A);
   }
-  console.log(node.show());
+  console.log(tree.show());
 }
 
 function problem_13_3_2() {
@@ -272,6 +281,32 @@ function problem_13_3() {
     avl.insert(k);
     console.log(avl.show());
   }
+}
+
+function problem_13_4() {
+  let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  shuffle(A);
+  let treap = new Treap();
+  for (let k of A) {
+    treap.insert(k);
+  }
+  console.log(treap.show());
+  treap.diagnose();
+}
+
+function problem_14_1_1() {
+  let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  shuffle(A);
+  let os: OSTree<number> = new OSTree();
+  randomTree(os, A);
+
+  console.log(os.show());
+  let i = randomAB(1, 10);
+  console.log(`Selecting rank ${i}...`);
+  let r = os.select(i);
+  console.log(r.show());
+  console.log(r.rank());
+  os.diagose();
 }
 
 main();

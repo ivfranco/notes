@@ -15,12 +15,15 @@ export {
 
 import { randomAB, shuffle } from "../util";
 
+type Cmp<T> = (a: T, b: T) => boolean;
+
 abstract class SearchTree<T, N extends SearchTreeNode<T>> {
   abstract root: N | null;
 
   //  replace u by v, fix the link between u.parent and v
   //  the link between v and children of u is not fixed
   //  parent of u is returned to mimic the behavior of text-book RB-TRANSPLANT which sets parent of T.nil
+
   protected transplant(u: N, v: N | null): N | null {
     if (u.parent === null) {
       this.root = v;
@@ -104,6 +107,14 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
       return "Empty tree";
     } else {
       return this.root.show();
+    }
+  }
+
+  height(): number | null {
+    if (this.root) {
+      return this.root.height();
+    } else {
+      return null;
     }
   }
 
@@ -230,7 +241,7 @@ class Tree<T> extends SearchTree<T, TreeNode<T>> {
     if (this.root === null) {
       this.root = z;
     } else {
-      treeInsert(z, this.root);
+      treeInsert(z, this.root, (a, b) => a <= b);
     }
   }
 
@@ -320,13 +331,13 @@ function treeSearch<T, N extends SearchTreeNode<T>>(k: T, node: N): N | null {
   return null;
 }
 
-function treeInsert<T>(z: SearchTreeNode<T>, node: SearchTreeNode<T>) {
+function treeInsert<T>(z: SearchTreeNode<T>, node: SearchTreeNode<T>, le: Cmp<T>) {
   let p: SearchTreeNode<T> = node;
   let x: SearchTreeNode<T> | null = node;
 
   while (x !== null) {
     p = x;
-    if (z.key <= p.key) {
+    if (le(z.key, x.key)) {
       x = p.left;
     } else {
       x = p.right;
@@ -334,21 +345,18 @@ function treeInsert<T>(z: SearchTreeNode<T>, node: SearchTreeNode<T>) {
   }
 
   z.parent = p;
-  if (z.key <= p.key) {
+  if (le(z.key, p.key)) {
     p.left = z;
   } else {
     p.right = z;
   }
 }
 
-function randomTree<T>(A: T[]): TreeNode<T> {
+function randomTree<T, N extends SearchTreeNode<T>, ST extends SearchTree<T, N>>(tree: ST, A: T[]) {
   shuffle(A);
-  let node = new TreeNode(A[0]);
-  for (let i = 1; i < A.length; i++) {
-    let z = new TreeNode(A[i]);
-    treeInsert(z, node);
+  for (let k of A) {
+    tree.insert(k);
   }
-  return node;
 }
 
 class SiblingTreeNode<T> {

@@ -22,12 +22,13 @@ class AVLTree<T> extends SearchTree<T, AVLTreeNode<T>> {
       } else {
         let z = <AVLTreeNode<T>>y.left;
         this.rightRotate(y);
-        this.leftRotate(z);
+        this.leftRotate(x);
         fixHeight(x);
         fixHeight(y);
         fixHeight(z);
       }
     } else if (h(x.left) >= h(x.right) + 2) {
+      // symmetric
       let y = <AVLTreeNode<T>>x.left;
       if (h(y.right) <= h(y.left)) {
         this.rightRotate(x);
@@ -36,7 +37,7 @@ class AVLTree<T> extends SearchTree<T, AVLTreeNode<T>> {
       } else {
         let z = <AVLTreeNode<T>>y.right;
         this.leftRotate(y);
-        this.rightRotate(z);
+        this.rightRotate(x);
         fixHeight(x);
         fixHeight(y);
         fixHeight(z);
@@ -62,6 +63,7 @@ class AVLTree<T> extends SearchTree<T, AVLTreeNode<T>> {
     }
 
     fixHeight(x);
+    this.balance(x);
   }
 
   insert(k: T) {
@@ -74,7 +76,7 @@ class AVLTree<T> extends SearchTree<T, AVLTreeNode<T>> {
   }
 
   delete(z: AVLTreeNode<T>) {
-    throw "Error: Not implemented"
+    throw "Error: Not implemented";
   }
 }
 

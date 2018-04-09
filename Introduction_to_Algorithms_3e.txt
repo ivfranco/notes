@@ -3645,7 +3645,157 @@ d.  depends on whether it's necessary to fix the height of all the ancestors aft
     but during insertion, this propagation can be compensated by fix the height of roots recursively
     so BALANCE takes O(1), INSERT takes O(h) = O(lgn)
     as BALANCE(x) decrements the height of subtree rooted at x by 1
-    one BALANCE(x) is called for some node x, none of the ancestors of x will be unbalanced
+    once BALANCE(x) is called for some node x, none of the ancestors of x will be unbalanced
     (they are balanced before the insertion
     and the possible height increase caused by insertion solved at x)
     so BALANCE(x) may only be fully executed once and O(1) rotations are performed
+
+13-4
+a.  given distinct priorities, all permutations of x1 .. xn has a same sorted order 
+    by the property of treap, the resulting treap is the tree formed if x1 .. xn is inserted in sorted order
+    therefore for a set of elements x1 .. xn with fixed keys and priorities, the resulting treap is the same
+    if the keys are different, the resulting tree or treap is certainly different
+    if the priorities are different up to ordering, the resulting treap may not be different
+    both insertion sequence [2, 1, 3] and [2, 3, 1] results in the same tree
+b.  as elements are given random priorities
+    sorted form of x1 .. xn can be any of n! permutations of x1 .. xn with equal probability
+    when n = 1:
+        trivial
+    assume the sorted form of x1 .. xn can be any of n! permutations of x1 .. xn with probability 1/n!:
+        next element xn+1, given random priority, may appear anywhere in the sorted form with equal probability
+        there are n+1 places xn+1 may end up at in any permutations, n! * (n+1) = (n+1)! new permutations in total
+        each with probability 1/(n! * (n+1)) = 1/(n+1)!
+    as the sorted form of x1 .. xn is a uniformly random permutation of x1 .. xn
+    theoriem 12.4 applies, the expected height of the treap is O(lgn)
+c.  first the normal insertion of z is performed according to binary search tree property
+    but then the priority of z.p may be greater than z, and this is the only possible violation of treap properties
+    which means the other child of z.p and its descendents have priority greater than z.p
+    the descendents of z (if any) has priority greater than z
+    if z == z.p.let, perform RIGHT-ROTATE(z.p), otherwise LEFT-ROTATE(z.p)
+    then z becomes the new parent of z.p, the treap property violation between z and z.p is fixed
+    the possible violation is now between z and its new parent, one level higher in the treap
+    ./CLRS/collection/treap.ts#insert
+d.  the initial insertion takes O(h)
+    each iteration of INSERT-FIXUP moves z one level up the treap, O(h) iterations at most
+    each iteration performs constant number of rotations, which takes O(1)
+    O(h) + O(h) = O(h) in total
+    as the expected height of a treap is O(lgn), insertion takes time O(lgn) on average
+    if insertion takes time o(lgn), n keys can be sorted in time o(nlgn), thereby insertion is Ω(lgn) and Θ(lgn)
+e.  x is initially a leaf to be inserted into the treap, C + D = 0
+    after a right rotation at x.p when x = x.p.right
+        x.p is added to the left spine of x's right subtree
+        left subtree of x and its right spine unchanged
+        C + D incremented by 1
+    similary, a right rotation at x.p when x = x.p.left increments C + D by 1
+    so C + D equals to the number of rotations performed
+f.  =>: as y is in the left subtree of x, x.priority < y.priority, x.key > y.key
+        as y is in the right spine of the subtree
+        each z that y.key < z.key < x.key is in right subtree of y
+        otherwise it will be traversed inorder before y or after x
+        therefore x.priority > y.priority
+    <=: as y.priority > x.priority and y.key < x.key,
+        either y is in the left subtree of x or y is in the left subtree of some left ancestor of x
+        then this left ancestor satisfies y.key < z.key < x.key, y.priority < z.priority
+        y cannot be in the left subtree of z, so y must be in the left subtree of x
+        if y is not in the right spine of the left subtree of x
+        there must be some ancestor z of y that y.key < z.key < x.key
+        which implies y.priority < z.priority, in contradiction to z being y's ancestor
+        therefore y must be in the right spine of the left subtree of x
+g.  the problem implicitly assumes k > i or (k - i - 1)! is not well defined
+    as priority is randomly chosen, independent from the key
+    considering only the order of these priorities, mapping from set of random numbers to {1 .. n}
+    for each z that y.key < z.key < x.key, y.priority_order < z.priority_order
+    there are k-i-1 such z, k-i+1 with x and y
+    there are (k-i+1)! possible permutations of their priority orders
+    only those in which x.priority is the minimum and y.priority is the second smallest is valid
+    so only (k-i-1)! permutations satisfies the conditions in part f
+    Pr{Xik = 1} = (k-i-1)! / (k-i+1)! = 1/(k-i+1)(k-i)
+h.  for x and k = x.key,
+        E[C]    = E[Σ(i = {1 .. k-1})Xik]
+                = Σ(i = {1 .. k-1})E[Xik]
+                = Σ(i = {1 .. k-1})(1 / (k-i+1)(k-i))
+                = Σ(i = {1 .. k-1})(1 / i(i+1))
+                = Σ(i = {1 .. k-1})(1/i - 1/(i+1))
+                = 1 - 1/k
+i.  for y != x, k = x.key, i = y.key, define
+        Yik = I{y is in the left spine of the right subtree of x}
+    then Yik = 1 iff y.priority > x.priority, y.key > x.key and 
+    for every z such that x.key < z.key < y.key, y.priority > z.priority
+        Yik = 0 if i <= k, otherwise
+        Pr{Yik = 1} = 1/(k-i+1)(k-i)
+        E[D]    = E[Σ(i = {k+1 .. n})E[Yik]]
+                = 1 - 1/(n - k + 1)
+j.  E[C + D]    = E[C] + E[D]
+                = 2 - O(1) <= 2
+
+Chapter 14
+14.1-1
+26, 12 + 1 = 13 > 10, go left
+17, 7 + 1 = 8 < 10, go right, 10 - 8 = 2
+21, 2 + 1 = 3 > 2, go left
+19, 0 + 1 = 1 < 2, go right, 2 - 1 = 1
+20, 0 + 1 = 1, selected node 20
+
+14.1-2
+35, r = 1, not root, go up
+38, not root, go up
+30, 1 + 1 = 2, r = 1 + 2 = 3, not root, go up
+41, not root, go up
+26, 12 + 1 = 13, r = 3 + 13 = 16, root, terminate
+
+14.1-3
+./CLRS/collection/augmented-redblack-tree.ts#select
+
+14.1-4
+traverse the tree from root to find where a node with key k is or will be inserted into the tree
+while counting the number of elements smaller than k in sibling subtree and up during the course
+if followed a right edge, add x.left.size + 1 to the counter
+terminate when x = T.nil
+./CLRS/collection/augmented-redblack-tree.ts#keyRank
+
+14.1-5
+find the order k of node x, find the node with order k+i
+overall running time O(lgn) + O(lgn) = O(lgn)
+
+14.1-6
+insertion:
+    if z is inserted into the left subtree of x, x.rank += 1
+    otherwise x.rank won't change, x.rank is the local rank in the subtree rooted at x, not global rank
+deletion:
+    traverse from the deleted node p = y to the root
+    if followed a left edge, decrement p.rank by 1
+rotation:
+    in left rotation, x.rank is unchanged
+    y.rank changes from size of β to the size of α, β and x combined
+    which is x.rank + y.rank + 1
+    right rotation is symmetric
+
+14.1-7
+for an array [x1 .. xn], assume x1 .. xn-1 is already inserted into the OS tree
+after insertion of xn, the rank of xn is 1 + the number of elements smaller than xn in x1 .. xn-1
+each element in x1 .. xn-1 that is greater than xn causes an inversion
+therefore the total number of inversions can be counted by inserting x1 .. xn that:
+    after insertion of xi, get the current rank ri of xi, add (i - ri - 1) to the counter
+then after insertion of xn, the counter is the number of inversions in the array
+each iteration performs one insertion, one search and one OS-RANK, all of them O(lgn), O(lgn) in total
+overall running time O(nlgn)
+
+14.1-8
+each chord has two end points, give them keys as their angular coordinate in polar system
+for a chord c let c.x be the smaller between the two end points, c.y be the greater
+two chords c and d, assuming d.y > c.y, can be one of three cases:
+    1.  d.x > c.y > c.x, no intersection, both c.y and c.x smaller than d.x
+    2.  c.y > d.x > c.x, intersection, c.x smaller than d.x but not c.y
+    3.  c.y > c.x > d.x, no intersection, both c.x and c.y greater than d.x
+thereby if two OS trees for both .x and .y are maintained
+the number of intersections will be the difference between number of keys smaller than d.x in the two trees
+sort the chords according to c.y, for each chord c and two OS trees T1 and T2:
+    insert c.x into T1, get rx the rank of c.x in T1
+    use OS-KEY-RANK(T2, c.x) from problem 14.1-4 to find ry the rank of c.x in T2
+    insert c.y into T2
+    add rx - ry to a global counter cnt
+at the end the global counter cnt holds the number of intersections
+initial sorting O(nlgn)
+constant number of insertion, rank operation and search are performed each iteration, O(lgn) in total
+overall running time O(nlgn)
+
