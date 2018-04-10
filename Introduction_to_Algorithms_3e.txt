@@ -3799,3 +3799,220 @@ initial sorting O(nlgn)
 constant number of insertion, rank operation and search are performed each iteration, O(lgn) in total
 overall running time O(nlgn)
 
+14.2-1
+minimum in subtree rooted at x can be calculated as the minimum of left subtree or x itself
+maximum in subtree rooted at x can be calculated as the maximum of right subtree or x itself
+both easily maintained as described in the text
+insertion or deletion at most changes the predecessor and successor of two nodes
+during first stage of insertion of a node z:
+    if z end up as the left child of a node p
+        set p.predecessor.successor = z (if p.predecessor exists)
+        set z.predecessor = p.predecessor (same condition as above)
+        set z.successor = p
+        set p.predecessor = z
+    if z end up as the right child of a node p
+        set p.successor.predecessor = z (same condition)
+        set z.successor = p.successor
+        set z.predecessor = p;
+        set p.successor = z;
+during first stage of deletion, assume a node z is removed:
+    z.predecessor.successor = z.successor
+    z.successor.predecessor = z.predecessor
+rotation will not change the nodes stored in a tree, thereby will not change predecessor or successor of any node
+all operations take constant time, fixing predecessors and successors will not propagate to ancestors
+
+14.2-2
+since second stage of insertion and deleteion changes color of some nodes
+it cannot be simply maintained by method described in the text
+but the black height still can be maintained without changing the asymptotic performance of set operations
+the first stage of insertion will not change black height of any node, as the new node z is colored red
+in case 1 of RB-INESRT-FIXUP:
+    bh of A and D incremented by 1
+in case 2 of RB-INSERT-FIXUP:
+    no bh change
+in case 3 of RB-INSERT-FIXUP:
+    bh of C decremented by 1
+    bh of B incremented by 1
+the first stage will not change bh of any node if x has an extra black
+in case 1 of RB-DELETE-FIXUP:
+    decrement bh(B)
+in case 2 of RB-DELETE-FIXUP:
+    decrement bh(A)
+    decrement bh(D)
+in case 3 of RB-DELETE-FIXUP:
+    increment bh(C)
+    decrement bh(D)
+in case 4 of RB-DELETE-FiXUP:
+    decrement bh(A)
+    increment bh(E)
+when x = T.root, the extra black is removed, bh(T.root) stays intact
+
+14.2-3
+the inorder listing of subtree rooted at x is
+    xl1.a * .. * xml.a * x.a * x xr1.a  * .. * xrm.a
+where 
+    xl1.a .. xml.a is the inorder listing of its left subtree
+    xr1.a .. xrm.a is the inorder listing of its right subtree
+as the operation is associative, x.left.f * x.a * x.right.f = x.f
+set x.a = 1 for all node x, * = +, this scheme calculates the size of the subtree
+
+14.2-4
+use 14.2-1, add pointers to successor and predecessor to nodes, set operations still O(lgn)
+search for the initial key a is O(lgn)
+traversing m successors between b and a is O(m)
+O(m + lgn) in total
+
+14.3-1
+abstract over all augmented red black trees
+./CLRS/collection/augmented-redblack-tree.ts#leftRotate
+
+14.3-2
+the meaning of overlapping changes a little bit, from
+    !(a.high < b.low || b.high < a.low)
+to
+    !(a.high <= b.low || b.high <= a.low)
+then change line 3 of INTERVAL-SEARCH to
+    if x.left !== T.nil and x.left.max > i.low
+theorem 14.2 still holds since:
+    if line 5 is executed, x.left.max <= i.low    
+    by definition of overlapping of open intervals, no intervals in left subtree of x will overlap with i
+    if line 4 is executed, x.left.max > i.low
+    if no interval in left subtree overlaps with i, there must be some i' that
+        i'.high = x.left.max > i.low
+        i'.low >= i.high
+    then for every interval i'' in right subtree of x,
+        i''.low >= i'.low >= i.high
+    so no intervals in right subtree of x overlaps with i
+
+14.3-3
+basically INTERVAL-SEARCH, but not terminate on finding an overlapping intervals
+but keeps track of the interval that overlaps with i which has minimal low end point
+only terminates when x == T.nil
+by theorem 14.2, either 
+    1.  there are no overlapping intervals in left subtree (line 5), or
+    2.  there are overlapping intervals in left subtree and possibly right subtree too (line 4)
+in case 2, to find the overlapping interval with minimal low end point, x should be x.left in next iteration
+./CLRS/collection/interval-tree.ts#minimalOverlappingInterval
+
+14.3-4
+thanks http://fileadmin.cs.lth.se/cs/Personal/Rolf_Karlsson/tut2.pdf
+do INTERVAL-SEARCH(i), delete the node returned, do next INTERVAL-SEARCH(i)
+re-insert all the nodes back to the tree when INTERVAL-SEARCH returns null
+do this at most n/lgn times, then re-insert removed nodes and traverse all the nodes instead
+running time = O(klgn) when k < n/lgn, O(n) when k >= n/lgn, O(min(n, klgn)) overall
+
+14.3-5
+when comparing two intervals, compare their high end points if their low end points equal
+by searching in this new ordering, the exact key (interval) can be find in time O(lgn)
+namely
+    le(a: Interval, b: Interval): boolean {
+        if (a.low === b.low) {
+            return a.high <= b.high;
+        } else {
+            return a.low <= b.low;
+        }
+    }
+    eq(a: Interval, b: Interval): boolean {
+        return a.low === b.low && a.high === b.high;
+    }
+the normal search operation then works like the definition of INTERVAL-SEARCH-EXACTLY
+
+14.3-6
+store:
+    minimum in the subtree rooted at x
+    maximum in the subtree rooted at x
+    min gap in the subtree rooted at x
+in the node x alongside the key
+by search tree property, left subtree of x contains number smaller than x, right subtree of x contains number greater
+the min gap is one of:
+    the min gap of the left subtree
+    the min gap of the right subtree
+    x.key - x.left.maximum 
+    x.right.minimum - x.key
+all the three additional fields can be calculated from information in current node, left and right children in O(1)
+
+14.3-7
+assume a rectangle is a structure like
+    interface Rect {
+        vert: Interval;
+        horiz: Interval;
+    }
+    interface Interval {
+        low: number;
+        high: number;
+    }
+define a new structure RectNode that 
+    interface RectNode {
+        rect: Rect;
+        node: IntNode;
+    }
+where IntNode is node in an interval tree
+make two copies of points to all RectNodes rn, name them L and H
+sort L according to rn.rect.horiz.low, sort H according to rn.horiz.vert.high
+create an initially empty interval tree T that stores vertical intervals of rectangles
+until both L and H is empty:
+    compare the top of L and H
+    if rn the top (minimum) of L is smaller, pop it from the set L
+        search intervals overlaps rn.rect.vert in T, if exists terminate and return true
+        insert rn.rect.vert into T, assign the inserted node to rn.node
+    if rn the top of H is smaller of L is empty, pop it from the set H
+        as rn.rect.horiz.low <= rn.rect.horiz.high, rn.node always points to an existing node
+        delete rn.node from T
+any time during the procedure, T contains vertical intervals of rectangles that overlap with a certain horizontal line
+as they already overlaps horizontally, if they overlaps vertically, the two rectangles overlaps
+
+14-1
+a.  assume the point of maximum overlap overlaps with a set of intervals {ik}
+    let p = max{ik.low}, it must have:
+        p <= ik.high for all k
+    otherwise the interval with low end point p will not overlap with ik, hence do not contain a common point
+    then p overlaps with all intervals in {ik}, p is a point of maximum overlap
+b.  if an interval i does not overlap with a point p, then
+        i.low > p or i.high < p
+    assuming distinct end points, additionally store:
+        size_low, number of low end points in subtree
+        size_high, number of high end points in subtree
+        pom, point of maximum overlap in subtree
+        non_overlap, number of intervals that may not overlap with point of maximum in subtree
+    calculating size_low and size_high from children and current node is strightforward
+    for a node x, compare x.left.size_high + x.right.non_overlap and x.right.size_low + x.left.non_overlap
+    pom of subtree rooted at x may be one of:
+        x.left.pom, not overlapping with x.left.non_overlap + x.right.low_size intervals
+        x.right.pom, not overlapping with x.right.non_overlap + x.left.high_size intervals
+        x.key, not overlapping with x.left.high_size + x.right.low_size intervals
+    update x.pom and x.non_overlap accordingly, T.root then contains pom of the whole tree
+
+14-2
+a.  put all numbers in a circular doubly linked list in sorted order
+    starting from x.key = 1, repeat the procedure below until no node remains in the linked list:
+        1.  follow x = x.next m times
+        2.  delete node pointed by x.prev and yield its key
+    since m is constant, step 1 takes O(1)
+    step 2 also O(1) as deletion of a node in doubly linked list is O(1)
+    the procedure runs for at most n iterations until the linked list is empty, hence O(n) total running time
+b.  rank starting from 0 for convinence here
+    if the previously removed node has rank i, there are k numbers not removed yet
+    node with rank i + m - 1 mod k should be removed next
+    [1, 2, 3, 4, 5, 6, 7]
+    remove 3 with rank 2
+    [1, 2, 4, 5, 6, 7]
+    2 + 3 - 1 mod 6 = 4
+    remove 6 with rank 4
+    [1, 2, 4, 5, 7]
+    4 + 3 - 1 mod 5 = 1
+    remove 2 with rank 1
+    [1, 4, 5, 7]
+    1 + 3 - 1 mod 4 = 3
+    remove 7 with rank 3
+    [1, 4, 5]
+    3 + 3 - 1 mod 3 = 2
+    remove 5 with rank 2
+    [1, 4]
+    2 + 3 - 1 mod 2 = 0
+    remove 1 with rank 0
+    [4]
+    0 + 3 - 1 mod 1 = 0
+    remove 4 with rank 0
+    using an order statistic tree, deletion and searching by rank both O(lgn)
+    O(nlgn) in total
+    ./CLRS/collection/augmented-rebblack-tree.ts#josephus

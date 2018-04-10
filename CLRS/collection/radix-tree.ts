@@ -1,27 +1,27 @@
 export {
-  RadixTree
+  RadixTree,
 };
 
 class RadixTree {
-  root: RadixTreeNode;
+  public root: RadixTreeNode;
 
   constructor() {
     this.root = new RadixTreeNode(false);
   }
 
-  insert(str: string) {
+  public insert(str: string) {
     insert(str, this.root);
   }
 
-  *preorder(): IterableIterator<string> {
+  public *preorder(): IterableIterator<string> {
     yield* this.root.preorder([]);
   }
 }
 
 class RadixTreeNode {
-  left: RadixTreeNode | null;
-  right: RadixTreeNode | null;
-  is_end: boolean;
+  public left: RadixTreeNode | null;
+  public right: RadixTreeNode | null;
+  public is_end: boolean;
 
   constructor(is_end: boolean) {
     this.left = null;
@@ -29,7 +29,7 @@ class RadixTreeNode {
     this.is_end = is_end;
   }
 
-  *preorder(prefix: string[]): IterableIterator<string> {
+  public *preorder(prefix: string[]): IterableIterator<string> {
     if (this.is_end) {
       yield prefix.join("");
     }

@@ -2,26 +2,31 @@ export {
   AbstractRBTree,
   Color,
   RBTree,
-  RBNode
+  RBNode,
 };
 
 import {
   SearchTree,
   SearchTreeNode,
   treeInsert,
-  treeMinimum
+  treeMinimum,
+  treeSearch,
 } from "./tree";
 
 enum Color {
   BLACK,
-  RED
+  RED,
 }
 
 const BLACK = Color.BLACK;
 const RED = Color.RED;
 
 abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
-  root: N | null;
+  public root: N | null;
+
+  protected abstract le(a: T, b: T): boolean;
+  protected abstract eq(a: T, b: T): boolean;
+  protected abstract factory(k: T): N;
 
   constructor() {
     super();
@@ -29,13 +34,18 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
     this.root = null;
   }
 
-  protected abstract le(a: T, b: T): boolean;
-  protected abstract factory(k: T, c: Color): N;
+  public search(k: T): N | null {
+    if (this.root) {
+      return treeSearch(k, this.root, this.eq, this.le) as N | null;
+    } else {
+      return null;
+    }
+  }
 
-  insert(k: T) {
-    let root = this.root;
+  public insert(k: T) {
+    const root = this.root;
     // initially black, the proper color for root
-    let z = this.factory(k, BLACK);
+    const z = this.factory(k);
 
     if (root === null) {
       // for empty tree, no fixup is necessary, z will be the new root
@@ -52,7 +62,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
       let p = z.parent;
       let pp = z.parent.parent;
       if (p === pp.left) {
-        let y = pp.right;
+        const y = pp.right;
         if (isRed(y)) {
           p.color = BLACK;
           y.color = BLACK;
@@ -63,14 +73,14 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
             z = p;
             this.leftRotate(z);
           }
-          p = <N>z.parent;
-          pp = <N>p.parent;
+          p = z.parent as N;
+          pp = p.parent as N;
           p.color = BLACK;
           pp.color = RED;
           this.rightRotate(pp);
         }
       } else {
-        let y = pp.left;
+        const y = pp.left;
         if (isRed(y)) {
           p.color = BLACK;
           y.color = BLACK;
@@ -81,8 +91,8 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
             z = p;
             this.rightRotate(z);
           }
-          p = <N>z.parent;
-          pp = <N>p.parent;
+          p = z.parent as N;
+          pp = p.parent as N;
           p.color = BLACK;
           pp.color = RED;
           this.leftRotate(pp);
@@ -94,8 +104,8 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
     }
   }
 
-  delete(z: N) {
-    let [y_original_color, x, p] = this.preDelete(z);
+  public delete(z: N) {
+    const [y_original_color, x, p] = this.preDelete(z);
     if (y_original_color === BLACK) {
       this.deleteFixup(x, p);
     }
@@ -114,7 +124,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
       x = z.left;
       p = this.transplant(z, z.left);
     } else {
-      y = <N>treeMinimum(z.right);
+      y = treeMinimum(z.right) as N;
       y_original_color = y.color;
       x = y.right;
       if (y.parent === z) {
@@ -142,7 +152,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
       if (x === p.left) {
         //  as x is double-black, w cannot be T.nil
         //  otherwise the black height won't equal
-        let w = <N>p.right;
+        let w = p.right as N;
         if (isRed(w)) {
           w.color = BLACK;
           p.color = RED;
@@ -150,7 +160,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
           //  w is red, x.parent must be black
           //  as x is double-black, none of w's children can be T.nil
           //  otherwise the black height won't equal
-          w = <N>p.right;
+          w = p.right as N;
         }
         if (isBlack(w.left) && isBlack(w.right)) {
           w.color = RED;
@@ -162,7 +172,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
             w.color = RED;
             this.rightRotate(w);
             //  w.left is red and rotated to p.right, so p.right cannot be T.nil
-            w = <N>p.right;
+            w = p.right as N;
           }
           w.color = p.color;
           p.color = BLACK;
@@ -176,12 +186,12 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
         }
       } else {
         //  symmetric
-        let w = <N>p.left;
+        let w = p.left as N;
         if (isRed(w)) {
           w.color = BLACK;
           p.color = RED;
           this.rightRotate(p);
-          w = <N>p.left;
+          w = p.left as N;
         }
         if (isBlack(w.left) && isBlack(w.right)) {
           w.color = RED;
@@ -192,7 +202,7 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
             w.right.color = BLACK;
             w.color = RED;
             this.leftRotate(w);
-            w = <N>p.left;
+            w = p.left as N;
           }
           w.color = p.color;
           p.color = BLACK;
@@ -211,12 +221,16 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
 }
 
 class RBTree<T> extends AbstractRBTree<T, RBNode<T>> {
-  le(a: T, b: T): boolean {
+  public le(a: T, b: T): boolean {
     return a <= b;
   }
 
-  factory(k: T, c: Color): RBNode<T> {
-    return new RBNode(k, c);
+  public eq(a: T, b: T): boolean {
+    return a === b;
+  }
+
+  public factory(k: T): RBNode<T> {
+    return new RBNode(k);
   }
 
   constructor() {
@@ -225,29 +239,30 @@ class RBTree<T> extends AbstractRBTree<T, RBNode<T>> {
 }
 
 class RBNode<T> extends SearchTreeNode<T> {
-  key: T;
-  color: Color;
-  parent: this | null;
-  left: this | null;
-  right: this | null;
+  public key: T;
+  public color: Color;
+  public parent: this | null;
+  public left: this | null;
+  public right: this | null;
 
-  constructor(k: T, color: Color) {
+  constructor(k: T) {
     super();
     this.key = k;
-    this.color = color;
+    //  all RBNode initially black
+    this.color = BLACK;
     this.parent = null;
     this.left = null;
     this.right = null;
   }
 
   protected nodeStringify(): string {
-    let color_bit = isBlack(this) ? "b" : "r";
+    const color_bit = isBlack(this) ? "b" : "r";
     return `${this.key}${color_bit}`;
   }
 
   protected bhTest(): number {
-    let bh_left = this.left ? this.left.bhTest() : 1;
-    let bh_right = this.right ? this.right.bhTest() : 1;
+    const bh_left = this.left ? this.left.bhTest() : 1;
+    const bh_right = this.right ? this.right.bhTest() : 1;
 
     console.assert(bh_left === bh_right, `Black height must equal`);
     if (this.color === BLACK) {
@@ -257,7 +272,7 @@ class RBNode<T> extends SearchTreeNode<T> {
     }
   }
 
-  diagnose() {
+  public diagnose() {
     // property 1 is guarenteed by the type system
 
     // property 2

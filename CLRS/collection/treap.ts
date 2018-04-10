@@ -1,11 +1,11 @@
 export {
-  Treap
+  Treap,
 };
 
 import { SearchTree, SearchTreeNode, treeInsert } from "./tree";
 
 class Treap<T> extends SearchTree<T, TreapNode<T>> {
-  root: TreapNode<T> | null;
+  public root: TreapNode<T> | null;
 
   constructor() {
     super();
@@ -22,7 +22,7 @@ class Treap<T> extends SearchTree<T, TreapNode<T>> {
     }
   }
 
-  insert(k: T) {
+  public insert(k: T) {
     let z = new TreapNode(k, Math.random());
     if (this.root) {
       treeInsert(z, this.root, (a, b) => a <= b);
@@ -32,11 +32,11 @@ class Treap<T> extends SearchTree<T, TreapNode<T>> {
     }
   }
 
-  delete(z: TreapNode<T>) {
-    throw "Error: Not implemented";
+  public delete(z: TreapNode<T>) {
+    throw new Error("Error: Not implemented");
   }
 
-  diagnose() {
+  public diagnose() {
     if (this.root) {
       this.root.diagnose();
     }
@@ -44,11 +44,11 @@ class Treap<T> extends SearchTree<T, TreapNode<T>> {
 }
 
 class TreapNode<T> extends SearchTreeNode<T> {
-  key: T;
-  priority: number;
-  parent: this | null;
-  left: this | null;
-  right: this | null;
+  public key: T;
+  public priority: number;
+  public parent: this | null;
+  public left: this | null;
+  public right: this | null;
 
   constructor(k: T, p: number) {
     super();
@@ -59,12 +59,12 @@ class TreapNode<T> extends SearchTreeNode<T> {
     this.right = null;
   }
 
-  nodeStringify(): string {
+  public nodeStringify(): string {
     let p = Math.floor(this.priority * 100);
     return `${this.key}: ${p}`;
   }
 
-  diagnose() {
+  public diagnose() {
     if (this.left) {
       console.assert(this.key >= this.left.key);
       console.assert(this.priority <= this.left.priority);

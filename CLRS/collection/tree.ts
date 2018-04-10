@@ -10,7 +10,8 @@ export {
   randomTree,
   treeParent,
   treeInsert,
-  treeMinimum
+  treeSearch,
+  treeMinimum,
 };
 
 import { randomAB, shuffle } from "../util";
@@ -18,7 +19,7 @@ import { randomAB, shuffle } from "../util";
 type Cmp<T> = (a: T, b: T) => boolean;
 
 abstract class SearchTree<T, N extends SearchTreeNode<T>> {
-  abstract root: N | null;
+  public abstract root: N | null;
 
   //  replace u by v, fix the link between u.parent and v
   //  the link between v and children of u is not fixed
@@ -42,7 +43,7 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
 
   protected leftRotate(x: N) {
     if (x.right === null) {
-      throw "Error: left rotate with no right child";
+      throw new Error("Error: left rotate with no right child");
     }
 
     let y = x.right;
@@ -69,7 +70,7 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
 
   protected rightRotate(y: N) {
     if (y.left === null) {
-      throw "Error: right rotate with no left child";
+      throw new Error("Error: right rotate with no left child");
     }
 
     let x = y.left;
@@ -91,18 +92,22 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
     y.parent = x;
   }
 
-  abstract insert(k: T): void;
-  abstract delete(z: N): void;
+  public abstract insert(k: T): void;
+  public abstract delete(z: N): void;
 
-  search(k: T): N | null {
+  public isEmpty(): boolean {
+    return this.root === null;
+  }
+
+  public search(k: T): N | null {
     if (this.root === null) {
       return null;
     } else {
-      return treeSearch(k, this.root);
+      return treeSearch(k, this.root, (a, b) => a <= b, (a, b) => a === b);
     }
   }
 
-  show(): string {
+  public show(): string {
     if (this.root === null) {
       return "Empty tree";
     } else {
@@ -110,7 +115,7 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
     }
   }
 
-  height(): number | null {
+  public height(): number | null {
     if (this.root) {
       return this.root.height();
     } else {
@@ -118,7 +123,7 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
     }
   }
 
-  *[Symbol.iterator](): IterableIterator<T> {
+  public *[Symbol.iterator](): IterableIterator<T> {
     if (this.root) {
       yield* this.root.inorder();
     }
@@ -126,9 +131,9 @@ abstract class SearchTree<T, N extends SearchTreeNode<T>> {
 }
 
 abstract class BinaryTreeNode<T> {
-  abstract key: T;
-  abstract left: this | null;
-  abstract right: this | null;
+  public abstract key: T;
+  public abstract left: this | null;
+  public abstract right: this | null;
 
   protected abstract nodeStringify(): string;
 
@@ -161,18 +166,18 @@ abstract class BinaryTreeNode<T> {
     return [right_lines.length, lines];
   }
 
-  show(): string {
+  public show(): string {
     return this.toLines()[1].join("\n");
   }
 
-  height(): number {
+  public height(): number {
     let left_height = this.left === null ? -1 : this.left.height();
     let right_height = this.right === null ? -1 : this.right.height();
 
     return 1 + Math.max(left_height, right_height);
   }
 
-  *preorder(): IterableIterator<T> {
+  public *preorder(): IterableIterator<T> {
     yield this.key;
     if (this.left !== null) {
       yield* this.left.preorder();
@@ -182,7 +187,7 @@ abstract class BinaryTreeNode<T> {
     }
   }
 
-  *postorder(): IterableIterator<T> {
+  public *postorder(): IterableIterator<T> {
     if (this.left !== null) {
       yield* this.left.preorder();
     }
@@ -194,12 +199,12 @@ abstract class BinaryTreeNode<T> {
 }
 
 abstract class SearchTreeNode<T> extends BinaryTreeNode<T> {
-  abstract key: T;
-  abstract parent: this | null;
-  abstract left: this | null;
-  abstract right: this | null;
+  public abstract key: T;
+  public abstract parent: this | null;
+  public abstract left: this | null;
+  public abstract right: this | null;
 
-  *inorder(): IterableIterator<T> {
+  public *inorder(): IterableIterator<T> {
     let cursor: SearchTreeNode<T> | null = this;
 
     while (cursor !== null) {
@@ -229,14 +234,14 @@ abstract class SearchTreeNode<T> extends BinaryTreeNode<T> {
 }
 
 class Tree<T> extends SearchTree<T, TreeNode<T>> {
-  root: TreeNode<T> | null;
+  public root: TreeNode<T> | null;
 
   constructor() {
     super();
     this.root = null;
   }
 
-  insert(k: T) {
+  public insert(k: T) {
     let z = new TreeNode(k);
     if (this.root === null) {
       this.root = z;
@@ -245,7 +250,7 @@ class Tree<T> extends SearchTree<T, TreeNode<T>> {
     }
   }
 
-  delete(z: TreeNode<T>) {
+  public delete(z: TreeNode<T>) {
     if (z.left === null) {
       this.transplant(z, z.right);
     } else if (z.right === null) {
@@ -265,10 +270,10 @@ class Tree<T> extends SearchTree<T, TreeNode<T>> {
 }
 
 class TreeNode<T> extends SearchTreeNode<T> {
-  key: T;
-  parent: this | null;
-  left: this | null;
-  right: this | null;
+  public key: T;
+  public parent: this | null;
+  public left: this | null;
+  public right: this | null;
 
   constructor(k: T) {
     super();
@@ -279,7 +284,7 @@ class TreeNode<T> extends SearchTreeNode<T> {
     this.right = null;
   }
 
-  isLeaf(): boolean {
+  public isLeaf(): boolean {
     return this.left === null && this.right === null;
   }
 
@@ -299,7 +304,7 @@ function printTree<T>(node: SearchTreeNode<T>) {
 }
 
 function printTreeStack<T>(node: SearchTreeNode<T>) {
-  let stack: SearchTreeNode<T>[] = [];
+  let stack: Array<SearchTreeNode<T>> = [];
 
   while (true) {
     console.log(node.key);
@@ -309,19 +314,19 @@ function printTreeStack<T>(node: SearchTreeNode<T>) {
     if (node.left !== null) {
       node = node.left;
     } else if (stack.length !== 0) {
-      node = <SearchTreeNode<T>>stack.pop();
+      node = stack.pop() as SearchTreeNode<T>;
     } else {
       return;
     }
   }
 }
 
-function treeSearch<T, N extends SearchTreeNode<T>>(k: T, node: N): N | null {
+function treeSearch<T, N extends SearchTreeNode<T>>(k: T, node: N, le: Cmp<T>, eq: Cmp<T>): N | null {
   let cursor: N | null = node;
   while (cursor !== null) {
-    if (k === cursor.key) {
+    if (eq(k, cursor.key)) {
       return cursor;
-    } else if (k < cursor.key) {
+    } else if (le(k, cursor.key)) {
       cursor = cursor.left;
     } else {
       cursor = cursor.right;
@@ -360,10 +365,10 @@ function randomTree<T, N extends SearchTreeNode<T>, ST extends SearchTree<T, N>>
 }
 
 class SiblingTreeNode<T> {
-  key: T;
-  parent: SiblingTreeNode<T> | null;
-  left_child: SiblingTreeNode<T> | null;
-  right_sibling: SiblingTreeNode<T> | null;
+  public key: T;
+  public parent: SiblingTreeNode<T> | null;
+  public left_child: SiblingTreeNode<T> | null;
+  public right_sibling: SiblingTreeNode<T> | null;
 
   constructor(k: T) {
     this.key = k;
@@ -386,13 +391,13 @@ function printSiblingTree<T>(node: SiblingTreeNode<T>) {
 function printTreeConstant<T>(node: TreeNode<T>) {
   function goUp() {
     if (cursor !== null) {
-      // the procedure only calls goUp from a leaf 
+      // the procedure only calls goUp from a leaf
       // if cursor is left child of its parent and there is a right child, traverse the right child instead
       // otherwise both left and right child are traversed, go one level up in the tree
       while (cursor.parent !== null && (cursor.parent.right === cursor || cursor.parent.right === null)) {
         //  while either:
         //    the procedure is going up from a right child
-        //    the procedure is going up from a sole left child 
+        //    the procedure is going up from a sole left child
         //  then go up one more level
         cursor = cursor.parent;
       }
@@ -486,7 +491,7 @@ function treeInsertRecur<T>(k: T, node: TreeNode<T>) {
 }
 
 function treeParent<T>(node: TreeNode<T>, T: Tree<T>): TreeNode<T> | null {
-  let root = <TreeNode<T>>T.root;
+  let root = T.root as TreeNode<T>;
   let max = treeMaximum(node);
   let succ = treeSuccessor(max);
 
@@ -497,7 +502,7 @@ function treeParent<T>(node: TreeNode<T>, T: Tree<T>): TreeNode<T> | null {
     return null;
   }
 
-  let cursor = succ === null ? root : <TreeNode<T>>succ.left;
+  let cursor = succ === null ? root : succ.left as TreeNode<T>;
   while (cursor.right !== null && cursor.right !== node) {
     cursor = cursor.right;
   }

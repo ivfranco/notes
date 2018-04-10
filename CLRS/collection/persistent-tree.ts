@@ -5,13 +5,13 @@ export {
 import { BinaryTreeNode } from "./tree";
 
 class PTree<T> {
-  root: PTreeNode<T> | null;
+  public root: PTreeNode<T> | null;
 
   constructor() {
     this.root = null;
   }
 
-  insert(k: T): PTree<T> {
+  public insert(k: T): PTree<T> {
     let tree: PTree<T> = new PTree();
     let z = new PTreeNode(k);
 
@@ -24,7 +24,7 @@ class PTree<T> {
     return tree;
   }
 
-  show(): string {
+  public show(): string {
     if (this.root === null) {
       return "Empty tree";
     } else {
@@ -33,9 +33,9 @@ class PTree<T> {
   }
 }
 class PTreeNode<T> extends BinaryTreeNode<T> {
-  key: T;
-  left: this | null;
-  right: this | null;
+  public key: T;
+  public left: this | null;
+  public right: this | null;
 
   constructor(k: T) {
     super();
@@ -44,12 +44,12 @@ class PTreeNode<T> extends BinaryTreeNode<T> {
     this.right = null;
   }
 
-  nodeStringify(): string {
+  public nodeStringify(): string {
     return this.key.toString();
   }
 
   //  a shallow copy of this node
-  copy(): PTreeNode<T> {
+  public copy(): PTreeNode<T> {
     let node = new PTreeNode(this.key);
     node.left = this.left;
     node.right = this.right;

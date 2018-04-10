@@ -1,31 +1,31 @@
-import { randomAB, shuffle, isSorted } from "../util";
-import { Queue } from "./queue";
-import { SList, SNode } from "./slist";
+import { isSorted, randomAB, shuffle } from "../util";
+import { josephus, OSTree } from "./augmented-redblack-tree";
+import { AVLTree } from "./avl-tree";
+import { Huge } from "./direct";
 import { DList, DNode } from "./dlist";
 import {
-  Tree,
-  TreeNode,
-  randomTree,
-  printTree,
-  printTreeStack,
-  printTreeConstant,
-  treeParent
-} from "./tree";
-import { Huge } from "./direct";
-import {
+  DoubleHashing,
   LinearProbing,
   QuadraticProbing,
-  DoubleHashing
 } from "./hashtable";
+import { PTree } from "./persistent-tree";
+import { Queue } from "./queue";
 import { RadixTree } from "./radix-tree";
 import { RBTree } from "./redblack-tree";
-import { PTree } from "./persistent-tree";
-import { AVLTree } from "./avl-tree";
+import { SList, SNode } from "./slist";
 import { Treap } from "./treap";
-import { OSTree } from "./augmented-redblack-tree";
+import {
+  printTree,
+  printTreeConstant,
+  printTreeStack,
+  randomTree,
+  Tree,
+  TreeNode,
+  treeParent,
+} from "./tree";
 
 function main() {
-  problem_14_1_1();
+  problem_14_2();
 }
 
 function problem_10_1_1() {
@@ -94,7 +94,7 @@ function problem_10_2_7() {
 function problem_10_4_2() {
   let tree: Tree<number> = new Tree();
   randomTree(tree, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
-  let root = <TreeNode<number>>tree.root;
+  let root = tree.root as TreeNode<number>;
   printTree(root);
   console.log("");
   printTreeStack(root);
@@ -125,7 +125,7 @@ function problem_11_3_4() {
   let A = (Math.sqrt(5) - 1) / 2;
   let m = 1000;
 
-  console.log(keys.map(k => Math.floor(m * ((k * A) % 1))));
+  console.log(keys.map((k) => Math.floor(m * ((k * A) % 1))));
 }
 
 function problem_11_4_1() {
@@ -142,9 +142,9 @@ function problem_11_4_1() {
   }
   console.log("Linear probing:");
   linear.report();
-  console.log("Quadratic probing:")
+  console.log("Quadratic probing:");
   quadratic.report();
-  console.log("Double hashing:")
+  console.log("Double hashing:");
   double.report();
 }
 
@@ -174,7 +174,7 @@ function problem_12_1_3() {
     sorted.push(a);
   }
   console.log(tree.show());
-  let root = <TreeNode<number>>tree.root;
+  let root = tree.root as TreeNode<number>;
   printTreeConstant(root);
   console.log(sorted);
   return isSorted(sorted);
@@ -186,9 +186,9 @@ function problem_12_3_5() {
   let T: Tree<number> = new Tree();
   randomTree(T, A);
 
-  let p = treeParent(<TreeNode<number>>T.search(k), T);
+  let p = treeParent(T.search(k) as TreeNode<number>, T);
   console.log(T.show());
-  console.log(k)
+  console.log(k);
   console.log(p !== null ? p.key : null);
 }
 
@@ -261,7 +261,7 @@ function problem_13_4_3() {
 function problem_13_1() {
   let A = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   shuffle(A);
-  let trees: PTree<number>[] = [];
+  let trees: Array<PTree<number>> = [];
   let ptree: PTree<number> = new PTree();
   for (let k of A) {
     ptree = ptree.insert(k);
@@ -277,7 +277,7 @@ function problem_13_3() {
   shuffle(A);
   let avl = new AVLTree();
   for (let k of A) {
-    console.log(`Inserting ${k}`)
+    console.log(`Inserting ${k}`);
     avl.insert(k);
     console.log(avl.show());
   }
@@ -307,6 +307,10 @@ function problem_14_1_1() {
   console.log(r.show());
   console.log(r.rank());
   os.diagose();
+}
+
+function problem_14_2() {
+  console.log(josephus(7, 3));
 }
 
 main();
