@@ -1,6 +1,7 @@
 export {
+  Matrix,
   matrixMultiplication,
-  strassen
+  strassen,
 };
 
 type Elem = number;
@@ -9,11 +10,11 @@ type Quad<A> = [A, A, A, A];
 
 function matrixMultiplication(A: Matrix, B: Matrix): Matrix {
   let n = A.length;
-  // used to be
-  // let C = new Array(n).fill([]);
-  // the argument of .fill is evaluated only once
-  // therefore all rows contain the reference to the SAME array
-  // should be careful about the difference between reference and value types in javascript/typescript
+  //  used to be
+  //    let C = new Array(n).fill([]);
+  //  the argument of .fill is evaluated only once
+  //  therefore all rows contain the reference to the SAME array
+  //  should be careful about the difference between reference and value types in javascript/typescript
   let C = new Array(n);
   for (let i = 0; i < n; i++) {
     C[i] = [];
@@ -93,7 +94,7 @@ function conquer(quad: Quad<Matrix>): Matrix {
 }
 function strassen(A: Matrix, B: Matrix): Matrix {
   let n = A.length;
-  if (n == 1) {
+  if (n === 1) {
     let C = emptyMatrix(1);
     C[0][0] = A[0][0] * B[0][0];
     return C;

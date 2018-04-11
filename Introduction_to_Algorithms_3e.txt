@@ -4016,3 +4016,70 @@ b.  rank starting from 0 for convinence here
     using an order statistic tree, deletion and searching by rank both O(lgn)
     O(nlgn) in total
     ./CLRS/collection/augmented-rebblack-tree.ts#josephus
+
+Chapter 15
+15.1-1
+T(0) = 1
+assume T(k) = 2^k for all k <= n
+T(n+1)  = 1 + Σ(j = {0 .. n})T(j)
+        = 1 + Σ(j = {0 .. n})2^j
+        = 1 + 2^(n+1) - 1
+        = 2^(n+1)
+
+15.1-2
+let price table be [0, 0, 4, 5] for rod length 0 ~ 3
+let n = 3
+greedy method will first cut a piece of length 2, which has the highest price density 4/2 = 2
+but then the remaining rod with length 1 is valueless, total price 4
+the optimal solution will not cut the rod, total price 5
+
+15.1-3
+./CLRS/technique/rod.ts#cutRodCC
+
+15.1-4
+./CLRS/technique/rod.ts#extendedMemoizedCutRod
+
+15.1-5
+problem n depends on problem n-1 and problem n-2
+./CLRS/technique/rod.ts#fibonacci
+
+15.2-1
+2010 '((A0A1)((A2A3)(A4A5)))'
+
+15.2-2
+./CLRS/technique/matrix-chain.ts#matrixChainMultiply
+
+15.2-3
+assume P(k) >= 2^n for k < n
+    P(n)    >= Σ(k = {1 .. n-1})c2^(n-k)
+            = Σ(k = {1 .. n-1})2^n
+            = (n-1)2^n
+            >= 2^n
+therefore P(n) = Ω(2^n)
+
+15.2-4
+the subproblem (i, j) refers solutions to subproblems (i, k) and (k+1, j) for all i <= k < j
+there are j - i such k and vertex (i, j) has degree 2(j-i)
+vertices on the same diagonal has the same j - i, which ranges from 0 to n-1
+each diagonal contains n - (j - i) vertices
+    Σ(k = {0 .. n-1})2k(n-k)
+    = 2nΣ(k = {0 .. n-1})k - 2Σ(k = {0 .. n-1})k^2
+    = 2n * n(n-1) / 2 - 2(n-1)n(2n-1) / 6
+    = n^2(n-1) - n(n-1)(2n-1)/3
+    = n(n-1)(3n - 2n + 1)/3
+    = n(n-1)(n+1)/3
+    = n(n^2 - 1)/3
+    = (n^3 - n)/3
+edges in total
+C(n, 2) + n = n(n-1) + n = n^2 vertices in total
+
+15.2-5
+equals to the number of edges in the subproblem graph
+
+15.2-6
+the number of pairs of parentheses as a function of the number of matrices is
+    P(1) = 1
+    P(n) = P(k) + P(n-k)
+P(n) = n easily proved by substitution
+
+15.3-1
