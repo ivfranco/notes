@@ -4078,8 +4078,138 @@ equals to the number of edges in the subproblem graph
 
 15.2-6
 the number of pairs of parentheses as a function of the number of matrices is
-    P(1) = 1
-    P(n) = P(k) + P(n-k)
-P(n) = n easily proved by substitution
+    P(1) = 0
+    P(n) = P(k) + P(n-k) + 1
+P(n) = n - 1 easily proved by induction
 
 15.3-1
+RECURSIVE-MATRIX-CHAIN enumerates fewer results than a complete enumeration
+instead all subproblem of Ai..k and Ak+1..j, only the optimal subproblem is returned
+but a complete enumeration performs one comparsion for each possible parenthesization
+while RECURSIVE-MATRIX-CHAIN performs many comparsion for each subproblem
+enumerating all possibilities is at least Ω(4^n / n^(3/2)), the Catalan numbers
+redo 15.8 with different setting
+line 1-2, line 5 and line 6-7 takes at most constant time, so
+    T(1)    <= c
+    T(n)    <= c + Σ(k = {1 .. n-1})(T(k) + T(n-k) + c)
+            = c + c(n-1) + 2Σ(k = {1 .. n-1})T(k)
+            = cn + 2Σ(k = {1 .. n-1})T(k)
+thanks Instructor's Manual
+assume T(n) <= cn3^(n-1)
+    T(n)    <= cn + 2Σ(k = {1 .. n-1})(ck3^(k-1))
+            = c(n + 2Σ(ck3^(k-1)))
+            = c(2(n3^(n-1) / (3 - 1) + (1 - 3^n) / (3 - 1)^n) + n)
+            = cn3^(n-1) + c(2n + 1 - 3^n)/2
+            <= cn3^(n-1)
+T(n) = O(n3^(n-1)), RECURSIVE-MATRIX-CHAIN is more efficient than complete enumeration
+
+15.3-2
+subproblems in merge sort do not overlap
+each subproblem is solved only once, hence memoization won't improve the performance
+
+15.3-3
+this problem do has optimal substructure
+the subproblems are independent and overlaps
+
+15.3-4
+when i and j fixed, minimizing pi-1pkpj equivalent to minimizing pk
+for p = [30, 20, 10, 1]
+    greedy method returns (A0A1)A2, 6300 multiplications
+    optimal solution is A0(A1A2), 800 multiplications
+
+15.3-5
+the subproblems no longer overlap as much as in 15.1
+a subproblem now is described by the length of the rod and the the remaining allowance of length i rods
+for example the two subproblem:
+    1.  a length 3 rod after cutting length 3 from a length 6 rod
+    2.  a length 3 rod after cutting length 1 from a length 4 rod
+are no longer the same subproblem
+
+15.3-6
+consider currencies as vertices in a graph and rij be directed edges
+the problem only makes sence when:
+    for any cycle in the graph, the production of rij along the cycle equals to 1
+    (especially rij = 1/rji for all i and j)
+otherwise looping in the cycle will result in infinite profit 
+thereby for each optimal solution i ~> j, there must be a equally optimal solution i ~> j that is a simple path
+the problem space then is bounded and has size O(n^2)
+problem can be solved by 
+    for each pair (i, j)
+    finding the optimal exchange rate with at most k trades for k ranges from 0 to n-1
+for at most k+1 trades, search each vertex v that
+    has an optimal exchange rate riv[k] with at most k trades from i to v 
+    there is an edge rvj from v to j
+then the maximum of riv[k] * rvj is the solution for at most k+1 trades from i to j
+only one subproblem each iteration, trivially independent
+subproblems overlap a lot with each other as optimal solutions for all i and j is computed
+when ck != 0, the argument above no longer holds
+optimal solution of size k+1 does not necessary come from optimal solutions of size k
+when the gap between ck and ck+1 is huge
+for k+1 trades it may need to choose a less optimal solution of size k which makes fewer trades
+instead of an optimal k-trade solution that uses exactly k trades
+
+15.4-1
+100110
+
+15.4-2
+./CLRS/technique/substring.ts#constrSubstring
+
+15.4-3
+./CLRS/technique/substring.ts#memoizedLcs
+
+15.4-4
+only the case with min(m, n) entries and O(1) extra space
+./CLRS/technique/substring.ts#linearSpaceLcs
+
+15.4-5
+let Y be X in sorted order, run LCS with X and Y
+total running time O(nlgn) + O(n^2) = O(n^2)
+
+15.4-6
+thanks https://www.csie.ntu.edu.tw/~kmchao/seq06fall/dp.pdf
+maintain a list best_end while traversing the elements in input array A
+right before examining element A[i]
+best_end[k] contains the minimum among last element of increasing subsequences of length k in A[1 .. i-1]
+then best_end must be in sorted order:
+    if increasing subsequences of length k in A[1 .. j] all end with an element >= p
+    then no increasing subsequences of length k+1 can have last element <= p
+    since the first k elements in the k+1-element sequence is, a k-element increasing subsequence
+    so kth p <= kth element <= k+1th element as the increasing subsequence is in increasing order
+then A[i] may update best_end in two ways:
+    if A[i] >= any element in best_end, for all best_end[k] currently defined
+        appending A[i] to any of the subsequences of length k will not change best_end[k+1], as best_end[k+1] <= A[i]
+        for max_k the maximum such k, best_end[max_k + 1] is not defined so far
+        which means no increasing subsequence of length max_k + 1 exists in A[1 .. i-1]
+        then appending A[i] to any of the max_k-element subsequences will update best_end[max_k + 1] to A[i]
+    if A[i] < best_end[k] for some k
+        let min_k be the minimal such k that best_end[k] > A[i]
+        for all k < min_k, as the same argument above, best_end[k] will not be updated by A[i]
+        by appending A[i] to one of the increasing sequence of length min_k - 1
+        (possible since best_end[min_k - 1] <= A[i])
+        best_end[min_k] can be updated to A[i]
+        for sequences of length k >= min_k, A[i] can be appended to no sequences, hence updates no best_end[k]
+        as best_end[k] > A[i] and best_end[k] stores the minimal last element among all sequences
+as max_k is just the current length of best_end[k], min_k can be find in O(lgn) time by binary search
+each iteration above runs in time O(lgn), O(nlgn) in total
+as best_end[k] records the minimum among last element of increasing subsequences of length k
+the greatest k defined then is the length of the longest increasing subsequence of A
+the last element of which is stored in corresponding best_end[k]
+maintain another array prev that starts with all entries = null
+    when A[i] updates best_end[k], set prev[A[i]] = best_end[k-1]
+    (best_end[0] set to some null value)
+invariant:
+    for i = best_end[k]
+    traversing prev[i] -> prev[prev[i]] -> .. before null value yields a k-element decreasing subsequence of A
+initialization:
+    all entries of prev = null, best_end has length 0, invariant trivially satisfied
+maintenance:
+    prev[best_end[k-1]] has been set already, as the only way best_end grows is appending to the end
+    then prev[best_end[k-1]] points to a k-1 element decreasing subsequence of A
+    as A[i] replaces best_end[k] by appending to the increasing sequence indicated by best_end[k-1]
+    prepending the decreasing sequence with A[i] yields a decreasing sequence of length k
+termination:
+    let best_end[k] be the content of the last entry of best_end
+    traversing prev[best_end[k]] then yields a length k decreasing subsequence of A
+    reverse of this sequence then is the longest increasing subsequence of A
+even if the numbers are large, prev can be a efficient dynamic set and operations on it O(lgn)
+overall running time still O(nlgn) 

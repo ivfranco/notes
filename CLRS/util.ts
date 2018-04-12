@@ -4,7 +4,7 @@ export function id<T>(a: T): T {
 
 export function randomAB(a: number, b: number) {
   if (a > b) {
-    throw "Error: lower bound greater than higher bound";
+    throw new Error("Error: lower bound greater than higher bound");
   }
   return Math.floor(Math.random() * ((b - a) + 1)) + a;
 }
@@ -12,7 +12,7 @@ export function randomAB(a: number, b: number) {
 export function randomStr(len: number) {
   let chars = [];
   for (let i = 0; i < len; i++) {
-    // little case characters 
+    // little case characters
     chars.push(randomAB(0x61, 0x7a));
   }
   return String.fromCharCode(...chars);

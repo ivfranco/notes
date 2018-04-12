@@ -1,6 +1,7 @@
 export {
   matrixChainOrder,
   optimalParens,
+  greedyMatrixChain,
 };
 
 import { Matrix, matrixMultiplication } from "../start/matrix-mul";
@@ -57,4 +58,27 @@ function matrixChainMultiply(A: Matrix[], s: number[][], i: number, j: number): 
     let rhs = matrixChainMultiply(A, s, s[i][j] + 1, j);
     return matrixMultiplication(lhs, rhs);
   }
+}
+
+function greedyMatrixChain(p: number[]): number {
+  function aux(i: number, j: number): number {
+    if (i === j) {
+      return 0;
+    }
+
+    let q = +Infinity;
+    let k = i;
+
+    for (let c = i; c < j; c++) {
+      if (q > p[c + 1]) {
+        q = p[c + 1];
+        k = c;
+      }
+    }
+
+    return aux(i, k) + aux(k + 1, j) + p[i] * p[k + 1] * p[j + 1];
+  }
+
+  let n = p.length - 1;
+  return aux(0, n - 1);
 }
