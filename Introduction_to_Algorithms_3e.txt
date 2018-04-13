@@ -4213,3 +4213,88 @@ termination:
     reverse of this sequence then is the longest increasing subsequence of A
 even if the numbers are large, prev can be a efficient dynamic set and operations on it O(lgn)
 overall running time still O(nlgn) 
+
+15.5-1
+./CLRS/technique/optimal-bst.ts#constructOptimalBST
+
+15.5-2
+3.12
+  ┌─d7
+┌─k7
+│ │ ┌─d6
+│ └─k6
+│   └─d5
+k5
+│     ┌─d4
+│   ┌─k4
+│   │ └─d3
+│ ┌─k3
+│ │ └─d2
+└─k2
+  │ ┌─d1
+  └─k1
+    └─d0
+
+15.5-3
+computation of w[i, j] takes time j - i + 1 = O(n)
+it's computed for at most O(n^2) times, O(n^3) in total
+the asymptotic running time will not change
+
+15.5-4
+initially root[i][i] = i for all 1 <= i <= n
+starting with l = 1, j = i + l for all i
+    root[i][i] <= root[i][i+1] <= root[i+1][i+1]
+    i <= root[i][i+1] <= i+1
+if for l >= 1, root[i][i+l] is in sorted order, root[i][i+l] <= root[i+1][i+l+1] for all i
+    root[i][i+l] <= root[i][i+l+1] <= root[i+1][l+l+1]
+    root[i+1][i+l+1] <= root[i+1][i+l+2] <= root[i+2][i+l+2]
+the next diagonal in the table (as shown in figure 15.10) is also in sorted order
+sets of possible candidates for root[i][i+l+1] and root[i+1][i+l+2] only overlaps at end points (at most one)
+fix l, the number of candidates for each root[i][i+l] combined is at most n + entries on the last diagonal = O(n)
+as l = 1 to n, O(n^2) in total
+as least Ω(n^2) entries are filled in three tables, overall running time Θ(n^2)
+
+15-1
+topologically sort the vertices
+remove all the vertices before s (won't appear in a path s ~> t) and after t (similar) 
+if an edge (s, u) exists, solve subproblem u ~> t, add w(s, u) to the solution, take the maxmimum among all such u
+a bottom-up solution traverses the sorted list reversely from t to s, solve subproblems of smallest size first
+topological sort is O(|V| + |E|), removing nodes O(|V|)
+the graph is naturally a subproblem graph, subproblems are referred to at most O(|E|) times
+ovarall time complexity O(|V| + |E|)
+one subproblem at a time is examined, tivially independent
+O(|E|) possible references to O(|V|) subproblems, naturally overlaps
+
+
+15-2
+longest common subsequence of a string and its reverse
+O(n^2)
+
+15-3
+thanks Instructor's Manual
+for a sorted list of points [p1 .. pn]
+define a bitonic path Pij as a path that:
+    visits all points in {p1 .. pj}
+    starts from pi and go strictly left to p1
+    then go srtictly right from p1 to pj
+let |pipj| be the distance between pi and pj
+let b[i, j] be the length of the shortest among all bitonic path Pij
+for i < j - 1:
+    pj-1 must be on the right going subpath of Pij, preceeding pj
+    if Pij is a shortest bitonic path, then its subpath Pij-1 must also be a shortest bitonic path
+    otherwise by cut and paste an optimal Pij-1, b[i, j] can be reduced
+    b[i, j] = b[i, j-1] + |pj-1pj|
+for i = j - 1:
+    pi is the first point on the left going subpath of Pij
+    the point preceeding pj on the right subpath can be pk for any 1 <= k < j - 1
+    again Pkj-1 must be the optimal bitonic path or cut and paste can reduce b[i, j]
+    b[j-1, j] = min{b[k, j-1] + |pkpj|} over all k
+for i = j:
+    the bitonic path starts and ends with pi
+    its subpath Pj-1j, for the same reason above, must be a optimal bitonic path
+    b[j, j] = b[j-1, j] + |pj-1, pj|
+at the end b[n, n] is the length of the optimal bitonic path pn ~> p1 ~> pn, which is also a bitonic tour
+by recording each minimal choice of k during the computation, the bitonic tour can be reconstructed
+r[i][j] stores k that pk preceeding pj on an optimal bitonic path i ~> 1 ~> j, where i < j
+if i > j, the optimal bitonic path is Pji, r[j][i] stores k that preceeding pi 
+as initially i = n-1, j = n, if i > j then pk is on the left going subpath of Pn-1n, should be printed later

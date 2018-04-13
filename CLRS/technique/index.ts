@@ -1,10 +1,12 @@
 import { isSorted, randomAB, shuffle } from "../util";
+import { bitonicTour, constrBitonicTour } from "./bitonic-tour";
 import { greedyMatrixChain, matrixChainOrder, optimalParens } from "./matrix-chain";
+import { constructOptimalBST, optimalBST, quadraticOptimalBST } from "./optimal-bst";
 import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_15_4_6();
+  problem_15_3();
 }
 
 function problem_15_1_4() {
@@ -70,6 +72,61 @@ function problem_15_4_6() {
   console.assert(isSorted(L1));
   console.assert(isSorted(L2));
   console.assert(L1.length === L2.length);
+}
+
+function problem_15_5_1() {
+  let p = [0, 0.15, 0.10, 0.05, 0.10, 0.20];
+  let q = [0.05, 0.10, 0.05, 0.05, 0.05, 0.10];
+
+  let [e, root] = optimalBST(p, q, p.length - 1);
+  console.log(constructOptimalBST(root, p.length - 1).show());
+}
+
+function problem_15_5_2() {
+  let p = [0, 0.04, 0.06, 0.08, 0.02, 0.10, 0.12, 0.14];
+  let q = [0.06, 0.06, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05];
+
+  let [e, root] = optimalBST(p, q, p.length - 1);
+  console.log(e);
+  console.log(constructOptimalBST(root, p.length - 1).show());
+}
+
+function problem_15_5_4() {
+  let p = [0, 0.04, 0.06, 0.08, 0.02, 0.10, 0.12, 0.14];
+  let q = [0.06, 0.06, 0.06, 0.06, 0.05, 0.05, 0.05, 0.05];
+
+  let [e, root] = optimalBST(p, q, p.length - 1);
+  console.log(e);
+  console.log(constructOptimalBST(root, p.length - 1).show());
+  [e, root] = quadraticOptimalBST(p, q, p.length - 1);
+  console.log(e);
+  console.log(constructOptimalBST(root, p.length - 1).show());
+}
+
+function problem_15_2() {
+  let s = "character".split("");
+  let r = s.slice().reverse();
+  console.log(s);
+
+  console.log(constrSubstring(s, r, lcs(s, r)).join(""));
+}
+
+function problem_15_3() {
+  let p = [
+    [0, 0],
+    [2, 3],
+    [5, 2],
+    [7, 1],
+    [8, 4],
+    [6, 5],
+    [1, 6],
+  ].map(([x, y]) => {
+    return { x, y };
+  });
+
+  let [b, r] = bitonicTour(p);
+  console.log(b);
+  console.log(constrBitonicTour(r, p.length));
 }
 
 main();
