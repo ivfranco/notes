@@ -4298,3 +4298,107 @@ by recording each minimal choice of k during the computation, the bitonic tour c
 r[i][j] stores k that pk preceeding pj on an optimal bitonic path i ~> 1 ~> j, where i < j
 if i > j, the optimal bitonic path is Pji, r[j][i] stores k that preceeding pi 
 as initially i = n-1, j = n, if i > j then pk is on the left going subpath of Pn-1n, should be printed later
+./CLRS/technique/bitonic-tour.ts
+
+15-4
+denote the length of ith word by li for 1 <= i <= n
+define ws[i, j] as the number of white spaces at the end of of line with word i to j
+    ws[i, j]    = M - (Σ(k = {i .. j})li + j - i)
+                = ws[i, j-1] - (lj + 1)
+so ws[i, j] can be computed in time O(n^2)
+if words from i to j do not fit in a line, ws[i, j] will be negative
+define the whitespace cost wc[i, j] for a line containing words i to j as:
+    wc[i, j]    = +∞ if ws[i, j] < 0, words i to j will not fit in a line
+                = 0 if ws[i, j] >= 0 and j = n, this is the last line, contributes nothing to the cost
+                = ws[i, j]^3 otherwise
+define the total cost cost[j] as the optimal cost of words 1 to j
+if the last line starts with kth word
+then the paragraph without the last line (which contains words k to j) has optimal cost[k-1]
+otherwise cut and paste will reduce cost[j]
+the optimal solution then is min{cost[k-1] + wc[k, j]} over all k < j
+assume each word no longer than M, there is always an finite solution
+if wc[k, j] = ∞ the solution will never be chosen
+by recording optimal choice of k, the paragraph can be reconstructed
+both O(n^2) in time and space
+./CLRS/technique/print-neatly.ts
+
+15-5
+a.  a recursive solution is to work backwards from z = y
+    as the operations never backtracks or decrements i or j
+    once i > i* and j > j*, x[1 .. i*] can not be examined, z[1 .. j*] cannot be edited
+    whenever the operations increments j, it must have z[j] == y[j]
+    hence only a few operations are legal for each step
+        only when x[i] == y[j], a copy operation can be performed
+        delete operation only possible when i <= x.length
+        replace operation may only replace z[j] = y[j]
+        insert operation may only insert z[j] = y[j]
+        twiddle operation only possible when x[i] == y[j+1] && x[i+1] == y[j]
+        kill operation only possible when z = y
+    thereby subproblems are defined solely by i and j, it's unnecessary to maintain z in subproblems or anywhere
+    by determining the possible last operation and work backwards
+        only when x[i-1] = y[j-1], i-1 >= 1, j-1 >= 1, the last operation may be copy
+        only when i >= 2, the last operation may be delete
+        only when i >= 2 and j >= 2, the last operation may be replace
+        only when j >= 2, the last operation may be insert
+        only when x[i-1] = y[j-2], x[i-2] = y[j-1] i >= 3, j >= 3, the last operation may be twiddle
+        only when j = y.length + 1 and i = x.length + 1, the last operation may be kill
+    each operation at least increments one of i or j
+    current problem can then be solved by optimal solutions of subproblems
+    ./CLRS/technique/edit-distance.ts
+b.  a space in y is equivalent to delete operation (j incremented but i not)
+    a space in x is equivalent to insert operation (i incremented but j not)
+    then the problem can be casted to edit distance problems with operations:
+        insert:     cost +2
+        delete:     cost +2
+        replace:    cost +1
+        copy:       cost -1
+    the inverse of the cost is then the score of the two sequence
+
+15-6
+define two subproblem for each subtree rooted at x for some node x
+    1.  maximizes the sum of conviviality with the node x
+    2.  maximizes the sum of conviviality without the node x
+then for a node x and its children y1 .. yk,
+    the solution to problem 1 is the sum of subproblem 2 of its children
+    the solution to problem 2 is the sum of the greater between solution to subproblem 1 and 2 of its chilren
+whether a guest should join the party can be solely defined top-down by 
+    whether the immediate supervisor joins the party
+    a comparsion between solutions to subproblem 1 and 2 
+complexity proportional to the number of edges, O(n) in total
+
+15-7
+a.  bfs doesn't apply here as the path may not be simple
+    define subproblem (v, j) as if there is a path labeled <σj, σj+1 .. σk> starting from vertex v
+    starting from vertex s, for each edge (s, u) with label σi = σ1:
+        solve the subproblem (u, i+1)
+        choose randomly from all vertices u which (u, 2) has a solution, record the choice
+    total running time O(n|E|) as each subproblem traverses at most |E| edges
+b.  store not only a boolean, but also the probability of the subproblem
+    record the u which (u, i+1) yields maximal probability instead of a random one
+    still O(n|E|) as real number operations take unit time
+
+15-8
+a.  let n = 2
+    no matter which pixel is chosen on the last row
+    the pixel removed can be either the first or the second pixel on each row
+    2^m possibilities in total
+    for n > 2, each possibility in the case n = 2 still valid, O(2^m) possibilities
+b.  define subproblem (i, j) as the minimal disruption seam starting from row i and column j
+    when i = m, optimal solution to subproblem (i, j) is simply d(i, j)
+    when i < m, the optimal solution is d(i, j) plus the minimum among optimal solutions to
+        (i+1, j-1), (i+1, j) and (i+1, j+1)
+    if j-1 or j+1 falls within the bound
+    the problem then easily solved by a bottom up algorithm starting with i = m and goes upwards
+    mn subproblems, each refers to at most 3 subproblems, O(mn) in total
+
+15-9
+complexity of this problem only depends on the length of the list of break points, not n the length of string S
+add the two end points (1 and n) to the list of break point bp, sort the list
+assume bp has length m, define subproblem (i, j) as optimally break the substring S[bp[i], bp[j]] according to bp
+the original problem is then (1, m) and for all 1 < k < m:
+    the solution to (1, m) is the minimal of solutions to (1, k) + (k, m) over all k plus bp[m] - bp[1] + 1
+and all subproblems can be solved similarly
+problems (i, i+1) has no break point between, solution is 0
+the optimal way to break the string then can be reconstructed from choices of k
+total number of solution is O(m^2), each refers m subproblems at most, O(m^3) in total
+./CLRS/technique/break-string.ts

@@ -1,12 +1,15 @@
 import { isSorted, randomAB, shuffle } from "../util";
 import { bitonicTour, constrBitonicTour } from "./bitonic-tour";
+import { breakString } from "./break-string";
+import { editDistance } from "./edit-distance";
 import { greedyMatrixChain, matrixChainOrder, optimalParens } from "./matrix-chain";
 import { constructOptimalBST, optimalBST, quadraticOptimalBST } from "./optimal-bst";
+import { printNeatly } from "./print-neatly";
 import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_15_3();
+  problem_15_9();
 }
 
 function problem_15_1_4() {
@@ -127,6 +130,45 @@ function problem_15_3() {
   let [b, r] = bitonicTour(p);
   console.log(b);
   console.log(constrBitonicTour(r, p.length));
+}
+
+function problem_15_4() {
+  let words = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. \
+Quisque porttitor ipsum ut sollicitudin dapibus. \
+Praesent luctus nibh sit amet orci facilisis finibus. \
+Maecenas vitae ante sit amet augue aliquet iaculis. \
+Nunc imperdiet diam quis ex condimentum, vel semper nisl lobortis. \
+Fusce vel dignissim ante. Duis maximus faucibus pulvinar. \
+Integer fermentum tortor in maximus ultrices`
+    .split(/[.,]?\s/);
+  let [cost, para] = printNeatly(words, 20);
+  console.log(cost);
+  console.log(para);
+}
+
+function problem_15_5() {
+  let x = "algorithm";
+  let y = "altruistic";
+
+  let cost = {
+    copy: 1,
+    delete: 2,
+    insert: 2,
+    kill: 5,
+    replace: 2,
+    twiddle: 3,
+  };
+
+  let [distance, ops] = editDistance(x, y, cost);
+  console.log(distance);
+  console.log(ops);
+}
+
+function problem_15_9() {
+  let bp = [1, 7, 9];
+  let n = 20;
+
+  console.log(breakString(bp, n));
 }
 
 main();
