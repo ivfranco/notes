@@ -1,4 +1,5 @@
 import { isSorted, randomAB, shuffle } from "../util";
+import { activitySelection, greedyActivitySelection } from "./activity-selection";
 import { bitonicTour, constrBitonicTour } from "./bitonic-tour";
 import { breakString } from "./break-string";
 import { editDistance } from "./edit-distance";
@@ -9,7 +10,7 @@ import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_15_9();
+  problem_16_1_1();
 }
 
 function problem_15_1_4() {
@@ -169,6 +170,27 @@ function problem_15_9() {
   let n = 20;
 
   console.log(breakString(bp, n));
+}
+
+function problem_16_1_1() {
+  let A = [
+    [1, 4],
+    [3, 5],
+    [0, 6],
+    [5, 7],
+    [3, 9],
+    [5, 9],
+    [6, 10],
+    [8, 11],
+    [8, 12],
+    [2, 14],
+    [12, 16],
+  ].map(([s, f]) => {
+    return { s, f };
+  });
+
+  console.log(activitySelection(A)[1]);
+  console.log(greedyActivitySelection(A));
 }
 
 main();

@@ -4402,3 +4402,129 @@ problems (i, i+1) has no break point between, solution is 0
 the optimal way to break the string then can be reconstructed from choices of k
 total number of solution is O(m^2), each refers m subproblems at most, O(m^3) in total
 ./CLRS/technique/break-string.ts
+
+15-10
+it not clear if the fee is deducted at the end of the 10 year period or deducted each year
+if it's deducted each year, it must be be deducted from the money in one or more investment
+which does no match quite well with the description "leave the money made in the previous year in the same investments"
+so assume the fee is deducted from the profits only at the end of the 10 year period
+a.  assume in a span from year i to year j, money is not moved among investments
+    assume two investments s and t in the portfolio and a total amount of q dollars invested in them, qs and qt each
+    the combined return equals to
+        qsΠ(1 + rks) + qtΠ(1 + rkt)
+    all rates fixed, it must have
+        1.  Π(k = {i .. j})(1 + rks) >= Π(k = {i .. j})(1 + rkt), or
+        2.  Π(k = {i .. j})(1 + rks) <= Π(k = {i .. j})(1 + rkt)
+    in case 1, invest all the q dollars in investment s will not decrease the profit
+    in case 2, invest all the q dollars in investment t will not decrease the profit
+    in an optimal solution, the 10 years can be divided into spans in which money is not moved
+    therefore there is also an optimal solution that only invests in a single investment each year
+b.  define the subproblem (i, s) as 
+        the return of investment strategy from year i if the investment in year i-1 is s
+    then optimal solution to (i, s) can be derived from
+        let k range over all investments
+        get solutions to all subproblem (i+1, k)
+        if k = s, deduct f1 from the solution; otherwise deduct f2
+        take the maximum among all choice of k, record the choice
+    //  the problem does not seem to have optimal substructure
+    //  the optimal choice of k also depends on the total return of previous investments
+    //  for example, if f2 - f1 = 10000 and the total amount of money at the start of year i is q = 20000 dollars
+    //  no return rate <= 50% worths the additional fee charged
+    //  but if q = 200000, a return rate of 5% will suffice
+    //  the subproblems is defined also by the total amount of money can be invested in this year
+    //  then the space of problem is enormous
+c.  as the number of years is a constant 10
+    it's possible to do a complete enumeration of arrangements about move investments or not at the end of each year
+    2^9 = 512 different arrangements in total, which is a constant
+    then the fee paid for each arrangement is a constant and can be ignored
+    each arrangement can be solved in time O(n^3), where n is the total amount of investments, with scheme in part b
+d.  at some point, the total aount of dollars at the start of year i exceeds 15000
+    then the same argument in part a no longer applies
+
+15-11
+define subproblem (i, j) as
+    the cost to satisfy demand from month i with j machines in the inventory
+obviously at any point during the optimal strategy, the inventory should never exceed D
+or the total demand can be satisfied solely with inventories and it's a waste to produce and store even one more unit
+then optimal solution to (i, j) can be derived from
+    calculate cost ck to produce k machines so k + j - di ranges from 0 to D, di - j <= k <= D + di - j
+    get optimal solution to (i+1, k + j - di), plus ck
+    minimize the total cost over all choices of k
+there are at most nD subproblems, each refers to at most D subproblems
+O(nD^2) in total
+
+15-12
+define subproblem (n, x) as
+    maximize VORP from position n with x dollars
+similar to any other dynamic problemming problem in this chapter
+NX/1000000 subproblems, each refers to P subproblems at most, O(NXP) overall
+why a greedy algorithm doesn't work:
+let N = 2 with three players:
+    1.  in position 1, VORP 10, sign $10
+    2.  in position 1, VORP 6, sign $9
+    3.  in position 2, VORP 6, sign $9
+with an allowance $18, the optimal solution signs player 2 and 3
+greedy solution signs player 1 first, as $10 / 10 is the highest VORP density
+
+Chapter 16
+16.1-1
+./CLRS/technique/activity-selection.ts#activitySelection
+
+16.1-2
+optimal substructure still applies
+let subproblem Sk = {ai ∈ S : fi <= sk}, Ak ⊆ Sk be an optimal solution to Sk
+let am be the activity with greatest start time in Sk
+let aj be the activity with greatest start time in Ak
+as activities in Ak is mutually compatible, for all ai ∈ Ak, i != j
+    f[ai] <= s[aj] <= s[am]
+then Ak - {aj} ∪ {am} is still mutually compatible
+as |Ak - {aj} ∪ {am}| = |Ak|, this is also an optimal solution to Sk
+so a greedy strategy that always select the compatible activity with last start time also yields optimal solution
+
+16.1-3
+least duration:
+        1   2   3
+    s   1   9   10
+    f   10  11  20
+    if the activity of least duration is selected, activity 2 will be selected first
+    then any other activity is not compatible with it, solution has size 1
+    the optimal solution of size 2 contains activities 1 and 2
+fewest overlaps:
+        1   2   3   4   5   6   7   8   9   10  11
+    s   1   2   2   2   3   4   5   6   6   6   7
+    f   3   4   4   4   5   6   7   8   8   8   9
+    solution by fewest overlaps: {a2, a6, a8}
+    optimal solution: {a1, a5, a7, a11}
+earliest start time:
+        1   2   3
+    s   1   2   3
+    f   4   3   4
+    solution by earliest start time: {a1}
+    optimal solution: {a2, a3}
+
+16.1-4
+basically the same to half the problem 14.3-7, scan the start and finish time in order
+assume an activity is represented by an object:
+interface Act {
+    s: number;
+    f: number;
+    room?: number;
+}
+make two copies of pointers to object representing activities S and F
+sort S according to start time, F according to finish time
+maintain a counter k and two index i, j all starting from 0
+if S[i].s > F[j].f
+    increment k
+    assign k to S[i].room
+    increment i
+if F[j].f >= S[i].s
+    decrement k
+virtually equivalent to moving a point from past to future on the timeline
+k counts the number of activities overlap the point
+
+16.1-5
+solution to 16.1-1 can be modified so instead of
+    c[i, j] = c[i, k] + c[k, j] + 1
+now it compute and maximize
+    c[i, j] = c[i, k] + c[k, j] + vk
+
