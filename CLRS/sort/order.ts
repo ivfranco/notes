@@ -1,13 +1,14 @@
 export {
   randomizedSelect2,
-  select
+  select,
+  median,
 };
 
-import { partition, randomPivoter } from "./quicksort";
 import { insertionSortSlice } from "../start/insertion-sort";
+import { partition, randomPivoter } from "./quicksort";
 // T: Ord
 function randomizedSelect<T>(A: T[], p: number, r: number, i: number): T {
-  if (p == r) {
+  if (p === r) {
     return A[p];
   } else {
     let q = partition(A, p, r, randomPivoter);
@@ -60,11 +61,11 @@ function mmPivoter<T>(A: T[], p: number, r: number): number {
     }
   }
 
-  throw "Error: supposed median of medians not present in the array";
+  throw new Error("Error: supposed median of medians not present in the array");
 }
 
 function select<T>(A: T[], p: number, r: number, i: number): T {
-  if (p == r) {
+  if (p === r) {
     return A[p];
   } else {
     let q = partition(A, p, r, mmPivoter);
@@ -77,4 +78,11 @@ function select<T>(A: T[], p: number, r: number, i: number): T {
       return randomizedSelect(A, q + 1, r, i - k);
     }
   }
+}
+
+function median<T>(A: T[]): T {
+  let r = A.length - 1;
+  let m = Math.floor(r / 2);
+
+  return select(A, 0, r, m);
 }

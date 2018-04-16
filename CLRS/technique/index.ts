@@ -3,6 +3,8 @@ import { activitySelection, greedyActivitySelection } from "./activity-selection
 import { bitonicTour, constrBitonicTour } from "./bitonic-tour";
 import { breakString } from "./break-string";
 import { editDistance } from "./edit-distance";
+import { huffman } from "./huffman";
+import { fractionalKnapsack, knapsack, linearKnapsack } from "./knapsack";
 import { greedyMatrixChain, matrixChainOrder, optimalParens } from "./matrix-chain";
 import { constructOptimalBST, optimalBST, quadraticOptimalBST } from "./optimal-bst";
 import { printNeatly } from "./print-neatly";
@@ -10,7 +12,7 @@ import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_16_1_1();
+  problem_16_3_3();
 }
 
 function problem_15_1_4() {
@@ -191,6 +193,39 @@ function problem_16_1_1() {
 
   console.log(activitySelection(A)[1]);
   console.log(greedyActivitySelection(A));
+}
+
+function problem_16_2_2() {
+  let I = [
+    [10, 60],
+    [20, 100],
+    [30, 120],
+  ].map(([w, v]) => {
+    return { w, v };
+  });
+  let W = 50;
+
+  console.log("Fractional solution");
+  console.log(fractionalKnapsack(I, W));
+  console.log("\n0-1 solution");
+  console.log(knapsack(I, W));
+  console.log("\nLinear fractional solution");
+  console.log(linearKnapsack(I, W));
+}
+
+function problem_16_3_3() {
+  let C = [
+    [1, "a"],
+    [1, "b"],
+    [2, "c"],
+    [3, "d"],
+    [5, "e"],
+    [8, "f"],
+    [13, "g"],
+    [21, "h"],
+  ] as Array<[number, string]>;
+
+  console.log(huffman(C).show());
 }
 
 main();

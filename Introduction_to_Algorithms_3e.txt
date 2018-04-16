@@ -4503,7 +4503,7 @@ earliest start time:
     optimal solution: {a2, a3}
 
 16.1-4
-basically the same to half the problem 14.3-7, scan the start and finish time in order
+basically the same to half the problem 14.3-7, scan the start and finish times altogether in increasing order
 assume an activity is represented by an object:
 interface Act {
     s: number;
@@ -4521,6 +4521,7 @@ if F[j].f >= S[i].s
     decrement k
 virtually equivalent to moving a point from past to future on the timeline
 k counts the number of activities overlap the point
+it's greedy in the sense that the activity is always assigned to the first (i.e. with smallest index) empty room
 
 16.1-5
 solution to 16.1-1 can be modified so instead of
@@ -4528,3 +4529,191 @@ solution to 16.1-1 can be modified so instead of
 now it compute and maximize
     c[i, j] = c[i, k] + c[k, j] + vk
 
+16.2-1
+assume in an optimal solution, w of wm pounds of the item with highest value density is not in the knapsack
+replace w pounds of anything in the knapsack with it will yield a equal or better solution
+if the capacity W is higher than the total weight of the item with highest value density
+all of it should be put into the knapsack and it is now a subproblem with W - wm capacity and all other items
+
+16.2-2
+define a subproblem (i, j) as
+    maximize the total value from items i to n with capacity j
+then the solution to (i, j) is the best among:
+    1.  when wi <= j, take item i, add vi to the optimal solution of subproblem (i+1, j - wi)
+    2.  do not take item i, exactly the optimal solution to subproblem (i+1, j)
+at most nW subproblem that each refers to 2 subproblems at most, O(nW) in total
+./CLRS/technique/knapsack.ts#knapsack
+
+16.2-3
+let I be the list of items sorted according to their weight
+consider a solution which contains I[j] but not I[i], i < j
+then it's always safe to replace I[j] by I[i] as the I is sorted by weight, I[i].weight <= I[j].weight
+the replacement also improves the solution since I[i].value >= I[j].value as stated in the problem
+therefore one of the optimal solutions must be defined by the largest i that Σ(k = {1 .. i})I[k].weight <= W
+
+16.2-4
+as there's no cost for carrying more water, assume the professor always refills 2 liters of water at water stop
+define subproblem i as
+    minimize the number of water stops starting from water stop k with 2 liters of water
+then for i < j, the optimal solution to subproblem i is no better than the optimal solution to subproblem j
+either the solution to i didn't refill at water stop j and starts from there with less than 2 liters of water
+or it refills water at water stop j thus refills at least one more time than the solution to j
+let di be the distance between water stop i and water stop i+1
+a greedy choice that refills water at water stop j that's the greatest j such that Σ(k = {i .. j - 1})dk <= m
+all other choices yields a subproblem j with smaller or equal j, hence is no better than the greedy choice
+all di examined at most once, total running time O(n)
+
+16.2-5
+first, there must be an optimal solution in which all left end points of intervals is a point in the set 
+assume some interval vi in an optimal solution does not start at a point in the set
+if vi covers a set of points {xi .. xj}, it must have
+    max{xi .. xj} - min{xi .. xj} <= 1
+a unit interval starting at min{xi .. xj} then covers the same set of points or more
+thereby it's safe to assume all intervals start at a point in the set 
+let X be a sorted array of the points in the set, define subproblem i as:
+    minimized the number of unit intervals to cover all points from X[i] to X[n]
+the leftmost point X[i] must be the start point of an interval, otherwise it will not be covered by any interval
+let j be the first point that's not covered by a unit interval starting at X[i]
+the optimal solution is then 1 + an optimal solution to subproblem j
+all points in the sorted array is examined at most once, O(n) in total, sorting takes O(nlgn)
+overall running time O(nlgn) + O(n) = O(nlgn)
+
+16.2-6
+thanks Instructor's Manual
+basically binary search on unsorted array with linear time median algorithm
+first find the median m of value density (value / weight)
+calculate the sum of weights w of items which has value density >= m
+if w > W
+    no item with value density lower than m should be chosen in an optimal solution
+    the solution is then the optimal solution to a subproblem with weight limit W and half the items
+if w <= W
+    all items with value density higher than m should be included in an optimal solution
+    solution is the sum of values of these items + an optimal solution with weight limit W - w and half the items
+median, sum, filter and combining results of subproblems all take O(n)
+T(n) = T(n/2) + O(n), T(n) = O(n) by master theorem
+./CLRS/technique/knapsack.ts#linearKnapsack
+
+16.2-7
+take logarithm of the result, since ai > 0 for all i,
+    lg(Πai^bi) = Σbilg(ai)
+as logarithm function is monotonically increasing
+maximizing the product is equivalent to maximizing the sum of logs
+assume for two indices i and j, ai <= aj but bi >= bj
+    bilg(ai) + bjlg(aj) - bilg(aj) - bjlg(ai)
+    = bilg(ai / aj) + bjlg(aj / ai)
+    = bilg(ai / aj) - bjlg(ai / aj)
+    = (bi - bj)lg(ai / aj)
+ai <= aj, lg(ai / aj) <= 0, (bi - bj)lg(ai / aj) <= 0
+exchange the position of bi and bj then will improve or yield a equally optimal solution
+if {ai} is in sorted order, then arrange {bi} also in sorted order yields an optimal solution
+
+16.3-1
+x is the character with least frequency, y is the character with second least frequency
+which means x.freq <= y.freq <= a.freq <= b.freq
+if x.freq = b.freq, all four characters have the same frequency
+
+16.3-2
+if the binary tree is not full, there must be some interal node n which has only one child
+without loss of generality, assume the sole child is a left child
+then replace n with its left subtree will reduce depth of leaves in the left subtree by 1
+the resulting binary tree is still a valid encoding of the same alphabet since no leaf is removed
+
+16.3-3
+            ┌─b:1
+          ┌─2
+          │ └─a:1
+        ┌─4
+        │ └─c:2
+      ┌─7
+      │ └─d:3
+    ┌─12
+    │ └─e:5
+  ┌─20
+  │ └─f:8
+┌─33
+│ └─g:13
+54
+└─h:21
+prove Σ(k = {1 .. i})fi < fi+2 by induction
+    initially f1 + f2 = 2 < f4 = 3
+    assume Σ(k = {1 .. i})fi < fi+2
+    Σ(k = {1 .. i+1})   = Σ(k = {1 .. i}) + fi+1
+                        < fi+2 + fi+1
+                        = fi+3
+assume in an alphabet C, character ci has frequency fi, where fi is the ith fibonacci number
+initially c1:1 and c2:1 is extracted from the priority queue, an internal node with frequency 2 is inserted
+assume in iteration i, the new internal node inserted into the queue has frequency Σ(k = {1 .. i+1})fi
+which indicates that it has leaves c1 .. ci+1
+as Σ(k = {1 .. i+1})fi < fi+3, the next character merged with the internal node must be ci+2
+the resulting binary tree has d(ci) = |C| - i + 1
+
+16.3-4
+a leaf x with depth k contributes x.freq to all of its ancestors, and there are exactly k of them
+by summing all frequences of internal nodes frequency of each leaf x.freq is added exactly d(x) times
+formally define d(x, y) as the depth of x in subtree rooted at y
+prove for all leaves in a subtree rooted at y, the sum of frequencies of internal nodes equals Σx.freq * d(x, y)
+base case is d(x, x) = 0, the leaf has no internal nodes
+inductively, for a node y
+    Σx.freq * d(x, y.left) = sum of frequencies of internal nodes in left subtree 
+    similarly the right subtree
+    the tree rooted at y has one more internal nodes which is y
+    y.freq = y.left.freq + y.right.freq, which is the sum of frequencies of all the leaves
+    d(x, y) = d(x, y.left) + 1 if x is in the left subtree of y, symmetrically y.right
+    Σ(x in left subtree)x.freq * d(x, y.left) + Σ(x in right subtree)x.freq * d(x, y.right) + Σ(x in both subtree)x.freq
+    = Σ(x in both subtree)x.freq * d(x, y)
+at the root d(x, root) = d(x)
+
+16.3-5
+if for ci and cj, i < j, d(ci) >= d(cj)
+as frequencies of characters in C is in decreasing order, ci.freq >= cj.freq
+by switching the prefix code of ci and cj, the total cost is changed by 
+    ci.freq * d(cj) + cj.freq * d(ci) - ci.freq * d(ci) - cj.freq * d(cj)
+    = ci.freq(d(cj) - d(ci)) + cj.freq(d(ci) - d(cj))
+    = (ci.freq - cj.freq)(d(cj) - d(ci))
+    <= 0
+so there must be an optimal solution in which code length of C is in increasing order
+
+16.3-6
+a huffman tree has n leaves and n - 1 internal nodes, 2n - 1 nodes in total
+use the heap-like notation to encode internal nodes, the tree can be represented in 2(n-1) + 1 = 2n - 1 bits
+(which enumerates nodse level by level, output 1 for internal nodes and 0 for leaves)
+leaves can be added back unambiguously since a huffman tree is full
+then list all keys in preorder, each takes at most [lgn] bits
+the keys can be plugged into the nodes unambiguously since preorder walk of a fixed tree structure is unique
+
+16.3-7
+an optimal ternay code tree may not be full
+but only one internal node with maximal depth may have 2 children, all other internal nodes must have three
+if any internal node has 1 or no children, by problem 16.3-2 the node can be eliminated
+if two internal nodes have only 2 children, denote them by x and y, assume d(x) <= d(y)
+move a child c of y to x will not increase the total cost of the tree as c.freq * (d(x)+1) <= c.freq * (d(y)+1)
+then x is full and y has only 1 child, y can be eliminated
+if the node with 2 children has less than maximal depth
+move one leaf with maximal depth to it will reduce the total cost, hence the node must have maximal depth
+replace a leaf with a tree with three children adds 2 leaves to the tree, thus full ternay tree has 3 + 2k leaves
+if the number of leaves n = 3 + 2k for k >= 0, the tree is full
+if otherwise n = 4 + 2k, the tree is full except one internal node have only two children
+a ternay equivalence to Lemma 16.2 then have two cases
+    when n = 4 + 2k, swap x, y with least frequency with a, b as siblings with maximal depth
+    when n = 3 + 2k, swap x, y, z with least frequency with a, b, c as siblings with maximal depth (must exist)
+by almost the same argument as the proof of Lemma 16.2, the tree is still optimal
+a ternay equivalence to Lemma 16.3 is strightforward
+
+16.3-8
+by the HUFFMAN algorithm in this chapter
+as 2min{ci.freq} > max{ci.freq}
+once two leaves are merged into an internal node
+the node will not be extracted from the queue until all leaves are extracted
+all the 256 leaves are merged before any leaf is merged with an internal node
+after 128 iterations, the queue contains 128 internal nodes, each has size 2
+let {xi} be the set of internal nodes, min{xi.freq} >= 2min{ci.freq} > max{ci.freq} >= 1/2max{xi.freq}
+again the maximum node frequency is less than twice the minimum node frequency
+once two internal nodes are merged to a size-4 node, it will not be extracted until all size-2 nodes are extracted
+recursively the huffman tree built will be a complete tree of height 8
+each leaf has depth 8, the encoding is no better than 8-bit fix-sized encoding
+
+16.3-9
+an n-bit random file has 2^n variations
+if it's compressed to a k-bit file that k < n
+2^k < 2^n, there may not be a bijection between original files and compressed files
+thus decoding cannot always succeed, the compression method is not valid

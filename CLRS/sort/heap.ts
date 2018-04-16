@@ -1,10 +1,11 @@
 export {
   MaxHeap,
+  PriorityQueue,
   MaxPriorityQueue,
   heapSort,
   FIFOQueue,
   Stack,
-  mergeArrays
+  mergeArrays,
 };
 
 function PARENT(i: number): number {
@@ -45,7 +46,7 @@ abstract class Heap<T> {
   // cmp must not refer any fields or methods of the heap
   // it must compute the result solely from functions/variables independent of the heap
   // otherwise due to the weird behavior of `this` in javascript, all let cmp = this.cmp in methods will be invalid
-  abstract cmp(a: T, b: T): boolean;
+  public abstract cmp(a: T, b: T): boolean;
 
   protected inBound(i: number) {
     return i >= 0 && i < this._heap_size;
@@ -53,7 +54,7 @@ abstract class Heap<T> {
 
   protected swap(i: number, j: number) {
     if (!this.inBound(i) || !this.inBound(j)) {
-      throw "Error: Out of boundary access";
+      throw new Error("Error: Out of boundary access");
     }
 
     let A = this._heap_arr;
@@ -63,15 +64,15 @@ abstract class Heap<T> {
     A[j] = temp;
   }
 
-  isEmpty(): boolean {
-    return this._heap_size == 0;
+  public isEmpty(): boolean {
+    return this._heap_size === 0;
   }
 
-  arr(): T[] {
+  public arr(): T[] {
     return this._heap_arr;
   }
 
-  heapify(i: number) {
+  public heapify(i: number) {
     let largest = i;
     do {
       i = largest;
@@ -86,21 +87,21 @@ abstract class Heap<T> {
         largest = r;
       }
 
-      if (i != largest) {
+      if (i !== largest) {
         this.swap(i, largest);
       }
-    } while (i != largest);
+    } while (i !== largest);
   }
 
-  decrementSize() {
+  public decrementSize() {
     if (this._heap_size <= 0) {
-      throw "Error: Heap underflow";
+      throw new Error("Error: Heap underflow");
     }
 
     this._heap_size--;
   }
 
-  diagnose() {
+  public diagnose() {
     console.log("Self diagnosing...");
     let n = this._heap_size;
     let A = this._heap_arr;
@@ -110,21 +111,21 @@ abstract class Heap<T> {
       let l = LEFT(i);
       let r = RIGHT(i);
       if (this.inBound(l) && cmp(A[l], A[i])) {
-        throw `Error: the position of A[${i}] = ${A[i]} and its left child A[${l}] = ${A[l]} are invalid`;
+        throw new Error(`Error: the position of A[${i}] = ${A[i]} and its left child A[${l}] = ${A[l]} are invalid`);
       }
       if (this.inBound(r) && cmp(A[r], A[i])) {
-        throw `Error: the position of A[${i}] = ${A[i]} and its right child A[${r}] = ${A[r]} are invalid`;
+        throw new Error(`Error: the position of A[${i}] = ${A[i]} and its right child A[${r}] = ${A[r]} are invalid`);
       }
     }
 
     for (let i = 0; i < n; i++) {
       if (i === undefined) {
-        throw `Error: A[${i}] Uninitialized`;
+        throw new Error(`Error: A[${i}] Uninitialized`);
       }
     }
 
     if (A.length < n) {
-      throw "Error: underlying array inconsistent";
+      throw new Error("Error: underlying array inconsistent");
     }
 
     console.log("Self diagnosis successful.");
@@ -132,13 +133,13 @@ abstract class Heap<T> {
 }
 
 abstract class PriorityQueue<T> extends Heap<T> {
-  root() {
+  public root() {
     return this._heap_arr[0];
   }
 
-  extractRoot(): T {
+  public extractRoot(): T {
     if (this._heap_size <= 0) {
-      throw "Error: Heap underflow";
+      throw new Error("Error: Heap underflow");
     }
 
     let root = this.root();
@@ -161,19 +162,19 @@ abstract class PriorityQueue<T> extends Heap<T> {
     A[i] = key;
   }
 
-  adjustKey(i: number, key: T) {
+  public adjustKey(i: number, key: T) {
     let cmp = this.cmp;
     let A = this._heap_arr;
 
     if (cmp(A[i], key)) {
-      throw `Error: invalid new key ${key} compared to original A[${i}] = ${A[i]}`;
+      throw new Error(`Error: invalid new key ${key} compared to original A[${i}] = ${A[i]}`);
     }
 
     A[i] = key;
     this.fix(i);
   }
 
-  insertKey(key: T) {
+  public insertKey(key: T) {
     let A = this._heap_arr;
 
     this._heap_size++;
@@ -182,13 +183,13 @@ abstract class PriorityQueue<T> extends Heap<T> {
     this.fix(i);
   }
 
-  deleteKey(i: number) {
+  public deleteKey(i: number) {
     let A = this._heap_arr;
     let cmp = this.cmp;
 
     this.swap(i, this._heap_size - 1);
     this.decrementSize();
-    if (this._heap_size == 0) {
+    if (this._heap_size === 0) {
       return;
     }
     if (this.inBound(PARENT(i)) && cmp(A[i], A[PARENT(i)])) {
@@ -205,7 +206,7 @@ class MaxHeap<T> extends Heap<T> {
     super(A);
   }
 
-  cmp(a: T, b: T): boolean {
+  public cmp(a: T, b: T): boolean {
     return a > b;
   }
 }
@@ -228,7 +229,7 @@ class MaxPriorityQueue<T> extends PriorityQueue<T> {
     super(A);
   }
 
-  cmp(a: T, b: T): boolean {
+  public cmp(a: T, b: T): boolean {
     return a > b;
   }
 }
@@ -239,54 +240,54 @@ class MinPriorityQueue<T> extends PriorityQueue<T> {
     super(A);
   }
 
-  cmp(a: T, b: T): boolean {
+  public cmp(a: T, b: T): boolean {
     return a < b;
   }
 }
 
 class FIFOQueue<T> extends PriorityQueue<[number, T]> {
-  cnt: number;
+  public cnt: number;
   constructor() {
     super([]);
     this.cnt = 0;
   }
 
-  cmp(a: [number, T], b: [number, T]) {
+  public cmp(a: [number, T], b: [number, T]) {
     let [key_a, ele_a] = a;
     let [key_b, ele_b] = b;
     return key_a < key_b;
   }
 
-  insert(a: T) {
+  public insert(a: T) {
     this.insertKey([this.cnt, a]);
     this.cnt++;
   }
 
-  extract(): T {
+  public extract(): T {
     this.cnt--;
     return this.extractRoot()[1];
   }
 }
 
 class Stack<T> extends PriorityQueue<[number, T]> {
-  cnt: number;
+  public cnt: number;
   constructor() {
     super([]);
     this.cnt = 0;
   }
 
-  cmp(a: [number, T], b: [number, T]) {
+  public cmp(a: [number, T], b: [number, T]) {
     let [key_a, ele_a] = a;
     let [key_b, ele_b] = b;
     return key_a > key_b;
   }
 
-  insert(a: T) {
+  public insert(a: T) {
     this.insertKey([this.cnt, a]);
     this.cnt++;
   }
 
-  extract(): T {
+  public extract(): T {
     this.cnt--;
     return this.extractRoot()[1];
   }
@@ -300,14 +301,14 @@ class MergeQueue<T> extends PriorityQueue<T[]> {
 
   // decide the larger of the value of the last element in arrays (>, strictly greater)
   // an empty array is considered smaller than any non-empty array
-  cmp(a: T[], b: T[]): boolean {
-    if (a.length == 0 && b.length == 0) {
+  public cmp(a: T[], b: T[]): boolean {
+    if (a.length === 0 && b.length === 0) {
       return false;
     }
-    if (b.length == 0) {
+    if (b.length === 0) {
       return true;
     }
-    if (a.length == 0) {
+    if (a.length === 0) {
       return false;
     }
 
@@ -316,15 +317,15 @@ class MergeQueue<T> extends PriorityQueue<T[]> {
     return a_last > b_last;
   }
 
-  extract(): T | null {
+  public extract(): T | null {
     let max_arr = this.root();
     // if the max array is empty, all arrays in the heap is empty
-    if (max_arr.length == 0) {
+    if (max_arr.length === 0) {
       return null;
     }
     // extract max (last) element from max_arr, the new value of its last element uncertain
     // as max_arr.length != 0, max will always exist
-    let max = <T>max_arr.pop();
+    let max = max_arr.pop() as T;
     // therefore the heap property has to be restored
     this.heapify(0);
     return max;
