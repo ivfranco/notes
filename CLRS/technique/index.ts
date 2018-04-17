@@ -6,13 +6,14 @@ import { editDistance } from "./edit-distance";
 import { huffman } from "./huffman";
 import { fractionalKnapsack, knapsack, linearKnapsack } from "./knapsack";
 import { greedyMatrixChain, matrixChainOrder, optimalParens } from "./matrix-chain";
+import { unitTaskScheduling } from "./matroid";
 import { constructOptimalBST, optimalBST, quadraticOptimalBST } from "./optimal-bst";
 import { printNeatly } from "./print-neatly";
 import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_16_3_3();
+  problem_16_5_1();
 }
 
 function problem_15_1_4() {
@@ -226,6 +227,27 @@ function problem_16_3_3() {
   ] as Array<[number, string]>;
 
   console.log(huffman(C).show());
+}
+
+function problem_16_5_1() {
+  let T = [
+    [4, 70],
+    [2, 60],
+    [4, 50],
+    [3, 40],
+    [1, 30],
+    [4, 20],
+    [6, 10],
+  ].map(([d, w], i) => {
+    return {
+      index: i + 1,
+      deadline: d,
+      weight: 80 - w,
+      original_weight: w,
+    };
+  });
+
+  console.log(unitTaskScheduling(T));
 }
 
 main();

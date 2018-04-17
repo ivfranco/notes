@@ -4698,6 +4698,8 @@ a ternay equivalence to Lemma 16.2 then have two cases
     when n = 3 + 2k, swap x, y, z with least frequency with a, b, c as siblings with maximal depth (must exist)
 by almost the same argument as the proof of Lemma 16.2, the tree is still optimal
 a ternay equivalence to Lemma 16.3 is strightforward
+the algorithm should merge two least frequent nodes in the first iteration if n = 4 + 2k
+otherwise it should merge three least frequent nodes
 
 16.3-8
 by the HUFFMAN algorithm in this chapter
@@ -4717,3 +4719,212 @@ an n-bit random file has 2^n variations
 if it's compressed to a k-bit file that k < n
 2^k < 2^n, there may not be a bijection between original files and compressed files
 thus decoding cannot always succeed, the compression method is not valid
+
+16.4-1
+let A ∈ Ik, if B ⊆ A, |B| <= |A| <= k, B ∈ Ik, A is independent, Ik is hereditary
+if A, B ∈ Ik, |A| < |B|, then |A| < k, A ∪ {x} ∈ Ik for any x ∈ S, including some x ∈ B - A
+
+16.4-2
+|S| = n, S is finite
+if A ∈ I, B ⊆ A, by definition of linear independence, B ∈ I
+let A, B be two set of linear independent columns, |A| < |B|
+if there isn't any x ∈ B - A that A ∪ {x} ∈ I
+all columns in B can be expressed as a linear combination of columns in A, A spans B
+by Steinitz exchange lemma, |B| <= |A|, in contradiction to the assumptions
+therefore there must be some x ∈ B that A ∪ {x} ∈ I
+
+16.4-3
+let A' ∈ I', B' ⊆ A', as A ⊆ S - A' ⊆ S - B', A ⊆ S - B', B' ∈ I'
+let A', B' ∈ I', |A'| < |B'|
+both S - A' and S - B' contain some maximal A, B ∈ I
+if there exists some x ∈ B' - A' that x ∉ A, A ⊆ S - (A' ∪ {x}), A' ∪ {x} ∈ I
+otherwise B' - A' ⊆ A
+all maximal A ∈ I have the same size, |A| = |B|
+thanks Instructor's Manual
+B' - A' ⊆ A ⊆ S - A', B' ∩ A = B' - A', |B' ∩ A| = |B' - A'| = |B'| - |B' ∩ A'|
+B ⊆ S - B', |B ∩ A'| <= |A' - B'|
+    |A'| < |B'|
+    |A'| - |B' ∩ A'| < |B'| - |B' ∩ A'|
+    |B ∩ A'| < |B'| - |B' ∩ A'|
+    |B ∩ A'| < |B' ∩ A|
+    |B| - |B ∩ A'| > |A| - |B' ∩ A|
+    |B - A'| > |A - B'|
+as B - A' ⊆ B ∈ I, A - B' ⊆ A ∈ I, B - A', A - B' are independent
+by exchange property, there must be some y ∈ B - A' that A - B' ∪ {y} ∈ I
+if y ∈ A, as y ∉ A - B', y ∈ A ∩ B', but y ∈ B => y ∈ S - B' => y ∉ B', thereby y ∉ A
+//  stuck
+//  adding elements in B - A' to A - B' cannot always result in a set C, |C| = |A|
+//  if |B - A'| = |A| = |B|, it must have B ∩ A' = ∅
+
+16.4-4
+let A ∈ I, obviously removing elements from A will not increase |A ∩ Si| for any i, so B ⊆ A => B ∈ I
+let A, B ∈ I, |A| < |B|
+both A and B has at most 1 element from each disjoint subset Si
+let AS = {Si | |A ∩ Si| = 1}, similarly BS
+ovbiously |A| = |AS|, |B| = |BS|
+|AS| < |BS| implies |BS| contains more subset Si than AS, BS - AS != ∅
+take any Sk ∈ BS - AS, add the only x ∈ B ∩ Sk to A, then A ∪ {x} ∈ I
+
+16.4-5
+let w0 be a constant > max{w(xi)}, define w'(x) = w0 - w(x)
+let A be the greedy solution to a weighted matroid with weight function w'
+    w'(A)   = Σ(w0 - w(x))
+            = w0|A| - w(A)
+each maximal independent has the same size, thus w0|A| is a constant
+A maximizes -w(A) among all independent subset of S, hence minimizes w(A) among all A ∈ I
+
+16.5-1
+[ { index: 5, deadline: 1, weight: 50, original_weight: 30 },
+  { index: 4, deadline: 3, weight: 40, original_weight: 40 },
+  { index: 6, deadline: 4, weight: 60, original_weight: 20 },
+  { index: 3, deadline: 4, weight: 30, original_weight: 50 },
+  { index: 7, deadline: 6, weight: 70, original_weight: 10 } ]
+
+16.5-2
+assume declaring an array D of size n takes O(1) time (true in some languages but not all)
+for each task t in A:
+    increment D[t.d]
+    if D[t.d] > t.d, return false
+return true
+
+16-1
+a.  quarter:    25 cent
+    dime:       10 cent
+    nickel:     5 cent
+    penny:      1 cent
+    always choose the coin with most value <= n
+    let subproblem n be the optimal solution to n cents
+    when n >= 5, let C be an optimal solution using only nickels and pennies
+        C may not contain more than 5 pennies, otherwise that 5 pennies can be replaced with a nickel
+        if k < [n/5], the solution have more than 5 pennies
+        if k > [n/5], k > n/5, 5k > n, the solution is not valid
+        thereby k = [n/5], p = n % 5
+    when n >= 10, let C be an optimal solution using no quarters
+        let d be the number of dimes in C, C - {d dimes} is an optimal solution to n - 10d using no dime and above
+        p = (n - 10d) % 5 = n % 5
+        k = [(n - 10d) / 5]
+        furthermore, if k >= 2, two nickels can be replaced by a dime, so k <= 1
+        if d > [n / 10], 10d > n, the solution is not valid
+        if d < [n / 10], n - 10d > 10, [(n - 10d) / 5] >= 2
+        thereby d = [n / 10]
+    when n >= 25, let C be an optimal solution
+        let q be the number of quarters in C
+        C - {q quarters} must be an optimal solution to n - 25q using no quarters
+        p = (n - 25q) % 5 = n % 5
+        d = [(n - 25q) / 10]
+        k = [(n - 25q - 10d) / 5]
+        furthermore, if d >= 3, 3 dimes can be replaced by a quarter and a nickel
+        if d >= 2 and k >= 1, 2 dimes and 1 nickel can be replaced by a quarter
+        if q > [n/25], 25q > n, the solution is not valid
+        if q < [n/25], n - 25q > 25
+            for 25 < n - 25q < 30, d = 2, k = 1
+            for n - 25q >= 30, d >= 3
+        thereby q = [n / 25]
+    taking q = [n / 25], d = [(n - 25q) / 10], k = [(n - 25q - 10d) / 5]
+    is equivalent to choose the most valuable coin <= n and solve the subproblem with the same strategy
+b.  an optimal solution with coins {c^0, c^1} will have n1 = [n / c] coins of value c^1
+    assume an optimal solution with coins {c^0 .. c^i}, ni = [n / c^i]
+    an optimal solution with coins {c^0 .. c^i+1} then must have ni+1 = [n / c^i+1]
+    if ni+1 > [n / c^i+1], the solution is invalid
+    if ni+1 < [n / c^i+1]
+    the remaining coins must be an optimal solution to n - ni+1 * c^i+1 with coins {c^0 .. c^i}
+    ni+1 < [n / c^i+1] implies n - ni+1 * c^i+1 >= c^i+1
+    ni = [(n - ni+1 * c^i+1) / c^i] >= c
+    but c coins of value c^i can be replaced by a coin of value c^i+1
+    therefore ni+1 = [n / c^i+1], equivalent to a greedy solution
+c.  coins have face value (1, 7, 10)
+    for n = 14, greedy solution is (10, 1, 1, 1, 1), optimal solution is (7, 7)
+d.  with dynamic programming
+    define subproblem i naturally as
+        minimize the number of coins that add up to i cents
+    optimal solution to problem i can be derived from
+        for all k diffrent coins:
+        choice one of them, compute j = i - its face value, get an optimal solution to subproblem j, plus 1
+        minimize the sum over all k
+    at most n subproblems, each refers to k subproblems, O(nk) in total
+
+16-2
+a.  always choose the task with least completion time
+    n is fixed for each problem, minimizing average completion time is equivalent to minimizing total completion time
+    assume A = (ai1, ai2 .. ain) is a solution that does not start with the task aik with least completion time
+    consider A' that swap ai1 and aik in A
+    since ths first k tasks still takes that much time
+    the completion time for all aij that j >= k will not be affected
+    but the completion time for all tasks ai1 .. aik-1 is improved by ai1 - aik > 0
+    the subproblem with S' = S - {aik} can be solved similarly
+    the optimal sum of completion time to S is the optimal time to S' + n * aik
+    the optimal solution is S sorted according to completion time
+    running time is O(nlgn)
+b.  for each time unit, the task with least remaining completion time should be executed
+    after rn, the problem is the same to part a
+    preemption will not improve the optimal solution after rn:
+        let S = (a1 .. an) sorted by completion time in increasing order
+        assume in the first time unit, instead of a1, another task with completion time ak.c > a1.c is executed
+        S reduced to a subproblem S' = (a1 .. ak' .. an) instead of S'' = (a1' .. an)
+        where ak'.c = ak.c - 1, a1'.c = a1.c - 1
+        let A' be an optimal solution to S'
+        there are ak.c + a1.c - 1 time units in A' that executes a1 and ak'
+        since ak.c > a1.c, the completion time of the earlier between a1 and ak' >= the a1.cth time unit
+        the the later one completes at the last time unit among the ak.c + a1.c - 1
+        let the first a1 - 1 time units execute a1' instead, A' changed into A'', a solution to A''
+        the completion time of a1' is a1'.c = a1.c - 1th time unit
+        the completion time of the later one unchanged
+        thereby the optimal solution to S'' is better than the optimal solution to S'
+        the task with least completion time should be executed at each time unit
+    between rn-1 and rn, either
+        all tasks except the last one can be fully completed before rn
+        the optimal solution is the same to part 1 for tasks available between rn-1 and rn
+        then execute the last one after rn
+    or
+        the tasks may not be completed in time rn-1 to rn
+        the optimal solution should left a subproblem as small as possible to time after rn
+        by the argument above
+        execute rn - rn-1 time units of tasks with least remaining completion time leaves a smallest subproblem
+        doing so also minimizes the completion time of the tasks completed between rn - rn-1
+    both case the optimal strategy is to execute the task with least remaining completion time at each time unit
+    recursively for each time span between ri ~ ri+1, the same strategy applies
+    the scheduling can be computed with a min heap
+    make a copy of tasks T sorted according to release time
+    create a min heap Q initially empty according to remaining completion time
+    set a variable t starting from 0, representing the current time
+    if Q is empty, pop the next task a from T, insert it into Q, set t to a.r the release time of a
+    if Q is not empty, extract the minimum a from Q, let b be the next task in T
+    compare a.c the remaining completion time of a and b.r - t
+    if a.c > b.r - t
+        set a.c to a.c - (b.r - t)
+        insert a back to Q
+        pop b from T, insert b into Q
+        set t to b.r
+    if a.c <= b.r - t or T is empty
+        record the completion time of a as t + a.c
+        set t to t + a.c
+    repeat until both Q and T empty
+    each iteration O(lgn) by complexity of heap operations
+    in each iteration, either a task popped from T or completed, 2n iterations at most
+    overall running time O(nlgn)
+
+16-3
+a.  each column ci in M corresponds to an edge i
+    ci[j] = 1 iff edge i and vertex j is incident
+    obviously for each i, exactly two entries have value 1, others have value 0
+    in the field of integers modulo 2, the only possible coefficient is 1 or 0
+    the columns of M is linearly dependent iff for a column ci an a set of column C, ci ∉ C
+        ci = Σ(cj ∈ C)cj
+        ci + Σ(cj ∈ C)cj = 0    // over field of integers modulo 2
+        Σ(cj ∈ C ∪ {ci})cj = 0
+    in other words Σ(ci ∈ C)ci = 0 for some subset C of columns of M
+    Σ(ci ∈ C)ci counts the number of edges in a subset of E incident on each vertex in V modulo 2
+    if a set of edges forms a cycle, each vertex is incident to exactly two edges
+    if a set of edges does not contain a cycle (i.e. is a forest)
+    there must be some vertex v that only one edge is incident on v
+    therefore Σ(ci ∈ C)ci = 0 iff the set of edges represented by C forms a cycle
+    a set of columns of M is linearly independent iff the corresponding set of edges is acyclic
+    by problem 16.4-2, define S be the set of columns, I = {A | A ⊆ S, A is linearly independent}
+    (S, I) is a matroid
+b.  sort E by weight, let E' = ∅, for each e in E:
+        if E' ∪ {e} is acyclic, add e to E
+    return E' after the traversal
+c.  exchange property fails
+    let E1 = {(v1, v2), (v2, v3), (v1, v3)}
+    let E2 = {(v2, v1), (v3, v2)}
+    E1, E2 ∈ I, but adding any edge in E1 to E2 forms a directed cycle
