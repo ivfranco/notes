@@ -929,7 +929,7 @@ b.  F(z) = z + zF(z) + z^2F(z)
 4-5
 a.  divide the chips into three groups
     first group of size n1 are good chips, which will always give the correct answer
-    second group of size n2 are bad chips immitating good chips
+    second group of size n2 are bad chips imitating good chips
     third group of size n3 are other bad chips
     as the number of bad chips n2 + n3 > n/2
     it's always possible to take n2 = n1 and n3 = n - n1 - n2 will be non-negative, then
@@ -4879,8 +4879,10 @@ b.  for each time unit, the task with least remaining completion time should be 
         the tasks may not be completed in time rn-1 to rn
         the optimal solution should left a subproblem as small as possible to time after rn
         by the argument above
+        //  guess, not prove
         execute rn - rn-1 time units of tasks with least remaining completion time leaves a smallest subproblem
         doing so also minimizes the completion time of the tasks completed between rn - rn-1
+        //  guess, not prove
     both case the optimal strategy is to execute the task with least remaining completion time at each time unit
     recursively for each time span between ri ~ ri+1, the same strategy applies
     the scheduling can be computed with a min heap
@@ -4928,3 +4930,216 @@ c.  exchange property fails
     let E1 = {(v1, v2), (v2, v3), (v1, v3)}
     let E2 = {(v2, v1), (v3, v2)}
     E1, E2 ∈ I, but adding any edge in E1 to E2 forms a directed cycle
+d.  if some set of edges forms a directed cycle
+    they enter and leave each vertices in the cycle exactly once
+    the sum of the corresponding columns = 0, the set of corresponding columns is not linearly independent
+    if the set of columns is linearly independent, no set of edges forms a directed cycle in the graph
+e.  the converse of d is not true
+    in the field of integers, coefficient in linear combinations can be negative
+    an edge in the sum can be interpreted as itself or its reverse
+
+16-4
+a.  case 1: such a slot t exists
+        let A be an optimal solution to the problem that didn't assign a1 to the first empty slot before d1
+        that slot t must be assigned to some ak that pk the penalty of ak <= p1
+        if a1 is early in A, it must occupy a time slot earlier than t, as t is the latest such slot
+        if ak is early in A, exchanging the position of a1 and ak will not make ak late
+        if otherwise ak is late, ak may still be late after the exchange
+        total penalty is not decreased
+        if a1 is late in A, the exchange makes a1 early and possibly makes ak late
+        total penalty changed by at most pk - p1 <= 0
+        the resulting solution is at least as optimal as A
+    case 2: such a slot doesn't exist
+        let A be an optimal solution to the problem
+        a1 must be late in A
+        if the last task ak in A is early, exchanging a1 with ak will not make ak late
+        if ak is late, ak may still be late after the exchange
+        the total penalty is not increased
+    the subproblem is defined by the set of remaining tasks and remaining time slots, optimal substructure applies
+b.  wait for section 21.3
+
+16-5
+a.  preprocess:
+        maintain a dynamic set S and an array N, scan the sequence of requests from tail to head
+        upon a request ri:
+            search key ri in S
+            if ri is in S, retrieve the value and assign it to N[i]
+            update key ri in S to i
+        on termination, N[i] points to the next occurrence of ri in sequence of requests (if any)
+    simulation:
+        maintain a max heap H keyed by N[i] with value ri and a search tree T keyed by ri
+        for each request ri in the sequence:
+            if ri is in T, it is a cache hit
+            if ri is not in T, if H.size < k, insert (N[i], ri) into H and ri into T
+            otherwise extract the maximum from H, let it be rj
+            if N[j] > N[i], delete rj from T, insert (N[i], ri) and ri into H and T, output "rj evicted"
+            if N[j] < N[i], insert (N[j], rj) back to H, output "ri not cached"
+    in preprocess, running time is dominated by O(n) search and insertion operation to S
+    if S has O(1) search and insertion (e.g. hash table), running time is O(n)
+    if S has O(lgn) search and insertion, running time is O(nlgn)
+    in simulation, running time is dominated by O(n) heap and search tree operations, each O(lgn)
+    O(nlgn) in total
+b.  subproblem is defined by a tail of the requests and the set of items in the cache, a size-k subset of requests
+    no matter how the current request is treated
+    if the subproblem can be handled better, the solution can be improved
+    assume the current request being processed is ri, |S| <= k is the cache items
+    the possible treatment for the current request ri is:
+        1.  a cache hit, subproblem is (i+1, S)
+        2.  a cache miss and |S| < k, subproblem is (i+1, S ∪ {ri})
+        3.  a cache miss and |S| = k, either ri or one rj ∈ S is evicted
+            possible subproblems are (i+1, S) and (i+1, S - {rj} ∪ {ri}) for rj ∈ S
+c.  thanks https://www.cs.princeton.edu/~wayne/kleinberg-tardos/pearson/04GreedyAlgorithms.pdf
+    assume before the ith request, there is an optimal solution A that follows furtherest-in-future strategy up to i
+    consider the ith request ri
+    if A evicts an item rp in the cache that is not rk the furtherest in future (FF)
+    let A' be a solution that evicts rk instead and imitates A as long as possible
+    let AF be the solution derived from FF
+    let j be the next time that A' can no longer imitate A (must involve rp or rk)
+    case 1: rj = rk
+        can't happen, rk is the furtherest in future, there must be a request to rp before rk
+        in A' the cache won't contain rp, request to rp will be a cache hit in A but a cache miss in A'
+    case 2: rj = rp, a cache miss
+        rp is not in the cache of A, an element rq is evicted
+        if rq = rk, A' accesses rp in the cache, A and A' has the same cache from now
+        if rq != rk, let A' evicts rq and add rk into the cache, A and A' has the same cache from now
+        let A' imitate A from now on, the total number of cache miss not increased
+    case 3: rj != rp or rk, a cache miss
+        A must evict rk or A' can imitate it
+        let A' evict rk, A and A' has the same cache from now on
+        the total number of cache miss is the same
+    thereby A' is a equally optimal solution that follows FF before i+1th request
+    inductively there is a solution that follows FF all the way to the end
+
+Chapter 17
+17.1-1
+no, consider n MULTIPUSH(K) operation followed by n MULTIPOP(|K|) operations
+the complexity is now Θ(n|K|), depending on |K|
+
+17.1-2
+increment from 1^k-1 to 10^k-1 changes k-1 bits
+decrement from 10^k-1 to 1^k-1 changes k-1 bits
+if the sequence of operations repeatedly increment and decrement around that two numbers
+the total running time is Θ(nk)
+
+17.1-3
+the operation costs i when the binary representation of i is 10^k for some k
+when incrementing i from 1 to n, i = 10^k happens exactly ||n|| = |b(n)| times for each k from 0 to ||n|| - 1
+the sum of such i equals 2^||n|| - 1 < 2n
+plus the O(1) cost for other i, the amortized running time is O(n) / n = O(1)
+
+17.2-1
+assign costs to operations:
+    PUSH    3
+    POP     1
+    COPY    0
+each POP is paid by previous PUSH just like in the text
+each PUSH and POP also adds one extra credit, so after k operations there are k extra credits to pay for the copy
+
+17.2-2
+assign a contant cost of 3 to increment operation
+between any two i = 2^k + 1 and j = 2^(k+1), the total number of credits accumulated is
+    3 * (2^(k+1) - 2^k) = 3 * 2^k = 2^(k+1) + 2^k
+deduct the costs of j - i - 1 = 2^k - 1 normal incremental operations
+there are still 2^(k+1) + 1 credits, which is enough to pay for the cost incurred by jth increment operation
+
+17.2-3
+keep the index of the highest order 1 in the array, update the index at the end of INCREMENT
+assign a constant cost of 3 to increment operation
+so even after be set to 0 in INCREMENT, each bit that was once 1 has at least 1 credits on it
+the RESET operation then set every bit from the highest order 1 to 0, which was once 1
+the cost of RESET can be paid by previous INCREMENT operations
+
+17.3-1
+define Φ'(Di) = Φ(Di) - Φ(D0)
+as Φ(Di) >= Φ(D0), Φ'(Di) >= 0 = Φ(D0) - Φ(D0) = Φ'(D0)
+the amortized cost of ith operation is
+    či  = ci + Φ'(Di) - Φ'(Di-1)
+        = ci + Φ(Di) - Φ(D0) - Φ(Di-1) + Φ(D0)
+        = ci + Φ(Di) - Φ(Di-1)
+
+17.3-2
+define Φ(Di) as
+    Φ(Di) = Φ(Di) + 2 if i != 2^k
+    Φ(Di) = 0 if i = 2^k
+as Φ(Di) either increases or be set to 0, Φ(Di) >= 0 for all i
+    či  = ci + Φ(Di) - ΦD(Di-1)
+        = 1 + 2 = 3 if i != 2^k
+when i = 2^k, Φ(Di) = 0, Φ(Di-1) equals twice the number of operations between j = 2^k-1 and 2^k - 1
+    Φ(Di-1) = 2(2^k - 2^k-1) = 2 * 2^k-1 = 2^k
+    Φ(Di) - Φ(Di-1) = -2^k
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = i - 2^k = 0
+therefore Σci <= Σči <= Σ3 = O(n)
+
+17.3-3
+as the EXTRACT-MIN operations takes O(lgn) time, cost of the operation <= clgn for some c
+let n be the size of the heap, define Φ(Di) = cnlgn when n >= 1, Φ(Di) = 0 when n = 0, Φ(Di) >= 0 for all i
+for an insert operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = O(lgn) + cnlgn - c(n-1)lg(n-1)
+        = O(lgn) + c(n-1)lg(n / (n-1)) + clgn
+        = O(lgn) + c(n-1)lg(1 + 1/(n-1))
+        <= O(lgn) + c(n-1)lg(e^(1/(n-1)))
+        = O(lgn) + c(n-1)(1/(n-1))lge
+        = O(lgn) + clge = O(lgn) if n >= 2
+when n = 1, Φ(Di) = 0 = Φ(Di-1), či = ci = O(1)
+for EXTRACT-MIN operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        <= clgn - (cnlgn - c(n-1)lg(n-1))
+        = clgn - clgn + c(n-1)lg((n-1) / n)
+        <= c(n-1)lg(n / n) = 0 = O(1) if n >= 2
+when n = 1, či = ci = O(1)
+the cost of EXTRACT-MIN is paid by previous insert operations
+
+17.3-4
+let n be the size of the stack, define Φ(Di) = n, Φ(Di) >= 0 for all i
+for push operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = 1 + 1 = 2
+for pop operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = 1 + -1 = 0
+for MULTIPOP operation:
+    či  = min(n, k) + Φ(Di) - Φ(Di-1)
+        = min(n, k) + -min(s, k) = 0
+the amortized cost for each operation <= 2
+    Σci = Σči - Φ(Di) + Φ(D0)
+        <= Σ2 - sn + s0
+        = 2n - sn + s0
+
+17.3-5
+Σci <= 2n - bn + b, bn >= 0, if n = Ω(b) then 2n + b = O(n)
+
+17.3-6
+define two stack S1 and S2
+ENQUEUE operation pushes items into S1
+DEQUEUE operation pops items from S2, if S2 is empty, pop all items in S1 and push them into S2 in order
+define Φ(Di) = 2|S1|, Φ(Di) >= 0
+for ENQUEUE operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = 1 + 1 = 2
+for DEQUQUE operation, if |S2| > 0:
+    či  = ci + Φ(Di) - Φ(Di-1) = ci = 1
+if |S2| = 0, |S1| push and |S1| + 1 pop operations performed
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = 2|S1| + 1 - 2|S1| = 1
+    Σci <= Σči <= Σ2 = O(n)
+
+17.3-7
+use an unsorted array
+insert simply puts the item to one beyond the current length and increment the length n
+DELETE-LARGER-HALF operates as following:
+    find the median of the array in O(n)
+    filter the array by the median
+    copy remaining items to a new array, set the length to n/2
+each step O(n), O(n) in total, let cn be an upper bound of the cost of DELETE-LARGER-HALF
+define Φ(Di) = 2cn, Φ(Di) >= 0
+for insert operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        = O(1) + 2c = O(1)
+for DELETE-LARGER-HALF operation:
+    či  = ci + Φ(Di) - Φ(Di-1)
+        <= cn + 2c(n/2) - 2cn
+        = 0 = O(1)
+therefore Σci <= Σči <= ΣO(1) = O(m)
+may use the variable-size array introduced in the next section to support unlimited insertion
