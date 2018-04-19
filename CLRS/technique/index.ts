@@ -1,7 +1,9 @@
 import { isSorted, randomAB, shuffle } from "../util";
 import { activitySelection, greedyActivitySelection } from "./activity-selection";
+import { BitReversedCounter } from "./bit-reverse";
 import { bitonicTour, constrBitonicTour } from "./bitonic-tour";
 import { breakString } from "./break-string";
+import { DynamicSortedArrays } from "./dynamic-binary-search";
 import { editDistance } from "./edit-distance";
 import { huffman } from "./huffman";
 import { fractionalKnapsack, knapsack, linearKnapsack } from "./knapsack";
@@ -13,7 +15,7 @@ import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
 
 function main() {
-  problem_16_5_1();
+  problem_17_2();
 }
 
 function problem_15_1_4() {
@@ -248,6 +250,28 @@ function problem_16_5_1() {
   });
 
   console.log(unitTaskScheduling(T));
+}
+
+function problem_17_1() {
+  let k = 4;
+  let counter = new BitReversedCounter(0, k);
+
+  for (let i = 0; i < 2 ** k; i++) {
+    let bits = counter.get().toString(2);
+    while (bits.length < k) {
+      bits = "0" + bits;
+    }
+    console.log(bits);
+    counter.increment();
+  }
+}
+
+function problem_17_2() {
+  let dym = new DynamicSortedArrays(10);
+  for (let i = 0; i < 100; i++) {
+    dym.insert(i);
+    dym.diagnose();
+  }
 }
 
 main();

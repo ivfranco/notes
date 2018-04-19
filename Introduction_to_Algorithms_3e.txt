@@ -5060,8 +5060,8 @@ the amortized cost of ith operation is
 17.3-2
 define Φ(Di) as
     Φ(Di) = Φ(Di) + 2 if i != 2^k
-    Φ(Di) = 0 if i = 2^k
-as Φ(Di) either increases or be set to 0, Φ(Di) >= 0 for all i
+    Φ(Di) = 0 if i = 2^k or i = 0
+as Φ(Di) either increases or be set to 0, Φ(Di) >= 0 = Φ(D0) for all i
     či  = ci + Φ(Di) - ΦD(Di-1)
         = 1 + 2 = 3 if i != 2^k
 when i = 2^k, Φ(Di) = 0, Φ(Di-1) equals twice the number of operations between j = 2^k-1 and 2^k - 1
@@ -5073,7 +5073,7 @@ therefore Σci <= Σči <= Σ3 = O(n)
 
 17.3-3
 as the EXTRACT-MIN operations takes O(lgn) time, cost of the operation <= clgn for some c
-let n be the size of the heap, define Φ(Di) = cnlgn when n >= 1, Φ(Di) = 0 when n = 0, Φ(Di) >= 0 for all i
+let n be the size of the heap, define Φ(Di) = cnlgn when n >= 1, Φ(Di) = 0 when n = 0, Φ(Di) >= 0 = Φ(D0) for all i
 for an insert operation:
     či  = ci + Φ(Di) - Φ(Di-1)
         = O(lgn) + cnlgn - c(n-1)lg(n-1)
@@ -5092,7 +5092,7 @@ when n = 1, či = ci = O(1)
 the cost of EXTRACT-MIN is paid by previous insert operations
 
 17.3-4
-let n be the size of the stack, define Φ(Di) = n, Φ(Di) >= 0 for all i
+let n be the size of the stack, define Φ(Di) = n, Φ(Di) >= 0 = Φ(D0) for all i
 for push operation:
     či  = ci + Φ(Di) - Φ(Di-1)
         = 1 + 1 = 2
@@ -5114,7 +5114,7 @@ the amortized cost for each operation <= 2
 define two stack S1 and S2
 ENQUEUE operation pushes items into S1
 DEQUEUE operation pops items from S2, if S2 is empty, pop all items in S1 and push them into S2 in order
-define Φ(Di) = 2|S1|, Φ(Di) >= 0
+define Φ(Di) = 2|S1|, Φ(Di) >= 0 = Φ(D0)
 for ENQUEUE operation:
     či  = ci + Φ(Di) - Φ(Di-1)
         = 1 + 1 = 2
@@ -5143,3 +5143,230 @@ for DELETE-LARGER-HALF operation:
         = 0 = O(1)
 therefore Σci <= Σči <= ΣO(1) = O(m)
 may use the variable-size array introduced in the next section to support unlimited insertion
+
+17.4-1
+by Corollary 11.7, the expected probes of insertion in an open addressing hash table is 1 / (1 - α)
+when α -> 1, 1 / (1 - α) -> ∞, the last few insertions before the table is full may be costy
+by restricting α, the expected performance of insertion is guarenteed to be better than a constant
+only allow insertion if α < α0, where α0 < 1 is a constant
+then the expected number of probes in an insertion is at most 1/(1 - α) <= 1/(1 - α0) = O(1)
+the underlying table can be extended easily as described in the text
+the hash function however must be adjusted or the new slots will never be accessed
+upon expansion, copy each item in slot i to slot 2i in the new array, for 0 <= i <= m - 1
+originally the hash function h(k, i) produces a permutation of {0 .. m - 1}
+let h'(k, i) be the new hash function that
+    h'(k, i)    = 2h(k, i) if i <= m - 1
+                = 2h(k, i) + 1 if i >= m
+h'(k, i) thereby produces a permutation of {0, 2 .. 2m - 2} ∪ {1, 3 .. 2m - 1} = {0, 1, .. 2m - 1}
+the slots containing items in the old table is probed in the same order as h first
+only after that the new slots are accessed, so the validity of search operation is not damaged
+table expansion is Ω(n), when α = α0, the table must be expanded before insertion
+thus expected running time of insertion is not necessarily O(1)
+
+17.4-2
+when αi-1 >= 1/2, deletion will not cause contraction
+if both αi and αi-1 >= 1/2
+    či  = ci + Φi - Φi-1
+        = 1 + (2numi - sizei) - (2numi-1 - sizei-1)
+        = 1 + (2(numi-1 - 1) - sizei) - (2numi-1 - sizei)
+        = -1
+if αi < 1/2 and αi-1 >= 1/2
+    či  = ci + Φi - Φi-1
+        = 1 + (sizei / 2 - numi) - (2numi-1 - sizei-1)
+        = 3sizei-1 / 2 - 3numi-1
+        = 3sizei-1 / 2 - 3αi-1sizei-1
+        <= 3sizei-1 / 2 - 3sizei-1 / 2
+        = 0
+
+17.4-3
+if the deletion didn't cause a contraction,
+    či  = ci + Φi - Φi-1
+        = 1 + |2numi - sizei| - |2numi-1 - sizei-1|
+        = 1 + |2numi-1 - 1 - sizei| - |2numi-1 - sizei|
+        <= 1 + 1 = 2
+if the deletion causes a contraction
+    numi-1 / sizei-1 >= 1/3, (numi-1 - 1) / sizei-1 < 1/3
+    for all except a few small sizei-1, 2numi-1 - sizei-1 < 0
+    sizei = 2sizei-1 / 3
+    numi-1 / sizei >= 1/2, (numi-1 - 1) / sizei < 1/2, 2numi / sizei < 0
+    ci = numi + 1
+    či  = ci + Φi - Φi-1
+        = numi + |2numi - sizei| - |2numi-1 - sizei-1|
+        = numi-1 - 2numi-1 + 2 + 2sizei-1 / 3 + 2numi-1 - sizei-1
+        = numi-1 - 2 - sizei-1/3 
+        = numi-1 - 1 - sizei-1/3 - 1
+        < -1
+the amortized running time of deletion is O(1)
+
+17-1
+a.  ./CLRS/technique/bit-reverse.ts#rev
+    ./CLRS/technique/bit-reverse.ts#bitReversalPermutation
+b.  ./CLRS/technique/bit-reverse.ts#BitReversedCounter
+c.  shift by more than 1 place is only used when computing the initial mask 1 << (1 - k)
+    which can be computed once and stored as a field of the counter
+    amortized running time still O(1) assuming k = O(n)
+
+17-2
+a.  do binary search on each array
+    worst case is unsuccessful search where all bits in b(n) is 1
+    T(n)    = O(Σ(k = {0 .. lgn - 1})lg2^k)
+            = O(Σ(k = {0 .. lgn - 1})k)
+            = O(lg^2n)
+b.  insert to A0, |A0| <= 1, the insertion will take constant time
+    if |A0| = 2, starting from i = 1
+        if Ai is empty, replace it will Ai-1, set Ai-1 = ∅ and terminate
+        otherwise set Ai to the merge of Ai-1 and Ai, set Ai-1 = ∅, set i = i + 1, go to the next iteration
+    after ith iteration
+        the correspondence between up to ni-1 and Ai-1 is restored, |Ak| = 0 for k <= i-1
+        the correspondence between ni and Ai restored (termination) or |Ai| = 2^(i+1)
+    the iteration terminates only when Ai is empty, Ai replaced by Ai-1, |Ai-1| = 2^(i-1+1) = 2^i
+    in worst case every array is merged, total cost Σ(k = {1 .. lgn - 1})O(2^k) = O(n)
+    each merge up to Ai occurs once each 2^i insertions, takes O(2^i)
+    for k = 2^j insertions, the cost of merge is no greater than
+        Σ(O(2^i) * (2^j / 2^i))
+        = Σ(O(2^i) * 2^(j-i))
+        = Σ(O(2^j))
+        = O(klgk)
+    amortized cost for each insertion is then O(klgk) / k = O(lgk)
+c.  if the deleted item is in array Aj, find the first nonempty array Ai 
+    take the last element of Ai, insert it to the correct position in Aj in O(2^j) = O(n)
+    now |Ai| = 2^i - 1
+    cut Ai to i slices of length 2^0, 2^1 .. 2^i-1, set A0 .. Ai-1 to these slices in O(2^i) = O(n)
+    as Ai is sorted, each A0 .. Ai-1 is automatically sorted
+    ni = 0, n0 .. ni-1 = 1 now, the correspondence restored in O(n) total
+
+17-3
+a.  if x.size is even, x.left.size and x.right.size may differ by at most 1
+    otherwise the greater between x.left.size and x.right.size > 1/2 * x.size
+    if x.size is odd, x.left.size must equal x.right.size
+    walk the tree in inorder, enumerate nodes in an array, set .parent, .left and .right of each node to NIL
+    recursively:
+        find the median x, the median than divide the array into two subarrays
+        the left subarray has key < x.key, the right subarray has key > x.key
+        construct the 1/2-balanced tree l and r of both subarray
+        set x.left = l, x.right = r
+        as x is the median, if x.size is odd, l.size = r.size, otherwise l.size and r.size differ by at most 1
+        the tree rooted at x is a 1/2-balanced tree
+    T(n) = 2T(n/2) + O(1) = O(n)
+b.  a tree with height h = 0 has a single node
+    if an α-balanced tree of height h has at least n nodes, for an α-balanced tree of height h+1
+    one of the subtree of x the root has height h, let it be the left subtree
+        α * x.size >= x.left.size >= n
+        x.size >= n/α
+    inductively, an α-balanced tree of height h has at least (1/α)^h nodes, where 1/α > 1
+    n >= (1/α)^h, lgn >= hlg(-α), h <= lg(-α)lgn = O(lgn)
+    a search at most examines h = O(lgn) nodes
+c.  Δ(x) is a absolute value, Δ(x) >= 0 for all x, ΣΔ(x) >= 0
+    consider a 2-node tree with root and its single left child
+    the tree is 1/2-balanced, but Δ(root) = 1, Φ(T) = c
+    assume x.left.size = x.right.size for each node in 1/2-balanced tree in next two parts
+d.  in worst case, both left and right subtree is 1/2-balanced
+    the cost have to be paid solely with potential of the root x
+        Φ(T) = cΔ(x) = c|x.left.size - x.right.size|
+    α * x.size = αm < max(x.left.size, x.right.size)
+    assume x.left.size is greater, denote ml = x.left.size, mr = x.right.size
+        m > ml > αm, mr = m - ml - 1, c|ml - mr| = c(2ml - m + 1) > c(2α - 1)m
+    for c(2α - 1)m >= m, c(2α - 1) >= 1, c >= 1/(2α - 1)
+e.  for insertion, if rebalance unnecessary:
+        či  = ci + Φ(Ti) - Φ(Ti-1)
+            = O(lgn) + O(lgn) (at most O(lgn) nodes has Δ(x) changed by 1)
+            = O(lgn)
+    if insertion caused a rebalance at level x, x.size = m:
+        Φ(Ti)   = 0
+        Φ(Ti-1) >= c|x.left.size - x.right.size| >= c|αm - (1-α)m| = c(2α - 1)m >= m
+        či  = ci + Φ(Ti) - Φ(Ti-1)
+            <= O(lgn) + m - c(2α - 1)m = O(lgn)
+    for deletion, if rebalance unncessary:
+        či  = ci + Φ(Ti) - Φ(Ti-1)
+            = O(lgn) + O(lgn) = O(lgn)
+    if deletion caused a rebalance at level x, x.size = m:
+        Φ(Ti)   = 0
+        Φ(Ti-1) = c(2α - 1)m
+        či  = ci + Φ(Ti) - Φ(Ti-1)
+            = O(lgn) + m - c(2α - 1)m
+            = O(lgn)
+    therefore amortized cost of insertion and deletion is O(lgn)
+
+17-4
+a.  for a newly inserted node:
+        its parent is red and has a red sibling
+        each black ancestor of it has a red parent and a red uncle
+    then case 1 in RB-INSERT-FIXUP will propagate all the way to the top, make O(h) = O(lgn) color changes
+    assume after deletion, node x is double black:
+        all ancestors of x is black
+    then the while loop in RB-DELETE-FIXUP will not terminate until x = T.root, run for O(h) = O(lgn) iterations
+    in each iteration some nodes change color, O(lgn) color changes in total
+b.  for RB-INSERT-FIXUP, case 2 and 3 are terminating
+    for RB-DELETE-FIXUP, case 1, 3 and 4 are terminating, case 2 is terminating if new x is red
+c.  in case 1 of RB-INSERT-FIXUP, two red nodes colored black, one black node colored red
+    total number of red nodes decremented by 1, Φ(T') = Φ(T) - 1
+d.  in case 1 (line 5 - 8):
+        two red nodes colored black
+        one black node colored red
+        potential decreased by 1
+    in case 2 (line 10 - 11):
+        a left rotation
+        no potential change
+    in case 3 (line 12 - 14):
+        one red node colored black
+        one black node colored red
+        a right rotation
+        no potential change
+e.  in case 1 of RB-INESRT-FIXUP, each iteration decreases potential by 1
+    the cost is paid by the potential, či = O(1)
+    case 2 and 3 takes O(1) and terminates
+    amortized cost of RB-INESRT-FIXUP is then O(1)
+f.  as w(x) = 0 if x is red, potential will only change if a red node is colored black
+    in case 1 the only nonterminating case (referring nodes by their name in figure 13.5 - 13.7):
+        w(C) changed from 2 to 0
+        as A is originally red, its left child must be black
+        w(A) 0 -> 0
+        as D is originally red, both its children must be black
+        w(D) 0 -> 1
+        Φ(T') = Φ(T) - 1
+    each iteration of case 1 is paid by the potential
+    case 2 and 3 changes potential by at most a constant
+        ci <= či = O(1)
+g.  in case 2 the only nonterminating case:
+        w(D) 1 -> 0
+        B must be black or case 2 terminates
+        w(B) 1 -> 0
+        Φ(T') = Φ(T) - 2
+    each iteration of case 2 is paid by the potential
+    case 1, 3 and 4 change potential by at most a constant
+        ci <= či = O(1)
+h.  Σci <= Σči = ΣO(1) = O(m)
+
+17-5
+a.  when H does not know σ in advance
+    the operation of H is totally defined by the current ordering and the search key σi
+    after such an operation, H must choose some x as the last node of the list
+    let a sequence σ that always searches key in x after H performed its reordering
+    each search takes Ω(n), Ω(mn) in total
+b.  searching x examines rank(x) nodes
+    since each transposition decreases rank(L, x) by 1
+    moving x to the head of the list uses at least rank(x) - 1 transposition
+    by always transpose x with its prev, the lower bound can be achieved
+        ci = rank(L, x) + rank(L, x) - 1 = 2rank(x) - 1
+c.  obvious
+d.  assume (x, y) is transposed
+    if (x, y) was not an inversion, it becomes one after the transposition, Φ(Li) increased by 2
+    if (x, y) was an inversion, after the transposition y precedes x, (y, x) is not an inversion
+    Φ(Li) decreased by 2
+e.  a node precedes x in Li-1 either precedes x in L*i-1 or not
+    the number of nodes precede x thereby is |A| + |B|, rank(Li-1, x) = |A| + |B| + 1
+    similarly rank(L*i-1, x) = |A| + |C| + 1
+f.  after access σi, x is moved to the head of Li
+    each nodes in set A now causes a new inversion with x as they follow x in Li but precede x in L*i-1
+    each nodes in set B eliminates an inversion with x as they now follow x in both Li and L*i-1
+    relative position between elements in C and D with x in Li not changed
+    they cause inversions between Li and L*i-1 iff they cause inversions between Li-1 and L*i-1
+    the relative position between any other (y, z) in Li that y != x and z != x is not changed from Li-1
+    then i* transpositions in L*i-1 at most increases the potential by 2i*
+        Φ(Li) - Φ(Li-1) <= 2(|A| - |B| + i*)
+g.  ci + Φ(Li) - Φ(Li-1)    <= 2(|A| + |B| + 1) - 1 + 2(|A| - |B| + i*)
+                            = 4|A| + 1 + i*
+                            <= 4|A| + 4|C| + 4 + 4i*
+                            = 4rank(L*i-1, x) + 4i*
+                            = 4c*i
+h.  summation

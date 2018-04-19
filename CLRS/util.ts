@@ -76,3 +76,27 @@ export function swapReport<T>(A: T[], i: number, j: number) {
   console.log(`Swapped A[${i}] = ${A[i]}, A[${j}] = ${A[j]}`);
   console.log(A);
 }
+
+function binaryPosition<T>(v: T, A: T[], p: number, q: number): number {
+  if (p < q) {
+    let mid = Math.floor((p + q) / 2);
+    if (v === A[mid]) {
+      return mid;
+    } else if (v > A[mid]) {
+      return binaryPosition(v, A, mid + 1, q);
+    } else {
+      return binaryPosition(v, A, p, mid);
+    }
+  } else {
+    return p;
+  }
+}
+
+export function binarySearch<T>(v: T, A: T[]): number | null {
+  let idx = binaryPosition(v, A, 0, A.length - 1);
+  if (A[idx] === v) {
+    return idx;
+  } else {
+    return null;
+  }
+}
