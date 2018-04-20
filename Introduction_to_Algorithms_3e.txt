@@ -5370,3 +5370,290 @@ g.  ci + Φ(Li) - Φ(Li-1)    <= 2(|A| + |B| + 1) - 1 + 2(|A| - |B| + i*)
                             = 4rank(L*i-1, x) + 4i*
                             = 4c*i
 h.  summation
+
+Chapter 18
+18.1-1
+then t-1 = 0 and some node will store no keys and only one child
+the height of the tree is no longer O(lgn)
+
+18.1-2
+node stores 2 or 3 keys, t-1 <= 2, 2t - 1 >= 3
+node has 3 or 4 children, t <= 3, 2t >= 4
+t may be 2 or 3
+
+18.1-3
+the root contains 1-3 keys
+1 key:
+    2 children, each with 1-3 keys
+    if any of them is not a leaf, it has at least 2 children with at least 1 key each
+    the other child of root then may not have any child, leaves do not have the same height
+    thus both children of the root must be a leaf
+    ((1), 2, (3, 4, 5)), ((1, 2), 3, (4, 5)), ((1, 2, 3), 4, (5))
+2 keys:
+    3 children, each with 1 key
+    ((1), 2, (3), 4, (5))
+3 keys:
+    impossible, must have 4 children with 1 key each, 7 > 5 keys in total
+
+18.1-4
+each internal node has 2t - 1 keys and 2t children
+a complete B-tree of height h has (2t)^d nodes at depth d
+    n   = 1 + (2t - 1)Σ(d = {1 .. h})((2t)^d)
+        = 1 + (2t - 1)((2t)^(h+1) - 1) / (2t - 1)
+        = (2t)^(h+1)
+    
+18.1-5
+the children of red nodes must be black
+a black node after absorbing red children has 4 children and 3 keys, 3 children and 2 keys, or 2 children and a key
+c1 originally root of left subtree of left child, c2, c3 and c4 accordingly, property 3 of B-tree follows
+the black height is universal among all leaves, property 4 of B-tree follows
+therefore the resulting tree is a 2-3-4 tree
+
+18.2-1
+About to insert K
+Empty BTree
+About to insert L
+┌──S
+├Q
+│ ┌K
+└─├F
+  └C
+About to insert W
+  ┌V
+┌─├T
+│ └S
+├Q
+│ ┌L
+├─├K
+│ └H
+├F
+└──C
+About to insert M
+    ┌W
+  ┌─└V
+┌─├T
+│ └──S
+├Q
+│   ┌L
+│ ┌─├K
+└─│ └H
+  ├F
+  └──C
+About to insert P
+    ┌W
+  ┌─└V
+┌─├T
+│ │ ┌S
+│ └─└R
+├Q
+│   ┌N
+│ ┌─├M
+│ │ └L
+└─├K
+  ├──H
+  ├F
+  └──C
+About to insert A
+    ┌W
+  ┌─└V
+┌─├T
+│ │ ┌S
+│ └─└R
+├Q
+│   ┌P
+│ ┌─└N
+│ ├M
+│ ├──L
+└─├K
+  ├──H
+  ├F
+  └──C
+About to insert Y
+    ┌X
+  ┌─├W
+  │ └V
+┌─├T
+│ │ ┌S
+│ └─└R
+├Q
+│   ┌P
+│ ┌─└N
+├─├M
+│ └──L
+├K
+│ ┌──H
+│ ├F
+└─│ ┌C
+  └─├B
+    └A
+About to insert D
+    ┌Y
+  ┌─└X
+  ├W
+┌─├──V
+│ ├T
+│ │ ┌S
+│ └─└R
+├Q
+│   ┌P
+│ ┌─└N
+├─├M
+│ └──L
+├K
+│ ┌──H
+│ ├F
+└─│ ┌C
+  └─├B
+    └A
+Final configuration
+    ┌Z
+  ┌─├Y
+  │ └X
+  ├W
+┌─├──V
+│ ├T
+│ │ ┌S
+│ └─└R
+├Q
+│   ┌P
+│ ┌─└N
+├─├M
+│ └──L
+├K
+│ ┌──H
+│ ├F
+│ │ ┌E
+└─├─├D
+  │ └C
+  ├B
+  └──A
+
+18.2-2
+no DISK-READ or DISK-WRITE in the body of B-TREE-INSERT
+B-TREE-SPLIT-CHILD modifies each of x, y and z, no DISK-WRITE is redundant
+in B-TREE-INSERT-NONFULL:
+    the only DISK-WRITE is after inserting the new key into a leaf
+    the only DISK-READ(x.ci) reads a child of x in the current recursion
+    as insertion is performed by a single pass down the tree, each x is visited only once
+    there's no way to refer to the parent of a node, the only way to visit x.ci is through x
+    therefore the read of x.ci must be the first time and the last time it is read
+there doesn't seem to be any redundant read or write in insertion
+
+18.2-3
+minimum:
+    traverse x.c1 until x is a leaf, then select x.key1
+predecessor:
+    if x is an internal node, predecessor of x.keyi is the minimum of x.ci+1
+    if x is a leaf, predecessor of x.keyi is x.keyi+1
+    when x.keyi+1 doesn't exist, predecessor is the deepest y.keyj+1 for which y.ci contains x
+
+18.2-4
+in worst case, the keys are in sorted order 
+at least every 2 insertions cause a leaf to split
+at least two splits of the same leaf cause a node with height 1 to split
+at least two splits of the same node of height 1 causes a node with height 2 to split
+the total number of splits caused by insertion is n/2 + n/4 + n/8 ... ≒ n
+the tree after n insertion may have n nodes at most
+in best case, each internal node contains 2 keys and each leaf 3
+an internal node with 3 keys after B-TREE-SPLIT-CHILD has a child with only 1 key
+any inserion into that child will cause the internal node to split
+let h be the height of the tree
+there are 3^d nodes at depth d
+    2Σ(d = {0 .. h-1})3^d + 3 * 3^h = n
+    (3^h - 1) + 3 * 3^h = n
+    4 * 3^h - 1 = n
+    3^h = (n + 1) / 4
+so 3^h = (n + 1) / 4 leaves and (3^h - 1) / 2 = (n - 3) / 8 internal nodes
+(3n - 1) / 8 nodes at least
+
+18.2-5
+modify B-TREE-SPLIT-CHILD so it now takes t as a parameter
+./CLRS/structure/b-tree.ts#splitChild
+and define different t for leaves and internal nodes, give different parameter to B-TREE-SPLIT-CHILD accordingly
+instead of manually checking x.n == 2t - 1, make a method isFull(x) in the tree that chooses t according to x.leaf
+
+18.2-6
+searching the key in each iteration now takes time O(lgt)
+O(lgt * log(t, n)) = O(lgt * lgn / lgt) = O(lgn)
+
+18.2-7
+a search operation at worst case performs O(h) DISK-READ
+as the CPU time is just O(lgn), for reasonable n < 2^64, CPU time is negligible compared to disk operations
+height of the tree is approximately log(t, n), optimal t then minimizes 
+    (a + tb)log(t, n) = (a + tb)ln(n) / ln(t)
+    d/dt((a + tb) / lnt) = 0
+for a = 5, b = 10, the solution is approximately 3
+
+18.3-1
+  ┌Z
+┌─└Y
+├X
+│ ┌V
+├─└U
+├T
+│ ┌S
+├─├R
+│ └Q
+├P
+│ ┌O
+├─└N
+├L
+│ ┌K
+├─└J
+├E
+│ ┌C
+└─└A
+Deleting C
+  ┌Z
+┌─└Y
+├X
+│ ┌V
+├─└U
+├T
+│ ┌S
+├─├R
+│ └Q
+├P
+│ ┌O
+├─└N
+├L
+│ ┌K
+│ ├J
+└─├E
+  └A
+Deleting P
+  ┌Z
+┌─└Y
+├X
+│ ┌V
+├─└U
+├T
+│ ┌S
+├─└R
+├Q
+│ ┌O
+├─└N
+├L
+│ ┌K
+│ ├J
+└─├E
+  └A
+Deleting V
+  ┌Z
+┌─└Y
+├X
+│ ┌U
+│ ├T
+├─├S
+│ └R
+├Q
+│ ┌O
+├─└N
+├L
+│ ┌K
+│ ├J
+└─├E
+  └A
+
+18.3-2
+./CLRS/structure/b-tree.ts#delete
