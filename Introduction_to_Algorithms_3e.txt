@@ -5657,3 +5657,67 @@ Deleting V
 
 18.3-2
 ./CLRS/structure/b-tree.ts#delete
+
+18-1
+a.  Θ(n) disk operations, Θ(nm) CPU time
+b.  each p push operations requires a disk read
+    Θ(n/m) disk operations in total, Θ(n) CPU time
+c.  a series of
+        PUSH PUSH POP POP PUSH PUSH POP POP ...
+    operations at the boundary between two pages
+    every two operations incurs a disk access, Θ(n) in total, Θ(nm) CPU times
+d.  only read a new page when the pointer is about to cross the boundary and enter a page not in memory
+    the page at the opposite end is written to disk and freed from memory
+    after each time this pair of read/write disk operations occur
+    the pointer is at the boundary between two pages, both of them in memory
+    at least m stack operations (m pop or m push) before the next time a disk operation is necessary
+    2/m = O(1/m) amortized disk operations, (O(m) + 2O(m)) / m = O(1) amortized CPU time
+
+18-2
+a.  search will not change the structure
+    insertion may change the height of nodes when:
+        a child is splited, the new child z has the same height of y in B-TREE-SPLIT-CHILD
+            z.height can be assigned in O(1)
+        the tree grows upward, the new root s has height one more than the old root
+    deletion may change the height of nodes when:
+        the root is removed, no height in subtree is changed
+b.  if either tree is empty, simply insert k into another, running time O(h) = O(|h - h'|) = O(1 + |h - h'|)
+    insert the lower tree as a subtree of the higher tree
+    if h' > h'', insert T'' as a child of the right-most node with height h'' + 1 in T', k as the last key
+    if h' < h'', insert T' as a child of the left-most node with height h' + 1 in T'', k as the first key
+    if h' = h'', allocate a new node x with sole key k, set x.c = [T1.root, T2.root]
+    split child when necessary on the path
+    at most max(1, |h' - h''|) nodes visited, spliting child takes O(t) = O(1), O(1 + |h' - h''|) in total
+    ./CLRS/structure/b-tree.ts#join
+c.  assume at some subtree rooted at x, p descends into a child x.c[i]
+    define a new tree T' rooted at x' which has keys x.key[1] to x.key[i-2] and children x.c[1] to x.c[i-1]
+    define another tree T'' rooted at x'' which has keys x.key[i+1] to x.key[x.n] and children x.c[i+1] to x.c[x.n+1]
+    if any of T' and T'' has no key not a single child, replace root with that child
+    either T' or T'' may be empty but not both of them as x has at least two children
+    let k' = x.key[i-1], k'' = x.key[i]
+    obviously each y' ∈ T' < k' since all keys are distinct, similarly y'' ∈ T'' then y'' > k''
+    repeat the process at lower levels, for each key z in x.c[i], y' < k' < z, k < k'' < y''
+    either k' or k'' may not exist but no both of them as x has at least one key
+    if T' is empty, k' doesn't exist; if T'' is empty, k'' doesn't exist
+    at the node x in which k is found, assume x.key[i] = k, split x into two subtree T' and T'' that
+    T' contains x.key[1] to x.key[i-1] and x.c[1] to x.c[i]
+    T'' contains x.key[i+1] to x.key[x.n] and x.c[i+1] to x.c[x.n+1]
+    let T'i and T''i be subtrees splited at ith node x on the path p, similarly k'i and k''i
+    the process splits the entirety of a subtree rooted at x into five parts: T', T'', k', k'' and x.c[i]
+    a key in T then is
+        1.  in T'i for some i
+        2.  in T''i for some i
+        3.  is k'i for some i
+        4.  is k''i for some i 
+        5.  is k
+    therefore S' = 1 + 2, S'' = 3 + 4
+    each subtree T'i or T''i, if not empty, has height equals to or one less than the corresponding x
+    the difference in height between T'i and T'i+1 is bounded from above by 2
+    consider only the set of non-empty T'i, the sum of differences in height between T'i and T'i+1 <= 2h = O(lgn)
+d.  maintain two 2-3-4 tree S' and S'' initially empty
+    for each node x on p from k to root,
+        split x into T', T'', k', k'' as described in part c
+        join (T', k', S') and (S'', k'', T''), assign result to S' and S''
+    join operation takes O(1 + |h' - h''|)
+    sum of differences between height of T'i and T'i+1 is O(lgn), therefore running time of split operation is O(lgn)
+    ./CLRS/structure/b-tree.ts#split

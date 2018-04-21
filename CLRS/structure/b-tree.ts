@@ -49,13 +49,7 @@ class BTree<T> {
     let t = this.t;
 
     if (r.n === 2 * t - 1) {
-      let s: BTreeNode<T> = new BTreeNode();
-      this.root = s;
-      s.leaf = false;
-      s.c[0] = r;
-      // console.log(`About to insert ${k}`);
-      // console.log(this.show());
-      splitChild(s, 0, t);
+      this.root = splitRoot(r, t);
     }
 
     this.insertNonNull(this.root, k);
@@ -68,8 +62,6 @@ class BTree<T> {
     while (!x.leaf) {
       let i = glt(x.key, x.n, k, lt) + 1;
       if (x.c[i].n === 2 * t - 1) {
-        // console.log(`About to insert ${k}`);
-        // console.log(this.show());
         splitChild(x, i, t);
         if (k > x.key[i]) {
           i++;
@@ -103,10 +95,10 @@ class BTree<T> {
       let i = glt(x.key, x.n, k, lt) + 1;
       if (i < x.n && eq(x.key[i], k)) {
         //  either x.key[i] == k
-        this.deleteCase2(x, k, i);
+        this.deleteFromInternal(x, k, i);
       } else {
         //  or k belongs to x.c[i]
-        this.deleteCase3(x, k, i);
+        this.deleteFromChild(x, k, i);
       }
     }
   }
@@ -123,7 +115,7 @@ class BTree<T> {
     }
   }
 
-  private deleteCase2(x: BTreeNode<T>, k: T, i: number) {
+  private deleteFromInternal(x: BTreeNode<T>, k: T, i: number) {
     let y = x.c[i];
     let z = x.c[i + 1];
     let t = this.t;
@@ -172,18 +164,19 @@ class BTree<T> {
     }
   }
 
-  private deleteCase3(x: BTreeNode<T>, k: T, i: number) {
-    if (x.c[i].n >= this.t) {
-      this.deleteAt(x.c[i], k);
-    } else {
-      let y = this.extendChild(x, i);
-      this.deleteAt(y, k);
+  private deleteFromChild(x: BTreeNode<T>, k: T, i: number) {
+    let y = x.c[i];
+    if (x.c[i].n < this.t) {
+      y = this.extendChild(x, i);
     }
+    this.deleteAt(y, k);
   }
 
   private extendChild(p: BTreeNode<T>, i: number): BTreeNode<T> {
     let y = p.c[i];
+    //  left sibling of y if there is one
     let x = i === 0 ? null : p.c[i - 1];
+    //  right sibling of y if there is one
     let z = i === p.n ? null : p.c[i + 1];
     let t = this.t;
 
@@ -229,6 +222,16 @@ class BTree<T> {
     }
   }
 
+  public split(k: T): [BTree<T>, BTree<T>] {
+    let t = this.t;
+    let [l, g] = split(this.root, k, t, this.lt, this.eq);
+    let LT: BTree<T> = new BTree(t);
+    LT.root = l;
+    let GT: BTree<T> = new BTree(t);
+    GT.root = g;
+    return [LT, GT];
+  }
+
   public show(): string {
     if (this.root.n > 0) {
       return this.root.show();
@@ -249,12 +252,14 @@ class BTreeNode<T> {
   public c: this[];
   public leaf: boolean;
   public n: number;
+  public height: number;
 
   constructor() {
     this.key = [];
     this.c = [];
     this.leaf = true;
     this.n = 0;
+    this.height = 0;
   }
 
   //  shrink c and key with a new smaller n
@@ -361,6 +366,7 @@ class BTreeNode<T> {
     if (!this.leaf) {
       console.assert(c.length === n + 1, "internal node should have n + 1 children");
       for (let child of c) {
+        console.assert(child.height === this.height - 1, "each child should have height one lower than parent");
         child.diagnose(t, false);
       }
     }
@@ -374,6 +380,7 @@ function splitChild<T>(x: BTreeNode<T>, i: number, t: number) {
   console.assert(y.n === 2 * t - 1);
 
   z.leaf = y.leaf;
+  z.height = y.height;
   z.n = t - 1;
   for (let j = 0; j < t - 1; j++) {
     z.key[j] = y.key[j + t];
@@ -394,6 +401,15 @@ function splitChild<T>(x: BTreeNode<T>, i: number, t: number) {
   y.fit(t - 1);
 }
 
+function splitRoot<T>(r: BTreeNode<T>, t: number): BTreeNode<T> {
+  let s: BTreeNode<T> = new BTreeNode();
+  s.leaf = false;
+  s.c[0] = r;
+  s.height = r.height + 1;
+  splitChild(s, 0, t);
+  return s;
+}
+
 type Cmp<T> = (a: T, b: T) => boolean;
 
 //  greatest less than, linear
@@ -406,10 +422,10 @@ function glt<T>(A: T[], n: number, k: T, lt: Cmp<T>): number {
 }
 
 //  merge k and y into x
-//  x and y must both be leaves or not
+//  x and y must both be leaves or both not
 //  assumes x.n == t - 1 && y.n == t - 1
 function merge<T>(x: BTreeNode<T>, k: T, y: BTreeNode<T>) {
-  console.assert(x.leaf === y.leaf, "x and y must be both leaves or not");
+  console.assert(x.leaf === y.leaf, "x and y must be both leaves or both not");
 
   x.key[x.n] = k;
   for (let i = 0; i < y.n; i++) {
@@ -421,4 +437,126 @@ function merge<T>(x: BTreeNode<T>, k: T, y: BTreeNode<T>) {
     }
   }
   x.n += y.n + 1;
+}
+
+function join<T>(x: BTreeNode<T>, k: T, y: BTreeNode<T>, t: number): BTreeNode<T> {
+  if (x.n === 0 || y.n === 0) {
+    //  if one tree is empty, simply insert k into another
+    let btree: BTree<T> = new BTree(t);
+    btree.root = x.n === 0 ? y : x;
+    btree.insert(k);
+    return btree.root;
+  } else if (x.height === y.height) {
+    //  if height equals, both x and y inserted as children of a new node with sole key k
+    let r: BTreeNode<T> = new BTreeNode();
+    r.key = [k];
+    r.c = [x, y];
+    r.n = 1;
+    r.leaf = false;
+    r.height = x.height + 1;
+    return r;
+  } else if (x.height > y.height) {
+    //  if x higher than y, y is inserted as a child of the right-most node in x with height y.height + 1 alongside k
+    if (x.n >= 2 * t - 1) {
+      x = splitRoot(x, t);
+    }
+    let r = x;
+    while (x.height > y.height + 1) {
+      if (x.c[x.n].n >= 2 * t - 1) {
+        splitChild(x, x.n, t);
+      }
+      x = x.c[x.n];
+    }
+    x.key.push(k);
+    x.c.push(y);
+    x.n++;
+    return r;
+  } else {
+    //  if y higher than x, x is inserted as a child of the left-most node in y with height x.height + 1 alongside k
+    if (y.n >= 2 * t - 1) {
+      y = splitRoot(y, t);
+    }
+    let r = y;
+    while (y.height > x.height + 1) {
+      if (y.c[0].n >= 2 * t - 1) {
+        splitChild(y, 0, t);
+      }
+      y = y.c[0];
+    }
+    y.key.unshift(k);
+    y.c.unshift(x);
+    y.n++;
+    return r;
+  }
+}
+
+//  only defined on 2-3-4 trees
+function split<T>(x: BTreeNode<T>, k: T, t: number, lt: Cmp<T>, eq: Cmp<T>): [BTreeNode<T>, BTreeNode<T>] {
+  let i = glt(x.key, x.n, k, lt) + 1;
+  if (i < x.n && eq(x.key[i], k)) {
+    return splitAroundKey(x, i);
+  } else {
+    let [l_curr, g_curr] = splitAroundChild(x, i);
+    let [l, g] = split(x.c[i], k, t, lt, eq);
+
+    if (i - 1 >= 0) {
+      l = join(l_curr, x.key[i - 1], l, t);
+    }
+
+    if (i < x.n) {
+      g = join(g, x.key[i], g_curr, t);
+    }
+
+    return [l, g];
+  }
+}
+
+function splitAroundKey<T>(x: BTreeNode<T>, i: number): [BTreeNode<T>, BTreeNode<T>] {
+  let y: BTreeNode<T> = new BTreeNode();
+  let z: BTreeNode<T> = new BTreeNode();
+
+  y.key = x.key.slice(0, i);
+  y.c = x.c.slice(0, i + 1);
+  y.n = i;
+  y.leaf = x.leaf;
+  y.height = x.height;
+  y = foldEmpty(y);
+
+  z.key = x.key.slice(i + 1);
+  z.c = x.c.slice(i + 1);
+  z.n = x.n - i - 1;
+  z.leaf = x.leaf;
+  z.height = x.height;
+  z = foldEmpty(z);
+
+  return [y, z];
+}
+
+function splitAroundChild<T>(x: BTreeNode<T>, i: number): [BTreeNode<T>, BTreeNode<T>] {
+  let y: BTreeNode<T> = new BTreeNode();
+  let z: BTreeNode<T> = new BTreeNode();
+
+  y.key = x.key.slice(0, i - 1);
+  y.c = x.c.slice(0, i);
+  y.n = Math.max(i - 1, 0);
+  y.leaf = x.leaf;
+  y.height = x.height;
+  y = foldEmpty(y);
+
+  z.key = x.key.slice(i + 1);
+  z.c = x.c.slice(i + 1);
+  z.n = Math.max(x.n - i - 1, 0);
+  z.leaf = x.leaf;
+  z.height = x.height;
+  z = foldEmpty(z);
+
+  return [y, z];
+}
+
+function foldEmpty<T>(x: BTreeNode<T>): BTreeNode<T> {
+  if (x.n === 0 && x.c.length === 1) {
+    return x.c[0];
+  } else {
+    return x;
+  }
 }
