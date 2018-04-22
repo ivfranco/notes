@@ -1,3 +1,5 @@
+export type Cmp<T> = (a: T, b: T) => boolean;
+
 export function id<T>(a: T): T {
   return a;
 }

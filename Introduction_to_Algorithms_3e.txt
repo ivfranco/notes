@@ -5721,3 +5721,102 @@ d.  maintain two 2-3-4 tree S' and S'' initially empty
     join operation takes O(1 + |h' - h''|)
     sum of differences between height of T'i and T'i+1 is O(lgn), therefore running time of split operation is O(lgn)
     ./CLRS/structure/b-tree.ts#split
+
+Chapter 19
+19.2-1
+46
+ ┌─23
+ │   ┌─39
+7┤ 18┴─38──41
+ └─21──52
+  ┌─30
+17┴─26──35
+
+19.3-1
+x was once a root
+then it's linked to another node y, later one of its children is removed
+after zero or more EXTRACT-MIN, y became H.min
+the next EXTRACT-MIN added x to the root list
+no node in the root list has the same degree as x
+CASCADING-CUT will not recurse into a root
+
+19.3-2
+each recursive call to CASCADING-CUT moves one child to the root list
+at most n-1 recursive calls to CASCADING-CUT may happen before all nodes are roots in the heap
+no further calls to FIB-HEAP-DECREASE-KEY will call CASCADING-CUT
+m calls to FIB-HEAP-DECREASE-KEY then takes O(m + n) / m amortized time
+if m = Ω(n), O(m + n) / m = O(m) / m = O(1)
+
+19.4-1
+from a heap H that is a single chain of length n
+make H', an exact copy of H, by repeat the construction of H
+union H and H', assign the result to H
+insert -∞
+now H contains three root: the x root of original H, x' the root of H' and -∞
+call EXTRACT-MIN(H), -∞ is extracted, x and x' is linked
+assume x' became a child of x, denote the other child of x by z
+call FIB-HEAP-DELETE(H, z), the sub-heap rooted at z is cutted from x
+the heap rooted at x now is a single chain of length n+1
+later z removed and the child of z added to the rooted list, which soon linked to x as both have degree 1
+repeat this procedure and the heap rooted at x will became a single chain of length n+1
+for a fixed n, starting from a singleton heap, repeat the above procedure n-1 times
+
+19.4-2
+now yi.degree >= i - k
+define z and sd(originally sk) similarly
+    size(x) >= sd
+            >= 1 + Σ(i = {1 .. d})(syi.degree)
+            >= 1 + Σ(i = {1 .. d})(si-k)
+            >= k + Σ(i = {k .. d})(si-k)
+            = k + Σ(i = {0 .. d - k})(si)
+compared to the old series of {s'i} where k = 2:
+    s0 = 1 = s'0
+    s1 = 2 = s'1
+    s[k+1]  >= k + s0 + s1 >= s'3
+    s[2k+1] >= k + s0 + s1 + s[k+1] >= s'4
+inductively, if s[dk+1] >= s'[d+2]
+    s[(d+1)k+1] >= k + s0 + s1 + ... + s[dk+1] >= s'[d+3]
+therefore 
+    skn = O(φ^(n))
+    sn = O(φ^(n/k))
+as long as k is a constant, D(n) = O(lgn)
+
+19-1
+a.  all parent pointers in the children of x have to be fixed to NIL
+    the actual complexity is O(x.degree)
+b.  PISANO-DELETE is the same to FIB-HEAP-DELETE except it will not consolidate the root list
+    the first stage equivalent to call FIB-HEAP-DECREASE-KEY and decrease x.key to -∞, takes O(c)
+    the second stage adds each child of x to root list, takes O(x.degree)
+    O(c + x.degree) in total
+c.  after the first stage, the change in potential is at most 4 - c
+    the second stage adds x.degree and removes one node from root list without changing any mark
+    total change in potential at most 4 - c + (x.degree - 1) = 3 - c + x.degree
+d.  the potential change will not cover x.degree
+    since x.degree can be as large as D(n), amortized complexity of PISANO-DELETE is O(D(n)) = O(lgn)
+
+19-2
+a.  1.  |B0| = 1 = 2^0, |Bk| = 2|Bk-1| = 2^k
+    2.  height of B0 is 0
+        let height of Bk be k constantly, Bk+1 consists of two Bk trees
+        one is rooted at the root of Bk+1, another rooted at depth 1
+        the height of Bk+1 thereby is k+1
+    3.  for B0, C(0, 0) = 0
+        assume at depth i there are C(k, i) nodes in Bk
+        for Bk+1, there are a single root at depth 0, C(k, k) = 1 node at depth k+1
+        every depth i between have C(k, i) + C(k, i-1) = C(k+1, i) nodes
+    4.  each subtree in a binomial tree is also a binomial tree
+            for B0, the only node is the root
+            for Bk+1, each subtree in two Bk is a binomial tree by induction, the new root is the root of Bk+1
+        the root of Bk has degree k since:
+            B0 has degree 0
+            Bk+1 is a Bk tree with a new child, degree of Bk+1 is k+1
+        each subtree of Bk is a binomial tree Bk' strictly smaller than Bk, their root has degree k' < k
+        assume children of root of Bk are Bi for i = k-1, k-2 .. 0
+        Bk+1 adds another Bk as the left-most child of Bk
+        children of root of Bk+1 are Bi for i = k, k-1 .. 0
+b.  each binomial tree in H has distinct degree k, which means it is Bk with size 2^k
+    n = Σ2^ki for distinct ki
+    a binary number that has (ki+1)-th least significant bit 1 for all i and other bits 0 equals is b(n)
+    since b(n) is unique to n, the existance of Bk can be determined by (k+1)th bit of b(n)
+    i <= |b(n)| = [lgn] + 1
+c.  most operations on binomial heaps has much resemblance to operations on binary numbers
