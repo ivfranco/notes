@@ -5820,3 +5820,152 @@ b.  each binomial tree in H has distinct degree k, which means it is Bk with siz
     since b(n) is unique to n, the existance of Bk can be determined by (k+1)th bit of b(n)
     i <= |b(n)| = [lgn] + 1
 c.  most operations on binomial heaps has much resemblance to operations on binary numbers
+    ./CLRS/structure/binomial-heap.ts
+    most functions are based on an auxiliary function add that combines two root lists
+    insert:
+        equivalent to incrementing a binary number
+        add the root list of the heap with [x]
+    union:
+        add the root list of the two heaps
+    minimum:
+        enumerate all roots in the root list, return the one with minimum key
+    extractMin:
+        find the minimum root
+        remove it from the root list
+        add its child list with the root list
+    decreaseKey:
+        the same to binary heap, move the node upward until the heap property is restored
+    delete:
+        decrease key to -∞ then extractMin
+d.  EXTRACT-MIN only removes a root in the root list
+    the children of a node is never removed from the structure
+    let y1, ... yk denote the children of z in the order in which they were linked to z
+        yi.degree = i-1
+    let sk denote the number of nodes in a tree of degree k
+    s0 = 1 = 2^0 is a constant
+    if sk = 2^k is a constant for all k <= d, for k = d+1,
+        sk  = 1 + Σ(i = {1 .. k})(syi.degree)
+            = 1 + Σ(i = {1 .. k})(si-1)
+            = 1 + Σ(i = {1 .. k})(2^(i-1))
+            = 2^k
+    therefore k = lgn, trees in fibonacci heap is just binomial trees
+    the difference is, since CONSOLIDATE is delayed as far as possible
+    there may be several trees with the same degree in the root list of a fibonacci tree
+e.  McGee heap is exactly binomial heap without DECREASE-KEY and DELETE operations
+
+19-3
+a.  delete the node, change the key and insert it back
+    one deletion and one insertion, O(lgn) amortized time
+    if k <= x.key, may call DECREASE-KEY instead, O(1) amortized time
+b.  maintain another pair of left / right pointers in nodes
+    use that pair of pointers to maintain a leaf list, which contains leaves in the heap
+    H.leaf points to one of the leaves in the leaf list, or NIL if the heap is empty
+    a few operations have to be adjusted to maintain the leaf list
+    (LINK):
+        if a leaf had a child through linking, remove it from the leaf list
+    INSERT:
+        the new node x is appended to H.leaf
+    UNION:
+        the leaf lists of the two heap is concatenated
+    EXTRACT-MIN:
+        CONSOLIDATE using the adjusted LINK instead
+    DECREASE-KEY:
+        if x is the last child of y, CUT also adds y to leaf list
+    DELETE: DECREASE-KEY + EXTRACT-MIN
+    add the size of the heap to the potential function
+    it's only increased by a constant in INSERT and decreased by a constant in DELETE
+    the amortized cost of existing operations will not be affected
+    then for x = H.leaf and y = x.parent
+    PRUNE repeat
+        CUT(x)
+        CASCADING-CUT(x, y)
+        remove x from the root list
+    min(r, H.n) times
+    like in DECREASE-KEY, CASCADING-CUT(x, y) will be paid by the potential function
+    each iteration of PRUNE takes constant amortized time and decrements n
+    all min(r, H.n) iterations then is also paid by the potential function
+    PRUNE takes amortized O(1) time in total
+
+19-4
+by Theorem 18.1, 2-3-4 heaps have height h = O(lgn)
+assume each node has a pointer x.parent points to its parent
+a.  compare x.small for all children x of the current node y
+    descend into the node with smallest x.small
+    height of y decreases each iteration, O(h) = O(lgn) in total
+b.  set x.small and x.key to k
+    update y.small for all ancestors of x, O(h) = O(lgn) in total
+c.  similar to inserting a new minimum in 2-3-4 trees, split full child on the way down to a leaf
+    update y.small for y on the path if necessary, O(h) = O(lgn)
+d.  update .small for all its ancestors in O(lgn) time
+    deletion in 2-3-4 heaps is the bottom-up version of case 3 in B-tree deletion
+    delete the leaf, denote y = x.parent, z = y.parent
+    if y now has only one child, move one child from its sibling to it
+    if all its siblings has only 2 child, merge y with one of them
+    now z may have only 1 child, repeat the process up to the root
+    if the root has only one child, set the sole child as the new root, delete the old root
+    O(h) = O(lgn) in total
+e.  MINIMUM -> DELETE
+f.  same to 2-3-4 tree join, update x.small
+    O(1 + |h - h'|) = O(lgn)
+
+Chapter 20
+20.1-1
+store linked lists in the underlying array instead of bare integers
+deletion will not cause update to summary if the linked list is not empty
+
+20.1-2
+store pointers to objects with field key and value in the underlying array instead of bare integers
+
+20.1-3
+from root, at each node x:
+    if x.key == k, terminate
+    if x.key > k, descend into x.left or terminate if x.left == NIL
+    if x.key < k, descend into x.right or terminate if x.right == NIL
+the procedure will find an x with greatest x.key <= k
+assume there is a y that x.key < y.key <= k and the procedure selects x
+if x is an ancestor of y, x.right exists and y belongs to the right subtree of x
+the procedure will descends into x.right as x.key < k
+if y is an ancestor of x, x belongs to the left subtree of y
+the procedure must visit y to reach x, but the procedure will not descend into y.left as y.key <= k
+otherwise let z be the lowest common ancestor of x and y, x.key <= z.key <= y.key
+x and y must be in different subtrees of z or it will not be the lowest common ancestor
+x belongs to left subtree, y belongs to right subtree of z
+to reach x the procedure must visit z, but then it will not descend into z.left as z.key <= y.key <= k
+its successor is the successor of k in the tree
+
+20.1-4
+there are u^(1/k) nodes at depth 1, (u^(1/k))^2 = u^(2/k) at depth 2, u^(2^(i-1)/k) at depth i
+the bottom level contains u^(2^(i-1)/k) = u nodes, 2^(i-1)/k = 1, 2^(i-1) = k, i = lgk + 1
+depth of the bottom level equals height of the top level, h = lgk + 1
+MINIMUM:
+    search the u^(1/k) nodes of the current node, find the first with nonzero key
+    descend that the child and repeat
+    u^(1/k) * (lgk + 1) = O(lgk * u^(1/k))
+MAXIMUM: symmetric to MINIMUM
+SUCCESSOR:
+    starting from a leaf x, search y the first right siblings with nonzero key of x
+    if no such y exists, go up a level by setting x = x.parent
+    otherwise find the minimum in the subtree rooted at y
+    O(lgk * u^(1/k))
+PREDECESSOR: symmetric to SUCCESSOR
+
+20.2-1
+./CLRS/structure/proto-veb-tree.ts#maximum
+./CLRS/structure/proto-veb-tree.ts#predecessor
+
+20.2-2
+let DELETE procedure report whether after the deletion the cluster become empty
+for the base case (u = 2) it sets A[x] = 0 and checks both A[0] and A[1]
+for u = 2^(2^k), if deleting low(x) from cluster high(x) reports true, delete high(x) from the summary
+if the deletion from summary also reports true, return true as the result
+otherwise report false
+at most two recursive calls, running time is the same to insertion
+    T(u) = 2T(u^(1/2)) + O(1) = O(lgu)
+
+20.2-3
+./CLRS/structure/proto-veb-tree.ts#delete
+two recursive calls in worst case, running time is the same to insertion
+    T(u) = 2T(u^(1/2)) + O(1) = O(lgu)
+INSERT should be adjusted so now it reports whether a key is truely inserted or an existing key is overwritten
+in the first case .n is incremented
+asymptotic running time still O(lgu) since both report and incrementing n takes constant time

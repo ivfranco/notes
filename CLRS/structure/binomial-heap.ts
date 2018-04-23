@@ -32,23 +32,95 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
   }
 
   public union(other: this) {
-    throw Error("Not implemented");
+    if (this.child && other.child) {
+      let bnum1 = this.child.toBNumber();
+      let bnum2 = other.child.toBNumber();
+      let sum = add(bnum1, bnum2, this.cmp);
+      this.child = BHeapNode.fromBNumber(sum);
+    }
   }
 
   public minimum(): BHeapNode<T> | null {
-    throw Error("Not implemented");
+    let cmp = this.cmp;
+    if (this.child) {
+      let min = this.child;
+      for (let c of this.child.siblings()) {
+        if (cmp(c.key, min.key)) {
+          min = c;
+        }
+      }
+      return min;
+    } else {
+      return null;
+    }
   }
 
   public extractMin(): BHeapNode<T> | null {
-    throw Error("Not implemented");
+    if (!this.child) {
+      return null;
+    }
+
+    let min = this.minimum() as BHeapNode<T>;
+    this.extractRoot(min);
+    return min;
+  }
+
+  //  delete a root from the root list
+  //  combines its child list with the remaining root list
+  private extractRoot(r: BHeapNode<T>) {
+    if (r.isSingleton()) {
+      this.child = r.child;
+      if (this.child) {
+        for (let c of this.child.siblings()) {
+          c.parent = null;
+        }
+      }
+    } else {
+      let right = r.right;
+      r.remove();
+      let bnum1 = r.child ? r.child.toBNumber() : [];
+      let bnum2 = right.toBNumber();
+      let sum = add(bnum1, bnum2, this.cmp);
+      this.child = BHeapNode.fromBNumber(sum);
+    }
+
+    this.n--;
   }
 
   public decreaseKey(x: BHeapNode<T>, k: T) {
-    throw Error("Not implemented");
+    let cmp = this.cmp;
+    if (cmp(x.key, k)) {
+      throw Error("Error: new key is greater than current key");
+    }
+
+    x.key = k;
+    this.fixup(x, false);
+  }
+
+  private fixup(x: BHeapNode<T>, isDelete: boolean): BHeapNode<T> {
+    let cmp = this.cmp;
+    let y = x.parent;
+    while (y && (isDelete || cmp(x.key, y.key))) {
+      let temp = new BHeapNode(y.key);
+      temp.copyFrom(y);
+      y.copyFrom(x);
+      x.copyFrom(temp);
+      y.parent = x;
+      if (x.child === x) {
+        x.child = y;
+      }
+      if (this.child === y) {
+        this.child = x;
+      }
+      y = x.parent;
+    }
+
+    return x;
   }
 
   public delete(x: BHeapNode<T>) {
-    throw Error("Not implemented");
+    let root = this.fixup(x, true);
+    this.extractRoot(root);
   }
 
   public show(): string {
@@ -97,6 +169,20 @@ class BHeapNode<T> extends HeapNode<T> {
     this.degree++;
   }
 
+  public copyFrom(other: this) {
+    if (other.isSingleton()) {
+      this.left = this;
+      this.right = this;
+    } else {
+      this.left = other.left;
+      this.right = other.right;
+    }
+    this.parent = other.parent;
+    this.child = other.child;
+    this.degree = other.degree;
+    this.key = other.key;
+  }
+
   public toBNumber(): BNumber<T> {
     let bnum: BNumber<T> = [];
     for (let s of this.siblings()) {
@@ -119,6 +205,7 @@ class BHeapNode<T> extends HeapNode<T> {
     for (let c of this.children()) {
       d++;
       n += c.diagnose(cmp);
+      console.assert(c.parent === this, "parent pointers must be valid");
       console.assert(c.degree === this.degree - d, "ith subtree should be a binomial tree of degree d - i");
       console.assert(!cmp(c.key, this.key), "Heap property");
     }
@@ -132,6 +219,7 @@ class BHeapNode<T> extends HeapNode<T> {
 //  A[i] has degree i, A[i] == null indicates no tree in the array has degree i
 type BNumber<T> = Array<BHeapNode<T> | null>;
 
+//  combines two root lists of binomial heaps into one, O(lgn) assuming the two heap has n nodes in total
 function add<T>(x: BNumber<T>, y: BNumber<T>, cmp: Cmp<T>): BNumber<T> {
   let bnum = [];
   let carry: BHeapNode<T> | null = null;

@@ -1,9 +1,11 @@
+import { randomAB } from "../util";
 import { BTree, BTreeNode } from "./b-tree";
 import { BHeap } from "./binomial-heap";
 import { FHeap, FHeapNode } from "./fibonacci-heap";
+import { ProtoVEBTree } from "./proto-veb-tree";
 
 function main() {
-  problem_19_2();
+  problem_20_2_3();
 }
 
 function problem_18_2_1() {
@@ -172,9 +174,36 @@ function problem_19_2() {
   let bheap = new BHeap();
   for (let i = 0; i < 20; i++) {
     bheap.insert(i);
+    bheap.diagnose();
   }
   console.log(bheap.show());
   bheap.diagnose();
+
+  for (let i = 0; i < 20; i++) {
+    bheap.extractMin();
+    console.log(`\n${bheap.show()}`);
+    bheap.diagnose();
+  }
+}
+
+function problem_20_2_3() {
+  let u = 256;
+  let tree: ProtoVEBTree<number> = ProtoVEBTree.factory(u);
+  for (let i = 0; i < u; i++) {
+    tree.insert(i, i);
+    tree.diagnose();
+  }
+
+  let sorted = [];
+  for (let i = 0; i < u - 1; i++) {
+    console.assert(tree.successor(i) === i + 1, `Successor test ${i}`);
+    console.assert(tree.search(i) === i, `Search test ${i}`);
+  }
+
+  for (let i = 0; i < u; i++) {
+    tree.delete(randomAB(0, u - 1));
+    tree.diagnose();
+  }
 }
 
 main();
