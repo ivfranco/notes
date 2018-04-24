@@ -1,4 +1,6 @@
 export {
+  unit,
+  Unit,
   ProtoVEBTree,
 };
 
@@ -11,6 +13,7 @@ abstract class ProtoVEBTree<V> {
   protected abstract n: number;
 
   public static factory<V>(u: number): ProtoVEBTree<V> {
+    //  u = 2^(2^d)
     let d = Math.ceil(Math.log2(Math.log2(u)));
     return factory(d);
   }

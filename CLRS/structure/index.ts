@@ -3,9 +3,10 @@ import { BTree, BTreeNode } from "./b-tree";
 import { BHeap } from "./binomial-heap";
 import { FHeap, FHeapNode } from "./fibonacci-heap";
 import { ProtoVEBTree } from "./proto-veb-tree";
+import { VEBTree } from "./veb-tree";
 
 function main() {
-  problem_20_2_3();
+  problem_20_3_1();
 }
 
 function problem_18_2_1() {
@@ -189,20 +190,54 @@ function problem_19_2() {
 function problem_20_2_3() {
   let u = 256;
   let tree: ProtoVEBTree<number> = ProtoVEBTree.factory(u);
+
+  //  insertion test
   for (let i = 0; i < u; i++) {
     tree.insert(i, i);
     tree.diagnose();
   }
 
-  let sorted = [];
+  //  successor and search test
   for (let i = 0; i < u - 1; i++) {
     console.assert(tree.successor(i) === i + 1, `Successor test ${i}`);
     console.assert(tree.search(i) === i, `Search test ${i}`);
   }
 
+  //  deletion and search test
   for (let i = 0; i < u; i++) {
     tree.delete(randomAB(0, u - 1));
     tree.diagnose();
+    let v = tree.search(i);
+    if (v) {
+      console.assert(v === i);
+    }
+  }
+}
+
+function problem_20_3_1() {
+  let u = 256;
+  let tree: VEBTree<number> = VEBTree.factory(u);
+
+  //  insertion test
+  for (let i = 0; i < u; i++) {
+    tree.insert(i, i);
+    tree.diagnose();
+  }
+
+  //  successor and search test
+  for (let i = 0; i < u - 1; i++) {
+    console.assert(tree.successor(i) === i + 1, `Successor test ${i}`);
+    console.assert(tree.search(i) === i, `Search test ${i}`);
+  }
+
+  //  deletion and search test
+  for (let i = 0; i < u; i++) {
+    tree.delete(randomAB(0, u - 1));
+    tree.diagnose();
+    let v = tree.search(i);
+    if (v) {
+      console.assert(v === i);
+    }
   }
 }
 

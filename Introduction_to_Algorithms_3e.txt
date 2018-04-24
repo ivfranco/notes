@@ -5969,3 +5969,217 @@ two recursive calls in worst case, running time is the same to insertion
 INSERT should be adjusted so now it reports whether a key is truely inserted or an existing key is overwritten
 in the first case .n is incremented
 asymptotic running time still O(lgu) since both report and incrementing n takes constant time
+
+20.2-4
+each slot is incremented / decremented in insertion and deleteion instead of being set to 1 and 0
+
+20.2-5
+./CLRS/structure/proto-veb-tree.ts#ProtoVEBTree
+summary now have different structure to the main tree since it stores no satellite data
+MEMBER is replaced by SEARCH that return NIL or value stored under the input key
+
+20.2-6
+./CLRS/structure/proto-veb-tree.ts#factory
+for u = 2 it creates a base case tree ProtoVEBBase
+otherwise it creates an internal node ProtoVEBNode
+only a super type of the two is exposed
+
+20.2-7
+when u = 2, PROTO-vEB-MINIMUM returns NIL iff A is empty, the tree contains no key
+for V.u = 2^(2^k), assume proto vEB tree with universe < u, PROTO-vEB-MINIMUM return NIL iff the tree is empty
+V.summary is a proto vEB tree with smaller universe
+line 9 is only executed when PROTO-vEB-MINIMUM(V.summary) return NIL, which means V.summary is empty
+if any of its cluster contains at least one key, the summary will not be empty
+
+20.2-8
+there are now u^(3/4) clusters in each tree, and the summary has universe u^(3/4)
+high(x)     = [x / u^(1/4)]
+low(x)      = x % u^(1/4)
+index(h, l) = h * u^(1/4) + l
+MEMBER:
+    search cluster high(x) for low(x)
+    T(n)    = T(n^(1/4)) + O(1)
+    T(2^m)  = T(2^(m/4)) + O(1)
+    S(m)    = S(m/4) + O(1)
+            = Θ(lgm) = Θ(lglgn)
+MINIMUM and MAXIMUM:
+    at most two recursive calls, one to the summary and one to a cluster
+    T(n)    = T(n^(1/4)) + T(n^(3/4)) + O(1)
+    S(m)    = S(m/4) + S(3m/4) + O(1)
+    by Akra-Bazzi method, (1/4)^p + (3/4)^p = 1, p = 1
+    S(m)    = Θ(m(1 + int(1, m, 1/u^2)))
+            = Θ(m(1 + 1 - 1/m))
+            = Θ(m - 1) = Θ(m)
+    T(n)    = S(m) = Θ(lgn)
+SUCCESSOR and PREDECESSOR:
+    at most two recursive calls and a call to MINIMUM
+    T(n)    = T(n^(3/4)) + T(n^(1/4)) + Θ(lgn)
+    S(m)    = S(3m/4) + S(m/4) + Θ(m)
+    by Akra-Bazzi method, p = 1, g(m) = Θ(m) >= cm
+    S(m)    = Ω(m(1 + int(1, m, cu / u^2)))
+            = Ω(m(1 + ln(m) - 0)
+            = Ω(mlgm)
+    similarly S(m) = O(mlgm), S(m) = Θ(mlgm)
+    T(n)    = S(m) = Θ(lgnlglgn)
+INSERT:
+    two recursive calls, similar to MINIMUM, Θ(lgn)
+DELETE:
+    follow implementation of 20.2-3, two recursive calls, similar to MINIMUM, Θ(lgn)
+
+20.3-1
+same to 20.2-4
+
+20.3-2
+./CLRS/structure/veb-tree.ts
+
+20.3-3
+./CLRS/structure/veb-tree.ts#factory
+
+20.3-4
+insertion with duplicate keys will cause exceptions
+at line 1-2
+    the current tree is empty, no duplicate keys
+at line 3-4
+    x < V.min, no duplicate keys
+at line 6-8
+    the cluster that x will go into is empty, no duplicate keys
+at line 9
+    insertion into a tree with strictly smaller universe
+    the only line in the procedure that may be executed when inserting a duplicate key
+    the procedure will recursively call line 9 until V.cluster doesn't exist (i.e. the base case)
+line 10-11 executes only when x > V.max, does not handle duplicate keys
+deletion of non-exist keys will cause trouble when V has a single key V.min and x !== V.min
+at line 1-3 the only key in the tree will be deleted, without checking whether it is x
+at line 4-8
+    V.min != V.max, both 0 and 1 exist in the base case, x may only be 0 or 1
+line 9-12 will not execute as x cannot be equal to V.min
+at line 13
+    deletion from a tree with strictly smaller universe, by induction only cause inconsistency at line 1-3
+at line 14-15
+    deletion from summary with strictly smaller universe, by induction only cause inconsistency at line 1-3
+line 16-22 will not execute as x cannot be equal to V.max
+by maintaining another array A of size u, set the bit A[x] when inserting x, reset A[x] when deleting x
+A[x] indicates if x is in the tree and can be checked in constant time
+
+20.3-5
+MEMBER:
+    T(u)    = T(u^(1/k)) + O(1)
+    T(2^m)  = T(2^(m/k)) + O(1)
+    S(m)    = S(m/k) + O(1) = O(lgm) as k > 1
+    T(u)    = S(m) = O(lglgu)
+MINIMUM and MAXIMUM:
+    still O(1)
+SUCCESSOR and PREDECESSOR:
+    T(u)    <= max{T(u^(1/k)), T(u^(1 - 1/k))} + O(1)
+    for k < 2
+    T(u)    <= T(u^(1/k)) + O(1)
+            = O(lglgu)
+    for k >= 2
+    T(u)    <= T(u^(1 - 1/k)) + O(1)
+            = T(u^((k-1)/k)) + O(1)
+    S(m)    = S(m(k-1)/k) + O(1)
+            = O(lgm)
+    T(u)    = O(lglgu)
+INSERTION:
+    similar to SUCCESSOR
+    T(u)    <= max{T(u^(1/k)), T(u^(1 - 1/k))} + O(1)
+            = O(lglgu)
+DELETION:
+    similar to INSERTION
+
+20.3-6
+(O(u) + nO(lglgu)) / n = O(lglgu)
+O(u) / n = O(lglgu)
+n = Ω(u/lglgu)
+
+20-1
+a.  each internal node allocates an array of size u^(1/2) has u^(1/2) clusters and a summary
+    both clusters and summary are a vEB tree with universe u^(1/2)
+    thus P(u) = (u^(1/2) + 1)P(u^(1/2)) + Θ(u^(1/2))
+b.  assume P(u) <= cu - d
+        P(u)    <= (u^(1/2) + 1)(c(u^(1/2)) - d) + Θ(u^(1/2))
+                = cu - (d-1)(u^(1/2)) - d + Θ(u^(1/2))
+                <= cu - d by ajusting d-1 so it covers Θ(u^(1/2))
+        P(u)    = O(u)
+c.  ./CLRS/structure/veb-tree.ts#insert
+d.  ./CLRS/structure/veb-tree.ts#successor
+e.  with universal hashing, accessing a dynamic hash table takes O(1) expected time
+    the same analysis in text still applies, but now probabilistic
+f.  for u = 2
+        insertion into the base case will take O(1)
+    for u = 2^k
+        insertion either creates a new cluster or not
+        if it creates a new cluster, the key will become min of the new cluster
+        the new cluster contains no child clusters or summary, takes O(1) space
+        the hash table may need to be extended, takes O(1) amortized space
+        the summary may need to be updated
+        as summary has strictly smaller universe, insertion into summray takes O(1) amortized time
+        if it didn't create a new cluster, the insertion consumes no space at all
+    inductively insertion will take O(1) amortized space, n insertion will take O(n) worst case space
+g.  O(1), each line in CREATE-NEW-RS-vEB-TREE takes constant time (including creation of a dynamic hash table)
+
+20-2
+a.  each number and all its prefixes have 1 + 2 + .. lgu = O(lg^2u) characters in total
+    each number also allocates a single node in the linked list
+    if n numbers are stored, the structure takes at most nO(lg^2u + 1) = O(nlg^2u) space
+    O(nlgu) if each string can be stored in constant space, this seems to be the supposed answer
+b.  the doubly linked list should only contain actual numbers, not their prefixes
+    or there's no way to distinguish a prefix and a number in the hash table
+    MINIMUM and MAXIMUM:
+        take the first or last node in the circular doubly linked list
+    MEMBER:
+        assume hashing x takes constant time, check if x is in the hash table takes O(1)
+    SUCCESSOR:
+        binary search p the longest prefix of x in the hash table that satisfies:
+            1.  x = p||0||w
+            2.  p||1 exists
+        then p is the longest common prefix of x and its successor y since:
+            any other number with a different prefix will be < x or > y
+            assume there exists some z that x < z < y
+            if z = p||1||w', p is still the longest common prefix of x and z
+            if z = p||0||w', it must be different at some bit with x
+            the first such difference must be z = p'||1||w and x = p'||0||w' since z > x
+            then the binary search will find p' instead of p
+        //  the structure introduced in this part is actually x-fast trie
+        //  but instead of descendent pointer and leaf list this structure maintains a sorted linked list of all nodes
+        //  no matter how the nodes are sorted, traversing down to the nearest child may take O(lgu)
+        //  if they are sorted numerically, the next node is not even guarenteed to be in the same subtree
+        //  if they are sorted lexicographically, traversing down to a leaf may take time O(lgu)
+    INSERT:
+        find y the predecessor of x in O(lglgu)
+        allocate a node for x, insert it after the node for y, O(1)
+        insert x and the pointer to its node into the hash table, O(1)
+        insert each prefix of x into the hash table, O(lgu) prefixes of x must be inserted
+        O(lgu) in total
+    DELETE:
+        delete the node from the linked list, delete the key from the hash table
+        for each prefix p of x from the longest to shortest:
+            if x = p||1, search p||0 in the hash table
+            if p||0 doesn't exist, delete p as well
+        each iteration takes O(1), O(lgu) prefixes may be deleted, O(lgu) in total
+c.  there are only O(n/lgu) elements in the x-fast trie which occupies O((n/lgu)lgu) = O(n) space
+    each representative corresponds to a O(lgu)-node red black tree which occupies O(lgu) space
+    O(n) + (n/lgu)O(lgu) = O(n) space in total
+d.  MINIMUM:
+        find x the minimum in the x-fast trie
+        the actual minimum must be in the binary tree repesented by x, since all other trees has keys greater than x
+        as red black tree is balanced, h = O(lglgu), find the minimum in the tree takes O(h) = O(lglgu) time
+        O(1) + O(lglgu) = O(lglgu) in total
+    MAXIMUM: symmetric
+e.  for input x, find its successor s in x-fast trie, or s = x if x is itself a representative
+    x must be in the tree represented by s or nowhere in the structure, since
+        all other keys in the x-fast trie either < x or > s
+        if a representative y < x, all nodes in the tree represented by y contains key <= y < x
+        if a representative y > s, all nodes in the tree represented by y > s >= x
+    search the successor of x in x-fast trie takes time O(lglgu), search for x takes O(1)
+    search x in the tree takes time O(lglgu), O(lglgu) in total
+f.  SUCCESSOR:
+        again for key x, find its successor s in x-fast trie, find successor ss of s
+        the successor of x is either
+            the successor of x in tree s, or
+            the minimum of tree ss
+        all four operations can be done in O(lglgu), O(lglgu) in total
+    PREDECESSOR: symmetric
+g.  they must update the red black tree of height Ω(lglgu)
+    in which a node is always inserted to the bottom level
+h.  -

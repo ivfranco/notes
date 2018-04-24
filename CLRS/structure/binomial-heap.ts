@@ -101,18 +101,11 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     let cmp = this.cmp;
     let y = x.parent;
     while (y && (isDelete || cmp(x.key, y.key))) {
-      let temp = new BHeapNode(y.key);
-      temp.copyFrom(y);
-      y.copyFrom(x);
-      x.copyFrom(temp);
-      y.parent = x;
-      if (x.child === x) {
-        x.child = y;
-      }
-      if (this.child === y) {
-        this.child = x;
-      }
-      y = x.parent;
+      let temp = x.key;
+      x.key = y.key;
+      y.key = temp;
+      x = y;
+      y = y.parent;
     }
 
     return x;
@@ -167,20 +160,6 @@ class BHeapNode<T> extends HeapNode<T> {
     this.child = other;
     other.parent = this;
     this.degree++;
-  }
-
-  public copyFrom(other: this) {
-    if (other.isSingleton()) {
-      this.left = this;
-      this.right = this;
-    } else {
-      this.left = other.left;
-      this.right = other.right;
-    }
-    this.parent = other.parent;
-    this.child = other.child;
-    this.degree = other.degree;
-    this.key = other.key;
   }
 
   public toBNumber(): BNumber<T> {
