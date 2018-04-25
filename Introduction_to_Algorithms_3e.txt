@@ -6182,4 +6182,186 @@ f.  SUCCESSOR:
     PREDECESSOR: symmetric
 g.  they must update the red black tree of height Ω(lglgu)
     in which a node is always inserted to the bottom level
-h.  -
+h.  use 2-3-4-trees instead of red black trees
+    split and join trees if their sizes are too big or too small
+    by definition and 18-2, a tree, its representative and the next tree can be joined in O(lglgu)
+    if a tree contains more than 2lgu nodes, split it around the median results in two trees of size lgu
+    (the size of each subtree can be easily maintained in each node to support order statistics operations)
+    if a tree contains less than lgu/4 nodes, join it with a neighbour in O(lglgu)
+    the resulting tree contains lgu/2 to 9lgu/4 nodes, split it if it contains more than 3lgu/2 nodes
+    there will be at most 2n/lgu representatives, x-fast trie operations still O(lglgu)
+    each tree has lgu/2 to 2lgu nodes, tree operations still O(lglgu)
+    a join or split is only caused by at least lgu/4 insertion or deletion, O(lglgu) / Ω(lgu) = O(1)
+    the join and split operation takes O(1) amortized time
+
+Chapter 21
+21.1-1
+Unioned d and i
+{a}
+{b}
+{c}
+{i, d}
+{e}
+{f}
+{g}
+{h}
+{j}
+{k}
+Unioned f and k
+{a}
+{b}
+{c}
+{i, d}
+{e}
+{k, f}
+{g}
+{h}
+{j}
+Unioned g and i
+{a}
+{b}
+{c}
+{i, d, g}
+{e}
+{k, f}
+{h}
+{j}
+Unioned b and g
+{a}
+{i, d, g, b}
+{c}
+{e}
+{k, f}
+{h}
+{j}
+Unioned a and h
+{h, a}
+{i, d, g, b}
+{c}
+{e}
+{k, f}
+{j}
+Unioned i and j
+{h, a}
+{i, d, g, b, j}
+{c}
+{e}
+{k, f}
+Unioned d and k
+{h, a}
+{i, d, g, b, j, k, f}
+{c}
+{e}
+Unioned a and e
+{h, a, e}
+{i, d, g, b, j, k, f}
+{c}
+
+21.1-2
+if two vertices v and u are in the same connected component
+there is a simple path v ~> u in the graph, inductively,
+if v ~> u has length 1, there is an edge (v, u)
+    line 3-5 of CONNECTED-COMPONENTS calls UNION(v, u) if v and u is not already in the same set
+    v and u must be in the same set after CONNECTED-COMPONENTS
+if v ~> u has length k, assume it is v ~> w -> u where (w, u) is an edge
+    by induction v ~> w has length k-1, v and w will be in the same set after CONNECTED-COMPONENTS
+    as (w, u) is an edge, w and u will be in the same set after CONNECTED-COMPONENTS
+therefore v and u will be in the same set after CONNECTED-COMPONENTS
+for a vertex v, after k iteration of line 3-5 in CONNECTED-COMPONENTS
+for each vertices u in the same set of v, there is a path u ~> v of length at most k
+for k = 1,
+    u may be in the same set with v iff edge (u, v) exists and is chosen in the first iteration
+    u ~> v has length 1
+inductively,
+    each u in the same set with v has a path u ~> v of length at most k after k iterations
+    if this iteration adds another vertex w to the set, there is an edge (u, w)
+    then w -> u ~> v is a path of length at most k + 1
+therefore after |E| iterations, u and v will be in the same set only if there is a path u ~> v
+if u and v are not in the same connected component, there is no path u ~> v, u and v are not in the same set
+A => B and ~A => ~B, A <=> B
+
+21.1-3
+FIND-SET is called twice for each edge, 2|E| in total
+within each connected component of size n,
+    at beginning there are n disjoint sets in the component
+    each call to UNION decreases the number of disjoint sets by 1
+    on termination there is only one disjoint set for each connected component
+there are exactly n - 1 calls to UNION within each connected component
+and no UNION may happen between between components
+Σ(i = {1 .. k})(ni - 1) = |V| - k calls to UNION in total
+
+21.2-1
+./CLRS/structure/disjoint-set-list.ts
+
+21.2-2
+./CLRS/structure/index.ts#problem_21_2_2
+set of x2
+{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+set of x9
+{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+
+21.2-3
+O(nlgn) / n = O(lgn)
+
+21.2-4
+n MAKE-SET operations take Θ(n)
+each UNION operation is performed with one set having size 1, O(1) for each, O(n) in total
+Θ(n) overall running time
+
+21.2-5
+each list contains a single pointer to its tail
+each list element contains two pointers, one to the set object, one to the previous element or NIL
+union(g, e) updates pointers to set object in e by traversing prev pointers from tail to head
+then set prev of head to tail of g, set tail of g to tail of e
+union is still linear in the size of disjoint set containing e, Theorem 21.1 still applies
+
+21.2-6
+union(g, e) update pointers to set object in e by traversing next pointers from head of e to tail
+on termination it has a pointer to the tail node in set e
+set next of tail to head of g, set head of g to head of e
+the list of e is prepended to the list of g
+running time still linear in the size of e, Theorem 21.1 still applies
+
+21.3-1
+./CLRS/structure/index.ts#problem_21_3_1
+set of x2
+{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+set of x9
+{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16}
+
+21.3-2
+store all ancestors traversed in a stack
+./CLRS/structure/disjoint-set-forest.ts#findSet
+
+21.3-3
+first n-1 UNION operations form a single binomial tree of degree lgn
+the deepest leaf in a binomial tree of degree k has depth k
+obey union by rank by always union disjoint trees with same height from height 0
+then n FIND-SET operations to the deepest leaf nodes, each traverses a path from leaf to root, Ω(h) = Ω(lgn) each
+m = 2n - 1 = Θ(n), total running time is Ω(nlgn) = Ω(mlgn)
+
+21.3-4
+thanks https://stackoverflow.com/questions/22945058/
+each node stores a new pointer next that originally points to itself after MAKE-SET
+next links form a circular linked list of elements in a disjoint set
+when linking two root x and y, exchange their next pointers
+following x.next now traverses all nodes in disjoint set represented by y first
+the last node traversed has its next pointer points to y
+following y.next then traverses all nodes in the disjoint set represented by x, go back to x at the end
+
+21.3-5
+define r(x) as
+    x.rank before the first call to FIND-SET(x)
+    0 after the first call to FIND-SET(x)
+define the potential function Φ(T) = Σr(x) for all node x in the disjoint set
+each call to MAKE-SET(x) takes constant time and does not change the potential, O(1) amortized time
+each call to LINK at most increases Φ(T) by 1, takes O(1) amortized time combined with the O(1) actual time
+each call to FIND-SET(x) will recurse more than once only if it's the first call to FIND-SET(x)
+otherwise x.p will be set to the representative, x.p.p = x.p (assuming x is not linked to other nodes later)
+FIND-SET(x) recursively calls FIND-SET at most twice
+the number of recursive calls in FIND-SET(x) <= 2 + k
+where k is the number of nodes y on the path from x to the representative that FIND-SET(y) is never called before
+for each recursive call, denote y = x.p, y.rank >= 1 since rank is an upper limit of height
+calling FIND-SET(y) reduces r(x) to 0, Φ(T) decreased by at least 1
+by adjusting the constant in Φ(T), each recursive call to FIND-SET is paid by the potential function
+all three operations take O(1) amortized time, m operations take O(m) worst case time

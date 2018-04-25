@@ -1,12 +1,14 @@
 import { randomAB } from "../util";
 import { BTree, BTreeNode } from "./b-tree";
 import { BHeap } from "./binomial-heap";
+import { DSTreeNode } from "./disjoint-set-forest";
+import { DSNode } from "./disjoint-set-list";
 import { FHeap, FHeapNode } from "./fibonacci-heap";
 import { ProtoVEBTree } from "./proto-veb-tree";
 import { VEBTree } from "./veb-tree";
 
 function main() {
-  problem_20_3_1();
+  problem_21_3_1();
 }
 
 function problem_18_2_1() {
@@ -239,6 +241,77 @@ function problem_20_3_1() {
       console.assert(v === i);
     }
   }
+}
+
+function problem_21_1_1() {
+  let vertices = "a b c d e f g h i j k".split(" ").map(s => new DSNode(s));
+  let [a, b, c, d, e, f, g, h, i, j, k] = vertices;
+  let edges = [
+    [d, i],
+    [f, k],
+    [g, i],
+    [b, g],
+    [a, h],
+    [i, j],
+    [d, k],
+    [b, j],
+    [d, f],
+    [g, j],
+    [a, e],
+  ];
+
+  for (let [u, v] of edges) {
+    if (u.findSet() !== v.findSet()) {
+      u.union(v);
+      console.log(`Unioned ${u.key} and ${v.key}`);
+      let set = new Set(vertices.map(s => s.set));
+      for (let s of set) {
+        console.log(s.show());
+      }
+    }
+  }
+}
+
+function problem_21_2_2() {
+  let x = [];
+  for (let i = 0; i < 16; i++) {
+    x[i] = new DSNode(i + 1);
+  }
+  for (let i = 0; i + 1 < 16; i += 2) {
+    x[i].union(x[i + 1]);
+  }
+  for (let i = 0; i + 2 < 16; i += 4) {
+    x[i].union(x[i + 2]);
+  }
+
+  x[0].union(x[4]);
+  x[10].union(x[12]);
+  x[0].union(x[9]);
+  console.log("set of x2");
+  console.log(x[1].set.show());
+  console.log("set of x9");
+  console.log(x[8].set.show());
+}
+
+function problem_21_3_1() {
+  let x: Array<DSTreeNode<number>> = [];
+  for (let i = 0; i < 16; i++) {
+    x[i] = new DSTreeNode(i + 1);
+  }
+  for (let i = 0; i + 1 < 16; i += 2) {
+    x[i].union(x[i + 1]);
+  }
+  for (let i = 0; i + 2 < 16; i += 4) {
+    x[i].union(x[i + 2]);
+  }
+
+  x[0].union(x[4]);
+  x[10].union(x[12]);
+  x[0].union(x[9]);
+  console.log("set of x2");
+  console.log(x[1].show());
+  console.log("set of x9");
+  console.log(x[8].show());
 }
 
 main();
