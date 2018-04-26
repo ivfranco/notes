@@ -6365,3 +6365,224 @@ for each recursive call, denote y = x.p, y.rank >= 1 since rank is an upper limi
 calling FIND-SET(y) reduces r(x) to 0, Φ(T) decreased by at least 1
 by adjusting the constant in Φ(T), each recursive call to FIND-SET is paid by the potential function
 all three operations take O(1) amortized time, m operations take O(m) worst case time
+
+21.4-1
+if x.p == x, x.p.rank == x.rank
+x.p will change only when
+    1.  x is a root and UNION(x, y) is called, x.p is set to z the root of y by LINK
+        as x is linked as a child of z, x.rank <= z.rank
+        if x.rank == z.rank, z.rank is incremented at the end of LINK
+        after the call to UNION(x, y), x.p.rank > x.rank
+    2.  x.p is not the root, FIND-SET(x) sets x.p to z the root of the tree
+        assume it is the first call to FIND-SET(x)
+        z.p is set to z, z.rank > x.p.rank > x.rank, the first call to FIND-SET maintains the inequality
+        therefore the following call to FIND-SET will also maintain the inequality
+
+21.4-2
+a tree with rank 0 has exactly 1 node
+assume a tree with rank r has at least 2^r nodes
+the rank of the tree grows only if a tree of same rank is linked to it
+the resulting tree of rank r+1 has at least 2 * 2^r = 2^(r+1) nodes
+by induction, a tree with rank r has at least 2^r nodes
+maximum rank in an n-node disjoint set forest thereby is lgn
+
+21.4-3
+x.rank <= lgn, ||x.rank|| <= lg(x.rank) + 1 <= lglgn + 1
+
+21.4-4
+MAKE-SET:   O(1)
+FIND-SET:   traverses a path from a node x to its root z
+            as rank is an upper limit of height, the path has length at most z.rank = O(lgn)
+UNION:      two calls to FIND-SET and a call to LINK
+            2O(lgn) + O(1) = O(lgn)
+each operation takes O(lgn) time, O(mlgn) for m operations
+
+21.4-5
+a sequence of MAKE-SET and UNION may form a binomial tree of any degree
+x.p.rank = x.rank + 1 for any node x in the tree
+let x be a leaf, x.rank = 0, x.p.rank = 1
+    A2(0) = 2^(0 + 1) * (0 + 1) - 1 = 1 <= x.p.rank
+    level(x) >= 2
+let y = x.p, y.rank = 1, y.p.rank = 2
+    A1(1) = 3 > 2
+    level(y) < 1
+
+21.4-6
+α'(n) >= 4 only if lg(n+1) > A3(1) = 2047, n+1 > 2^2047, n > 2^2047 - 1
+define 
+    level'(x)   = max{k | x.p.rank >= Ak(x.rank)}
+    iter'(x)    = max{i | x.p.rank >= A(i)(level'(x), x.rank)} 
+two bounds in the text can be proved similarly
+bound 21.1:
+    assume x.rank >= 1, x is not a root
+    x.p.rank >= x.rank + 1 = A0(x.rank)
+    A(α'(n), x.rank) = >= A(α'(n), 1) >= lg(n + 1) > lg(n) >= x.p.rank
+    0 <= level'(x) < α'(n)
+bound 21.2:
+    x.p.rank >= A(level'(x), x.rank) = A(1)(level'(x), x.rank)
+    A(x.rank+1)(level'(x), x.rank) = A(level'(x)+1, x.rank) > x.p.rank
+    1 <= iter'(x) <= x.rank
+x.rank will no longer change once x.p != x, x.p.rank monotonically increases over time
+thereby level'(x) monotonically increases over time
+iter'(x) only decreases when level'(x) increases
+as long as level'(x) remains unchanged, iter(x) must either increase or remain unchanged
+define potential function of node x after q operations:
+    φ'q(x)  = α'(n) * x.rank if x is a root or x.rank = 0
+            = (α'(n) - level'(x)) * x.rank - iter'(x) otherwise
+    Φq(T)   = Σφ'q(x) for all x in the disjoint set
+Lemma 21.8, Corollary 21.9 and Lemma 21.10 can be derived from 21.1 and 21.2
+Lemma 21.11 still holds since MAKE-SET incurs no change in potential
+Lemma 21.12 can be derived from Lemma 21.10 and Corollary 21.9
+Lemma 21.13:
+    by Lemma 21.10, no node's potential increases
+    let x be a node on the find path such that x.rank > 0 and an ancestor y of x has y != x and level'(y) = level'(x)
+    at least max(0, s - (α'(n) + 2)) nodes satisfies the condition, where s is the number of nodes on the search path
+    i.e. all but the first node (may has rank 0), the root and α'(n) nodes which are the last node with level'(x) = k
+    for such a node x, let k = level'(x) = level'(y)
+        x.p.rank >= Ak(iter'(x))(x.rank) by definition of iter'(x)
+        y.p.rank >= Ak(x.rank) by definition of level'(x)
+        y.rank >= x.p.rank
+        y.p.rank    >= Ak(y.rank)
+                    >= Ak(x.p.rank)
+                    >= Ak(Ak(iter'(x))(x.rank))
+                    = Ak(iter'(x) + 1)(x.rank)
+    let i be the current iter'(x)
+    the root has rank >= y.p.rank, x.p.rank >= Ak(i+1)(x.rank) after path compression
+    if x.p.rank >= A(k+1, x.rank), level'(x) will increase
+    if Ak(i+1)(x.rank) <= x.p.rank < Ak(x.rank), iter'(x) will increase
+    either case φq(x) will decrease by at least 1 according to Lemma 21.10
+    amortized cost is O(s) - (s - (α'(n) + 2)) = O(α'(n))
+Theorem 21.14 follows Lemma 21.7, 21.11, 21.12 and 21.13
+overall running time of m operations is O(mα'(n))
+
+21-1
+a.  4, 3, 2, 6, 8, 1
+b.  invariant:
+        at the beginning of iteration i
+        Kj doesn't exist iff extracted[j] is already assigned correctly
+        Kj contains elements that can only be assigned to kth extraction, k >= l
+        and i is the smallest element still in the set before jth extraction if i ∈ Kj
+    initialization:
+        Kj = Ij, the sequence of insertions between j-1th extraction and jth extraction
+        obviously elements in Ij can be assigned to jth minimum or later but not earlier
+        if i = 1 ∈ Kj = Ij, a subset of K1 ∪ .. ∪ Kj is in the set before jth extraction, 1 is the smallest
+    maintenance:
+        if i ∈ Kj, i is the smallest element in the set before jth extraction
+        if j = m + 1, i cannot be extracted as a minimum for all m extractions
+        if j <= m, i can be assigned to extracted[j] but not any earlier slots and is the smallest still in the set
+        assigning extracted[j] = 1 is thereby correct
+        let Kl be the next set after Kj that exist
+        elements in Kj can be assigned to j and later slots, including l and later slots
+        each slot from j to l-1 is already assigned correctly
+        elements in Kl cannot be assigned to slots earlier than j and between j and l-1, earlier than l combined
+        Kl ∪ Kj therefore contains elements that can only be assigned to kth extractions, k >= l
+        each element in {1 .. i} is either assigned to an extraction or ∈ Km+1
+        i+1 therefore is the smallest element still can be assigned to an extraction
+    termination:
+        each assignmenet to extracted was correct
+        if the sequence of operations is valid, i.e. there are more insertions than extractions before each extraction
+        let extracted[j] be the first slot that's not assigned, by invariant Kj exists on termination
+        |I1 ∪ .. ∪ Ij| >= j, if Ij is not empty, in iteration i ∈ Kj extracted[j] will be assigned
+        if Ij is empty, each iteration i ∈ I1 ∪ .. ∪ Ij destroys a set among K1 .. Kj
+        after j such iterations, Kj must also be destroyed, in contradiction to the assumption
+        thus all slots of extracted is assigned and assigned correctly
+c.  roots of disjoint sets are maintained in doubly linked list, so next set can be found in O(1), as well as deletion
+    disjoint set forest contains list nodes as keys
+    after union, delete the root that's linked as a child to the other root from the linked list
+    set the key of the node in the new root to be the maximum of the key between two original nodes
+    at most O(m + n) UNION and O(m + n) FIND-SET are performed in a disjoint set forest with n nodes
+    O(α(n)(m + n)) in total, since m <= n O(α(n) * n) in total
+    ./CLRS/structure/offline-minimum.ts
+
+21-2
+a.  let n = m/3
+    a sequence of m operations that
+        starting with n MAKE-SET
+        n GRAFT then links all the nodes into a single chain
+        n FIND-DEPTH call to the node with maximum depth, which is n - 1
+    total running time is Θ(n) + Θ(n) + Θ(n^2) = Θ(n^2) = Θ(m^2)
+b.  root node has initial pseudodistance 0
+    ./CLRS/structure/depth-determination.ts#constructor
+c.  for each node u on the path from v to the root z where u != z
+        set u.parent = z
+        add the sum of pseudodistance for all nodes but u and z on u ~> z to u.d
+    if initially Σ(v ∈ {u .. z})v.d is the depth of u, the new sum of pseudodistance equals to
+        u.d + z.d + Σ(v ∈ {u .. z} - {u, z})v.d = Σ(v ∈ {u .. z})v.d
+    if any w originally traverses a unique path w ~> u' -> u ~> z to the root
+    where u is the deepest ancestor of w on v ~> z
+    the sum of pseudodistance on w ~> u' is unchanged
+    the path u ~> z is replaced by a single edge u -> z, which has the same sum of pseudodistance
+    therefore path compression will not invalidate any sum of pseudodistance
+    ./CLRS/structure/depth-determination.ts#findDepth
+d.  each node is a tree T is in the same disjoint set S, and S contains no other node outside T since
+        MAKE-TREE creates the same S and T with a single node
+        FIND-DEPTH will not alter the content of a set
+        GRAFT combines two trees as well as two sets, resulting in the same content
+    do path compression on r and v, now r.p and v.p are roots in corresponding trees
+    first all the nodes in tree r should have their depth increased by the depth of v plus 1
+    set v.p.d += FIND-SET(v) will suffice and takes time O(1) since v.p is now the root
+    then link two trees without changing any sum of pseudodistance
+    if r.p is linked to v.p as a child
+        sum of any node in tree v is not changed
+        sum of any node in tree r is increased by v.p.d since the path to root includes a new node v.p
+        set r.p.d -= v.p.d will restore all the changed sums
+    if v.p is linked to r.p as a child, symmetric
+    ./CLRS/structure/depth-determination.ts#graft
+e.  MAKE-TREE has the same complexity with MAKE-SET
+    FIND-DEPTH has the same complexity with FIND-SET
+    GRAFT has the same complexity with UNION
+    both path compression and union by rank is performed in the same way
+    apply Theorem 21.14, m operations in which n are MAKE-TREEs takes time O(mα(n))
+
+21-3
+a.  from LCA(T.root), the procedure recursively calls LCA(x) for each node x and color x black in the tree once
+    (must be a call to LCA(x) as there is a path from T.root to x; must be the only call as it is the only path)
+    line 10 will be executed for a pair {u, v} only when
+        u or v is just colored black, the current call is LCA(u) or LCA(v)
+        another node is already black
+    if u is colored black before v, line 10 will execute during LCA(v) but not LCA(u) and vice versa
+    exactly one of the two calls to LCA execute line 10 for a particular pair {u, v}
+b.  induct on tree height:
+        after line 7 of LCA(u), the disjoint set of u contains exactly all descendents of u
+    for h = 0:
+        line 3-6 will not execute as u has no child
+        set of u contains u itself, its only descendent
+    for h = k:
+        each recursive call to LCA(v) is on a subtree with height <= k-1
+        union(u, v) will union u with all of v's descendents
+        doing this for all children of u and the set of u now contains exactly all descendents of u
+    since LCA(u) is called once for each u
+    if LCA(u) is not executed yet, none of its descendents will be in any disjoint set
+    similarly, when LCA(v) is called, all of its siblings and their descendents are either
+        in the same disjoint set with v.p, or
+        not in any disjoint set
+    also when LCA(u) has not returned, LCA(u.p) is stuck on line 4, u and u.p cannot be in the same set
+    therefore if LCA(u) is just about to execute line 4 and u has depth k
+    execution of LCA(u.p) is on line 4
+    all siblings and their descendents are either in the same set with u.p or not in any set
+    u and u.p are not in the same set, no descendent of u is in any disjoint set
+    the subtree rooted at u.p is divied into 3 groups, 2 of them are represented by a disjoint set
+    similarly the execution of u.p.p is on line 4, the subtree rooted at u.p.p is 5 groups and 3 disjoint set
+    accounting all the way to T.root, there are currently k+1 disjoint sets in the structure
+    k disjoint sets if LCA(u) is just about to execute line 1
+c.  if u is an ancestor of v,
+        u will not be colored black before all its descendents are colored black
+        on line 7 of LCA(u), u is colored black, FIND-SET(u).ancestor = u
+        line 10 will print u as the LCA of u and v
+    if v is an ancestor of u, symmetric
+    otherwise,
+        let w be the LCA of u and v, u and v are in different subtrees of w
+        assume w has child x and y, x is an ancestor of u, y is an ancestor of v
+        upon calling LCA(w) none of u and v are black, after return of LCA(w) both u and v are black
+        without lose of generality assume LCA(x) is called before LCA(y) on line 4 of LCA(w)
+        LCA(u) will not print LCA of {u, v} since v is still white
+        when LCA(x) returned, descendents of x including u is unioned with set w, FIND-SET(u) = w
+        during the execution of LCA(y), only descendents of y are joined with each other
+        FIND-SET(u).ancestor is not modified
+        therefore during LCA(v), v is colored black, line 10 prints FIND-SET(u) = w, the LCA of u and v
+    LCA of each pair is printed once and correctly
+d.  LCA(u) is called once for each node
+    each call to LCA(x)
+        performs one MAKE-SET, one UNION and two FIND-SET, O(α(n)) times in total
+        traverses P in time O(|P|)
+    overall running time is O(n(|P| + α(n)))

@@ -4,11 +4,12 @@ import { BHeap } from "./binomial-heap";
 import { DSTreeNode } from "./disjoint-set-forest";
 import { DSNode } from "./disjoint-set-list";
 import { FHeap, FHeapNode } from "./fibonacci-heap";
+import { offlineMinimum } from "./offline-minimum";
 import { ProtoVEBTree } from "./proto-veb-tree";
 import { VEBTree } from "./veb-tree";
 
 function main() {
-  problem_21_3_1();
+  problem_21_1();
 }
 
 function problem_18_2_1() {
@@ -312,6 +313,11 @@ function problem_21_3_1() {
   console.log(x[1].show());
   console.log("set of x9");
   console.log(x[8].show());
+}
+
+function problem_21_1() {
+  let input = "3 7 E 2 E 8 1 5 E E E 0 6 E 4";
+  console.log(offlineMinimum(input, 9, 6));
 }
 
 main();
