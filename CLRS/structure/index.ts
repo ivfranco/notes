@@ -9,7 +9,7 @@ import { ProtoVEBTree } from "./proto-veb-tree";
 import { VEBTree } from "./veb-tree";
 
 function main() {
-  problem_21_1();
+  problem_20_3_1();
 }
 
 function problem_18_2_1() {

@@ -4280,13 +4280,13 @@ define a bitonic path Pij as a path that:
 let |pipj| be the distance between pi and pj
 let b[i, j] be the length of the shortest among all bitonic path Pij
 for i < j - 1:
-    pj-1 must be on the right going subpath of Pij, preceeding pj
+    pj-1 must be on the right going subpath of Pij, precedes pj
     if Pij is a shortest bitonic path, then its subpath Pij-1 must also be a shortest bitonic path
     otherwise by cut and paste an optimal Pij-1, b[i, j] can be reduced
     b[i, j] = b[i, j-1] + |pj-1pj|
 for i = j - 1:
     pi is the first point on the left going subpath of Pij
-    the point preceeding pj on the right subpath can be pk for any 1 <= k < j - 1
+    the point precedes pj on the right subpath can be pk for any 1 <= k < j - 1
     again Pkj-1 must be the optimal bitonic path or cut and paste can reduce b[i, j]
     b[j-1, j] = min{b[k, j-1] + |pkpj|} over all k
 for i = j:
@@ -4295,8 +4295,8 @@ for i = j:
     b[j, j] = b[j-1, j] + |pj-1, pj|
 at the end b[n, n] is the length of the optimal bitonic path pn ~> p1 ~> pn, which is also a bitonic tour
 by recording each minimal choice of k during the computation, the bitonic tour can be reconstructed
-r[i][j] stores k that pk preceeding pj on an optimal bitonic path i ~> 1 ~> j, where i < j
-if i > j, the optimal bitonic path is Pji, r[j][i] stores k that preceeding pi 
+r[i][j] stores k that pk precedes pj on an optimal bitonic path i ~> 1 ~> j, where i < j
+if i > j, the optimal bitonic path is Pji, r[j][i] stores k that precedes pi 
 as initially i = n-1, j = n, if i > j then pk is on the left going subpath of Pn-1n, should be printed later
 ./CLRS/technique/bitonic-tour.ts
 
@@ -6586,3 +6586,173 @@ d.  LCA(u) is called once for each node
         performs one MAKE-SET, one UNION and two FIND-SET, O(α(n)) times in total
         traverses P in time O(|P|)
     overall running time is O(n(|P| + α(n)))
+
+Chapter 22
+22.1-1
+the out degree of a vertex v can be computed in time proportional to its out degree by traversing Adj[v]
+or if the adjacency lists explicitly maintains their own length, O(1)
+the in degree of a vertex v however may only be computed by traversing all adjacency lists, O(E) in total
+
+22.1-2
+assume only directed edges from parent to children
+adjacency list:
+    1:  2 -> 3
+    2:  4 -> 5
+    3:  6 -> 7
+    4, 5, 6, 7: no edge
+adjacency matrix:
+    0 1 1 0 0 0 0
+    0 0 0 1 1 0 0
+    0 0 0 0 0 1 1
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+    0 0 0 0 0 0 0
+
+22.1-3
+adjacency list:
+    an obvious lower bound is Ω(V + E) as a new graph must be created
+    copy vertices to the new graph
+    let Adj' be adjacency lists of the transpose graph
+    traverse Adj[v] for each v, for each u in Adj[v], insert v to Adj'[u]
+    Θ(V + E) in total
+adjacency matrix:
+    an obvious lower bound is Ω(V^2) as a new graph must be created
+    copy vertices to the new graph
+    allocate an |V| x |V| matrix A', assign each aij to a'ji
+    Θ(V^2) in total
+
+22.1-4
+assume the original graph is undirected
+allocate an array A of size |V|, indexed by vertices in the graph
+for each u, for each v in Adj[u]
+    set A[u] = u
+    if A[v] != u, add (u, v) to the new graph, set A[v] = u
+for each Adj[u], only the first (u, v) will be inserted into the new graph
+all later (u, v) will find A[v] = u and is not inserted into the new graph
+especially (u, u) will not be in the new graph since A[u] = u at the beginning
+for the next list Adj[u'], all entries in A will not contain value u'
+
+22.1-5
+adjacency list:
+    let Adj' be a new adjacency list of graph G^2
+    for each u in G, for each v in Adj[u],
+        add v to Adj'[u]
+        concat Adj[v] to Adj'[u]
+    dedup but keep self loops using procedure described in 22.1-4
+    an edge added to Adj'[u] iff
+        an edge in G
+        for some u, v and w, v ∈ Adj[u] and w ∈ Adj[v], there is a path of length 2 u ~> w
+    |E| concatenations at most, each copies |E| vertices at most, O(V + E^2) in total
+    G^2 before dedup contains at most |E|^2 edges, as dedup takes time O(V + E), O(V + E^2) in total
+adjacency matrix:
+    basically discrete time Markov chain
+    compute A^2, the square of the adjacency matrix, then set every nonzero entry to 1
+    time complexity is O(f(V)), where f(V) is the complexity of some efficient matrix multiplication algorithm
+    f(V) can be V^3 using plain triple loops, or V^lg7 using strassen's method
+
+22.1-6
+thanks Instructor's Manual
+for an entry aij, i != j,
+    if aij = 1, vertex i cannot be an universal sink as its out degree >= 1
+    if aij = 0, vertex j cannot be an universal sink as its in degree < |V| - 1
+also there may be only one universal sink in a graph:
+    two universal sinks has no edges to each other, both of them are not universal sinks
+thereby examining aij will always eliminate a potential universal sink if i != j
+maintain a stack S initially contains all vertices in the graph by |V| insertions
+repeat the following process:
+if i is the last element in the stack:
+    test if i is a universal sink by examining row i and column i
+otherwise:
+    pop two vertices i and j from the stack
+    examine aij
+    if aij = 1, discard vertex i and push j back to S
+    if aij = 0, discard vertex j and push i back to S
+each iteration O(1), O(V) in total
+
+22.1-7
+BB'(i, j)   = Σ(bik * b'kj)
+            = Σ(bik * bjk)
+if bik * bjk = 0, edge k does not incident with i or j
+if bik * bjk = 1, edge k enters both i and j or leaves both i and j
+    which is impossible unless i = j
+if bik * bjk = -1, edge k is (i, j) or (j, i)
+therefore for i != j, BB'(i, j) is the number of edges between i and j
+for i = j, bik^2 = 0 or 1, BB'(i, i) is the number of edges incident to i
+
+22.1-8
+O(1), for an edge (u, v), search v in hash table Adj[u] takes O(1) expected time
+the edge list may no longer be traversed in time O(E)
+use balanced trees for each Adj[u], searching now O(lg(min(V, E))), slower than hash tables
+the edges in a graph still can be traversed in time O(E)
+insertion now takes time O(lg(min(V, E)))
+
+22.2-1
+1.d = Infinity, 1.π = NIL
+2.d = 3, 2.π = 4
+3.d = 0, 3.π = NIL
+4.d = 2, 4.π = 5
+5.d = 1, 5.π = 3
+6.d = 1, 6.π = 3
+
+22.2-2
+r.d = 4, r.π = s
+s.d = 3, s.π = w
+t.d = 1, t.π = u
+u.d = 0, u.π = NIL
+v.d = 5, v.π = r
+w.d = 2, w.π = t
+x.d = 1, x.π = u
+y.d = 1, y.π = u
+
+22.2-3
+the procedure never tests whether a vertex is GRAY or BLACK, only WHITE or not WHITE
+therefore a single bit indicating whether the node is WHITE or not will suffice
+
+22.2-4
+initialization still takes O(V)
+each vertex is enqueued once, all of its edges is examined, which is a row in the adjacency matrix
+O(V^2) in total
+
+22.2-5
+by Theorem 22.5, after calling BFS(G, s), u.d = δ(s, d)
+the proof of Theorem 22.5 is independent of the order in adjacent lists, so is u.d
+if x precedes t in Adj[w], x will be enqueued before t in (c)
+(e) will paint x BLACK first and set u.π = x
+the resulting tree contains (x, u) instead of (t, u)
+
+22.2-6
+define a graph G that
+(s, u), (s, v) are the only edges of s
+there are a set of vertices W that for all w ∈ W, (u, w) and (v, w) exists
+in bfs, when s is dequeued, both u and v are gray
+either u or v a dequeued next, all the vertices in W will have w.π = u or w.π = v
+any breath-first tree that set more than one w.π = u and more than one w.π = v cannot possibly be produced by bfs
+
+22.2-7
+different wording for bipartite graphs
+do bfs on the graph, make each vertex with odd distance to s a heel, even distance a babyface, O(V + E) + O(V)
+check if any edge (u, v) connects two vertices of the same characteristic, O(E)
+if there is an edge, the sum of the distance δ(s, u) and δ(s, v) is even
+s ~> u -> v ~> s is an odd cycle, the graph cannot be bipartite
+otherwise the result is a valid solution
+O(V + E) + O(V) + O(E) = O(V + E)
+
+22.2-8
+each vertex in a tree has a single parent
+thereby a path in a tree, once descends into a child of some node s, can no longer go up
+the path can only go up, make a turn at some vertex s, and go all the way down
+let p be the longest shortest path in a tree, s be the highest vertex on that path
+p starting from some vertex in a subtree of s, go all the way up to s and descends into another subtree of s
+let h1, h2 be the height of two highest subtree of s, then
+    |p| <= h1 + h2 + 2
+obviously since p goes up in a subtree and goes down in another
+there is a path of length h in a tree of height h, hence the upper bound h1 + h2 + 2 is achievable
+the height of trees can be computed recursively in time O(E) = O(V)
+the first and second highest can be selected by order statistics algorithms in time O(e) in a vertex with e subtrees
+O(E) = O(V) in total
+
+22.2-9
+single-source dfs
+use face / tail of coins as indicator of color of vertices in DFS-VISIT
+(GRAY and BLACK has no difference, can be merged)

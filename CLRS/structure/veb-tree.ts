@@ -28,7 +28,7 @@ function index(h: number, l: number, d: number): number {
 
 function factory<V>(d: number): VEBTree<V> {
   //  u = 2^d
-  console.assert(d >= 1, "Minimum universe if 2^1");
+  console.assert(d >= 1, "Minimum universe is 2^1");
   if (d === 1) {
     return new VEBBase();
   } else {
@@ -81,18 +81,6 @@ class VEBNode<V> extends VEBTree<V> {
     return factory(Math.floor(this.d / 2));
   }
 
-  //  will create a new cluster if this.cluster[k] === null
-  private touch(k: number): VEBTree<V> {
-    console.assert(k >= 0 && k < highSqrt(this.d), "Out of boundary access");
-
-    let child = this.cluster[k];
-    if (!child) {
-      child = this.makeChild();
-      this.cluster[k] = child;
-    }
-    return child;
-  }
-
   //  will not create a new cluster, return null instead
   private get(k: number): VEBTree<V> | null {
     console.assert(k >= 0 && k < highSqrt(this.d), "Out of boundary access");
@@ -103,6 +91,16 @@ class VEBNode<V> extends VEBTree<V> {
     } else {
       return null;
     }
+  }
+
+  //  will create a new cluster if this.cluster[k] === null
+  private touch(k: number): VEBTree<V> {
+    let child = this.get(k);
+    if (child === null) {
+      child = this.makeChild();
+      this.cluster[k] = child;
+    }
+    return child;
   }
 
   public isEmpty(): boolean {
@@ -278,9 +276,13 @@ class VEBNode<V> extends VEBTree<V> {
   public diagnose() {
     let d = this.d;
     let summary = this.summary;
+
+    if (this.min === null) {
+      console.assert(this.min_value === null, "min and min_value must both be null or both not");
+    }
     summary.diagnose();
     for (let i = 0; i < highSqrt(d); i++) {
-      let c = this.cluster[i];
+      let c = this.get(i);
       if (c) {
         c.diagnose();
       }
@@ -300,7 +302,7 @@ class VEBNode<V> extends VEBTree<V> {
 }
 
 //  copied ProtoVEBBase to here
-//  each operation in base case can not take longer than O(1)
+//  each operation in base case cannot take longer than O(1)
 //  the implementation will not affect asymptotic running time as long as it's correct
 class VEBBase<V> extends VEBTree<V> {
   protected u: number;

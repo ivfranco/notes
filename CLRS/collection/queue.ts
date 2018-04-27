@@ -1,5 +1,5 @@
 export {
-  Queue
+  Queue,
 };
 
 class Queue<T> {
@@ -7,7 +7,7 @@ class Queue<T> {
   protected _tail: number;
   protected _size: number;
   protected _arr: T[];
-  capacity: number;
+  public capacity: number;
 
   constructor(cap: number) {
     this._head = 0;
@@ -18,17 +18,17 @@ class Queue<T> {
     this._arr = new Array(cap);
   }
 
-  isEmpty(): boolean {
+  public isEmpty(): boolean {
     return this._size === 0;
   }
 
-  isFull(): boolean {
+  public isFull(): boolean {
     return this._size === this.capacity;
   }
 
-  enqueue(x: T) {
+  public enqueue(x: T) {
     if (this.isFull()) {
-      throw "Error: Queue overflow";
+      throw new Error("Error: Queue overflow");
     }
 
     let Q = this._arr;
@@ -39,9 +39,9 @@ class Queue<T> {
     this._size++;
   }
 
-  dequeue(): T {
+  public dequeue(): T {
     if (this.isEmpty()) {
-      throw "Error: Queue underflow";
+      throw new Error("Error: Queue underflow");
     }
 
     let Q = this._arr;
@@ -61,14 +61,14 @@ class Queue<T> {
     }
   }
 
-  report() {
+  public report() {
     console.log(`head: ${this._head}, tail: ${this._tail}`);
     console.log(this._arr);
   }
 }
 
 class Deque<T> extends Queue<T> {
-  prev(i: number): number {
+  public prev(i: number): number {
     if (i === 0) {
       return this.capacity - 1;
     } else {
@@ -76,9 +76,9 @@ class Deque<T> extends Queue<T> {
     }
   }
 
-  headInsert(x: T) {
+  public headInsert(x: T) {
     if (this.isFull()) {
-      throw "Error: Queue overflow";
+      throw new Error("Error: Queue overflow");
     }
 
     let Q = this._arr;
@@ -90,17 +90,17 @@ class Deque<T> extends Queue<T> {
     this._size++;
   }
 
-  headDelete(): T {
+  public headDelete(): T {
     return this.dequeue();
   }
 
-  tailInsert(x: T) {
+  public tailInsert(x: T) {
     this.enqueue(x);
   }
 
-  tailDelete(): T {
+  public tailDelete(): T {
     if (this.isEmpty()) {
-      throw "Error: Queue underflow";
+      throw new Error("Error: Queue underflow");
     }
 
     let Q = this._arr;
