@@ -6754,5 +6754,185 @@ O(E) = O(V) in total
 
 22.2-9
 single-source dfs
-use face / tail of coins as indicator of color of vertices in DFS-VISIT
-(GRAY and BLACK has no difference, can be merged)
+use face / tail of coins as indicator of color of vertices in DFS
+(GRAY and BLACK make no difference in the procedure, can be merged)
+
+22.3-1
+directed:
+    WHITE -> WHITE: both i and j not visited yet, (i, j) can be any edge type
+    WHITE -> GRAY:  any time between j.d and j.f
+                    j.d > i.d, j.f < i.f, j is a descendent of i in dfs tree, (i, j) is back edge
+    WHITE -> BLACK: after j.f, j.f < i.d, i and j may be in different subtree of an ancestor or in different tree
+                    (i, j) is a cross edge
+    GRAY -> WHITE:  at any time between i.d and i.f, by white path theorem, j is a descendent of i
+                    depends on whether j is visited directly from i or from some descendent of i
+                    (i, j) is a tree or forward edge
+    GRAY -> GRAY:   after i.d and j.d, before i.f and j.f
+                    either i is a descendent of j or j is a descendent of i, (i, j) tree, back or forward edge
+    GRAY -> BLACK:  after i.d and j.f, before i.f, i.d < j.d or j.d > i.d
+                    either j is a descendent of i or they are in different trees, (i, j) tree, forward or cross edge
+    BLACK -> WHITE: cannot happen, i is only painted black after all vertices in Adj[i] are visited
+    BLACK -> GRAY:  after i.f and j.d, j.d < i.d otherwise j is painted black before i
+                    (i, j) a back edge
+    BLACK -> BLACK: after i.f and j.f, any edge type
+undirected:
+    WHITE -> WHITE: before i.d and j.d, any edge type
+    WHITE -> GRAY:  between j.d and j.f, i must be a descendent of j by white path theorem
+                    if i is visited directly from j, (j, i) is a tree edge, otherwise (i, j) is a back edge
+    WHITE -> BLACK: i must be visited before j, otherwise i will be painted black before j
+                    but then j cannot be black when i is still white, impossible case
+    GRAY -> GRAY:   after i.d and j.d, before i.f and j.f
+                    if i is visited before j and j is visited directly from i, (i, j) is a tree edge
+                    if j is not visited directly from i, (j, i) is a back edge
+                    similarly when j is visited first
+    GRAY -> BLACK:  after i.d and j.f, before i.f
+                    j cannot be visited before i or i will be painted black before j
+                    on time i.d, j is white, reduced to case GRAY -> WHITE, which is symmetric to WHITE -> GRAY
+    BLACK -> BLACK: after i.f and j.f, any edge type
+    other cases symmetric
+
+22.3-2
+q.color = BLACK, q.d = 1, q.f = 16, q.π = NIL
+r.color = BLACK, r.d = 17, r.f = 20, r.π = NIL
+s.color = BLACK, s.d = 2, s.f = 7, s.π = q
+t.color = BLACK, t.d = 8, t.f = 15, t.π = q
+u.color = BLACK, u.d = 18, u.f = 19, u.π = r
+v.color = BLACK, v.d = 3, v.f = 6, v.π = s
+w.color = BLACK, w.d = 4, w.f = 5, w.π = v
+x.color = BLACK, x.d = 9, x.f = 12, x.π = t
+y.color = BLACK, y.d = 13, y.f = 14, y.π = t
+z.color = BLACK, z.d = 10, z.f = 11, z.π = x
+(q, s) is a tree edge
+(q, t) is a tree edge
+(q, w) is a forward edge
+(r, u) is a tree edge
+(r, y) is a cross edge
+(s, v) is a tree edge
+(t, x) is a tree edge
+(t, y) is a tree edge
+(u, y) is a cross edge
+(v, w) is a tree edge
+(w, s) is a back edge
+(x, z) is a tree edge
+(y, q) is a back edge
+(z, x) is a back edge
+
+22.3-3
+(u(v(y(xx)y)v)u)(w(zz)w)
+
+22.3-4
+same to 22.2-3
+the procedure never tests whether a vertex is GRAY or BLACK, only WHITE or not WHITE
+therefore a single bit indicating whether the node is WHITE or not will suffice
+
+22.3-5
+a.  if (u, v) is a tree or forward edge, v is a descendent of u
+b.  if (u, v) is a back edge, u is a descendent of v
+c.  if (u, v) is a cross edge, neither u nor v is the descendent of the other 
+apply Theorem 22.7
+
+22.3-6
+consider a simple graph with vertices u, v and a single edge (u, v)
+if u is visited first, (u, v) is a tree edge, (v, u) is a back edge
+if v is visited first, (v, u) is a tree edge, (u, v) is a back edge
+classify by ordering, both case (u, v) and (v, u) is a tree edge
+classify by which is encountered first, (u, v) may be a back edge
+
+22.3-7
+./CLRS/graph/directed-graph.ts#stackVisit
+
+22.3-8
+define a graph with vertices u, v, w and edge (w, u), (u, w), (w, v)
+there is a path u ~> v following (u, w) then (w, v)
+if w is visited first in dfs, both u and v become descendent of w but not descendent of each other
+if u appears before v in Adj[w], u.d < v.d
+
+22.3-9
+the same graph in 22.3-8
+u.d = 2, u.f = 3, v.d = 4
+
+22.3-10
+./CLRS/graph/directed-graph.ts#visit or stackVisit
+if G is undirected, an edge should be updated to back only if its type is not defined yet
+hence an edge that's both tree and back will have resulting type tree
+
+22.3-11
+define a graph with vertices u, v, w and edge (v, u), (u, w)
+u has both incoming and outgoing edges
+assume dfs first visits w, the df tree of w contains only w
+then dfs visits u, u cannot visit w since its already black, u cannot visit v since (u, v) doesn't exist
+u will end up in a df tree with a single vertex u
+
+22.3-12
+if G1 is a connected component in G, all vertices are connected to each other
+at the beginning of dfs, there is a white path from each vertex in G1 to any other
+thereby calling DFS-VISIT(u) for any u in G1 will make every vertex in G1 a descendent of u
+if v is in a different connected component G2, there is no path from u to v and no white path at the beginning
+as vertices are never colored white after initialization, there's no white path from u to v at any time
+v is not a descendent of u
+df trees after a dfs is one-one corresponding to connected components in undirected graph
+initialize a global variable cc = 0, increment it every time DFS-VISIT is called from DFS
+
+22.3-13
+thanks https://pdfs.semanticscholar.org/c85f/ddc73cf467827956078893f8edb5f183981c.pdf
+if there are more than one simple path u ~> v in a graph G, consider the dfs starting at u and the resulting df tree T
+by white path theorem there is a path p1 from u to v in T
+let p2 be another simple path u ~> v in G
+let w be the last common vertex on the two paths traversing backwards from v to u
+there must be two edges (x, w) and (y, w) that
+    x != y
+    p1 = u ~> x -> w ~> v
+    p2 = u ~> y -> w ~> v
+    (x, w) not in p2 and (y, w) not in p1
+T is a tree, (y, w) is not in T, (y, w) is a back edge, a forward edge or a cross edge
+(y, w) may only be a back edge if y is a descendent of w and x, let y' be the the vertex precedes y on u ~> y
+if y' is also on u ~> x, (y', y) is not in T, furthermore (y', y) must be a forward edge since y' is an ancestor of w
+if y' is not on u ~> x, (y', y) may only be a tree or back edge if 
+    (y', y) is on the path w ~> y, or
+    y' is a descendent of y
+both case y' is also a descendent of w, let y'' be the vertex precedes y' on u ~> y and repeat the argument
+the propagation cannot be repeated forever since p1 and p2 starts both at u
+so there must be a cross or forward edge in T if there are more than one simple path u ~> v in G
+conversely, in a df tree rooted at u produced by a dfs on G
+    if there is a forward edge (x, w), there are at least two paths u ~> w in the tree
+        one follows tree edges, another skips from x to w
+    if there is a cross edge (x, w) within the tree, similarly there are at least two paths u ~> w
+therefore G is singly connected iff dfs starting at all vertices contain no forward or cross edge
+O(V^2 + VE)
+./CLRS/graph/directed-graph.ts#singlyConnected
+
+22.4-1
+p -> n -> o -> s -> m -> r -> y -> v -> x -> w -> z -> u -> q -> t
+
+22.4-2
+a simple path from a vertex u to t must start with an edge (u, v) for some vertex v in Adj[u]
+then the remaining path must be a simple path from v to t
+assume the number of paths from each vertex v that appears later than u when topologically sorted is already computed
+let p[v] be the result, p[u] = Σ(v ∈ Adj[u])p[v], all p[v] is already computed as (u, v) exists
+topologically sort the vertices, O(V + E)
+assign 0 to p[u] if u appears before s or after t
+assign 1 to p[t]
+compute p[u] according to the equation above for all vertices between s and t, in reverse topological order
+O(E) access to array p, O(V + E) in total
+./CLRS/graph/directed-graph.ts#numberOfPaths
+
+22.4-3
+count the number of edges in the graph, immediately report cyclic when |E| execeeds 2|V| - 2
+if |E| <= 2|V| - 2, run dfs and search for a back edge
+an acyclic graph can have at most |V| - 1 edges, 2|V| - 2 including the reverse of each
+dfs will finish in O(V + E) = O(V) time given |E| = O(V)
+
+22.4-4
+consider a graph with vertices u, v and 3 edges, two are (u, v) and one is (v, u)
+dfs starting at u will produce topological sort [u, v], gives one bad edge
+dfs starting at v will produce [v, u], gives two bad edges
+therefore topological sort will not always minimizes number of bad edges
+
+22.4-5
+traverse each entry of Adj, count the in degree for each vertex in d[v], O(E)
+find all vertices u with in degree 0 and push them onto a stack, O(V)
+repeat |V| times:
+    pop a vertex u from the stack, append it to the sorted list
+    decrement d[v] for each v in Adj[u], O(E) aggregated
+    if d[v] becomes 0, push v onto the stack, O(E) aggregated
+if the graph contains a cycle, there may not be a vertex with in degree 0, the procedure will stuck

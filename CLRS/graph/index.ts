@@ -1,7 +1,17 @@
-import { bfs, PlainGraph, Vertex } from "./directed-graph";
+import {
+  alterTopologicalSort,
+  bfs,
+  dfs,
+  dfsReport,
+  numberOfPaths,
+  PlainGraph,
+  singlyConnected,
+  topologicalSort,
+  Vertex,
+} from "./directed-graph";
 
 function main() {
-  problem_22_2_2();
+  problem_22_4_1();
 }
 
 function problem_22_2_1() {
@@ -64,6 +74,99 @@ function problem_22_2_2() {
     let parent = p[v.key];
     console.log(`${name}.d = ${dist}, ${name}.π = ${parent ? parent.name : "NIL"}`);
   }
+}
+
+function problem_22_3_2() {
+  let G = PlainGraph.fromDirected(
+    "q r s t u v w x y z",
+    [
+      "q s", "q t", "q w",
+      "r u", "r y",
+      "s v",
+      "t x", "t y",
+      "u y",
+      "v w",
+      "w s",
+      "x z",
+      "y q",
+      "z x",
+    ],
+  );
+
+  let [v_attr, e_attr] = dfs(G);
+  dfsReport(G, v_attr, e_attr);
+}
+
+function problem_22_3_3() {
+  let G = PlainGraph.fromDirected(
+    "u v w x y z",
+    [
+      "u v", "u x",
+      "v y",
+      "w y", "w z",
+      "x v",
+      "y x",
+      "z z",
+    ],
+  );
+
+  let [v_attr, e_attr] = dfs(G);
+  dfsReport(G, v_attr, e_attr);
+}
+
+function problem_22_3_13() {
+  let G1 = PlainGraph.fromDirected(
+    "u v w x y z",
+    [
+      "u v", "u x",
+      "v y",
+      "w y", "w z",
+      "x v",
+      "y x",
+      "z z",
+    ],
+  );
+
+  let G2 = PlainGraph.fromDirected(
+    "u v w x y z",
+    [
+      "u v",
+      "v y",
+      "w y", "w z",
+      "x v",
+      "y x",
+      "z z",
+    ],
+  );
+
+  console.log(singlyConnected(G1));
+  console.log(singlyConnected(G2));
+}
+
+function problem_22_4_1() {
+  let G = PlainGraph.fromDirected(
+    "m n o p q r s t u v w x y z",
+    [
+      "m q", "m r", "m x",
+      "n o", "n q", "n u",
+      "o r", "o s", "o v",
+      "p o", "p s", "p z",
+      "q t",
+      "r u", "r y",
+      "s r",
+      "u t",
+      "v w", "v x",
+      "w z",
+      "y v",
+    ],
+  );
+
+  console.log(topologicalSort(G).map(v => v.name).join(" -> "));
+  //  problem_22_4_2
+  let V = G.vertexMap();
+  console.log(numberOfPaths(G, V["p"], V["v"]));
+  //  problem_22_4_5
+  console.log(alterTopologicalSort(G).map(v => v.name).join(" -> "));
 }
 
 main();
