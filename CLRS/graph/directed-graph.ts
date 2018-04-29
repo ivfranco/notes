@@ -1,14 +1,15 @@
 export {
   alterTopologicalSort,
-  PlainGraph,
-  topologicalSort,
   bfs,
   dfs,
-  numberOfPaths,
   dfsReport,
   Graph,
-  Vertex,
+  numberOfPaths,
+  PlainGraph,
+  scc,
   singlyConnected,
+  topologicalSort,
+  Vertex,
 };
 
 import { Queue } from "../collection/queue";
@@ -183,8 +184,13 @@ enum EdgeType {
 
 interface DFSVertexAttr<V> {
   color: Color;
+  //  visit time
   d: number;
+  //  finish time
   f: number;
+  //  index of or df tree or connected component
+  cc: number;
+  //  parent in df tree
   p: V | null;
 }
 
@@ -225,7 +231,7 @@ function dfs<V extends Vertex>(
   //   parens += u.name + ")";
   // }
 
-  function stackVisit(u: V) {
+  function stackVisit(u: V, cc: number) {
     let stack: Array<[V, Edge<V> | null]> = [[u, null]];
     //  records the edge from last gray vertex on the stack to the stack top
     let last_edge: Edge<V> | null;
@@ -236,6 +242,7 @@ function dfs<V extends Vertex>(
         stack.push([u, last_edge]);
         time++;
         ua.d = time;
+        ua.cc = cc;
         ua.color = Color.GRAY;
         parens += "(" + u.name;
         if (last_edge) {
@@ -288,16 +295,19 @@ function dfs<V extends Vertex>(
       color: Color.WHITE,
       d: +Infinity,
       f: +Infinity,
+      cc: +Infinity,
       p: null,
     };
   }
 
   if (s) {
-    stackVisit(s);
+    stackVisit(s, 0);
   } else {
+    let cc = 0;
     for (let u of G.vertices()) {
       if (v_attr[u.key].color === Color.WHITE) {
-        stackVisit(u);
+        stackVisit(u, cc);
+        cc++;
       }
     }
   }
@@ -312,10 +322,10 @@ function showEdge(e: Edge<Vertex>): string {
 
 function dfsReport(G: Graph<Vertex, Edge<Vertex>>, v_attr: Array<DFSVertexAttr<Vertex>>, e_attr: DFSEdgeAttr[]) {
   for (let v of G.vertices()) {
-    let { color, d, f, p } = v_attr[v.key];
+    let { color, d, f, p, cc } = v_attr[v.key];
     let name = v.name;
     let parent = p ? p.name : "NIL";
-    console.log(`${name}.color = ${color}, ${name}.d = ${d}, ${name}.f = ${f}, ${name}.π = ${parent}`);
+    console.log(`vertex ${name}: ${d}/${f}, π = ${parent}, cc = ${cc}`);
   }
   for (let e of G.edges()) {
     console.log(`${showEdge(e)} is a ${e_attr[e.key]} edge`);
@@ -336,7 +346,10 @@ function singlyConnected(G: Graph<Vertex, Edge<Vertex>>): boolean {
 function topologicalSort<V extends Vertex>(G: Graph<V, Edge<V>>): V[] {
   let sorted: V[] = [];
   let [v_attr, e_attr] = dfs(G, null, (u, ua) => sorted.push(u));
-  console.assert(e_attr.every(t => t !== EdgeType.BACK), "graph is not acyclic");
+  // console.assert(e_attr.every(t => t !== EdgeType.BACK), "graph is not acyclic");
+  // for (let v of G.vertices()) {
+  //   console.log(`${v.name}.f = ${v_attr[v.key].f}`);
+  // }
   return sorted.reverse();
 }
 
@@ -388,4 +401,77 @@ function alterTopologicalSort<V extends Vertex>(G: Graph<V, Edge<V>>): V[] {
   }
 
   return sorted;
+}
+
+function scc<V extends Vertex>(G: Graph<V, Edge<V>>): Array<DFSVertexAttr<V>> {
+  let sorted = topologicalSort(G);
+  let T = new PlainGraph();
+  for (let v of sorted) {
+    T.createVertex(v.name);
+  }
+  let V = T.vertexMap();
+  for (let { from, to } of G.edges()) {
+    T.createEdge(V[to.name], V[from.name]);
+  }
+  let [v_attr, e_attr] = dfs(T);
+
+  //  transform v_attr so it's indexed by u.key from vertices u of G
+  let map = G.vertexMap();
+  let g_attr: Array<DFSVertexAttr<V>> = [];
+  for (let v of G.vertices()) {
+    let u = map[v.name];
+    let { color, d, f, cc, p } = v_attr[v.key];
+    g_attr[u.key] = {
+      color,
+      d,
+      f,
+      cc,
+      p: p ? map[p.name] : null,
+    };
+  }
+  return g_attr;
+}
+
+function componentGraph(G: Graph<Vertex, Edge<Vertex>>): PlainGraph {
+  let v_attr = scc(G);
+  let SCC = new PlainGraph();
+
+  let components = Math.max(...v_attr.map(a => a.cc)) + 1;
+  for (let i = 0; i < components; i++) {
+    SCC.createVertex("" + i);
+  }
+  let C = SCC.vertexMap();
+
+  let sets: Vertex[][] = [];
+  for (let u of G.vertices()) {
+    let cc = v_attr[u.key].cc;
+    if (sets[cc]) {
+      sets[cc].push(u);
+    } else {
+      sets[cc] = [u];
+    }
+  }
+
+  let connected: boolean[] = new Array(components);
+  connected.fill(false);
+  for (let set of sets) {
+    for (let u of set) {
+      let u_cc = v_attr[u.key].cc;
+      for (let v of G.edgeFrom(u)) {
+        let v_cc = v_attr[v.key].cc;
+        if (!connected[v_cc] && u_cc !== v_cc) {
+          SCC.createEdge(C[u_cc], C[v_cc]);
+          connected[v_cc] = true;
+        }
+      }
+    }
+    for (let u of set) {
+      for (let v of G.edgeFrom(u)) {
+        let v_cc = v_attr[v.key].cc;
+        connected[v_cc] = false;
+      }
+    }
+  }
+
+  return SCC;
 }

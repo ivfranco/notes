@@ -5,13 +5,14 @@ import {
   dfsReport,
   numberOfPaths,
   PlainGraph,
+  scc,
   singlyConnected,
   topologicalSort,
   Vertex,
 } from "./directed-graph";
 
 function main() {
-  problem_22_4_1();
+  problem_22_5_2();
 }
 
 function problem_22_2_1() {
@@ -167,6 +168,26 @@ function problem_22_4_1() {
   console.log(numberOfPaths(G, V["p"], V["v"]));
   //  problem_22_4_5
   console.log(alterTopologicalSort(G).map(v => v.name).join(" -> "));
+}
+
+function problem_22_5_2() {
+  let G = PlainGraph.fromDirected(
+    "q r s t u v w x y z",
+    [
+      "q s", "q t", "q w",
+      "r u", "r y",
+      "s v",
+      "t x", "t y",
+      "u y",
+      "v w",
+      "w s",
+      "x z",
+      "y q",
+      "z x",
+    ],
+  );
+
+  scc(G);
 }
 
 main();

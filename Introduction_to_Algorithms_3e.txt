@@ -3669,8 +3669,8 @@ b.  as elements are given random priorities
     theoriem 12.4 applies, the expected height of the treap is O(lgn)
 c.  first the normal insertion of z is performed according to binary search tree property
     but then the priority of z.p may be greater than z, and this is the only possible violation of treap properties
-    which means the other child of z.p and its descendents have priority greater than z.p
-    the descendents of z (if any) has priority greater than z
+    which means the other child of z.p and its descendants have priority greater than z.p
+    the descendants of z (if any) has priority greater than z
     if z == z.p.let, perform RIGHT-ROTATE(z.p), otherwise LEFT-ROTATE(z.p)
     then z becomes the new parent of z.p, the treap property violation between z and z.p is fixed
     the possible violation is now between z and its new parent, one level higher in the treap
@@ -6141,7 +6141,7 @@ b.  the doubly linked list should only contain actual numbers, not their prefixe
             the first such difference must be z = p'||1||w and x = p'||0||w' since z > x
             then the binary search will find p' instead of p
         //  the structure introduced in this part is actually x-fast trie
-        //  but instead of descendent pointer and leaf list this structure maintains a sorted linked list of all nodes
+        //  but instead of descendant pointer and leaf list this structure maintains a sorted linked list of all nodes
         //  no matter how the nodes are sorted, traversing down to the nearest child may take O(lgu)
         //  if they are sorted numerically, the next node is not even guarenteed to be in the same subtree
         //  if they are sorted lexicographically, traversing down to a leaf may take time O(lgu)
@@ -6543,30 +6543,30 @@ a.  from LCA(T.root), the procedure recursively calls LCA(x) for each node x and
     if u is colored black before v, line 10 will execute during LCA(v) but not LCA(u) and vice versa
     exactly one of the two calls to LCA execute line 10 for a particular pair {u, v}
 b.  induct on tree height:
-        after line 7 of LCA(u), the disjoint set of u contains exactly all descendents of u
+        after line 7 of LCA(u), the disjoint set of u contains exactly all descendants of u
     for h = 0:
         line 3-6 will not execute as u has no child
-        set of u contains u itself, its only descendent
+        set of u contains u itself, its only descendant
     for h = k:
         each recursive call to LCA(v) is on a subtree with height <= k-1
-        union(u, v) will union u with all of v's descendents
-        doing this for all children of u and the set of u now contains exactly all descendents of u
+        union(u, v) will union u with all of v's descendants
+        doing this for all children of u and the set of u now contains exactly all descendants of u
     since LCA(u) is called once for each u
-    if LCA(u) is not executed yet, none of its descendents will be in any disjoint set
-    similarly, when LCA(v) is called, all of its siblings and their descendents are either
+    if LCA(u) is not executed yet, none of its descendants will be in any disjoint set
+    similarly, when LCA(v) is called, all of its siblings and their descendants are either
         in the same disjoint set with v.p, or
         not in any disjoint set
     also when LCA(u) has not returned, LCA(u.p) is stuck on line 4, u and u.p cannot be in the same set
     therefore if LCA(u) is just about to execute line 4 and u has depth k
     execution of LCA(u.p) is on line 4
-    all siblings and their descendents are either in the same set with u.p or not in any set
-    u and u.p are not in the same set, no descendent of u is in any disjoint set
+    all siblings and their descendants are either in the same set with u.p or not in any set
+    u and u.p are not in the same set, no descendant of u is in any disjoint set
     the subtree rooted at u.p is divied into 3 groups, 2 of them are represented by a disjoint set
     similarly the execution of u.p.p is on line 4, the subtree rooted at u.p.p is 5 groups and 3 disjoint set
     accounting all the way to T.root, there are currently k+1 disjoint sets in the structure
     k disjoint sets if LCA(u) is just about to execute line 1
 c.  if u is an ancestor of v,
-        u will not be colored black before all its descendents are colored black
+        u will not be colored black before all its descendants are colored black
         on line 7 of LCA(u), u is colored black, FIND-SET(u).ancestor = u
         line 10 will print u as the LCA of u and v
     if v is an ancestor of u, symmetric
@@ -6576,8 +6576,8 @@ c.  if u is an ancestor of v,
         upon calling LCA(w) none of u and v are black, after return of LCA(w) both u and v are black
         without lose of generality assume LCA(x) is called before LCA(y) on line 4 of LCA(w)
         LCA(u) will not print LCA of {u, v} since v is still white
-        when LCA(x) returned, descendents of x including u is unioned with set w, FIND-SET(u) = w
-        during the execution of LCA(y), only descendents of y are joined with each other
+        when LCA(x) returned, descendants of x including u is unioned with set w, FIND-SET(u) = w
+        during the execution of LCA(y), only descendants of y are joined with each other
         FIND-SET(u).ancestor is not modified
         therefore during LCA(v), v is colored black, line 10 prints FIND-SET(u) = w, the LCA of u and v
     LCA of each pair is printed once and correctly
@@ -6761,23 +6761,23 @@ use face / tail of coins as indicator of color of vertices in DFS
 directed:
     WHITE -> WHITE: both i and j not visited yet, (i, j) can be any edge type
     WHITE -> GRAY:  any time between j.d and j.f
-                    j.d > i.d, j.f < i.f, j is a descendent of i in dfs tree, (i, j) is back edge
+                    j.d > i.d, j.f < i.f, j is a descendant of i in dfs tree, (i, j) is back edge
     WHITE -> BLACK: after j.f, j.f < i.d, i and j may be in different subtree of an ancestor or in different tree
                     (i, j) is a cross edge
-    GRAY -> WHITE:  at any time between i.d and i.f, by white path theorem, j is a descendent of i
-                    depends on whether j is visited directly from i or from some descendent of i
+    GRAY -> WHITE:  at any time between i.d and i.f, by white path theorem, j is a descendant of i
+                    depends on whether j is visited directly from i or from some descendant of i
                     (i, j) is a tree or forward edge
     GRAY -> GRAY:   after i.d and j.d, before i.f and j.f
-                    either i is a descendent of j or j is a descendent of i, (i, j) tree, back or forward edge
+                    either i is a descendant of j or j is a descendant of i, (i, j) tree, back or forward edge
     GRAY -> BLACK:  after i.d and j.f, before i.f, i.d < j.d or j.d > i.d
-                    either j is a descendent of i or they are in different trees, (i, j) tree, forward or cross edge
+                    either j is a descendant of i or they are in different trees, (i, j) tree, forward or cross edge
     BLACK -> WHITE: cannot happen, i is only painted black after all vertices in Adj[i] are visited
     BLACK -> GRAY:  after i.f and j.d, j.d < i.d otherwise j is painted black before i
                     (i, j) a back edge
     BLACK -> BLACK: after i.f and j.f, any edge type
 undirected:
     WHITE -> WHITE: before i.d and j.d, any edge type
-    WHITE -> GRAY:  between j.d and j.f, i must be a descendent of j by white path theorem
+    WHITE -> GRAY:  between j.d and j.f, i must be a descendant of j by white path theorem
                     if i is visited directly from j, (j, i) is a tree edge, otherwise (i, j) is a back edge
     WHITE -> BLACK: i must be visited before j, otherwise i will be painted black before j
                     but then j cannot be black when i is still white, impossible case
@@ -6826,9 +6826,9 @@ the procedure never tests whether a vertex is GRAY or BLACK, only WHITE or not W
 therefore a single bit indicating whether the node is WHITE or not will suffice
 
 22.3-5
-a.  if (u, v) is a tree or forward edge, v is a descendent of u
-b.  if (u, v) is a back edge, u is a descendent of v
-c.  if (u, v) is a cross edge, neither u nor v is the descendent of the other 
+a.  if (u, v) is a tree or forward edge, v is a descendant of u
+b.  if (u, v) is a back edge, u is a descendant of v
+c.  if (u, v) is a cross edge, neither u nor v is the descendant of the other 
 apply Theorem 22.7
 
 22.3-6
@@ -6844,7 +6844,7 @@ classify by which is encountered first, (u, v) may be a back edge
 22.3-8
 define a graph with vertices u, v, w and edge (w, u), (u, w), (w, v)
 there is a path u ~> v following (u, w) then (w, v)
-if w is visited first in dfs, both u and v become descendent of w but not descendent of each other
+if w is visited first in dfs, both u and v become descendant of w but not descendant of each other
 if u appears before v in Adj[w], u.d < v.d
 
 22.3-9
@@ -6866,10 +6866,10 @@ u will end up in a df tree with a single vertex u
 22.3-12
 if G1 is a connected component in G, all vertices are connected to each other
 at the beginning of dfs, there is a white path from each vertex in G1 to any other
-thereby calling DFS-VISIT(u) for any u in G1 will make every vertex in G1 a descendent of u
+thereby calling DFS-VISIT(u) for any u in G1 will make every vertex in G1 a descendant of u
 if v is in a different connected component G2, there is no path from u to v and no white path at the beginning
 as vertices are never colored white after initialization, there's no white path from u to v at any time
-v is not a descendent of u
+v is not a descendant of u
 df trees after a dfs is one-one corresponding to connected components in undirected graph
 initialize a global variable cc = 0, increment it every time DFS-VISIT is called from DFS
 
@@ -6885,12 +6885,12 @@ there must be two edges (x, w) and (y, w) that
     p2 = u ~> y -> w ~> v
     (x, w) not in p2 and (y, w) not in p1
 T is a tree, (y, w) is not in T, (y, w) is a back edge, a forward edge or a cross edge
-(y, w) may only be a back edge if y is a descendent of w and x, let y' be the the vertex precedes y on u ~> y
+(y, w) may only be a back edge if y is a descendant of w and x, let y' be the the vertex precedes y on u ~> y
 if y' is also on u ~> x, (y', y) is not in T, furthermore (y', y) must be a forward edge since y' is an ancestor of w
 if y' is not on u ~> x, (y', y) may only be a tree or back edge if 
     (y', y) is on the path w ~> y, or
-    y' is a descendent of y
-both case y' is also a descendent of w, let y'' be the vertex precedes y' on u ~> y and repeat the argument
+    y' is a descendant of y
+both case y' is also a descendant of w, let y'' be the vertex precedes y' on u ~> y and repeat the argument
 the propagation cannot be repeated forever since p1 and p2 starts both at u
 so there must be a cross or forward edge in T if there are more than one simple path u ~> v in G
 conversely, in a df tree rooted at u produced by a dfs on G
@@ -6936,3 +6936,157 @@ repeat |V| times:
     decrement d[v] for each v in Adj[u], O(E) aggregated
     if d[v] becomes 0, push v onto the stack, O(E) aggregated
 if the graph contains a cycle, there may not be a vertex with in degree 0, the procedure will stuck
+./CLRS/graph/directed-graph.ts#alterTopologicalSort
+
+22.5-1
+if the new edge connects two vertices in the same SCC, the number of SCC won't change
+if the new edge connects two distinct SCCs C and C',
+    if there is already a path from C to C', the new egde will not change the number of SCC
+    if otherwise the edge forms the first path between C and C', it may reduce the number of SCCs arbitrarily
+    if the SCC graph is still acyclic, the number of SCCs won't change
+    if there is a path from C' to C, the number of SCCs is reduced by at least 1
+    if the SCC graph becomes a simple cycle after adding the edge, the number of SCCs is reduced to 1
+
+22.5-2
+in G:
+    q.f = 16
+    r.f = 20
+    s.f = 7
+    t.f = 15
+    u.f = 19
+    v.f = 6
+    w.f = 5
+    x.f = 12
+    y.f = 14
+    z.f = 11
+in transpose of G:
+    vertex r: 1/2, π = NIL, cc = 0
+    vertex u: 3/4, π = NIL, cc = 1
+    vertex q: 5/10, π = NIL, cc = 2
+    vertex t: 7/8, π = y, cc = 2
+    vertex y: 6/9, π = q, cc = 2
+    vertex x: 11/14, π = NIL, cc = 3
+    vertex z: 12/13, π = x, cc = 3
+    vertex s: 15/20, π = NIL, cc = 4
+    vertex v: 17/18, π = w, cc = 4
+    vertex w: 16/19, π = s, cc = 4
+
+22.5-3
+f(C) > f(C') for each SCCs where there is an edge (u, v) from C to C'
+but f(C) only bounds the greatest finish time in C, not the just any finish time
+a vertex in C may have earlier finish time than a vertex in C'
+define a graph G with vertices u, v, w and edges (u, v), (v, u), (u, w)
+G contains two SCCs, {u, v} and {w}
+dfs may set v.f = 3, w.f = 5, u.f = 6
+another dfs starting from v will produce a single df
+
+22.5-4
+SCCs in G and GT are the same, SCC(G) and SCC(T(G)) have the same set of vertices
+for each edge (x, y) connecting two SCCs C and C' in G, there is an edge (y, x) in T(G)
+therefore T(SCC(G)) = SCC(T(G)), SCC(G) = T(SCC(T(G)))
+
+22.5-5
+strongly connected components can be computed in time O(V + E)
+compute the number of SCCs in the graph by counting maximum u.cc for all vertex 
+initialize a list for each SCC, at most |V| lists since number of SCCs is bounded by |V|
+preprocess vertices in each SCC into a list, O(V)
+repeat for all such stacks:
+    repeat for each u in the stack:
+        repeat for all v in Adj[u]:
+            if connected[v.cc] == true or u.cc == v.cc, skip this vertex
+            otherwise create an edge between components indicated by u.cc and v.cc, set connected[v.cc] to true
+            O(E) aggregated
+    repeat for each u in the stack:
+        repeat for all v in Adj[u]:
+            set connected[v.cc] to false, effectively resets the array connected, O(E) aggregated
+./CLRS/graph/directed-graph.ts#componentGraph
+    
+22.5-6
+in a SCC of n vertices {u1 .. un}, there is a path u1 ~> u2, u2 ~> u3 .. un-1 ~> un, un ~> n1
+which means there is a cycle connecting all vertices in the SCC 
+the shortest such cycle is a simple cycle with n edges, SCC with n vertices has at least n edges
+the lower bound can be achieved by a simple cycle
+the algorithm is similar to 22.5-5
+connect vertices in each list to a simple cycle
+create edge (u, v) instead (u.cc, v.cc) in the loop
+
+22.5-7
+for each vertex u in the graph:
+    do single source dfs from u in G and T(G)
+    the vertices visited in the two dfs combined must be all the vertices in G
+
+22-1
+a.  1.  if (u, v) is a back edge, either v is the parent of u in bf tree, or v is a proper ancestor of u.π
+        if v = u.π, (u, v) is a tree edge
+        otherwise the path s ~> v -> u is shorter than following only tree edges, in contradiction to Theorem 22.5
+        similarly forward edges (which is back edge at the same time)
+    2.  v is visited the first time from (u, v), line 15 of BFS will set v.d = u.d + 1
+    3.  assume without loss of generality u.d <= v.d
+        if otherwise u.d <= v.d + 2, a path s ~> u -> v will have length u.d + 1 < v.d, in contradiction to 22.5
+b.  1.  similar to a.1
+    2.  same to a.2
+    3.  if otherwise v.d >= u.d + 2, s ~> u -> v has length shorter than v.d, in contradiction to Theorem 22.5
+    4.  since v is an ancestor of u, the path s ~> v ~> u is the shortest path from s to u, 0 <= v.d <= u.d
+
+22-2
+a.  if u is an articulation point, it connects two parts C and C' of G
+    after removing u, there is no path from any vertex in C to any vertex in C'
+    each path from C to C' must visit u
+    a dfs starting from u
+        if it visits a vertex in C next, there are no white path from C to C' since u is already gray
+        vertex in C' cannot be descendants of any vertex in C, they must be in different subtree of u
+        if it visits a vertex in C' next, similar
+        if it visits a vertex v not in C or C', there cannot be white path from v to C and C' at the same time
+        otherwise C and C' are connected
+        the visit starting from v cannot visit all the vertices in both C and C'
+        as u has a white path to each vertex in C and C' at u.d, u must have another child other than v
+    conversely, if u has two or more children, let x be the first child visited from u, let y be another child
+    there are no white path at x.d from x to y, otherwise y will be in the same tree with x
+    the only vertex that isn't white at x.d is u, by removing u there will be no path x ~> y, G is disconnected
+b.  by Theorem 22.10, there's no forward and cross edge in Gπ
+    if a non-root vertex v in Gπ has a child s that there is no back edge from descendant of s to proper ancestor of v
+    the only edges in the subtree rooted at s are tree edges and back edges within the subtree
+    assume there is a path from a vertex in the subtree to a vertex outside the subtree that does not visit v
+    there must be an edge (x, y) connecting x in the subtree and y != v not in the subtree
+    such a y must exist since v and all descendants are non-root, the root must be some other vertex
+    if y is an ancestor of v, (x, y) is a back edge to a proper ancestor of v
+    if y is not an ancestor of v, (x, y) is a cross edge, in contradiction to Theorem 22.10
+    if v is removed, there's no path from the subtree to any other vertices in the graph, v is an articulation point
+    conversely, assume v is an non-root articulation point
+    v connects at least two components C and C' in G that all paths from C to C' (or any other components) visits v
+    if the root is not in C', it must visit v before visiting any vertices in C'
+    all vertices in C' will be descendants of v in Gπ, let s be the first vertex in C' visited from v
+    at s.d, there is a white path from s to all vertices in C', all vertices in C' will be descendants of s
+    there cannot be cross edges from C' to other components connected to v by the assumption
+    there cannot be back edges from C' to proper ancestors of v since the ancestor must be in another component
+    when the root is in C', symmetric argument applies to C
+c.  first compute v.back as min{w.d | (v, w) is a back edge}, v.back = +∞ if there's no back edge in Adj[v], O(E)
+    by traversing Gπ from root to leaf, v.low can be computed recursively as 
+        min{v.d, s.back, s.low}
+    for all children s of v in Gπ, O(Eπ) = O(V)
+    since the graph G is connected, |V| <= |E| - 1, V = O(E), O(E) in total
+d.  there's no back edge in undirected graph
+    if s a descendant of u has an egde (s, w) and w.d < s.d, w must be a proper ancestor of u, u.low < u.d
+    if no such s exists, all edges involving vertices in subtrees of u must be tree edges or back edges to up to u
+    u.low >= u.d 
+    so an articulation point in G is
+        the root if it has more than one child, or
+        any non-root vertex v with v.low < v.d
+    a check for all vertices can be performed in time O(V + E) = O(E)
+e.  if edge (u, v) is on a simple cycle, removing (u, v) and there is still a path from u ~> v
+    any path originally passes (u, v) may traverse that path instead, (u, v) is not a bridge
+    conversely if (u, v) is not a bridge, removing (u, v) will not disconnect the graph 
+    which means there is another path u ~> v that does not pass (u, v), u ~> v -> u is a cycle
+    therefore (u, v) is not a bridge iff (u, v) is on a simple cycle
+    (u, v) is a bridge iff (u, v) is not on any simple cycle
+f.  reuse the v.low and v.back attributes computed in part c
+    back edges always form a simple cycle, back edges cannot be bridges
+    for a tree edge (u, v), compare u.d with min{v,low, v.back}
+    if min{v.low, v.back} <= u.d, there is a back edge from subtree rooted at v to an ancestor of u (including u)
+    u is on a simple cycle
+    if min{v.low, v.back} > u.d there is no back edge from subtree roote at v to an ancestor of u
+    if (u, v) is on a simple cycle, there must be some edge (x, y) connecting y in the subtree and x not in the subtree
+    if x is an ancestor of u, (x, y) cannot be a forward edge according to Theorem 22.10
+    (x, y) must be a back edge (y, x), but then min{v.low, v.back} <= u.d
+    if x is not an ancestor of u, (x, y) is a cross edge, in contradiction to Theorem 22.10
+    therefore u is on a simple cycle iff min{v.low, v.back} <= u.d
