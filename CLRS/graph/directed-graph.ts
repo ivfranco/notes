@@ -10,6 +10,7 @@ export {
   singlyConnected,
   topologicalSort,
   Vertex,
+  Edge,
 };
 
 import { Queue } from "../collection/queue";

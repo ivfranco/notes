@@ -7065,7 +7065,7 @@ c.  first compute v.back as min{w.d | (v, w) is a back edge}, v.back = +∞ if t
         min{v.d, s.back, s.low}
     for all children s of v in Gπ, O(Eπ) = O(V)
     since the graph G is connected, |V| <= |E| - 1, V = O(E), O(E) in total
-d.  there's no back edge in undirected graph
+d.  there's no cross edge in undirected graph
     if s a descendant of u has an egde (s, w) and w.d < s.d, w must be a proper ancestor of u, u.low < u.d
     if no such s exists, all edges involving vertices in subtrees of u must be tree edges or back edges to up to u
     u.low >= u.d 
@@ -7090,3 +7090,70 @@ f.  reuse the v.low and v.back attributes computed in part c
     (x, y) must be a back edge (y, x), but then min{v.low, v.back} <= u.d
     if x is not an ancestor of u, (x, y) is a cross edge, in contradiction to Theorem 22.10
     therefore u is on a simple cycle iff min{v.low, v.back} <= u.d
+g.  let C and C' be two different BCCs, f ∈ C, g ∈ C'
+    if there is an edge e in both C and C', there is a cycle passing f and g
+    have no idea how to reduce the cycle to a simple cycle
+h.  articulation points seperates biconnected components
+    each path connecting two BCCs must visit an articulation point
+    assume two BCCs C and C' has a path that does not visit any articulation point
+    removing any vertex on the path will not disconnect the graph
+    there must be another path from C to C' that does not share any vertex with the last path
+    there must be a simple cycle that passes an edge in C and another edge in C', C and C' are the same BCC
+    do dfs on the graph with additional restrictions that:
+        dfs cannot start at articulation points
+        a search may visit a articulation point, but not any other vertices connected to it
+        (i.e. articulation points are initially grey and never painted black)
+    and assign bcc for each df tree
+
+22-3
+a.  the Euler tour will have to traverse each edge entering v and leaving v
+    each time it enters v, it must leave v from an edge in Adj[v] that not yet traversed
+    the problem is then reduced to a Euler tour problem with both in-degree(v) and out-degree(v) decremented
+    thereby if in-degree(v) != out-degree(v), at some time either:
+        there are edges from v but no edge to v, or 
+        there are edges to v but no edge from v
+    both case there's no possible Euler tour for such a graph
+    conversely, if in-degree(v) = out-degree(v) for each v in G
+    thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch22.pdf
+    for a fixed set of vertices V
+    let in-degree(u) + 1 = out-degree(u), out-degree(v) + 1 = in-degree(v)
+    all other vertices has the same in and out degrees
+    for |E| = 1, there is a single edge (u, v), u -> v is an Euler path
+    for |E| = k, assume all such graphs with |E| < k edges has an Euler path
+    then for all |E| <= k, if in-degree(v) = out-degree(v) for all v in V, there is an Euler tour in G:
+        by removing any edge (u, v), |E| < k, there is an Euler path v ~> u in the resulting graph
+        adding (u, v) to the path forms an Euler tour
+    let (u, w) be any edge leaving u, remove it from the graph, the resulting graph either
+        if w = v, there is an Euler tour starting and ending at v
+        if w != v, |E| < k, in-degree(w) + 1 = out-degree(w) now, there is an Euler path w ~> v
+    both case adding (u, w) to the path or tour forms an Euler path
+b.  follow the inductive steps described in part a
+    if there is an Euler tour in the graph
+    it can be produced from choosing any unvisited leaving edge from the current vertex
+    starting from any vertex v in V, follow and remove the first edge in Adj[v] until there are no edges remaining
+    O(E) in total
+
+2-4
+lemma 1: reachability of a dag can be computed in O(V + E)
+    assume min(v) is computed for all v in Adj[u]
+    each path from u ~> w must pass (u, v) for some v in Adj[u], R(u) = ∪R(v) ∪ {u}
+    min(u) = min{min(v), L(u)} for all v in Adj[u]
+    if G is a dag, by topological sorting V and compute min(u) from the last to the first in sorted order
+    min(u) can be computed in O(V + E) time
+lemma 2: vertices u and v in the same SCC has min(u) = min(v)
+    since there is a path u ~> v, R(v) ⊆ R(u), similarly R(u) ⊆ R(v), so R(u) = R(v), min(u) = min(v)
+therefore min(u) can be computed by:
+    1.  decompose G to SCCs, O(V + E)
+    2.  compute minimal L(u) within each SCC, assign it as L(c) for the component, O(V)
+    3.  compute min(c) for each SCC c in the component graph, which is a dag, O(V + E)
+
+Chapter 23
+23.1-1
+assume T is a minimum spanning tree and (u, v) is not in T
+connecting (u, v) will form a cycle with the unique path v ~> u
+choose any (x, y) != (u, v) on the cycle and remove (x, y), x and y still connected
+each path originally passes (x, y) can now traverse the path formed by (u, v) instead, graph still connected 
+a connected graph with |V| - 1 edges must be a tree, the resulting graph is a spanning tree T'
+as w(u, v) <= w(x, y), w(T') <= w(T), T' is a minimum spanning tree
+
+23.1-2
