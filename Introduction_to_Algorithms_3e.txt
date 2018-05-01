@@ -7157,3 +7157,110 @@ a connected graph with |V| - 1 edges must be a tree, the resulting graph is a sp
 as w(u, v) <= w(x, y), w(T') <= w(T), T' is a minimum spanning tree
 
 23.1-2
+take Figure 23.1 for an example
+define S = {d, e, f}, (S, V - S) is a cut respecting the single edge (d, e), which is in the minimum spanning tree
+(c, d) is a safe edge, but (c, d) is not light edge to the cut
+
+23.1-3
+removing (u, v) must decompose the MST to two connected components
+    if removing (u, v) doesn't disconnect the MST, the MST contains another path u ~> v and a cycle
+    if removing (u, v) decomposes the MST to more than two connected components
+    adding (u, v) back will connect at most two of them
+thereby there is a cut (S, V - S) that respects all edges in the MST but (u, v)
+also S and V - S are connected by edges in MST - (u, v)
+if (u, v) is not a light edge crossing that cut, connecting a light edge results a MST with lower total weight
+therefore (u, v) must be a light edge crossing (S, V - S)
+
+23.1-4
+define G with vertices u, v, w, and edges (u, v), (v, w), (w, u) where
+    w(u, v) = w(v, w) = w(w, u) = 1
+each edge is a light edge, {(u, v) | (u, v) is a light edge crossing some cut} contains three edges
+MST of the graph can only have two edges
+
+23.1-5
+let T be a MST that contains e
+there must be an edge on the cycle no in T, otherwise T is not a tree
+removing e decomposes the MST to two connected components
+let e = (u, v), u and v belongs to different connected components
+the cycle must pass another edge (x, y) that connects the two components, since there is another path u ~> v on it
+w(x, y) <= w(u, v) as (u, v) has maximum weight on the cycle
+adding (x, y) instead of (u, v) results in a spanning tree T' that w(T) >= w(T')
+by the description of GENERIC-MST, there is a MST for each possible graph G
+therefore either all MST of G do not contain e, or there is also an MST that does not contain e
+
+23.1-6
+let T and T' be two MSTs of the graph G
+let (u, v) ∈ T not not in T', (u, v) defines a cut and is the unique light edge crossing the cut by 23.1-3
+there must be a path u ~> v in T'
+there must be an edge (x, y) on the path in T' crossing the cut defined by (u, v), then w(x, y) > w(u, v)
+replace (x, y) by (u, v) reduces the total weight of T', by Theorem 23.1 T' is still a spanning tree
+(u, v) must be in any MST of G
+apply the argument to all edges in T, each possible MST will be exactly T, T is unique
+conversely, define a graph G with edge u, v, w and edge (u, v), (u, w) where
+    w(u, v) = 1, w(u, w) = 1
+then the cut({u}, {v, w}) has two light edges
+but G has a single MST
+
+23.1-7
+if T connects all the vertices but is not a tree, T must contain a cycle
+removing any edge on the cycle will reduce w(T) as w(e) > 0 for all e
+and the resulting tree still connects all the vertices
+therefore T must be a tree
+define G with vertices u, v, w and edges (u, v), (v, w), (w, u) where
+    w(u, v) = 0, w(v, w) = 0, w(w, u) = 0
+then {(u, v), (v, w), (w, u)} has minimum total weight but is not a spanning tree
+
+23.1-8
+let T, T' be a MST of G
+by 23.1-6, for each edge e in T - T', there is an edge T' - T that has the same weight with e
+let e and f be two different edges in T - T', e and f defines two different cuts 
+f cannot cross the cut defined by e, e and f decomposes G to three connected components
+hence a single edge in T' cannot cross both the cuts
+each e in T - T' has a unique f in T' - T that w(e) = w(f)
+the sorted list of weights is the same in T and T'
+
+23.1-9
+optimal substructure
+if otherwise T' is not a MST of G', replacing T' by a MST of G' results a better spanning tree for G
+
+23.1-10
+let T' be any spanning tree according to w'
+if T' does not contain (x, y), w'(T') = w(T') >= w(T), T' has weight no lower than T
+if T' contains (x, y), assume w'(T') < w'(T)
+then w(T') < w(T), in contradiction to T being a MST
+therefore w'(T') >= w'(T), T is a MST according to w'
+
+23.1-11
+let the edge be (u, v), it forms a simple cycle in T
+remove the edge of maximum weight (s, t) on the cycle results a tree T'
+let T'' be any spanning tree, w' defined similarly to 23.1-10
+if T'' does not contain (u, v), w'(T'') = w(T'') >= w(T) >= w(T')
+if T'' contains (u, v), (u, v) defines a cut in T''
+there must be an edge (x, y) on u ~> v in T that crosses the cut
+replace (u, v) by (x, y) results in a spanning tree T'''
+as T''' does not contain (u, v), w'(T''') >= w'(T)
+w(T'') = w(T''') + w(u, v) - w(x, y)
+by definition of T', w(s, t) >= w(x, y), w(T') <= w(T'')
+therefore T' is a MST according to w'
+the cycle can be find by dfs in O(V + E), the maximum can be find and deleted in O(E)
+O(V + E) in total
+
+23.2-1
+by 23.1-8, the list L of sorted weights in any MST is the same
+for a particular MST T, sort the edges so that edges in T come first among all edges of the same weight
+invariant:
+    A contains all edges in T examined so far and nothing else
+initialization:
+    A = ∅    
+maintenance:
+    let e = (u, v) be the edge examined in the current iteration
+    if w(e) ∉ L, there's no edge of weight w(e) in any MST, e cannot be added to A
+    if w(e) ∈ L, let n be the number of w(e) in L
+        if e is the first n edges of weight w(e), e ∈ T
+        as A ⊆ T, e ∉ A, e must connect two trees in the forest, e is added to A
+        if e is not the first n edges of weight w(e),
+        by invariant all n edges of weight w(e) in T has already been added to A
+        by definition of n, any MST may not contain more edges of weight w(e), e is not added to A
+    thus e is added to A <=> e ∈ T
+termination:
+    all edges examined, A = T

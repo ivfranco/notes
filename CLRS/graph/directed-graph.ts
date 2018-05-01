@@ -18,6 +18,8 @@ import { Queue } from "../collection/queue";
 interface Vertex {
   //  key is what used to access the adjacent list
   //  therefore vertices must have distinct keys
+  //  alternatively adjacent lists can be indexed by names as key of a hash table (a javascript object)
+  //  the consequence is accessing an adjacent list is no longer O(1) in worst case
   readonly key: number;
   readonly name: string;
 }

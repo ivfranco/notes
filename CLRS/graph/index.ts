@@ -11,8 +11,10 @@ import {
   Vertex,
 } from "./directed-graph";
 
+import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
+
 function main() {
-  problem_22_5_2();
+  mstTests();
 }
 
 function problem_22_2_1() {
@@ -188,6 +190,31 @@ function problem_22_5_2() {
   );
 
   scc(G);
+}
+
+function mstTests() {
+  let G = WeightedGraph.fromUndirected(
+    "a b c d e f g h i",
+    [
+      "a b 4", "a h 8",
+      "b c 8", "b h 11",
+      "c d 7", "c f 4", "c i 2",
+      "d e 9", "d f 14",
+      "e f 10",
+      "f g 2",
+      "g i 6", "g h 1",
+      "h i 7",
+    ],
+  );
+
+  let [p, A] = mstKruskal(G);
+  console.log(p);
+  console.log(A.map(showWeighted));
+
+  let a = G.vertexMap()["a"];
+  [p, A] = mstPrim(G, a);
+  console.log(p);
+  console.log(A.map(showWeighted));
 }
 
 main();

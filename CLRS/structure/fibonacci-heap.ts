@@ -1,4 +1,5 @@
 export {
+  AbstractFHeap,
   FHeap,
   FHeapNode,
   HeapNode,
@@ -16,8 +17,8 @@ interface MergableHeap<T, N extends HeapNode<T>> {
   delete(x: N): void;
 }
 
-class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
-  public min: FHeapNode<T> | null;
+abstract class AbstractFHeap<T, N extends FHeapNode<T>> implements MergableHeap<T, N> {
+  public min: N | null;
   public n: number;
 
   constructor() {
@@ -25,14 +26,17 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     this.n = 0;
   }
 
-  public cmp(a: T, b: T): boolean {
-    return a < b;
+  protected abstract factory(k: T): N;
+  protected abstract cmp(a: T, b: T): boolean;
+
+  public isEmpty(): boolean {
+    return this.n === 0;
   }
 
-  public insert(k: T) {
+  public insert(k: T): N {
     let cmp = this.cmp;
 
-    let x = new FHeapNode(k);
+    let x = this.factory(k);
     if (this.min === null) {
       this.min = x;
     } else {
@@ -43,13 +47,14 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     }
 
     this.n++;
+    return x;
   }
 
-  public minimum(): FHeapNode<T> | null {
+  public minimum(): N | null {
     return this.min;
   }
 
-  public decreaseKey(x: FHeapNode<T>, k: T) {
+  public decreaseKey(x: N, k: T) {
     let cmp = this.cmp;
     if (cmp(x.key, k)) {
       throw Error("Error: new key is greater than current key");
@@ -65,19 +70,22 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     }
   }
 
-  private cut(x: FHeapNode<T>, y: FHeapNode<T>) {
+  private cut(x: N, y: N) {
     if (x.isSingleton()) {
       y.child = null;
     } else {
+      if (y.child === x) {
+        y.child = x.right;
+      }
       x.remove();
     }
     y.degree--;
     x.parent = null;
     x.mark = false;
-    (this.min as FHeapNode<T>).append(x);
+    (this.min as N).append(x);
   }
 
-  private cascadingCut(y: FHeapNode<T>) {
+  private cascadingCut(y: N) {
     let z = y.parent;
     if (z) {
       if (!y.mark) {
@@ -89,7 +97,7 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     }
   }
 
-  public delete(x: FHeapNode<T>) {
+  public delete(x: N) {
     //  basically inlined decreaseKey, avoided resorting to -Infinity
     let y = x.parent;
     if (y) {
@@ -115,7 +123,7 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     H1.n += H2.n;
   }
 
-  public extractMin(): FHeapNode<T> | null {
+  public extractMin(): N | null {
     let z = this.min;
     if (z) {
       let c = Array.from(z.children());
@@ -138,15 +146,15 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     return z;
   }
 
-  private consolidate(min: FHeapNode<T>) {
+  private consolidate(min: N) {
     let cmp = this.cmp;
-    let A: Array<FHeapNode<T> | null> = [];
+    let A: Array<N | null> = [];
     let W = Array.from(min.siblings());
 
     for (let x of W) {
       let d = x.degree;
       while (A[d] != null) {
-        let y = A[d] as FHeapNode<T>;
+        let y = A[d] as N;
         if (cmp(y.key, x.key)) {
           let temp = x;
           x = y;
@@ -162,7 +170,7 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     this.min = null;
 
     for (let w of A) {
-      if (!this.min || w && cmp(this.min.key, w.key)) {
+      if (!this.min || w && cmp(w.key, this.min.key)) {
         this.min = w;
       }
     }
@@ -184,11 +192,21 @@ class FHeap<T> implements MergableHeap<T, FHeapNode<T>> {
     if (this.min) {
       for (let r of this.min.siblings()) {
         n += r.diagnose(cmp);
+        console.assert(!cmp(r.key, this.min.key), "this.min should be the minimum node");
       }
     }
     console.assert(this.n === n, "n must match the number of nodes");
   }
+}
 
+class FHeap<T> extends AbstractFHeap<T, FHeapNode<T>> {
+  protected factory(k: T): FHeapNode<T> {
+    return new FHeapNode(k);
+  }
+
+  protected cmp(a: T, b: T): boolean {
+    return a < b;
+  }
 }
 
 abstract class HeapNode<T> {
