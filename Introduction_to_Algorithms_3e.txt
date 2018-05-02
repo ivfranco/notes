@@ -7242,8 +7242,8 @@ as T''' does not contain (u, v), w'(T''') >= w'(T)
 w(T'') = w(T''') + w(u, v) - w(x, y)
 by definition of T', w(s, t) >= w(x, y), w(T') <= w(T'')
 therefore T' is a MST according to w'
-the cycle can be find by dfs in O(V + E), the maximum can be find and deleted in O(E)
-O(V + E) in total
+the cycle can be find by dfs in O(V), the maximum can be find and deleted in O(V)
+O(V) in total
 
 23.2-1
 by 23.1-8, the list L of sorted weights in any MST is the same
@@ -7264,3 +7264,170 @@ maintenance:
     thus e is added to A <=> e ∈ T
 termination:
     all edges examined, A = T
+
+23.2-2
+the loop starting at line 8 will always take Θ(V) time in adjacent matrix
+therefore finding the minimum in Q by traversing all the elements in O(V) will not affect the asymptotic running time 
+Q can be a doubly linked list instead of a heap
+
+23.2-3
+when E = O(V), O(E + VlgV) = O(VlgV) = O(ElgV), fibonacci heap implementation is no better than binary heap
+when E = Θ(V^2), O(E + VlgV) = O(V^2), O(ElgV) = O(V^2lgV), fibonacci heap implementation is asymptotically better
+when E = ω(VlgV), fibonacci heap implementation is better
+
+23.2-4
+|V| = O(E), counting sort the edges takes O(E) time, O((V + E)α(V)) = O(Eα(V)) in total
+for arbitrary constant W, the overall running time will be O(W + Eα(V)) by counting sort
+or O(ElgW + Eα(V)) by radix sort
+
+23.2-5
+by using a vEB tree, minimum can be extracted in time lglgV
+decrease key can be simulated by deletion and insertion in time lglgV
+total running time will be O(ElglgV)
+for arbitrary constant W, total running time will be O(ElglgW)
+
+23.2-6
+by bucket sort, the running time of Kruskal's method can be improved to O(Eα(V)) expected time
+no dynamic set implementation particularly good for [0, 1) real numbers is introduced in the text
+
+23.2-7
+let G' be the resulting graph
+if there is a single edge between the new vertex and G, adding it to T gives a MST in G'
+adding one more edge is equivalent to decrease the weight of the edge from infinity to w(e)
+the MST can be updated in O(V) by 23.1-11, O(V^2) for all |V| possible edges between the new vertex and G
+actually worse than Prim's method if the graph is not dense
+thanks Instructor's Manual
+by 23.2-1, for T a MST of G, there exists an ordering L of E that produces T in Kruskal's algorithm
+order E' the edges in G' so that:
+    edges in E have the same order as L
+name this ordering L', let T' be the MST produced by Kruskal's method with L'
+claim: 
+    upon evaluation of an edge (x, y) in E
+    if two vertices u and v are in the same set during MST-KRUSKAL(G) with edge ordering L
+    then they are in the same set during MST-KRUSKAL(G') with edge ordering L'
+proof:
+    u and v are in the same set iff the edges evaluated so far puts them in the same connected component
+    by definition of L', upon evaluation of (x, y)
+    the edges evaluated in MST-KRUSKAL(G') is a superset of edges evaluated in MST-KRUSKAL(G)
+    adding an edge never disconnects a component
+    u and v must be in the same connected component in MST-KRUSKAL(G') too
+claim:
+    edge in E - T cannot be in T'
+proof:
+    an edge (u, v) in E - T is included in T' iff
+    upon evaluation of (u, v), u and v are in the same set during MST-KRUSKAL(G) but not MST-KRUSKAL(G')
+    by the previous argument, such a case is impossible
+therefore there is a MST T' only includes edges in E' - E and T
+adding a vertex adds at most |V| edges, |E' - E| = O(V), |E' - E| + |T| = O(V)
+running Kruskal's method on the graph (V', E' - E ∪ T) gives one possible T' in O(VlgV)
+
+23.2-8
+the initial cut has only one edge crossing it
+define G with vertices w, x, y, z and edges (w, x), (x, y), (y, z), (z, w) where
+    w(w, x) = 1, w(y, z) = 1, w(x, y) = 2, w(z, w) = 2
+if the initial cut is ({w, y}, {x, z}), only one between (w, x) and (y, z) will be included in the result
+while a MST must include both
+
+23-1
+a.  MST is unique by 23.2-1
+    define G with vertices w, x, y, z and edges (w, x), (x, y), (y, z), (z, w) and (w, y) where
+        1
+     w+---+x
+     +XX   +
+    3| X2X |4
+     +   XX+
+     z+---+y
+        5
+    there are two second-best MST of weight 8
+    T1 = {(w, x), (w, y), (z, y)} and
+    T2 = {(w, x), (w, z), (x, y)}
+b.  let (x, y) be some edge ∈ E - T
+    adding (x, y) to T forms a cycle, let (u, v) != (x, y) be the edge with maximum weight on the path x ~> y in T
+    T' = T - (u, v) ∪ {(x, y)} is a spanning tree
+    claim: T' has minimum weight among all trees that contains (x, y)
+    proof: 
+        let T'' be any spanning tree with (x, y)
+        induct on the size of T - T''
+        the second-best MST has at least one edge different to T, |T - T''| >= 1
+        initially |T - T''| = 1, the sole edge in T - T'' must be an edge on the path x ~> y in T
+        by definition of T', w(T'') > w(T')
+        inductively, |T - T''| >= 2, let (x', y') != (x, y) be another edge in T'' - T
+        there must be an edge (u', v') ∈ T - T'' on the path x' ~> y' in T, otherwise T'' contains a cycle
+        it must have w(u', v') < w(x', y'), otherwise T - (u', v') ∪ {(x', y')} is a spanning tree better than T
+        replace (x', y') with (u', v') results a tree T''' with w(T''') < w(T'')
+        also |T - T'''| = |T - T''| - 1, by induction w(T'') > w(T''') > w(T')
+    as second-best MST must contain at least one (x, y) ∉ T
+    the optimal among all possible T' gives a second-best MST
+c.  dynamic programming
+    assume max(w, v) is computed for all w ∈ Adj[u] (-∞ if no path from w to v)
+    exactly one max(w, v) will have value != -∞ as there is a unique path between each pair of vertices in a tree, then
+        max(u, v) = max{max(w, v), w(u, w)}
+    since (u, w) is the only additional edge on the path
+    the size of subproblems can be naturally defined as the length of the path
+    max(u, v) has size one more than max(w, v), hence optimal substructure
+    a bottom-up implementation starts from v, propagates max(w, v) as w(w, v) to all w in Adj[v]
+    at each step, max(w, v) is propagated to w' lower in the tree by comparing w' to w's parent (a pointer)
+    for a single v, max(u, v) for all u ∈ T.V can be computed in O(E) = O(V)
+    O(V^2) in total
+d.  follow argument in part b
+    max(u, v) for each pair (u, v) can be computed in O(V^2)
+    find an edge (x, y) in E - T that minimizes w(x, y) - max(x, y) takes at most O(E)
+    looking for the exact edge (u, v) to replace traverses a cycle in the tree in O(V)
+    O(V^2 + E) = O(V^2) in total
+
+23-2
+a.  in the loop between line 4-9:
+        u is chosen iff u.mark == false
+        as u.mark is set to true if an edge (u, v) is added to T, there's no edge in T that incidents u
+        ({u}, V - {u}) then is a cut repects T
+        by the way (u, v) is chosen, (u, v) is a light edge crossing the cut ({u}, V - {u})
+        thereby (u, v) is safe to T
+    after line 9, T contains the subset of some MST since only safe edges are added
+    also vertices in each set is connected, each disjoint set represents a connected component in (V, T)
+    MST-PRIM then operates with connected components but not vertices
+    each edges produced by MST-PRIM still is safe respecting G since
+        it is a light edge among (u, v) ∈ G'.E that crosses the cut (A, G'.V - A), minimizes (u, v).c'
+        (u, v).c' is set to the minimum of edge weights between two components represented by u and v
+        (u, v).orig' is set to the edge connecting the two components with weight (u, v).c'
+        (u, v).orig' is a safe edge respecting G
+    after the return of MST-PRIM, it produces edges that connects each connected component in (V, T)
+    the resulting set of edges is a spanning tree of G
+    since only safe edges are included, the resulting set of edges is a MST
+b.  claim: if u.mark == true, it's in a disjoint set with at least two elements
+        before set u.mark = true on line 9, the set of u is unioned with the set of v
+        thus the set contains at least two elements
+    claim: u.mark == true for all u ∈ G.V after line 9
+        the loop starting at line 4 iterates over all vertices in G.V
+        if u.mark == false, it's set to true on line 9
+    therefore after line 9, each vertices in G.V is in a disjoint set with at least two elements
+    there are at most |G.V| / 2 disjoint sets, each is made a vertex of G'
+    |G'.V| <= |G.V| / 2
+c.  loop between line 1-3 takes O(V) and performs O(V) MAKE-SET
+    loop between line 4-9 takes O(E) and performs O(V) UNION
+    line 10 performs O(V) FIND-SET and takes O(V) if vertices are deduped using an array with their integer key
+    loop between line 12-21 takes O(E) and performs O(E) FIND-SET
+    adjacency list can be computed in O(E) given O(E) edges
+    using an linked list implementation of disjoint sets with weighted-union heuristic will suffice since
+        MAKE-SET is O(1)
+        FIND-SET is O(1)
+        each time UNION is called, the set represented by u has only one element since u.mark = false
+        which indicates there's no edge incidents u in T
+        as T represents connected components, u is in a connected component of itself only, the set has one element
+        union it with the set represented by v thereby takes O(1) with weight heuristic
+d.  G' returned by MST-REDUCE cannot have more edges than G
+    (u, v).orig' for each (u, v) in G'.E points to a distinct edge (x, y) in G.E
+    the same (x, y) will give the same (FIND-SET(x), FIND-SET(y)), assume (u, v) and (v, u) are the same edge
+    inductively G' in each iteration cannot have more than |E| edges, O(kE) in total
+e.  let k = lglg|V|
+    the nested call to MST-REDUCE will take O(kE) = O(ElglgV)
+    the last iteration of G' will have |G.V| / 2^k = |V| / lg|V| vertices
+    Prim's method thus takes O(E + V'lgV') = O(E + V/lgV * (lgV - lglgV)) = O(E + V - VlglgV / lgV) = O(E)
+    generally the complexity will be O(kE) + O(E + V/2^k * (lgV - klg2)) = O(kE + VlgV/2^k - kV/2^k)
+    when k = o(lglgV), O(kE) = o(ElglgV), O(VlgV / 2^k) = ω(V)
+    the question is reduced to "is there any k = o(lglgV) that produces VlgV / 2^k = o(ElglgV)"
+    not familiar to math enough to solve this exactly, but most elementary functions will not do
+    any lg(lgV)^ε for ε < 1 is just O(lglgV)
+    any (lglgV)^ε for ε < 1 will give VlgV / 2^k = VlgV / 2^(lglgV / (lglgV)^(1 - ε)) = V(lgV)^(1 - (lglgV)^(1 - ε))
+    lglglgV will give VlgV / lglgV = ω(VlglgV)
+f.  assume part e is correct
+    ElglgV = o(VlgV), E = o(VlgV / lglgV)
