@@ -1,4 +1,5 @@
 export {
+  WeightedEdge,
   WeightedGraph,
   showWeighted,
   mstKruskal,
@@ -19,7 +20,15 @@ function showWeighted(e: WeightedEdge<Vertex>): string {
 }
 
 class WeightedGraph extends Graph<Vertex, WeightedEdge<Vertex>> {
+  public static fromDirected(vertices: string, edges: string[]): WeightedGraph {
+    return WeightedGraph.from(vertices, edges, true);
+  }
+
   public static fromUndirected(vertices: string, edges: string[]): WeightedGraph {
+    return WeightedGraph.from(vertices, edges, false);
+  }
+
+  private static from(vertices: string, edges: string[], directed: boolean): WeightedGraph {
     let G = new WeightedGraph();
     let V: { [index: string]: Vertex } = Object.create(null);
     vertices
@@ -29,7 +38,11 @@ class WeightedGraph extends Graph<Vertex, WeightedEdge<Vertex>> {
 
     edges.forEach(pair => {
       let [u, v, w] = pair.split(" ");
-      G.createUndirectedEdge(V[u], V[v], parseFloat(w));
+      if (directed) {
+        G.createEdge(V[u], V[v], parseFloat(w));
+      } else {
+        G.createUndirectedEdge(V[u], V[v], parseFloat(w));
+      }
     });
 
     return G;
@@ -81,7 +94,6 @@ function mstKruskal<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>)
   for (let v of G.vertices()) {
     V[v.key] = new DSTreeNode(v);
   }
-  let p: V[] = [];
 
   for (let e of E) {
     let { from, to } = e;
@@ -89,29 +101,37 @@ function mstKruskal<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>)
     let v = V[to.key];
     if (u.findSet() !== v.findSet()) {
       A.push(e);
-      p[to.key] = from;
       u.union(v);
+    }
+  }
+
+  let p: V[] = [];
+  for (let { from: u, to: v } of A) {
+    if (u.key < v.key) {
+      p[v.key] = u;
+    } else {
+      p[u.key] = v;
     }
   }
 
   return [p, A];
 }
 
-class MSTNode<V extends Vertex> extends FHeapNode<[V, number]> {
+class MSTNode<V extends Vertex> extends FHeapNode<number, V> {
   protected nodeStringify(): string {
-    let name = this.key[0].name;
-    let key = this.key[1] === +Infinity ? "∞" : this.key[1];
+    let name = this.value.name;
+    let key = this.key === +Infinity ? "∞" : this.key;
     return `${name}:${key}`;
   }
 }
 
-class MSTHeap<V extends Vertex> extends AbstractFHeap<[V, number], MSTNode<V>> {
-  protected factory(k: [V, number]): MSTNode<V> {
-    return new MSTNode(k);
+class MSTHeap<V extends Vertex> extends AbstractFHeap<number, V, MSTNode<V>> {
+  protected cmp(a: number, b: number) {
+    return a < b;
   }
 
-  protected cmp([, ukey]: [V, number], [, vkey]: [V, number]): boolean {
-    return ukey < vkey;
+  protected factory(k: number, v: V): MSTNode<V> {
+    return new MSTNode(k, v);
   }
 }
 
@@ -123,9 +143,9 @@ function mstPrim<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, r:
   for (let u of G.vertices()) {
     let node: MSTNode<V>;
     if (u === r) {
-      node = Q.insert([u, 0]);
+      node = Q.insert(0, u);
     } else {
-      node = Q.insert([u, +Infinity]);
+      node = Q.insert(+Infinity, u);
     }
     N[u.key] = node;
   }
@@ -133,14 +153,14 @@ function mstPrim<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, r:
   let p: V[] = [];
   while (!Q.isEmpty()) {
     let node = Q.extractMin() as MSTNode<V>;
-    let u = node.key[0];
+    let u = node.value;
     N[u.key] = null;
     for (let e of G.edgeFrom(u)) {
       let v = e.to;
       let v_node = N[v.key];
-      if (v_node && e.weight < v_node.key[1]) {
+      if (v_node && e.weight < v_node.key) {
         p[v.key] = u;
-        Q.decreaseKey(v_node, [v, e.weight]);
+        Q.decreaseKey(v_node, e.weight);
       }
     }
   }

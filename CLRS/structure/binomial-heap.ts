@@ -5,8 +5,8 @@ export {
 import { Cmp } from "../util";
 import { HeapNode, MergableHeap } from "./fibonacci-heap";
 
-class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
-  public child: BHeapNode<T> | null;
+class BHeap<K> implements MergableHeap<K, null, BHeapNode<K>> {
+  public child: BHeapNode<K> | null;
   public n: number;
 
   constructor() {
@@ -14,11 +14,11 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     this.n = 0;
   }
 
-  protected cmp(a: T, b: T): boolean {
+  protected cmp(a: K, b: K): boolean {
     return a < b;
   }
 
-  public insert(k: T) {
+  public insert(k: K) {
     let x = new BHeapNode(k);
     if (this.child) {
       let bnum = this.child.toBNumber();
@@ -40,7 +40,7 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     }
   }
 
-  public minimum(): BHeapNode<T> | null {
+  public minimum(): BHeapNode<K> | null {
     let cmp = this.cmp;
     if (this.child) {
       let min = this.child;
@@ -55,19 +55,19 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     }
   }
 
-  public extractMin(): BHeapNode<T> | null {
+  public extractMin(): BHeapNode<K> | null {
     if (!this.child) {
       return null;
     }
 
-    let min = this.minimum() as BHeapNode<T>;
+    let min = this.minimum() as BHeapNode<K>;
     this.extractRoot(min);
     return min;
   }
 
   //  delete a root from the root list
   //  combines its child list with the remaining root list
-  private extractRoot(r: BHeapNode<T>) {
+  private extractRoot(r: BHeapNode<K>) {
     if (r.isSingleton()) {
       this.child = r.child;
       if (this.child) {
@@ -87,7 +87,7 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     this.n--;
   }
 
-  public decreaseKey(x: BHeapNode<T>, k: T) {
+  public decreaseKey(x: BHeapNode<K>, k: K) {
     let cmp = this.cmp;
     if (cmp(x.key, k)) {
       throw Error("Error: new key is greater than current key");
@@ -97,7 +97,7 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     this.fixup(x, false);
   }
 
-  private fixup(x: BHeapNode<T>, isDelete: boolean): BHeapNode<T> {
+  private fixup(x: BHeapNode<K>, isDelete: boolean): BHeapNode<K> {
     let cmp = this.cmp;
     let y = x.parent;
     while (y && (isDelete || cmp(x.key, y.key))) {
@@ -111,7 +111,7 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
     return x;
   }
 
-  public delete(x: BHeapNode<T>) {
+  public delete(x: BHeapNode<K>) {
     let root = this.fixup(x, true);
     this.extractRoot(root);
   }
@@ -137,16 +137,20 @@ class BHeap<T> implements MergableHeap<T, BHeapNode<T>> {
   }
 }
 
-class BHeapNode<T> extends HeapNode<T> {
-  public static fromBNumber<T>(bnum: BNumber<T>): BHeapNode<T> {
-    let nodes = bnum.filter(n => n != null) as Array<BHeapNode<T>>;
+class BHeapNode<K> extends HeapNode<K, null> {
+  public static fromBNumber<K>(bnum: BNumber<K>): BHeapNode<K> {
+    let nodes = bnum.filter(n => n != null) as Array<BHeapNode<K>>;
     if (nodes.length === 0) {
       throw Error("Error: Empty node list is not well defined");
     }
     return nodes.reduce((list, node) => {
       list.prepend(node);
       return node;
-    }) as BHeapNode<T>;
+    }) as BHeapNode<K>;
+  }
+
+  constructor(k: K) {
+    super(k, null);
   }
 
   public preInsert(other: this) {
@@ -162,8 +166,8 @@ class BHeapNode<T> extends HeapNode<T> {
     this.degree++;
   }
 
-  public toBNumber(): BNumber<T> {
-    let bnum: BNumber<T> = [];
+  public toBNumber(): BNumber<K> {
+    let bnum: BNumber<K> = [];
     for (let s of this.siblings()) {
       bnum[s.degree] = s;
     }
@@ -177,7 +181,7 @@ class BHeapNode<T> extends HeapNode<T> {
     return bnum;
   }
 
-  public diagnose(cmp: Cmp<T>): number {
+  public diagnose(cmp: Cmp<K>): number {
     let d = 0;
     let n = 0;
 

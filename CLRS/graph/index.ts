@@ -2,6 +2,7 @@ import {
   alterTopologicalSort,
   bfs,
   dfs,
+  DFS,
   dfsReport,
   numberOfPaths,
   PlainGraph,
@@ -10,11 +11,11 @@ import {
   topologicalSort,
   Vertex,
 } from "./directed-graph";
-
+import { spBellmanFord, spDag, spDijkstra, spReport } from "./shortest-path";
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  mstTests();
+  problem_24_3_1();
 }
 
 function problem_22_2_1() {
@@ -215,6 +216,73 @@ function mstTests() {
   [p, A] = mstPrim(G, a);
   console.log(p);
   console.log(A.map(showWeighted));
+}
+
+function problem_24_1_1() {
+  let G = WeightedGraph.fromDirected(
+    "s t x y z",
+    [
+      "t x 5", "t y 8", "t z -4",
+      "x t -2",
+      "y x -3", "y z 9",
+      "z x 7", "z s 2",
+      "s t 6", "s y 7",
+    ],
+  );
+  let s = G.vertexMap()["s"];
+  console.log("w(z, x) = 7");
+  spReport(G, spBellmanFord(G, s));
+
+  let H = WeightedGraph.fromDirected(
+    "s t x y z",
+    [
+      "t x 5", "t y 8", "t z -4",
+      "x t -2",
+      "y x -3", "y z 9",
+      "z x 4", "z s 2",
+      "s t 6", "s y 7",
+    ],
+  );
+  s = H.vertexMap()["s"];
+  console.log("\nw(z, x) = 4");
+  spReport(G, spBellmanFord(H, s));
+}
+
+function problem_24_2_1() {
+  let G = WeightedGraph.fromDirected(
+    "r s t x y z",
+    [
+      "r s 5", "r t 3",
+      "s t 2", "s x 6",
+      "t x 7", "t y 4", "t z 2",
+      "x y -1", "x z 1",
+      "y z -2",
+    ],
+  );
+  let s = G.vertexMap()["s"];
+
+  spReport(G, spDag(G, s));
+}
+
+function problem_24_3_1() {
+  let G = WeightedGraph.fromDirected(
+    "s t x y z",
+    [
+      "s t 3", "s y 5",
+      "t x 6", "t y 2",
+      "x z 11",
+      "y t 3", "y x 4", "y z 6",
+      "z s 3", "z x 7",
+    ],
+  );
+  let map = G.vertexMap();
+  let s = map["s"];
+  let z = map["z"];
+
+  console.log("Starting from vertex s");
+  spReport(G, spDijkstra(G, s));
+  console.log("Starting from vertex s");
+  spReport(G, spDijkstra(G, z));
 }
 
 main();

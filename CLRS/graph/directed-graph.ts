@@ -1,16 +1,14 @@
 export {
-  alterTopologicalSort,
-  bfs,
-  dfs,
+  Graph, Vertex, Edge,
+  DFS, DFSVertexAttrs, DFSEdgeAttrs,
+  bfs, dfs,
   dfsReport,
-  Graph,
+  alterTopologicalSort,
   numberOfPaths,
   PlainGraph,
   scc,
   singlyConnected,
   topologicalSort,
-  Vertex,
-  Edge,
 };
 
 import { Queue } from "../collection/queue";
@@ -185,7 +183,7 @@ enum EdgeType {
   CROSS = "cross",
 }
 
-interface DFSVertexAttr<V> {
+interface DFSVertexAttrs<V> {
   color: Color;
   //  visit time
   d: number;
@@ -197,43 +195,120 @@ interface DFSVertexAttr<V> {
   p: V | null;
 }
 
-type DFSEdgeAttr = EdgeType;
+type DFSEdgeAttrs = EdgeType;
 
-type OnFinish<V> = (u: V, ua: DFSVertexAttr<V>) => void;
+//  more reusable dfs
+class DFS<V extends Vertex, E extends Edge<V>, G extends Graph<V, E>> {
+  protected v_attr: Array<DFSVertexAttrs<V>>;
+  protected e_attr: DFSEdgeAttrs[];
+  private time: number;
+  private cc: number;
+  protected graph: G;
+
+  constructor(graph: G) {
+    this.graph = graph;
+    let vattrs: Array<DFSVertexAttrs<V>> = [];
+    for (let v of graph.vertices()) {
+      vattrs[v.key] = {
+        color: Color.WHITE,
+        d: +Infinity,
+        f: +Infinity,
+        cc: +Infinity,
+        p: null,
+      };
+    }
+    this.v_attr = vattrs;
+    this.e_attr = [];
+    this.time = 0;
+    this.cc = 0;
+  }
+
+  public run(): [Array<DFSVertexAttrs<V>>, DFSEdgeAttrs[]] {
+    let v_attr = this.v_attr;
+    let graph = this.graph;
+    for (let v of graph.vertices()) {
+      if (v_attr[v.key].color === Color.WHITE) {
+        this.visit(v, this.cc);
+      }
+      this.cc++;
+    }
+    return [this.v_attr, this.e_attr];
+  }
+
+  public runFrom(s: V): [Array<DFSVertexAttrs<V>>, DFSEdgeAttrs[]] {
+    let v_attr = this.v_attr;
+    let graph = this.graph;
+    this.visit(s, this.cc);
+    this.cc++;
+    return [this.v_attr, this.e_attr];
+  }
+
+  protected onStart(u: V, ua: DFSVertexAttrs<V>, e: E | null, ea: DFSEdgeAttrs | null) { /* noop */ }
+  protected onFinish(u: V, ua: DFSVertexAttrs<V>, e: E | null, ea: DFSEdgeAttrs | null) { /* noop */ }
+  protected onBackEdge(u: V, ua: DFSVertexAttrs<V>, e: E) { /* noop */ }
+
+  private visit(u: V, cc: number) {
+    let v_attr = this.v_attr;
+    let e_attr = this.e_attr;
+    let graph = this.graph;
+    let stack: Array<[V, E | null]> = [[u, null]];
+    //  records the edge from last gray vertex on the stack to the stack top
+    let last_edge: E | null;
+    while (stack.length !== 0) {
+      [u, last_edge] = stack.pop() as [V, E | null];
+      let ua = v_attr[u.key];
+      if (ua.color === Color.WHITE) {
+        stack.push([u, last_edge]);
+        this.time++;
+        ua.d = this.time;
+        ua.cc = cc;
+        ua.color = Color.GRAY;
+        if (last_edge) {
+          //  u is chosen as the next gray vertex
+          //  the edge between u and the last gray vertex thus is a tree edge
+          e_attr[last_edge.key] = EdgeType.TREE;
+        }
+        this.onStart(u, ua, last_edge, last_edge ? EdgeType.TREE : null);
+        let adj = Array.from(graph.edgeFrom(u));
+        //  so the vertices are visited in the same order as recursive visit, easier to debug
+        adj.reverse();
+        for (let e of adj) {
+          let v = e.to;
+          let va = v_attr[v.key];
+          if (va.color === Color.WHITE) {
+            va.p = u;
+            last_edge = e;
+            //  all edges starts as forward, may be updated later
+            e_attr[e.key] = EdgeType.FORWARD;
+            stack.push([v, e]);
+          } else if (va.color === Color.GRAY) {
+            //  v is colored gray before u, must be a back edge
+            e_attr[e.key] = EdgeType.BACK;
+            this.onBackEdge(u, ua, e);
+          } else if (va.d > ua.d) {
+            //  v is black and 22.3-5
+            e_attr[e.key] = EdgeType.FORWARD;
+          } else {
+            e_attr[e.key] = EdgeType.CROSS;
+          }
+        }
+      } else if (ua.color === Color.GRAY) {
+        this.time++;
+        ua.f = this.time;
+        ua.color = Color.BLACK;
+        this.onFinish(u, ua, last_edge, last_edge ? e_attr[last_edge.key] : null);
+      }
+    }
+  }
+}
+
+type OnFinish<V> = (u: V, ua: DFSVertexAttrs<V>) => void;
 
 function dfs<V extends Vertex>(
   G: Graph<V, Edge<V>>,
   s?: V | null,
   onFinish?: OnFinish<V>,
-): [Array<DFSVertexAttr<V>>, DFSEdgeAttr[]] {
-  // function visit(u: V) {
-  //   time++;
-  //   v_attr[u.key].d = time;
-  //   v_attr[u.key].color = Color.GRAY;
-  //   parens += "(" + u.name;
-  //   for (let e of G.edgeFrom(u)) {
-  //     let v = e.to;
-  //     let v_color = v_attr[v.key].color;
-  //     if (v_color === Color.WHITE) {
-  //       v_attr[v.key].p = u;
-  //       e_attr[e.key] = EdgeType.TREE;
-  //       visit(v);
-  //     } else if (v_color === Color.GRAY) {
-  //       e_attr[e.key] = EdgeType.BACK;
-  //     } else {
-  //       if (v_attr[u.key].d < v_attr[v.key].d) {
-  //         e_attr[e.key] = EdgeType.FORWARD;
-  //       } else {
-  //         e_attr[e.key] = EdgeType.CROSS;
-  //       }
-  //     }
-  //   }
-  //   v_attr[u.key].color = Color.BLACK;
-  //   time++;
-  //   v_attr[u.key].f = time;
-  //   parens += u.name + ")";
-  // }
-
+): [Array<DFSVertexAttrs<V>>, DFSEdgeAttrs[]] {
   function stackVisit(u: V, cc: number) {
     let stack: Array<[V, Edge<V> | null]> = [[u, null]];
     //  records the edge from last gray vertex on the stack to the stack top
@@ -287,8 +362,8 @@ function dfs<V extends Vertex>(
     }
   }
 
-  let v_attr: Array<DFSVertexAttr<V>> = [];
-  let e_attr: DFSEdgeAttr[] = [];
+  let v_attr: Array<DFSVertexAttrs<V>> = [];
+  let e_attr: DFSEdgeAttrs[] = [];
   let time = 0;
 
   let parens = "";
@@ -323,7 +398,7 @@ function showEdge(e: Edge<Vertex>): string {
   return `(${e.from.name}, ${e.to.name})`;
 }
 
-function dfsReport(G: Graph<Vertex, Edge<Vertex>>, v_attr: Array<DFSVertexAttr<Vertex>>, e_attr: DFSEdgeAttr[]) {
+function dfsReport(G: Graph<Vertex, Edge<Vertex>>, v_attr: Array<DFSVertexAttrs<Vertex>>, e_attr: DFSEdgeAttrs[]) {
   for (let v of G.vertices()) {
     let { color, d, f, p, cc } = v_attr[v.key];
     let name = v.name;
@@ -406,7 +481,7 @@ function alterTopologicalSort<V extends Vertex>(G: Graph<V, Edge<V>>): V[] {
   return sorted;
 }
 
-function scc<V extends Vertex>(G: Graph<V, Edge<V>>): Array<DFSVertexAttr<V>> {
+function scc<V extends Vertex>(G: Graph<V, Edge<V>>): Array<DFSVertexAttrs<V>> {
   let sorted = topologicalSort(G);
   let T = new PlainGraph();
   for (let v of sorted) {
@@ -420,7 +495,7 @@ function scc<V extends Vertex>(G: Graph<V, Edge<V>>): Array<DFSVertexAttr<V>> {
 
   //  transform v_attr so it's indexed by u.key from vertices u of G
   let map = G.vertexMap();
-  let g_attr: Array<DFSVertexAttr<V>> = [];
+  let g_attr: Array<DFSVertexAttrs<V>> = [];
   for (let v of G.vertices()) {
     let u = map[v.name];
     let { color, d, f, cc, p } = v_attr[v.key];

@@ -8,16 +8,16 @@ export {
 
 type Cmp<T> = (a: T, b: T) => boolean;
 
-interface MergableHeap<T, N extends HeapNode<T>> {
-  insert(k: T): void;
+interface MergableHeap<K, V, N extends HeapNode<K, V>> {
+  insert(k: K, v: V): void;
   minimum(): N | null;
   union(other: this): void;
   extractMin(): N | null;
-  decreaseKey(x: N, k: T): void;
+  decreaseKey(x: N, k: K): void;
   delete(x: N): void;
 }
 
-abstract class AbstractFHeap<T, N extends FHeapNode<T>> implements MergableHeap<T, N> {
+abstract class AbstractFHeap<K, V, N extends FHeapNode<K, V>> implements MergableHeap<K, V, N> {
   public min: N | null;
   public n: number;
 
@@ -26,17 +26,17 @@ abstract class AbstractFHeap<T, N extends FHeapNode<T>> implements MergableHeap<
     this.n = 0;
   }
 
-  protected abstract factory(k: T): N;
-  protected abstract cmp(a: T, b: T): boolean;
+  protected abstract factory(k: K, v: V): N;
+  protected abstract cmp(a: K, b: K): boolean;
 
   public isEmpty(): boolean {
     return this.n === 0;
   }
 
-  public insert(k: T): N {
+  public insert(k: K, v: V): N {
     let cmp = this.cmp;
 
-    let x = this.factory(k);
+    let x = this.factory(k, v);
     if (this.min === null) {
       this.min = x;
     } else {
@@ -54,7 +54,7 @@ abstract class AbstractFHeap<T, N extends FHeapNode<T>> implements MergableHeap<
     return this.min;
   }
 
-  public decreaseKey(x: N, k: T) {
+  public decreaseKey(x: N, k: K) {
     let cmp = this.cmp;
     if (cmp(x.key, k)) {
       throw Error("Error: new key is greater than current key");
@@ -199,26 +199,28 @@ abstract class AbstractFHeap<T, N extends FHeapNode<T>> implements MergableHeap<
   }
 }
 
-class FHeap<T> extends AbstractFHeap<T, FHeapNode<T>> {
-  protected factory(k: T): FHeapNode<T> {
-    return new FHeapNode(k);
+class FHeap<K, V> extends AbstractFHeap<K, V, FHeapNode<K, V>> {
+  protected factory(k: K, v: V): FHeapNode<K, V> {
+    return new FHeapNode(k, v);
   }
 
-  protected cmp(a: T, b: T): boolean {
+  protected cmp(a: K, b: K): boolean {
     return a < b;
   }
 }
 
-abstract class HeapNode<T> {
-  public key: T;
+abstract class HeapNode<K, V> {
+  public key: K;
+  public value: V;
   public degree: number;
   public left: this;
   public right: this;
   public parent: this | null;
   public child: this | null;
 
-  constructor(k: T) {
+  constructor(k: K, v: V) {
     this.key = k;
+    this.value = v;
     this.degree = 0;
     this.left = this;
     this.right = this;
@@ -267,7 +269,11 @@ abstract class HeapNode<T> {
   }
 
   protected nodeStringify(): string {
-    return "" + this.key;
+    if (this.value) {
+      return `${this.key}:${this.value}`;
+    } else {
+      return `${this.key}`;
+    }
   }
 
   private toLines(): string[] {
@@ -326,30 +332,38 @@ abstract class HeapNode<T> {
 
 //  an empty fibonacci node list is not well defined
 //  instead any function that may delete the last node in a node list should check if the list is a singleton
-class FHeapNode<T> extends HeapNode<T> {
+class FHeapNode<K, V> extends HeapNode<K, V> {
   public mark: boolean;
 
-  public static from<T>(I: Iterable<T>): FHeapNode<T> {
+  public static from<K, V>(I: Iterable<[K, V]>): FHeapNode<K, V> {
     let A = Array.from(I);
     if (A.length === 0) {
       throw Error("Error: Empty fibonacci node list");
     }
 
-    let head = new FHeapNode(A[0]);
+    let [k, v] = A[0];
+    let head = new FHeapNode<K, V>(k, v);
     for (let i = 1; i < A.length; i++) {
-      let node = new FHeapNode(A[i]);
+      [k, v] = A[i];
+      let node = new FHeapNode<K, V>(k, v);
       head.append(node);
     }
 
     return head;
   }
 
-  constructor(k: T) {
-    super(k);
+  public static fromKey<K>(I: Iterable<K>): FHeapNode<K, null> {
+    let A = Array.from(I);
+    let B: Array<[K, null]> = A.map(k => [k, null] as [K, null]);
+    return FHeapNode.from(B);
+  }
+
+  constructor(k: K, v: V) {
+    super(k, v);
     this.mark = false;
   }
 
-  public diagnose(cmp: Cmp<T>): number {
+  public diagnose(cmp: Cmp<K>): number {
     let d = 0;
     let n = 0;
     for (let c of this.children()) {
@@ -363,7 +377,7 @@ class FHeapNode<T> extends HeapNode<T> {
   }
 }
 
-function append<T, N extends HeapNode<T>>(x: N, y: N) {
+function append<K, V>(x: HeapNode<K, V>, y: HeapNode<K, V>) {
   let right = x.right;
   x.right = y;
   y.left = x;
@@ -372,7 +386,7 @@ function append<T, N extends HeapNode<T>>(x: N, y: N) {
   y.parent = x.parent;
 }
 
-function prepend<T, N extends HeapNode<T>>(x: N, y: N) {
+function prepend<K, V>(x: HeapNode<K, V>, y: HeapNode<K, V>) {
   let left = x.left;
   x.left = y;
   y.right = x;
@@ -381,7 +395,7 @@ function prepend<T, N extends HeapNode<T>>(x: N, y: N) {
   y.parent = x.parent;
 }
 
-function insert<T, N extends HeapNode<T>>(x: N, y: N) {
+function insert<K, V>(x: HeapNode<K, V>, y: HeapNode<K, V>) {
   if (x.child === null) {
     y.left = y;
     y.right = y;
@@ -394,7 +408,7 @@ function insert<T, N extends HeapNode<T>>(x: N, y: N) {
 }
 
 //  parent pointers in y is not fixed
-function concat<T, N extends HeapNode<T>>(x: N, y: N) {
+function concat<K, V>(x: HeapNode<K, V>, y: HeapNode<K, V>) {
   let x_right = x.right;
   let y_left = y.left;
 
@@ -404,7 +418,7 @@ function concat<T, N extends HeapNode<T>>(x: N, y: N) {
   y.left = x;
 }
 
-function remove<T, N extends HeapNode<T>>(x: N) {
+function remove<K, V>(x: HeapNode<K, V>) {
   if (x.right !== x) {
     let left = x.left;
     let right = x.right;
@@ -415,7 +429,7 @@ function remove<T, N extends HeapNode<T>>(x: N) {
 }
 
 //  assume x and y being different roots in the same heap
-function link<T>(x: FHeapNode<T>, y: FHeapNode<T>) {
+function link<K, V>(x: FHeapNode<K, V>, y: FHeapNode<K, V>) {
   y.remove();
   x.insert(y);
   y.mark = false;

@@ -7133,7 +7133,7 @@ b.  follow the inductive steps described in part a
     starting from any vertex v in V, follow and remove the first edge in Adj[v] until there are no edges remaining
     O(E) in total
 
-2-4
+22-4
 lemma 1: reachability of a dag can be computed in O(V + E)
     assume min(v) is computed for all v in Adj[u]
     each path from u ~> w must pass (u, v) for some v in Adj[u], R(u) = ∪R(v) ∪ {u}
@@ -7426,8 +7426,206 @@ e.  let k = lglg|V|
     when k = o(lglgV), O(kE) = o(ElglgV), O(VlgV / 2^k) = ω(V)
     the question is reduced to "is there any k = o(lglgV) that produces VlgV / 2^k = o(ElglgV)"
     not familiar to math enough to solve this exactly, but most elementary functions will not do
-    any lg(lgV)^ε for ε < 1 is just O(lglgV)
+    any lg(lgV)^ε for ε < 1 is just Θ(lglgV)
     any (lglgV)^ε for ε < 1 will give VlgV / 2^k = VlgV / 2^(lglgV / (lglgV)^(1 - ε)) = V(lgV)^(1 - (lglgV)^(1 - ε))
     lglglgV will give VlgV / lglgV = ω(VlglgV)
 f.  assume part e is correct
     ElglgV = o(VlgV), E = o(VlgV / lglgV)
+
+23-3
+a.  let T be a MST of the graph G
+    assume the edge (u, v) of maximum weight in T
+    if T is not a bottleneck spanning tree, there is another spanning tree T' that maximum edge weight in T' < w(u, v)
+    there must be an edge (x, y) in T' crossing the cut defined by (u, v) and T 
+    by assumption w(x, y) < w(u,  v), replacing (u, v) with (x, y) in T reduces the total weight
+    in contradiction to T being MST
+b.  in other words, "whether V can be connected with edges of weight <= b"
+    define G' = (V, E'), where E' = {e | e ∈ E and w(e) <= b}, run single source dfs from any vertex
+    G' is connected iff all vertices after the dfs is colored BLACK
+    both the construction of G' and dfs takes O(V + E)
+    by calculating |E'| first and return false when |E'| < |V| - 1, the running time can be reduced to O(E)
+c.  first find the edge e with median weight with linear time median algorithm in O(E)
+    if the value of a bottleneck tree is at most w(e)
+        construct a new graph with only edges of weight <= w(e), O(E) by reusing the set of vertices
+        the subproblem has half the edges in G
+    if the value of a bottleneck tree is greater than w(e)
+        contract all the edges of weight <= w(e), O(E) by 23-2
+        the subproblem has half the edges in G
+    T(n) = T(n/2) + O(n), T(n) = O(n), the maximum edge can be found in linear time
+    then dfs on the set of edges with smaller or equal weight gives a possible bottleneck spanning tree
+
+23-4
+a.  T may not be a MST
+    consider a graph G with two connected components C and C', assume there are two paths between C and C'
+    one is a single edge (u, v), another is a very long sequence of edges (xi, yi)
+    if (u, v) is the edge with maximum weight, it will be removed in the first iteration
+    the path (xi, yi) hence must be included in the resulting tree T
+    if Σw(xi, yi) > w(u, v), T cannot be MST
+    whether T - {e} is a connected graph can be determined by dfs in O(V + E), O(VE + E^2) = O(E^2) in total
+b.  produces a random spanning tree of G, not necessarily a MST
+    this algorithm has complexity O(Eα(V))
+    trees in forest T can be maintained as disjoint sets
+    e = (x, y) forms a cycle in T iff x and y are in the same tree, or FIND-SET(x) == FIND-SET(y)
+    otherwise x and y are in different trees merged by adding e to T, UNION(x, y) maintains the correspondence
+c.  for an arbitrary ordering L of the set of edges E
+    define Ei be the subset of E up to (not including) ith edge in L
+    invariant:
+        T at the start of iteration i is a forest of MSTs of SCCs in Gi = (V, Ei)
+    initialization:
+        SCCs in Gi are single vertices, each have an empty MST
+    maintenance:
+        let e = (u, v), if e does not form a cycle in T, e connects two SCCs C and C' in (V, Ei-1)
+        by invariant (u, v) is the only edge between components C and C'
+        (u, v) is the light edge crossing the cut (C, C')
+        the resulting tree is a MST of C ∪ C'
+        if otherwise e forms a cycle in a tree T' in forest T
+        T' is a MST by invariant, adding (u, v) to the universe is equivalent to reduce its weight from ∞ to w(e)
+        by 23.1-11, this algorithm computes a MST with the additional edge
+    termination:
+        Ei = E, if G = (V, E) is connected, T is a single tree, T is a MST
+    the cycle and e' can be found by dfs in time O(V + E), O(E^2) in total
+
+Chapter 24
+24.1-1
+w(z, x) = 7
+Vertex s: d = 0, π = NIL
+Vertex t: d = 2, π = x
+Vertex x: d = 4, π = y
+Vertex y: d = 7, π = s
+Vertex z: d = -2, π = t
+w(z, x) = 4
+Warning: graph contains a negative cycle
+Vertex s: d = -2, π = z
+Vertex t: d = 0, π = x
+Vertex x: d = 0, π = z
+Vertex y: d = 7, π = s
+Vertex z: d = -4, π = t
+
+24.1-2
+for each v, v.d = δ(s, v)
+if there is no negative weighted cycles reachable from s in G, δ(s, v) is well defined
+if there is a path p = s ~> v, there is a simple path p' = s ~> v, w(p') is finite, v.d = δ(v, s) <= w(p) is finite
+if there is no path from s to v, v.d = +∞ by no-path property
+
+24.1-3
+set a boolean variable `updated` indicating whether RELAX updated v.d for any v in the current iteration
+if v.d = δ(s, v) for all v, v.d will never change afterwards, updated == false
+if otherwise v.d != δ(s, v) for some vertex, by upper-bound property, v.d > δ(s, v)
+assume RELAX didn't update any v.d in this iteration
+there must be a path s ~> v, otherwise v.d is initialized to +∞ = δ(s, v)
+let u be the vertex precedes v on the shortest path s ~> v, δ(s, v) = δ(s, u) + w(u, v) by optimal substructure
+if u.d = δ(s, u), v.d > δ(s, v) = δ(s, u) + w(u, v), v.d would be updated in this iteration
+it must also have u.d > δ(u, d), and this property propagates all the way to the source
+however δ(s, s) = 0 = s.d at the beginning and RELAX never increases s.d
+therefore RELAX must update some v.d if there is some u.d != δ(s, u), updated == true
+by the text, after m iterations, all vertices will have v.d = δ(s, v), updated == false starting from iteration m+1
+by immediately terminate the loop when updated == false, the algorithm runs for at most m+1 iterations
+
+24.1-4
+run the check on line 5-7 |V| iterations, update both u.d and v.d to -∞ everytime v.d > u.d + w(u, v)
+in the first iteration, if v.d > u.d + w(u, v), v and u are on a negative cycle reachable from s by the text
+let V0 be the set of vertices on the negative cycle detected in the first iteration
+at least one vertex on each negative cycle reachable from s is in V0 by Theorem 24.4
+invariant:
+    at the end of ith iteration, v.d = -∞ if there is a path from some v0 ∈ V0 ~> v of length at most i-1
+initialization:
+    at the end of first iteration, for each v ∈ V0 (i.e. has a path of length 0), v.d = -∞
+maintenance:
+    if there is a path v0 ~> v of length i-1, let u be the vertex precedes v on the path
+    there is a path v0 ~> u of length i-2, by invariant u.d = -∞, u.d + w(u, v) = -∞
+    v.d will be updated to -∞
+termination:
+    v.d = -∞ for all vertices v where there is a path of length at most |V| - 1 from v0 ∈ V0 to v
+    if there is a negative cycle on some path s ~> v, let u be the last vertex on that negative cycle on the path
+    by assumption there is a v0 ∈ V0 on the same cycle with u, there is a path v0 ~> u ~> v
+    there is a simple path v0 ~> v, simple path has length at most |V| - 1, v.d = -∞
+./CLRS/graph/shortest-path.ts#spBellmanFord
+
+24.1-5
+if there is no edge with negative weight, min{δ(u, v) | u ∈ V} = δ(v, v) = 0, otherwise:
+let In[v] be the set of vertices u where (u, v) ∈ E
+any path u ~> v of length >= 1 will have to visit a vertex in In[v] before end up at v
+assume the shortest path weight with at most k edges to any vertices in In[v] is already calculated as u.d
+the shortest path weight with at most k+1 edges can be derived from min{0, u.d + w(u, v) | u ∈ In[v]}
+do that |V| - 1 iterations gives min{δ(u, v) | u ∈ V} since there's no negative cycle in the graph
+calculating min{u.d + w(u, v) | u ∈ In[v]} for all v takes O(E)
+O(VE) in total
+
+24.1-6
+thanks https://people.cs.nctu.edu.tw/~tjshen/doc/ne.pdf
+first detect the existance of a negative cycle by BELLMAN-FORD method
+each cycle in the shorest path graph will be a negative cycle, otherwise removing it reduces the path weight
+if (u, v) still can be relaxed afer |V| - 1 passes of BELLMAN-FORD, the new shortest path must not be simple
+following v.π in the shortest path graph thereby will end up in a negative cycle
+by coloring vertices BLACK when following v.π, at some point v.π will be BLACK
+which means v is an ancestor of v.π in the shortest path graph, (v.π, v.π.π .. v) is a negative cycle
+
+24.2-1
+Vertex r: d = Infinity, π = NIL
+Vertex s: d = 0, π = NIL
+Vertex t: d = 2, π = s
+Vertex x: d = 6, π = s
+Vertex y: d = 5, π = x
+Vertex z: d = 3, π = y
+
+24.2-2
+the last vertex in a dag in topologically sorted order cannot have edges to any vertices
+the loop on line 4-5 will not execute for that vertex
+
+24.2-3
+define a new graph G' = (V', E') that 
+    V' = V ∪ {void}
+    E' = E ∪ {(u, void) | u ∈ V}
+define the weight function on E' as
+    w'(u, v) = the weight of u
+run DAG-SHORTEST-PATHS(G', w', s) with negated weight function w' then computes the critical path
+if the critial path in G has weight w(p):
+    let p = (v0, v1 .. vk)
+    w(p) = Σw(vi)
+    there is a path p' = (v0, v1 .. vk, void) in G' that
+    w'(p')  = Σw'(vi, vi+1)
+            = Σw(vi)    // void is exluded from the sum
+            = w(p)
+if the critical path in G' has weight w'(p'):
+    let p' = (v0, v1 .. vk)
+    vk must be void, otherwise add void to the end of the path increases w'(p') by w(vk)
+    none of v0 .. vk-1 can be void since void has out-dgree 0
+    all other edges are in E, therefore there is a path p = (v0, v1 .. vk-1) in G that
+    w(p)    = Σw(vi)
+            = Σw'(vi, vi+1)
+            = w(p')
+therefore the critical path in both graph has the same weight
+solving G' gives a solution to G
+the transformation takes O(V + E) + O(V) + O(1) = O(V + E) linear time
+running DAG-SHORTEST-PATHS(G', w', s) also takes linear time
+
+24.2-4
+assume for all v in Adj[u] the number of paths starting from v is already calculated as v.n
+each path starting from u have to take (u, v) for some v ∈ Adj[u], end right there or follow a path from v
+u.n = Σ(v ∈ Adj[u])(v.n + 1)
+by computing u.n in reversed topological order, subproblems in Adj[u] is already calculated for each u
+O(V + E) in total
+
+24.3-1
+Starting from vertex s
+{s}
+{s, t}
+{s, t, y}
+{s, t, y, x}
+{s, t, y, x, z}
+Vertex s: d = 0, π = NIL
+Vertex t: d = 3, π = s
+Vertex x: d = 9, π = t
+Vertex y: d = 5, π = s
+Vertex z: d = 11, π = y
+Starting from vertex s
+{z}
+{z, s}
+{z, s, t}
+{z, s, t, x}
+{z, s, t, x, y}
+Vertex s: d = 3, π = z
+Vertex t: d = 6, π = s
+Vertex x: d = 7, π = z
+Vertex y: d = 8, π = s
+Vertex z: d = 0, π = NIL
