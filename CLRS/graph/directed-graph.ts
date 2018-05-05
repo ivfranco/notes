@@ -1,5 +1,6 @@
 export {
   Graph, Vertex, Edge,
+  Color, EdgeType,
   DFS, DFSVertexAttrs, DFSEdgeAttrs,
   bfs, dfs,
   dfsReport,

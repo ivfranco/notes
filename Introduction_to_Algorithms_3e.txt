@@ -7618,7 +7618,7 @@ Vertex t: d = 3, π = s
 Vertex x: d = 9, π = t
 Vertex y: d = 5, π = s
 Vertex z: d = 11, π = y
-Starting from vertex s
+Starting from vertex z
 {z}
 {z, s}
 {z, s, t}
@@ -7629,3 +7629,124 @@ Vertex t: d = 6, π = s
 Vertex x: d = 7, π = z
 Vertex y: d = 8, π = s
 Vertex z: d = 0, π = NIL
+
+24.3-2
+define a graph with vertices u, v, w, x and edges (u, v), (u, w), (v, w), (w, x) where
+    w(u, w) = 1, w(u, v) = 2, w(v, w) = -2, w(w, x) = 0
+DIJKSTRA(G, w, u) will extract u first, relax (u, v) and (u, w), update v.d = 2 and w.d = 1
+the next EXTRACT-MIN will extract w next and update x.d = 1
+x.d will no longer be updated as the only edge to it is (w, x)
+but a shortest path u ~> x is (u, v, w, x) with weight 0
+the assumption δ(s, y) <= δ(s, u) is no longer true in the proof
+
+24.3-3
+it is still correct
+let u be the last element in the heap Q, at the beginning of the last iteration S = V - {u}
+by invariant in Theorem 24.6, all vertices other than u already has v.d = δ(s, v)
+by convergence property v.d will not be updated afterwards 
+the last iteration also does not update u.d itself as u.d may only be updated through relaxation on line 7-8
+which means it may only be updated by a self loop (u, u), with w(u, u) >= 0
+since u.d <= u.d + w(u, u), relaxation will not update u.d
+the last iteration will not do any meaningful work hence can be emitted
+
+24.3-4
+check that each vertex is reachable from s in predecessor graph (i.e. u.d finite) iff it's reachable from s in G by dfs
+then run dfs on the predecessor graph from s, each vertex should be colored BLACK, also there can only be tree edges
+check v.d = v.π.d + w(v.π, v) and s.d = 0
+now it's safe to claim that 
+    each finite u.d corresponds to the weight of a simple path s ~> u in the original graph
+    u.d = +∞ iff u is not reachable from s in the original graph
+if one pass of BELLMAN-FORD will not update any u.d, by 24.1-3 these paths are indeed shortest paths
+otherwise the result is not optimal yet
+two dfs takes O(V + E), each explicit check on edges and vertices takes O(V) or O(E)
+one pass of BELLMAN-FORD takes O(E), O(V + E) in total
+
+24.3-5
+Dijkstra's algorithm will relax one shortest path for each vertex in order, not all of them
+each edge in Dijkstra's algorithm is relaxed exactly once
+let u be the last vertex before v on the resulting shortest path s ~> u -> v in the predecessor graph
+on extracting u, s ~> u in the predecessor graph is already a shortest path
+by optimal substructure, each w on s ~> u will not be updated again, w.π won't change afterwards
+therefore upon relaxing (u, v), every edge on the path s ~> u is already relaxed
+this property propagates all the way up to s, the edges on s ~> v is relaxed in order
+define a graph with vertices s, x, y, z, t and edges (s, x), (s, y), (x, z), (y, z), (z, t) where
+    w(u, v) = 0 for all u, v in the graph
+Dijkstra's algorithm may visit the vertices in arbitrary order
+if it visits vertices in order (s, y, z, t, x), (z, t) will be relaxed before (x, z)
+(s, x, z, t) is also a shortest path of s ~> t, its edges are not relaxed in order
+
+24.3-6
+on a given path s ~> t, the reliability of s ~> t is given by Πr(u, v) over all edges (u, v) on s ~> t
+by monotonicity of logarithm function, maximizing Πr(u, v) is equivalent to maximizing lg(Πr(u, v)) = Σlgr(u, v)
+which in turn is equivalent to minimizing -Σlgr(u, v) = Σ-lgr(u, v)
+as 0 <= r(u, v) <= 1, lgr(u, v) will be negative, -lgr(u, v) will be positive
+for r(u, v) = 0, such an edge immediately sets the reliability of the path to 0
+may remove such edges and check reachability later if t.d = +∞ to distinguish the case of no path and 0 reliability path
+define w(u, v) = -lgr(u, v), the graph now contains only non-negative weight edges
+Dijkstra's algorithm solves it in O(E + VlgV)
+
+24.3-7
+replace an edge of length i adds i-1 new vertices
+Σ(e ∈ E)(w(e) - 1) vertices are added to G', |V| + Σ(w(e) - 1) in total
+in a graph with unit edges, bfs finds a shortest path to each vertex in non-decreasing order of path length
+as no two vertices have the same shortest-path weights from s in G, the order of coloring in bfs is fixed
+assume in Dijkstra's algorithm a vertex u is extracted right before another vertex v
+it must have v.d >= u.d = δ(s, u), or v will be extracted instead
+v.d also cannot be updated to v.d < u.d in the current iteration, since it can at most be updated to u.d + w(u, v)
+where w(u, v) is non-negative
+so in the next iteration, when v is extracted, δ(s, v) = v.d >= u.d = δ(s, u)
+vertices in Dijkstra's algorithm are also extracted in non-decreasing order of path weight
+the two algorithms visits vertices in V in the same order
+
+24.3-8
+similar to 24.3-9 but with a different data structure
+initial an array D that D[k] stores a list of vertices with estimate k, or nothing if no such vertex exist
+by 24.3-9, there are at most W lists in the array
+also the array can be initialized with length |V|W as a simple path in G has weight at most (|V| - 1)W
+maintain a root list that doubly links all the lists in W
+EXTRACT-MIN:
+    traverse the root list, find the list with minimum estimate, O(W)
+    extract the head of the list, O(1)
+    if the list becomes empty, remove it from both the root list and D, O(1)
+DECREASE-KEY:
+    remove the vertex from its list, O(1)
+    remove the list from root list and W if it becomes empty, O(1)
+    insert the vertex to D[k] where k is the new estimate, create a new list if D[k] is empty, O(1)
+overall running time will be O(WV + E)
+
+24.3-9
+invariant:
+    at the start of each iteration, let S' = {v ∈ V - S | v.d is not +∞}
+    max{v.d | v ∈ S'} - min{v.d | v ∈ S'} <= W
+initialization:
+    S' = {s}, max{v.d | v ∈ S'} = min{v.d | v ∈ S'} = 0
+maintenance:
+    u with estimate min{u.d | u ∈ S'} is extracted from the heap
+    if the estimate of a vertex v is not updated, v.d <= max{v.d | v ∈ S'} <= u.d + W
+    each v ∈ Adj[u] has their estimate updated to min(v.d, u.d + w(u, v))
+    as 0 <= w(u, v) <= W, u.d + w(u, v) <= u.d + W
+    as v is not extracted instead of u, v.d >= u.d
+    therefore for all vertices in S', u.d <= v.d <= u.d + W
+    max{v.d | v ∈ S'} - min{v.d | v ∈ S'} <= W if S' != ∅
+termination:
+    not important here
+use a dynamic set to store doubly linked lists of vertices keyed by estimates
+there can be at most W different keys in the dynamic set, set operations can be done in O(lgW)
+at first all vertices are in the same list with key +∞
+EXTRACT-MIN can be simulated by
+    search the minimum of the set, O(lgW)
+    extract the head of the list, O(1)
+    delete the key if the list becames empty, O(lgW)
+DECREASE-KEY can be simulated by
+    removing the vertex from the original list, O(1)
+    delete the list from the dynamic set if the list is empty, O(lgW)
+    search a list with the new estimate, insert a new one if it doesn't exist, O(lgW)
+    insert vertex into the list, O(1)
+therefore the running time will be O((V + E)lgW)
+
+24.3-10
+δ(s, y) <= δ(s, u) still holds
+only edges leaving s may have negative weight
+if p2 = y ~> u ever visits s, it forms a cycle
+since there are no negative cycle in the graph, there must be a simple shortest path s ~> u
+use that path in the proof will give δ(s, y) <= δ(s, u) by the argument in the text

@@ -11,7 +11,7 @@ import {
   topologicalSort,
   Vertex,
 } from "./directed-graph";
-import { spBellmanFord, spDag, spDijkstra, spReport } from "./shortest-path";
+import { dijkstraCheck, spBellmanFord, spDag, spDijkstra, spReport } from "./shortest-path";
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
@@ -280,8 +280,12 @@ function problem_24_3_1() {
   let z = map["z"];
 
   console.log("Starting from vertex s");
+  let attrs = spDijkstra(G, s);
+  dijkstraCheck(G, s, attrs);
   spReport(G, spDijkstra(G, s));
-  console.log("Starting from vertex s");
+  console.log("Starting from vertex z");
+  attrs = spDijkstra(G, z);
+  dijkstraCheck(G, z, attrs);
   spReport(G, spDijkstra(G, z));
 }
 
