@@ -7750,3 +7750,145 @@ only edges leaving s may have negative weight
 if p2 = y ~> u ever visits s, it forms a cycle
 since there are no negative cycle in the graph, there must be a simple shortest path s ~> u
 use that path in the proof will give δ(s, y) <= δ(s, u) by the argument in the text
+
+24.4-1
+Vertex x0: d = 0, π = NIL
+Vertex x1: d = -5, π = x4
+Vertex x2: d = -3, π = x6
+Vertex x3: d = 0, π = x0
+Vertex x4: d = -1, π = x2
+Vertex x5: d = -6, π = x1
+Vertex x6: d = -8, π = x3
+a possible solution is (-5, -3, 0, -1, -6, -8)
+
+24.4-2
+Warning: graph contains a negative cycle
+Vertex x0: d = 0, π = NIL
+Vertex x1: d = -Infinity, π = x5
+Vertex x2: d = -Infinity, π = x4
+Vertex x3: d = -Infinity, π = x2
+Vertex x4: d = -Infinity, π = x1
+Vertex x5: d = -Infinity, π = x3
+no feasible solution
+
+24.4-3
+it cannot be positive 
+there is an edge (v0, vi) to each vi of weight 0, a shortest path v0 ~> vi can only have non-positive weight
+
+24.4-4
+each edge (u, v) by triangle property can be translated to a constraint
+    δ(s, v) - δ(s, u) <= w(u, v)
+the objective function is δ(s, s) - δ(s, t)
+
+24.4-5
+m constraints at most connects 2m unknowns in the graph
+at least n - 2m unknowns in the graph has no out edge and only one in edge from v0
+thus the only path to them is the single edge (v0, vi), which must be the shortest path
+by counting in degree of all the vertices, set δ(v0, vi) = 0 for these of in degree 1
+these edges can be removed from the graph, only O(m + 2m) = O(m) edges have to be relaxed in each iteration
+O(m + n + nm) = O(nm) in total
+
+24.4-6
+an equality constraint can be decomposed to two inequality constraints
+    xi - xj <= bk and
+    xi - xj >= bk, or xj - xi <= -bk
+an equality constraint thus maps to two edges (i, j), (j, i) in the graph where
+    w(i, j) = -bk, w(j, i) = bk
+
+24.4-7
+instead of calling INITIALIZE, set u.d to 0 for each u ∈ V, run |V| - 1 passes of BELLMAN-FORD
+each shortest path v0 ~> vi starts with an edge (v0, vj)
+setting vj.u = 0 effectively relaxes the edge (v0, vj)
+as vj.d will not increase, (v0, vj) will not be relaxed again in later passes
+|V| - 1 passes of BELLMAN-FORD thus correctly relaxes edges on the shortest path in order
+on termination, vi.u = δ(v0, vi)
+
+24.4-8
+on termination of BELLMAN-FORD, vj.d <= vi.d + w(vi, vj), vi.d = vi.π.d + w(vi.π, vi), vi.d <= 0
+assume Σxi = Σvi.d is not maximized, let Σx'i be an optimal solution, there must be some x'i > xi
+the edge w(vi.π, vi) corresponds to a constraint
+    vi.d - vi.π.d <= w(vi.π, vi)
+so it must also have x'i.π > xi.π = vi.π.d, or xi - xi.π > w(vi.π, vi)
+this propagates all the way to the second vertex on the shortest path v0 ~> vi, let it be v1
+v1.π = v0, the shortest path v0 ~> v1 is (v0, v1) has weight 0, v1.d = 0
+x'1 > x1 = v1.d = 0, the optimal solution (x'i) is not valid
+therefore the solution given by BELLMAN-FORD must be the maximum
+
+24.4-9
+by 24.4-8, max{vi.d} is fixed to 0, let m = min{vi.d}, max{vi.d} - min{vi.d} = -m
+if otherwise there is a solution to the system where max{xi} - min{xi} > -m
+by adjusting max{xi} to 0 (always possible since x + d is also a solution for any d) and plugging {xi} to {vi.d}
+each vi.d is a valid estimate as it satisfies triangle property and vi.d >= max{vi.d} >= 0
+let vj be the vertex that achieves min{vi.d}, vj.d >= δ(v0, vj)
+as max{xi} - min{xi} = -min{xi} > -m, min{xi} < m, vj.d < m = δ(v0, vj), contradiction
+therefore BELLMAN-FORD must minimize max{xi} - min{xi}
+it minimizes the span of events, allows a set of works to be done in shortest time period
+
+24.4-10
+for each constraint xi <= bk, set w(v0, vi) = bk
+for each constraint -xi <= bk, add a new edge (vi, v0) with w(vi, v0) = bk
+the solution given by BELLMAN-FORD then satisfies normal difference constraints as well as
+    δ(v0, vi) <= v0.d + w(v0, vi) = bk for all vi
+also if -δ(v0, vi) > w(vi, v0), δ(v0, vi) + w(vi, v0) < 0, BELLMAN-FORD will find a negative cycle and return false
+thereby when BELLMAN-FORD returns true, {δ(v0, vi)} is a feasible solution to the system
+when BELLMAN-FORD returns false, let x0 denote v0.d which is fixed to 0
+    each constraint xi <= bk can be interpreted as xi - x0 <= bk
+    each constraint -xi <= bk can be interpreted as x0 - xi <= bk
+the argument in Theorem 24.9 still applies, there's no feasible solution to the system
+
+24.4-11
+modify each b to an integer
+if xi and xj are both integer, xi - xj must also be an integer
+let b = b' + f, where b' is an integer and 0 <= f < 1
+if xi - xj = k <= b, k <= b' as b' + 1 > b
+run BELLMAN-FORD on the modified constraints, correctness is guarenteed by Theorem 24.9
+
+24.4-12
+-
+
+24.5-1
+1.  remove (y, z) from (b), add (x, z)
+2.  remove (t, x) from (b), add (y, x)
+
+24.5-2
+define G with vertices s, x, y and edges (s, x), (s, y), (x, y), (y, x) all of weight 0
+
+24.5-3
+assume otherwise there's no path s ~> v, δ(s, v) = +∞
+if for an edge (u, v), δ(s, u) != +∞, s ~> u -> v will be a path s ~> v, contradiction
+thus for all (u, v) ∈ E, δ(s, u) = +∞, δ(s, v) <= δ(s, u) + w(u, v)
+if there is a negative cycle reachable from s, v is reachable from the negative cycle, δ(s, v) = -∞
+δ(s, v) <= δ(s, u) + w(u, v) guarenteed no matter the value of δ(s, u)
+
+24.5-4
+right before s.π is updated for the first time, s.d = 0 > u.d + w(u, s) >= δ(s, u) + w(u, s)
+a cycle c = s ~> u -> s have weight w(c) = δ(s, u) + w(u, s) < 0
+
+24.5-5
+the same graph defined in 24.5-2
+(s, x, y) is a shortest path s ~> y, (s, y, x) is a shortest path s ~> x
+an assignment may set x.π = y and y.π = x, forms a cycle
+
+24.5-6
+initialization:
+    Vπ = {s}, Gπ = ∅, s is reachable from itself with no edge
+maintenance:
+    by invariant, each u ∈ Vπ has a path s ~> u with edges in Gπ
+    if v.π is updated by relaxing (u, v) for u ∈ Vπ, (u, v) is added to Gπ, s ~> u -> v is a path from s to v in Gπ
+    for u ∉ Vπ, u.π = NIL and u != s, u.d = +∞ as relaxation always updates u.d and u.π at the same time
+    relaxing (u, v) will not set v.π since v.d <= u.d + w(u, v) is guarenteed by u.d = +∞
+termination:
+    not important
+
+24.5-7
+for each v ∈ V, if v is reachable from s, there is a shortest path s ~> v with length <= |V| - 1
+relax edges on the path in order, by path-relaxation property, sets v.d = δ(s, v)
+
+24.5-8
+let v0 be the first vertex on the negative cycle reachable from s
+relax edges on the cycle in order from v0, each relaxation will update an estimate
+during the first traverse, each vi.d on the cycle is set to v0.d + Σw(vk, vk+1) from +∞
+once the traverse went back to v0
+since (v0, v1 .. v0) is a negative cycle, it updates v0.d to v0.d' = v0.d + Σw(vk, vk+1) < v0.d
+starting from v0 again, each vi will be updated since v0.d' + Σw(vk, vk+1) < v0.d + Σw(vk, vk+1) = vi.d
+v0.d' will be updated to a smaller value when v0 is visited each time, causes infinite updates of estimates

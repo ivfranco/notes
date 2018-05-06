@@ -15,7 +15,7 @@ import { dijkstraCheck, spBellmanFord, spDag, spDijkstra, spReport } from "./sho
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_24_3_1();
+  problem_24_4_2();
 }
 
 function problem_22_2_1() {
@@ -287,6 +287,39 @@ function problem_24_3_1() {
   attrs = spDijkstra(G, z);
   dijkstraCheck(G, z, attrs);
   spReport(G, spDijkstra(G, z));
+}
+
+function problem_24_4_1() {
+  let G = WeightedGraph.fromDirected(
+    "x0 x1 x2 x3 x4 x5 x6",
+    [
+      "x2 x1 1", "x4 x1 -4", "x3 x2 2",
+      "x5 x2 7", "x6 x2 5", "x6 x3 10",
+      "x2 x4 2", "x1 x5 -1", "x4 x5 3",
+      "x3 x6 -8",
+      "x0 x1 0", "x0 x2 0", "x0 x3 0",
+      "x0 x4 0", "x0 x5 0", "x0 x6 0",
+    ],
+  );
+  let x0 = G.vertexMap()["x0"];
+
+  spReport(G, spBellmanFord(G, x0));
+}
+
+function problem_24_4_2() {
+  let G = WeightedGraph.fromDirected(
+    "x0 x1 x2 x3 x4 x5",
+    [
+      "x2 x1 4", "x5 x1 5", "x4 x2 -6",
+      "x2 x3 1", "x1 x4 3", "x3 x4 5",
+      "x5 x4 10", "x3 x5 -4", "x4 x5 -8",
+      "x0 x1 0", "x0 x2 0", "x0 x3 0",
+      "x0 x4 0", "x0 x5 0",
+    ],
+  );
+  let x0 = G.vertexMap()["x0"];
+
+  spReport(G, spBellmanFord(G, x0));
 }
 
 main();
