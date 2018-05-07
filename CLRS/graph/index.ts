@@ -11,11 +11,19 @@ import {
   topologicalSort,
   Vertex,
 } from "./directed-graph";
-import { dijkstraCheck, spBellmanFord, spDag, spDijkstra, spReport } from "./shortest-path";
+import {
+  dijkstraCheck,
+  minimumMeanWeightCycle,
+  spBellmanFord,
+  spDag,
+  spDijkstra,
+  spGabow,
+  spReport,
+} from "./shortest-path";
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_24_4_2();
+  problem_24_5();
 }
 
 function problem_22_2_1() {
@@ -282,11 +290,11 @@ function problem_24_3_1() {
   console.log("Starting from vertex s");
   let attrs = spDijkstra(G, s);
   dijkstraCheck(G, s, attrs);
-  spReport(G, spDijkstra(G, s));
+  spReport(G, attrs);
   console.log("Starting from vertex z");
   attrs = spDijkstra(G, z);
   dijkstraCheck(G, z, attrs);
-  spReport(G, spDijkstra(G, z));
+  spReport(G, attrs);
 }
 
 function problem_24_4_1() {
@@ -320,6 +328,46 @@ function problem_24_4_2() {
   let x0 = G.vertexMap()["x0"];
 
   spReport(G, spBellmanFord(G, x0));
+}
+
+function problem_24_4() {
+  let G = WeightedGraph.fromDirected(
+    "s t x y z",
+    [
+      "s t 3", "s y 5",
+      "t x 6", "t y 2",
+      "x z 11",
+      "y t 3", "y x 4", "y z 6",
+      "z s 3", "z x 7",
+    ],
+  );
+  let map = G.vertexMap();
+  let s = map["s"];
+  let z = map["z"];
+
+  console.log("Starting from vertex s");
+  let attrs = spGabow(G, s);
+  dijkstraCheck(G, s, attrs);
+  spReport(G, attrs);
+  console.log("Starting from vertex z");
+  attrs = spGabow(G, z);
+  dijkstraCheck(G, z, attrs);
+  spReport(G, attrs);
+}
+
+function problem_24_5() {
+  let G = WeightedGraph.fromDirected(
+    "s t x y z",
+    [
+      "t x 5", "t y 8", "t z -4",
+      "x t -2",
+      "y x -3", "y z 9",
+      "z x 7", "z s 2",
+      "s t 6", "s y 7",
+    ],
+  );
+
+  console.log(minimumMeanWeightCycle(G));
 }
 
 main();

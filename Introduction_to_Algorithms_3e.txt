@@ -7892,3 +7892,170 @@ once the traverse went back to v0
 since (v0, v1 .. v0) is a negative cycle, it updates v0.d to v0.d' = v0.d + Σw(vk, vk+1) < v0.d
 starting from v0 again, each vi will be updated since v0.d' + Σw(vk, vk+1) < v0.d + Σw(vk, vk+1) = vi.d
 v0.d' will be updated to a smaller value when v0 is visited each time, causes infinite updates of estimates
+
+24-1
+a.  for Gf, if (vi, vj) ∈ Gf.E, i < j, vi appears earlier in the sorted order
+    Gb: similar
+b.  assume the first edge in a shortest path s ~> v is a forward edge
+    then the first k edges are forward edges, k >= 1
+    all forward edges are in Gf, as Gf is acyclic, relaxing Gf.E in topological order relaxes the k edges in order
+    the k+1th edge is a back edge, let the next k' edges be back edges, k' >= 1
+    all back edges are in Gb, relaxing Gb.E in topological order relaxes the k' edges in order
+    the problem is reduced to relaxing all but the first k + k' edges in order
+    by assumption (k + k' + 1)th edge is a forward edge, the same argument still applies
+    k + k' >= 2, each pass relaxes at least 2 edges in the shortest path in order
+    assume otherwise the first edge in s ~> v is a back edge
+    relaxing edges in Gf may not relax any edge in order in the first pass
+    let the first k' edges be back edges, relaxing edges in Gb relaxes all k' edges in order
+    at the start of the next pass, the first edge not relaxed in order is a forward edge
+    the problem is reduced to the first case
+    k' >= 1, the first pass relaxes at least 1 edge in order, all following passes relaxes at least 2
+    as a shortest path in a graph without negative cycle contains at most |V| - 1 edges
+    maximum passes <= 1 + [(|V| - 1 - 1) / 2] = 1 + [|V| / 2 - 1] = [|V| / 2]
+c.  it does not improve asymptotically
+    still all |E| edges have to be relaxed each pass
+    [|V|/2]|E| = Ω(VE)
+
+24-2
+a.  if x = (x1, .., xd) nests within y = (y1 .. yd), y nests within (z1 .. zd)
+    there exists a permutation π that π(x) < y, another permutation π' that π'(y) < z
+    it must have π(π'(x)) < z since
+        π(xi) < yi, π'(yi) < zi for each i
+        let π'(xi) = xj, π'(yi) = yj
+        π(π'(xi)) < π'(yi) < xi
+b.  let x, y be in sorted order, x nests within y iff xi < yi for each i
+    sufficiency:
+        if xi < yi for each i in sorted order, let π permutes x into sorted order, let π' permutes y into sorted order
+        π(x) < π'(y), apply the reverse of π' to both sides
+        π'^-1(π(x)) < y, π'^-1 . π is a permutation
+    necessity: 
+        let i be the first index where xi > yi
+        for all j >= i, xj > yi, there are at most (i - 1) x smaller than yi
+        if a permutation makes π(x) < y, for all k <= i, π(xk) < yk <= yi
+        that makes i x smaller than yi, one more than possible
+    thereby it can be determined by sorting both x and y then compare each xi < yi
+c.  first sort each d-dimensional vector in O(ndlgd)
+    create a graph with vertices {B0, B1, B2 .. Bn}
+    add edges (B0, Bi) for each 1 <= i <= n with weight 0
+    add an edge for each (Bi, Bj) where Bi nests within Bj with weight -1
+    which can be checked in time O(d), O(n^2d) in total
+    by transitivity, if there is a path Bi ~> Bj, Bi can be nested within Bj
+    hence the graph must be acyclic, otherwise there is a path Bi ~> Bi, but Bi cannot be nested within itself
+    a path in the graph, B0 excluded, corresponds to a sequence (Bi1 .. Bik) and vice versa
+    (B0 can be interpreted as a vector (-∞, -∞, .., -∞))
+    find the shortest path (i.e. the path with most edges) from B0 by DAG-SHORTEST-PATHS
+    running time O(V + E) = O(n + n^2) = O(n^2)
+    O(n^2d + ndlgd) in total
+
+24-3
+a.  since all R[ix, iy] is positive, lgR[ix, iy] is well defined
+    by monotonicity of logarithm function
+    R[i1, i2] * .. * R[ik-1, ik] > 1 is equivalent to
+    lg(R[i1, i2] * .. * R[ik-1, ik]) = lgR[i1, i2] + .. + lgR[ik-1, ik] > 0
+    define a graph with vertices {c1 .. cn} and vertices (ci, cj) for each ci, cj
+    define w(ci, cj) = -lgR[i, j]
+    by the inequality above, there is an arbitrage iff there is a negative cycle in the graph
+    a negative cycle can be found by BELLMAN-FORD in O(VE) = O(n^3)
+b.  by 24.1-6, after constructing the predecessor graph in O(VE) = O(n^3)
+    a negative cycle can be find in predecessor graph in time O(V) = O(n)
+
+24-4
+a.  thanks Instructor's Manual
+    implement min heap by an array of lists Q, each slot Q[d] contains a list of vertices with v.d = d
+    v.d is initialized to |E| + 1 for all v ∈ V - {s}
+    DECREASE-KEY can be implemented as O(1):
+        remove the vertex from the old list, O(1)
+        if the list became empty, set Q[d] to NIL
+        prepend it to the new list in Q[d], where d is the new estimate, O(1)
+    EXTRACT-MIN can be implemented as O(E) aggregated time:
+        since DECREASE-KEY only updates v.d when v.d > u.d + w(u, v), where u is the extracted minimum
+        w(u, v) >= 0, the new minimum is not smaller than u.d the old minimum
+        the new minimum can be found by scanning from Q[d] to a higher slot in O(E) aggregated time
+    by Dijkstra's algorithm, δ(s, v) can be computed in O(E)
+b.  as 0 <= w1(u, v) = [w(u, v) / 2^(k-1)] <= [W / (W + 1) / 2] <= 1 
+    δ1(s, v) <= (|V| - 1) * max{w1(u, v)} <= |V| - 1
+    as all vertices are reachable from the source, G is at least a tree, |E| >= |V| - 1
+    δ1(s, v) <= |E| for all v ∈ V, by part a it can be computed in O(E) 
+c.  wi(u, v) is given by the i most significant bits of w(u, v)
+    if the ith most significant bit of w(u, v) = 0, wi(u, v) = 2wi-1(u, v)
+    if the bit is 1, wi(u, v) = 2wi-1(u, v) + 1
+    let p be a shortest path that achieves δi-1(s, v)
+    with new weight function wi, wi(p) is increased to at most 2wi(p) + |p| <= 2wi(p) + |V| - 1 = 2δi-1(s, v) + |V| - 1
+    let p' be any path s ~> v, it must have wi-1(p') >= wi-1(p) = δi-1(s, v)
+    wi(p') >= 2wi-1(p') = 2δi-1(s, v)
+    therefore 2δi-1(s, v) <= δi(s, v) <= 2δi-1(s, v) + |V| - 1
+d.  by triangle property, δi-1(s, v) <= δi-1(s, u) + wi-1(u, v)
+    δi-1(s, u) - δi-1(s, v) >= -wi-1(u, v)
+    wi(u, v) + 2δi-1(s, u) - 2δi-1(s, v) >= wi(u, v) - 2wi-1(u, v) >= 0
+e.  let p = (v0, v1 .. vk) be a shortest path v0 = s ~> v = vk according to weight function ^wi
+    ^wi(p)  = Σ(wi(vj, vj+1) + 2δi-1(s, vj) - 2δi-1(s, vj+1))
+            = Σ(wi(vj, vj+1)) - 2δi-1(s, v), as all other 2δi-1(s, vj) cancelled each other
+    the last term 2δi-1(s, v) is independent to the path ^wi(p), p must minimize Σ(wi(vj, vj+1)) = wi(p)
+    wi(p) = δi(s, v) = ^wi(p) + 2δi-1(s, v) = ^δi(s, v)
+    by part d, ^δi(s, v) = δi(s, v) - 2δi-1(s, v) <= |V| - 1 <= |E|
+f.  ^wi(u, v) can be computed from δi-1(s, u) and δi-1(s, v) in O(E)
+    as ^δi(s, v) <= |E| for all v ∈ V, ^δi(s, v) can be computed in O(E)
+    δi(s, v) can be computed from ^δi(s, v) + 2δi-1(s, v) in O(V)
+    O(V + E) = O(E) in total
+    therefore δk(s, v) can be computed in O(ElgW) for k = lg(W + 1)
+    ./CLRS/graph/shortest-path.ts#spGabow
+
+24-5
+a.  if G contains a negative cycle c, μ* <= μ(c) = w(c) / k < 0
+    if G contains no negative, cycle, each shortest path is a simple path
+    let p be a shortest path s ~> v, w(p) = δ(s, v) = δ|p|(s, v), |p| <= |V| - 1
+    δk(s, v) >= δ(s, v), w(p) is the minimum among all δk(s, v)
+    δ(s, v) = min(0 <= k <= n-1){δk(s, v)} = w(p)
+b.  as 0 <= k <= n-1, n - k > 0
+    as μ* = 0, let p be a shortest path s ~> v, |p| <= |V| - 1, δ|p|(s, v) = w(p) <= δk(s, v) for all k
+    thus δn(s, v) - δ|p|(s, v) >= 0
+    max(0 <= k <= n-1)((δn(s, v) - δk(s, v)) / (n - k))
+    >= (δn(s, v) - δ|p|(s, v)) / (n - k) >= 0
+c.  by transitivity and triangle property, δ(s, v) <= δ(s, u) + x
+    similarly, δ(s, u) <= δ(s, v) - x, δ(s, v) >= δ(s, u) + x
+    δ(s, v) = δ(s, u) + x combined
+d.  the minimum mean weight cycle has w(c) = kμ(c) = kμ* = 0
+    let p = s ~> v0 be the shortest path to the first vertex on c
+    (always possible by optimal substructure, if u on p is also on c, s ~> u is a shortest path to u)
+    let v1 be the next vertex on the cycle, then p' = p -> vi is a shortest path s ~> v1 by part c
+    repeat the process until |p'| = n, p' is the shortest path s ~> vk for some vk on c
+    however |p'| > |V| - 1, since μ* = 0, there is another shortest path p'' of length <= |V| - 1 to vk
+    δn(s, vk) = δ(s, vk) = δ|p''|(s, vk), δn(s, vk) <= δk(s, vk) for all k
+    (δn(s, vk) - δ|p''|(s, vk)) / (n - |p''|) = 0
+    max{(δn(s, vk) - δk(s, vk)) / (n - k)} = 0
+e.  combine part b and part d
+f.  let c be the minimum mean weight cycle before the increase
+    if after the increase another cycle c' becomes the minimum mean weight
+        w'(c') / |c'| < w'(c) / |c|
+        (w(c') + |c'|t) / |c'| < (w(c) + |c|t) / |c|
+        w(c') / |c'| < w(c) / |c|
+    c' should also be the minimum mean weight cycle before the increase
+    thus c is also the minimum mean weight cycle after the increase
+    w(c) is increased by |c|t, μ* increased to (w(c) + |c|t) / |c| = w(c) / |c| + t = μ* + t
+    similarly a shortest path p that achieves δ|p|(s, v) still achieves δ|p|(s, v) after the increase
+    let μ* be the minimum mean weight of a graph G
+    decrease each w(u, v) by μ(c) results a graph G' where μ* = 0 in G'
+    let δ' be shortest paths in G'
+    by part e, min(v ∈ G'.V){max(0 <= k <= n-1){(δ'n(s, v) - δ'k(s, v)) / (n - k)}} = 0
+    δk(s, v) = δ'k(s, v) + kμ*
+    min(v ∈ G.V){max(0 <= k <= n-1){(δn(s, v) - δk(s, v)) / (n - k)}}
+    = min(v ∈ G.V){max(0 <= k <= n-1){(δ'n(s, v) - δ'k(s, v) + (n-k)μ*) / (n - k)}}
+    = min(v ∈ G.V){max(0 <= k <= n-1){(δ'n(s, v) - δ'k(s, v)) / (n - k)}} + μ*
+    = μ*
+g.  run a procedure similar to BELLMAN-FORD
+    but instead of update v.d in each pass, store v.d computed in each pass in a new slot in an (|V| + 1) x |V| array
+    the array is initialized with +∞ in each slot other than A[0, s], A[0, s] = 0
+    let s ~> u -> v be a shortest path with exactly k edges from s to v
+    s ~> u then must be a shortest path with exactly k - 1 edges from s to u
+    or by cut and paste δk(s, v) can be improved
+    δk(s, v) thereby can be computed as min((u, v) ∈ E){δk-1(s, u) + w(u, v)}
+    row k in A can be computed from row k-1 in time O(E), O(VE) in total
+    once A is fully computed, 
+        μ* = (v ∈ G.V){max(0 <= k <= n-1){(δn(s, v) - δk(s, v)) / (n - k)}}
+    is the row minimum of column maximums, μ* can be computed in O(VE)
+    a proper source s can be found by dfs from all vertices, all v ∈ V reachable from s iff dfs colored all v BLACK
+    V dfs takes O(V(V + E)) = O(VE)
+    O(VE) in total
+    ./CLRS/graph/shortest-path.ts#minimumMeanWeightCycle
+
+24-6

@@ -12,6 +12,10 @@ class DList<T> {
     this.tail = null;
   }
 
+  public isEmpty() {
+    return this.head === null;
+  }
+
   public search(k: T): DNode<T> | null {
     let x = this.head;
     while (x !== null && x.key !== k) {

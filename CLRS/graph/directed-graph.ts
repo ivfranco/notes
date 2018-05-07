@@ -48,8 +48,14 @@ abstract class Graph<V extends Vertex, E extends Edge<V>> {
     this.e_counter = 0;
   }
 
+  //  an upper bound of vertices, not exact if some vertices are removed
   public size(): number {
     return this.v_counter;
+  }
+
+  //  an upper bound of edges, not exact if some edges are removed
+  public edgeSize(): number {
+    return this.e_counter;
   }
 
   public createVertex(name: string): V {

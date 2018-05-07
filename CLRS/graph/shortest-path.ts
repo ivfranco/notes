@@ -3,9 +3,12 @@ export {
   spDijkstra,
   spReport,
   spDag,
+  spGabow,
   dijkstraCheck,
+  minimumMeanWeightCycle,
 };
 
+import { DList, DNode } from "../collection/dlist";
 import { AbstractFHeap, FHeapNode } from "../structure/fibonacci-heap";
 import { Color, DFS, Edge, EdgeType, Graph, PlainGraph, topologicalSort, Vertex } from "./directed-graph";
 import { WeightedEdge } from "./weighted-graph";
@@ -30,12 +33,17 @@ function initialize<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>,
 }
 
 //  return true if v.d is updated
-function relax<V extends Vertex, E extends WeightedEdge<V>>(e: E, attrs: Array<SPAttrs<V, E>>): boolean {
-  let { from: u, to: v, weight: w } = e;
+function relax<V extends Vertex, E extends WeightedEdge<V>>(
+  e: E, attrs: Array<SPAttrs<V, E>>, w?: number[],
+): boolean {
+  let { from: u, to: v, weight } = e;
+  if (w) {
+    weight = w[e.key];
+  }
   let ua = attrs[u.key];
   let va = attrs[v.key];
-  if (va.d > ua.d + w) {
-    va.d = ua.d + w;
+  if (va.d > ua.d + weight) {
+    va.d = ua.d + weight;
     va.p = u;
     va.e = e;
     return true;
@@ -186,4 +194,135 @@ function dijkstraCheck(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, attrs:
   }
 
   console.assert(!updated, "One pass of BELLMAN-FORD should not update an optimal result");
+}
+
+function linearInitialize<V extends Vertex, E extends WeightedEdge<V>>(
+  G: Graph<V, E>, s: Vertex,
+): Array<SPAttrs<V, E>> {
+  let attrs: Array<SPAttrs<V, E>> = [];
+  let e = G.edgeSize();
+  for (let v of G.vertices()) {
+    attrs[v.key] = {
+      d: e + 1,
+      p: null,
+      e: null,
+    };
+  }
+  attrs[s.key].d = 0;
+  return attrs;
+}
+
+//  assuming δ(s, v) <= |G.E| for all v ∈ G.V
+function linearDijkstra<V extends Vertex, E extends WeightedEdge<V>>(
+  G: Graph<V, E>, s: V, w: number[],
+): Array<SPAttrs<V, E>> {
+  let attrs = linearInitialize(G, s);
+  let N: Array<DNode<V>> = [];
+  let Q: Array<DList<V>> = [];
+  for (let i = 0, e = G.edgeSize(); i <= e + 1; i++) {
+    Q[i] = new DList();
+  }
+  for (let v of G.vertices()) {
+    let node = new DNode(v);
+    N[v.key] = node;
+    let d = attrs[v.key].d;
+    Q[d].append(node);
+  }
+
+  for (let i = 0, min_d = 0, size = G.size(); i < size; i++) {
+    while (Q[min_d].isEmpty()) {
+      min_d++;
+    }
+
+    let u_node = Q[min_d].head as DNode<V>;
+    Q[min_d].delete(u_node);
+    let u = u_node.key;
+    for (let e of G.edgeFrom(u)) {
+      let v = e.to;
+      let v_node = N[v.key];
+      let old_d = attrs[v.key].d;
+      if (relax(e, attrs, w)) {
+        let new_d = attrs[v.key].d;
+        Q[old_d].delete(v_node);
+        Q[new_d].append(v_node);
+      }
+    }
+  }
+
+  return attrs;
+}
+
+function initWeightFunction(G: Graph<Vertex, WeightedEdge<Vertex>>, k: number, i: number, D: number[]): number[] {
+  let w: number[] = [];
+  for (let { key, weight, from: u, to: v } of G.edges()) {
+    w[key] = Math.floor(weight / (2 ** (k - i))) + 2 * D[u.key] - 2 * D[v.key];
+  }
+  return w;
+}
+
+function spGabow<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V): Array<SPAttrs<V, E>> {
+  let W = Math.max(...Array.from(G.edges()).map(e => e.weight));
+  let k = Math.ceil(Math.log2(W + 1));
+  //  shortest path weights according to weight function in the last iteration
+  let D = new Array(G.size());
+  D.fill(0);
+  let attrs: Array<SPAttrs<V, E>> = [];
+
+  for (let i = 1; i <= k; i++) {
+    let w = initWeightFunction(G, k, i, D);
+    attrs = linearDijkstra(G, s, w);
+    for (let v of G.vertices()) {
+      D[v.key] = attrs[v.key].d + 2 * D[v.key];
+    }
+  }
+
+  for (let v of G.vertices()) {
+    attrs[v.key].d = D[v.key];
+  }
+
+  return attrs;
+}
+
+function minimumMeanWeightCycle(G: Graph<Vertex, WeightedEdge<Vertex>>): number {
+  let s!: Vertex;
+  for (let v of G.vertices()) {
+    let dfs = new DFS(G);
+    let [v_attr] = dfs.runFrom(v);
+    if (v_attr.every(a => a.color === Color.BLACK)) {
+      s = v;
+      break;
+    }
+  }
+
+  console.assert(s !== undefined, "No proper source");
+
+  let A: number[][] = [];
+  for (let k = 0, size = G.size(); k <= size; k++) {
+    A[k] = new Array(size);
+    A[k].fill(+Infinity);
+  }
+  A[0][s.key] = 0;
+
+  for (let k = 1, size = G.size(); k <= size; k++) {
+    for (let u of G.vertices()) {
+      for (let { weight: w, to: v } of G.edgeFrom(u)) {
+        A[k][u.key] = Math.min(A[k][u.key], A[k - 1][v.key] + w);
+      }
+    }
+  }
+
+  let n = G.size();
+  //  the first row is reused as the temporary storage for column maximum
+  for (let v of G.vertices()) {
+    A[0][v.key] = -Infinity;
+  }
+  for (let { key } of G.vertices()) {
+    let dn = A[n][key];
+    for (let k = 1; k < n; k++) {
+      A[k][key] = (dn - A[k][key]) / (n - k);
+      A[0][key] = Math.max(A[0][key], A[k][key]);
+    }
+  }
+
+  return Math.min(...A[0]);
 }
