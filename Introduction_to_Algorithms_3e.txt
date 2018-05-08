@@ -8059,3 +8059,242 @@ g.  run a procedure similar to BELLMAN-FORD
     ./CLRS/graph/shortest-path.ts#minimumMeanWeightCycle
 
 24-6
+sort the edges by weight, relax each edge twice, once in sorted order, once in reverse sorted order
+since all edges have unique weight, the first pass will relax each edge before the turning point in order
+the second pass will relax each edge after the turning point in order
+O(V + ElgE) in total
+
+Chapter 25
+25.1-1
+Slow
+[ [ 0, 6, ∞, ∞, -1, ∞ ],
+  [ -2, 0, ∞, 2, 0, ∞ ],
+  [ 3, -3, 0, 4, ∞, -8 ],
+  [ -4, 10, ∞, 0, -5, ∞ ],
+  [ 8, 7, ∞, 9, 0, ∞ ],
+  [ 6, 5, 10, 7, ∞, 0 ] ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -2, -3, 0, -1, 2, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 5, 0 ] ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -3, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -6, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+Fast
+[ [ 0, 6, ∞, ∞, -1, ∞ ],
+  [ -2, 0, ∞, 2, 0, ∞ ],
+  [ 3, -3, 0, 4, ∞, -8 ],
+  [ -4, 10, ∞, 0, -5, ∞ ],
+  [ 8, 7, ∞, 9, 0, ∞ ],
+  [ 6, 5, 10, 7, ∞, 0 ] ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -3, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -6, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+
+25.1-2
+because bad code
+W should strictly reflect the weight of edges, if there's no self loop on i then W[i, i] should be +∞
+all calculation should start from a unit matrix L(0) described in 25.1-3
+otherwise the definition of W will cause trouble in 25.1-7
+L(1) in the text can be computed from L(0) x W
+equation 25.2 still holds, W[i, i] = 0 or +∞ won't make any change as L[i, i] + W[i, i] >= L[i, i] >= L'[i, i]
+starts from L(0) and run one more iteration
+./CLRS/graph/all-pair-shortest-path.ts#slowAllPairShortestPaths
+starts from L(0) x W
+./CLRS/graph/all-pair-shortest-path.ts#fasterAllPairShortestPaths
+
+25.1-3
+in EXTEND-SHORTEST-PATHS(L, L0),
+    L'[i, j]    = min{L[i, k] + L0[k, j]}
+                = L[i, j] + L0[j, j] = L[i, j]
+in EXTEND-SHORTEST-PATHS(L0, L),
+    L'[i, j]    = min{L0[i, k] + L[k, j]}
+                = L0[i, i] + L[i, j]
+                = L[i, j]
+therefore EXTEND-SHORTEST-PATHS(L, L(0)) or EXTEND-SHORTEST-PATHS(L(0), L) always results L
+L0 is equivalent to unit matrix in matrix multiplication
+
+25.1-4
+let L = (L0 x L1) x L2
+L[i, j] = minp{mink{L0[i, k] + L1[k, p]} + L2[p, j]}
+        = minp,k{L0[i, k] + L1[k, p] + L2[p, j]} as L2[p, j] independent to k
+let L' = L0 x (L1 x L2)
+L'[i, j]    = mink{L0[i, k] + minp{L1[k, p] + L2[p, j]}}
+            = mink,p{L0[i, k] + L1[k, p] + L2[p, j]} as L0[i, k] independent to p
+therefore L = L', EXTEND-SHORTEST-PATHS is associative
+
+25.1-5
+let L be an n-dimensional vector initialized with L[s] = 0 and L[v] = +∞ for all v ∈ V - {s}
+L represents the weight of shortest path s ~> v for all v ∈ V with at most 0 edges
+assume L(m) is the vector of weight of shortest path s ~> v with at most m edges
+L(m+1)[j] can be computed as min{L(m)[i] + W[i, j]}, which is similar to multiplication between matrix and vector
+considering only finite W[i, j], updating L(m+1)[j] to L(m)[i] + W[i, j] is equivalent to relaxing the edge (i, j)
+
+25.1-6
+any L[i, k] that L[i, k] + W[k, j] = L[i, j] may be a predecessor of j on the shortest path i ~> j
+a problem is when there is a 0-weight cycle in the graph
+predecessor graph constructed in this way may also contain a cycle
+this case can be avoided by an explicit check that j is not an ancestor of Π[i, k]
+doing the check for each k may cost O(n^2), O(n^4) in total
+when traversing Π[i, k], if j is an ancestor of k in Gπ,i, all the ancestors of k up to i cannot be predecessor of i
+thest vertices can be cached in an auxiliary binary array A of size n
+a check refers the array first, traverse predecessors only when A[k] is not set
+set all predecessors of k up to i after the traverse
+each vertex is thus checked at most once, all n checks can be done in O(n) amortized time, O(n^3) in total
+./CLRS/graph/all-pair-shortest-path.ts#predecessorMatrix
+
+25.1-7
+./CLRS/graph/all-pair-shortest-path.ts#extendShortestPaths
+./CLRS/graph/all-pair-shortest-path.ts#slowAllPairShortestPaths
+
+25.1-8
+allocate two matrixes L and L'
+compute each EXTEND-SHORTEST-PATHS(L, L) inplace in L'
+next iteration compute EXTEND-SHORTEST-PATHS(L', L') inplace in L
+
+25.1-9
+perform another iteration of EXTEND-SHORTEST-PATHS, check if any entry changed
+no entry should change if the graph contains no negative cycle by argument in the text
+if there is a negative cycle in the graph, the shortest path weight may be decreased indifinitely
+however if EXTEND-SHORTEST-PATHS(L, L) = L, it will never change in any iteration afterwards
+therefore EXTEND-SHORTEST-PATHS(L, L) = T must be different to L
+
+25.1-10
+by 24.1-6, negative cycle will be a cycle in the predecessor graph
+traverse Gπ,i to find negative cycle, assign the cycle length to all vertices traversed
+O(V) aggregated time for each Gπ,i, O(n^2) for all rows
+O(n^3lgn) when combined with the time calculating Gπ,i at the first place
+
+25.2-1
+Before first iteration, D:
+[ [ 0, ∞, ∞, ∞, -1, ∞ ],
+  [ 1, 0, ∞, 2, ∞, ∞ ],
+  [ ∞, 2, 0, ∞, ∞, -8 ],
+  [ -4, ∞, ∞, 0, 3, ∞ ],
+  [ ∞, 7, ∞, ∞, 0, ∞ ],
+  [ ∞, 5, 10, ∞, ∞, 0 ] ]
+Iteration 0, D0:
+[ [ 0, ∞, ∞, ∞, -1, ∞ ],
+  [ 1, 0, ∞, 2, 0, ∞ ],
+  [ ∞, 2, 0, ∞, ∞, -8 ],
+  [ -4, ∞, ∞, 0, -5, ∞ ],
+  [ ∞, 7, ∞, ∞, 0, ∞ ],
+  [ ∞, 5, 10, ∞, ∞, 0 ] ]
+Iteration 1, D1:
+[ [ 0, ∞, ∞, ∞, -1, ∞ ],
+  [ 1, 0, ∞, 2, 0, ∞ ],
+  [ 3, 2, 0, 4, 2, -8 ],
+  [ -4, ∞, ∞, 0, -5, ∞ ],
+  [ 8, 7, ∞, 9, 0, ∞ ],
+  [ 6, 5, 10, 7, 5, 0 ] ]
+Iteration 2, D2:
+[ [ 0, ∞, ∞, ∞, -1, ∞ ],
+  [ 1, 0, ∞, 2, 0, ∞ ],
+  [ 3, 2, 0, 4, 2, -8 ],
+  [ -4, ∞, ∞, 0, -5, ∞ ],
+  [ 8, 7, ∞, 9, 0, ∞ ],
+  [ 6, 5, 10, 7, 5, 0 ] ]
+Iteration 3, D3:
+[ [ 0, ∞, ∞, ∞, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ 0, 2, 0, 4, -1, -8 ],
+  [ -4, ∞, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+Iteration 4, D4:
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ 0, 2, 0, 4, -1, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+Iteration 5, D5:
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -6, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+
+25.2-2
+assign weight 1 to each edge
+compute shortest paths by FASTER-ALL-PAIR-SHORTEST-PATHS
+set finite entries to 1, infinite entries to 0
+
+25.2-3
+./CLRS/graph/all-pair-shortest-path.ts#floydWarshall
+Π[i, j] is only updated together with D[i, j]
+if Π[i, j] = l, D[i, j] must be updated to D[i, l] + W[l, j]
+later D[i, l] may be updated to a smaller value but never greater, thus D[i, j] >= D[i, l] + W[l, j]
+if some update forms a cycle, let c = (v0 .. vk), v0 = vk
+let D[i, vk] = D[i, vk-1] + W[vk-1, vk] be the update that forms the cycle
+Π(i, vj) = vj-1 for j = 0 .. k-1
+by the above inequality, D[i, vj] >= D[i, vj-1] + W[vj-1, vj] for j = 0 .. k-1
+as D[i, vk] is updated, before the update it must have D[i, vk] > D[i, vk-1] + W[vk-1, vk]
+add both sides of all the inequalities gives
+    0 > ΣW[vj-1, vj] for j = 0 .. k
+which means there is a negative cycle on the graph
+thereby if the graph contains no negative cycle, the predecessor graph Gπ,i must be acyclic for each i
+furthermore since each vertex has at most 1 parent, the acyclic graph is actually a tree
+
+25.2-4
+D[i, k] and D[k, j] for each i, j will not be updated in iteration k since
+    D[i, k] = min(D[i, k], D[i, k] + D[k, k]) = min(D[i, k], D[i, k]) = D[i, k]
+    D[k, j] = min(D[k, j], D[k, k] + D[k, j]) = D[k, j]
+therefore each other update that refers D[i, k] and D[k, j] will still refers those values from the last iteration
+exactly the same to FLOYD-WARSHALL defined in the text
+
+25.2-5
+it's no longer correct
+the behavior only changes when D[i, j] == D[i, k] + D[k, j]
+if both sides are finite, i ~> k ~> j is an equally optimal path to i ~> j computed in iteration k-1
+both the original D[i, j] or the path composed from D[i, k] and D[k, j] may be the solution to iteration k
+however if both sides are infinite, Π[i, j] must be NIL since j is not yet reachable from i in current iteration
+when D[i, k] = +∞ but D[k, j] is finite, Π[i, j] may be incorrectly updated to a non-NIL value Π[k, j]
+
+25.2-6
+if the graph contains no negative cycle
+run another pass of EXTEND-SHORTEST-PATHS(D, W) should not update any entry of D returned by FLOYD-WARSHALL
+if the graph contains negative cycle, EXTEND-SHORTEST-PATHS(D, W) must update some entry of D
+after computing D in O(n^3), presence of a negative cycle can be detected in O(n^2)
+
+25.2-7
+Φ(k)[i, j]  = Φ(k-1)[i, j] if D(k-1)[i, j] <= D(k-1)[i, k] + D(k-1)[k, j]
+            = k if D(k-1)[i, j] > D(k-1)[i, k] + D(k-1)[k, j]
+every entry in Φ(0) is NIL since no paths have intermediate vertices yet
+shortest path can be printed recursively, assume D[i, j] != +∞
+by optimal substructure, if Φ[i, j] = k, i ~> k ~> j is a shortest path from i to k
+recursively search the shortest path i ~> k and k ~> j
+the two path combined (cycle deducted) is the shortest path i ~> j
+the base case is Φ[i, j] = NIL and the shortest path i ~> j is a single edge (i, j)
+like most other dynamic programming algorithm introduced in the text, Φ records choices made at each step
+a shortest path can be reconstructed from Φ, similar to s in matrix chain multiplication
+
+25.2-8
+first detect and exclude all the vertices with in degree = out degree = 0
+transitive closure rows of these vertices will simply be a 1 in slot (i, i) for some i and all 0 otherwise
+the resulting graph must have |E| >= |V| / 2 since edges covers the vertices, |V| = O(E)
+run single source dfs from all the vertices, set the entries according to the colors of vertices after dfs
+O(V(V + E)) = O(V^2 + VE) = O(VE) in total
+
+25.2-9

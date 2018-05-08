@@ -1,4 +1,11 @@
 import {
+  fasterAllPairsShortestPaths,
+  floydWarshall,
+  fromDirectedGraph,
+  predecessorMatrix,
+  slowAllPairsShortestPaths,
+} from "./all-pair-shortest-path";
+import {
   alterTopologicalSort,
   bfs,
   dfs,
@@ -23,7 +30,7 @@ import {
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_24_5();
+  problem_25_2_1();
 }
 
 function problem_22_2_1() {
@@ -368,6 +375,50 @@ function problem_24_5() {
   );
 
   console.log(minimumMeanWeightCycle(G));
+}
+
+function problem_25_1_1() {
+  let G = WeightedGraph.fromDirected(
+    "1 2 3 4 5 6",
+    [
+      "1 5 -1",
+      "2 1 1", "2 4 2",
+      "3 2 2", "3 6 -8",
+      "4 1 -4", "4 5 3",
+      "5 2 7",
+      "6 2 5", "6 3 10",
+    ],
+  );
+  let W = fromDirectedGraph(G);
+  console.log(W);
+
+  console.log("Slow");
+  console.log(slowAllPairsShortestPaths(W)[0]);
+  console.log("Fast");
+  let L = fasterAllPairsShortestPaths(W);
+  console.log(L);
+  //  problem_25_1_6
+  console.log(predecessorMatrix(L, W));
+  //  problem_25_1_7
+  let [, P] = slowAllPairsShortestPaths(W);
+  console.log(P);
+}
+
+function problem_25_2_1() {
+  let G = WeightedGraph.fromDirected(
+    "1 2 3 4 5 6",
+    [
+      "1 5 -1",
+      "2 1 1", "2 4 2",
+      "3 2 2", "3 6 -8",
+      "4 1 -4", "4 5 3",
+      "5 2 7",
+      "6 2 5", "6 3 10",
+    ],
+  );
+  let W = fromDirectedGraph(G);
+
+  floydWarshall(W);
 }
 
 main();
