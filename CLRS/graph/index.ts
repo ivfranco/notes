@@ -2,6 +2,7 @@ import {
   fasterAllPairsShortestPaths,
   floydWarshall,
   fromDirectedGraph,
+  johnson,
   predecessorMatrix,
   slowAllPairsShortestPaths,
 } from "./all-pair-shortest-path";
@@ -30,7 +31,7 @@ import {
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_25_2_1();
+  problem_25_3_1();
 }
 
 function problem_22_2_1() {
@@ -419,6 +420,24 @@ function problem_25_2_1() {
   let W = fromDirectedGraph(G);
 
   floydWarshall(W);
+}
+
+function problem_25_3_1() {
+  let G = WeightedGraph.fromDirected(
+    "1 2 3 4 5 6",
+    [
+      "1 5 -1",
+      "2 1 1", "2 4 2",
+      "3 2 2", "3 6 -8",
+      "4 1 -4", "4 5 3",
+      "5 2 7",
+      "6 2 5", "6 3 10",
+    ],
+  );
+  let W = fromDirectedGraph(G);
+
+  console.log(floydWarshall(W)[0]);
+  console.log(johnson(G));
 }
 
 main();

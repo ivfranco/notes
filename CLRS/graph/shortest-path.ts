@@ -76,9 +76,7 @@ function spBellmanFord<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, 
     }
   }
 
-  if (negative_cycle) {
-    console.warn("Warning: graph contains a negative cycle");
-  }
+  console.assert(!negative_cycle, "Error: graph contains a negative cycle");
 
   return attrs;
 }
@@ -121,7 +119,9 @@ class SPHeap<V extends Vertex> extends AbstractFHeap<number, V, SPNode<V>> {
   }
 }
 
-function spDijkstra<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V): Array<SPAttrs<V, E>> {
+function spDijkstra<V extends Vertex, E extends WeightedEdge<V>>(
+  G: Graph<V, E>, s: V, w?: number[],
+): Array<SPAttrs<V, E>> {
   let attrs = initialize(G, s);
   let Q = new SPHeap<V>();
   // let S: V[] = [];
@@ -136,7 +136,7 @@ function spDijkstra<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>,
     // S.push(u);
     // console.log(`{${S.map(v => v.name).join(", ")}}`);
     for (let e of G.edgeFrom(u)) {
-      if (relax(e, attrs)) {
+      if (relax(e, attrs, w)) {
         let v = e.to;
         let node = N[v.key];
         Q.decreaseKey(node, attrs[v.key].d);

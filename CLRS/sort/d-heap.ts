@@ -1,5 +1,5 @@
 export {
-  MaxDHeap
+  MaxDHeap,
 };
 
 function PARENT(d: number, i: number) {
@@ -34,15 +34,15 @@ abstract class DHeap<T> {
     }
   }
 
-  abstract cmp(a: T, b: T): boolean;
+  protected abstract cmp(a: T, b: T): boolean;
 
-  protected inBound(i: number) {
+  private inBound(i: number) {
     return i >= 0 && i < this._heap_size;
   }
 
-  protected swap(i: number, j: number) {
+  private swap(i: number, j: number) {
     if (!this.inBound(i) || !this.inBound(j)) {
-      throw "Error: Out of boundary access";
+      throw new Error("Error: Out of boundary access");
     }
 
     let A = this._heap_arr;
@@ -52,7 +52,7 @@ abstract class DHeap<T> {
     A[j] = temp;
   }
 
-  heapify(i: number) {
+  public heapify(i: number) {
     let A = this._heap_arr;
     let d = this._d;
     let cmp = this.cmp;
@@ -67,21 +67,21 @@ abstract class DHeap<T> {
           largest = c;
         }
       }
-      if (i != largest) {
+      if (i !== largest) {
         this.swap(i, largest);
       }
-    } while (i != largest);
+    } while (i !== largest);
   }
 
-  arr(): T[] {
+  public arr(): T[] {
     return this._heap_arr;
   }
 
-  root(): T {
+  public root(): T {
     return this._heap_arr[0];
   }
 
-  extractRoot(): T {
+  public extractRoot(): T {
     let A = this._heap_arr;
     let n = this._heap_size;
 
@@ -92,15 +92,15 @@ abstract class DHeap<T> {
     return root;
   }
 
-  decrementSize() {
+  private decrementSize() {
     if (this._heap_size <= 0) {
-      throw "Error: Heap underflow";
+      throw new Error("Error: Heap underflow");
     }
 
     this._heap_size--;
   }
 
-  insertKey(key: T) {
+  public insertKey(key: T) {
     let A = this._heap_arr;
     let n = this._heap_size;
 
@@ -109,12 +109,12 @@ abstract class DHeap<T> {
     this.fix(n);
   }
 
-  adjustKey(i: number, key: T) {
+  public adjustKey(i: number, key: T) {
     let A = this._heap_arr;
     let cmp = this.cmp;
 
     if (cmp(A[i], key)) {
-      throw `Error: invalid new key ${key} compared to original A[${i}] = ${A[i]}`;
+      throw new Error(`Error: invalid new key ${key} compared to original A[${i}] = ${A[i]}`);
     }
 
     A[i] = key;
@@ -132,7 +132,7 @@ abstract class DHeap<T> {
     }
   }
 
-  diagnose() {
+  public diagnose() {
     console.log("Self diagnosing...");
     let n = this._heap_size;
     let d = this._d;
@@ -144,32 +144,32 @@ abstract class DHeap<T> {
       let last_child = first_child + d - 1;
       for (let c = first_child; this.inBound(c) && c <= last_child; c++) {
         if (cmp(A[c], A[i])) {
-          throw `Error: the position of A[${i}] = ${A[i]} and its child A[${c}] = ${A[c]} are invalid`;
+          throw new Error(`Error: the position of A[${i}] = ${A[i]} and its child A[${c}] = ${A[c]} are invalid`);
         }
       }
     }
 
     for (let i = 0; i < n; i++) {
       if (i === undefined) {
-        throw `Error: A[${i}] Uninitialized`;
+        throw new Error(`Error: A[${i}] Uninitialized`);
       }
     }
 
     if (A.length < n) {
-      throw "Error: underlying array inconsistent";
+      throw new Error("Error: underlying array inconsistent");
     }
 
     console.log("Self diagnosis successful.");
   }
 }
 
-// T: Ord 
+// T: Ord
 class MaxDHeap<T> extends DHeap<T> {
   constructor(d: number, A: T[]) {
     super(d, A);
   }
 
-  cmp(a: T, b: T): boolean {
+  public cmp(a: T, b: T): boolean {
     return a > b;
   }
 }

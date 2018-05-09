@@ -5,10 +5,12 @@ export {
   predecessorMatrix,
   floydWarshall,
   showShortestPath,
+  johnson,
 };
 
 import { Graph, Vertex } from "./directed-graph";
-import { WeightedEdge } from "./weighted-graph";
+import { spBellmanFord, spDijkstra } from "./shortest-path";
+import { WeightedEdge, WeightedGraph } from "./weighted-graph";
 
 type Vtx = number;
 type Weight = number;
@@ -43,7 +45,7 @@ function fromDirectedGraph(G: Graph<Vertex, WeightedEdge<Vertex>>): Matrix<Weigh
 
 function initLP(n: number): [Matrix<Weight>, PredMatrix] {
   let L: Matrix<Weight> = [];
-  let P: Matrix<Vtx | null> = [];
+  let P: PredMatrix = [];
   for (let i = 0; i < n; i++) {
     L[i] = [];
     P[i] = [];
@@ -135,7 +137,7 @@ function updateOnCycle(P: Matrix<Vtx | null>, i: Vtx, j: Vtx, k: Vtx, onCycle: b
 
 function predecessorMatrix(L: Matrix<Weight>, W: Matrix<Weight>): PredMatrix {
   let n = L.length;
-  let P: Matrix<Vtx | null> = [];
+  let P: PredMatrix = [];
   for (let i = 0; i < n; i++) {
     P[i] = [];
     for (let j = 0; j < n; j++) {
@@ -203,4 +205,50 @@ function showShortestPath(P: PredMatrix, i: Vtx, j: Vtx): string {
     path = `${i}` + path;
     return path;
   }
+}
+
+function johnson(G: Graph<Vertex, WeightedEdge<Vertex>>): Matrix<Weight> {
+  let H = new WeightedGraph();
+  //  vertices of H indexed by keys of G.V
+  let V: Vertex[] = [];
+  let n = 0;
+  let s = H.createVertex("s");
+  //  maps vertices to {0 .. n-1}
+  let Idx: number[] = [];
+  for (let v of G.vertices()) {
+    V[v.key] = H.createVertex("" + v.key);
+    H.createEdge(s, V[v.key], 0);
+    Idx[v.key] = n;
+    n++;
+  }
+  for (let { from: u, to: v, weight } of G.edges()) {
+    H.createEdge(V[u.key], V[v.key], weight);
+  }
+
+  let h = spBellmanFord(H, s).map(a => a.d);
+  //  transform the index of h back to keys of G.V
+  let g: number[] = [];
+  for (let v of G.vertices()) {
+    g[v.key] = h[V[v.key].key];
+  }
+  h = g;
+  // console.log("h:", h);
+
+  let w: number[] = [];
+  for (let { key, from: u, to: v, weight } of G.edges()) {
+    w[key] = h[u.key] - h[v.key] + weight;
+  }
+  // console.log("w:", w);
+
+  let [D] = initLP(n);
+  for (let u of G.vertices()) {
+    let d = spDijkstra(G, u, w).map(a => a.d);
+    let i = Idx[u.key];
+    for (let v of G.vertices()) {
+      let j = Idx[v.key];
+      D[i][j] = d[v.key] + h[v.key] - h[u.key];
+    }
+  }
+
+  return D;
 }

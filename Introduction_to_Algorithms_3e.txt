@@ -1477,6 +1477,7 @@ b.  when inputs are in increasing order
     T(n) = Σ(hi) = Σ(Θ(lgi)) = Θ(lg(n!)) = Θ(nlgn)
 
 6-2
+./CLRS/sort/d-heap.ts
 a.  assume array index starts from 0
     the first element is the root, next d are the children of the root, next d^2 are their children, etc.
     let FIRST-CHILD(i) return the index of the first child of A[i]
@@ -1492,13 +1493,14 @@ b.  the complete d-ary tree of height h-1 has Σ(i = {0 .. h})(d^h) = (d^h - 1) 
     d^h + d - 2  <= (d-1)n <= d^(h+1) - 1
     d^h <= (d-1)n - d + 2 <= d^(h+1) - d + 1
     Math.floor(log(d, (d-1)n - d + 2)) = h
-    h = Θ(log(d, dn)) = Θ(lgn)
-c.  has to find the maximum among d nodes at every level, Θ(lgn) levels in total
-    T(n) = Θ(dlgn)
+    h = Θ(log(d, dn)) = Θ(log(d, n))
+c.  has to find the maximum among d nodes at every level, Θ(log(d, n)) levels in total
+    T(n) = Θ(dlog(d, n))
 d.  the working part is function fix, which is the same to part e
+    T(n) = Θ(log(d, n))
 e.  at most have to swap all nodes on a simple path from root to bottom
-    the length of the path is no longer than the height of the heap, which is Θ(lgn)
-    T(n) = Θ(lgn)
+    the length of the path is no longer than the height of the heap, which is Θ(log(d, n))
+    T(n) = Θ(log(d, n))
 
 6-3
 a.  [[2, 3, 4, 5],
@@ -8261,13 +8263,13 @@ furthermore since each vertex has at most 1 parent, the acyclic graph is actuall
 D[i, k] and D[k, j] for each i, j will not be updated in iteration k since
     D[i, k] = min(D[i, k], D[i, k] + D[k, k]) = min(D[i, k], D[i, k]) = D[i, k]
     D[k, j] = min(D[k, j], D[k, k] + D[k, j]) = D[k, j]
-therefore each other update that refers D[i, k] and D[k, j] will still refers those values from the last iteration
+therefore each other update that refers D[i, k] and D[k, j] will still refer those values from the last iteration
 exactly the same to FLOYD-WARSHALL defined in the text
 
 25.2-5
 it's no longer correct
 the behavior only changes when D[i, j] == D[i, k] + D[k, j]
-if both sides are finite, i ~> k ~> j is an equally optimal path to i ~> j computed in iteration k-1
+if both sides are finite, i ~> k ~> j is an equally optimal path compared to i ~> j computed in iteration k-1
 both the original D[i, j] or the path composed from D[i, k] and D[k, j] may be the solution to iteration k
 however if both sides are infinite, Π[i, j] must be NIL since j is not yet reachable from i in current iteration
 when D[i, k] = +∞ but D[k, j] is finite, Π[i, j] may be incorrectly updated to a non-NIL value Π[k, j]
@@ -8291,10 +8293,186 @@ like most other dynamic programming algorithm introduced in the text, Φ records
 a shortest path can be reconstructed from Φ, similar to s in matrix chain multiplication
 
 25.2-8
-first detect and exclude all the vertices with in degree = out degree = 0
+first detect and exclude all the vertices with in degree = out degree = 0 in O(V + E)
 transitive closure rows of these vertices will simply be a 1 in slot (i, i) for some i and all 0 otherwise
 the resulting graph must have |E| >= |V| / 2 since edges covers the vertices, |V| = O(E)
 run single source dfs from all the vertices, set the entries according to the colors of vertices after dfs
-O(V(V + E)) = O(V^2 + VE) = O(VE) in total
+O(V(V + E) + V + E) = O(V^2 + VE) = O(VE) in total
 
 25.2-9
+errata: 
+    https://www.cs.dartmouth.edu/~thc/clrs-bugs/bugs-3e.php 
+    change the time bound f(|V|, |E|) + O(V + E*) to O(f(|V|, |E|) + V + E*)
+compute SCCs and SCC graph of G in O(V + E)
+the SCC graph is acyclic with edges fewer than G, the transitive closure of it can be computed in f(|V|, |E|)
+group vertices with their SCC index u.cc, for each v ∈ V,
+    add (u, v) for each v in SCC reachable from u.cc by the transitive closure of SCC graph
+E* edges are added in total, running time O(f(|V|, |E|) + V + E*) combined
+
+25.3-1
+h: [ -5, -3, 0, -1, -6, -8 ]
+w: [ 0, 3, 0, 5, 0, 0, 8, 4, 0, 2 ]
+[ [ 0, 6, ∞, 8, -1, ∞ ],
+  [ -2, 0, ∞, 2, -3, ∞ ],
+  [ -5, -3, 0, -1, -6, -8 ],
+  [ -4, 2, ∞, 0, -5, ∞ ],
+  [ 5, 7, ∞, 9, 0, ∞ ],
+  [ 3, 5, 10, 7, 2, 0 ] ]
+
+25.3-2
+there may be no vertex u in G that all v ∈ V is reachable from u, δ(u, v) may be infinity
+with s and w(s, v) = 0 for all v ∈ V, δ(s, v) is well-defined and finite
+
+25.3-3
+δ(s, v) = 0 for all v ∈ V since w(u, v) >= 0 and w(s, v) = 0
+^w(u, v) = w(u, v) + δ(s, u) - δ(s, v) = w(u, v)
+
+25.3-4
+a shortest path according to ^w is not necessarily a shortest path according to w
+if w(u, v) = W a constant for all (u, v) ∈ E, w* = W
+^w(u, v) = w(u, v) - w* = 0 for all (u, v) ∈ E
+a shortest path according to w is a path u ~> v with fewest edges
+a shortest path according to ^w is just any path u ~> v
+
+25.3-5
+let c = (v0, .., vk) where v0 = vk
+edges on the cycle thus are (v0, v1) .. (vk-1, vk)
+by equation 25.10
+    Σ^w(vj-1, vj) = ^w(c) = w(c) = 0
+by definition, ^w(vj-1, vj) >= 0, hence ^w(vj-1, vj) = 0 for all 0 <= j <= k
+
+25.3-6
+define G with vertices u, v and edge (u, v), w(u, v) = c
+when v is chosen as the start vertex, h(v) = 0, h(u) = +∞, ^w(u, v) = +∞, c is lost
+if G is strongly connected, from any u δ(u, v) is finite for all v ∈ V
+h(v) computed will be finite, the w(u, v) can be recovered from  ^w(u, v)
+
+25-1
+a.  assume an edge (u, v) is added to G, let T be the transitive matrix
+    if T[u, v] == true, the new edge will not change G*
+    otherwise if u is reachable from some vertex s, all t ∈ Adj*[v] is now reachable from s
+    similar to u, if T[s, v] == true, adding (u, v) will not update Adj*[s]
+    all such s can be find by scanning a column in O(V), then row s and v is zipped with || operator in O(V)
+    overall running time is O(V^2)
+b.  define a graph in which:
+        let s, t be two distinct vertices
+        E = {(s, v) | v ∈ V} ∪ {(v, t) | v ∈ V}
+    hence each vertex is reachable from s, t is reachable from all vertices
+    Adj*[v] = {v, t} for v ∈ V - {s, t}, Adj*[s] = V, Adj*[t] = {t}
+    |E*| = 2(|V|-2) + 1 + |V| = 3|V| - 3
+    add the edge (t, s) to the graph makes each vertex reachable from any other vertices
+    |E*| = |V|^2, |V|^2 - 3|V| + 3 = Ω(V^2) entries have to be set from 0 to 1
+c.  algorithm described in part a has already achieved the upper bound
+    if no zip operation is triggered (T[s, v] == true for all s), the algorithm scans a column and terminate in O(V)
+    if otherwise some zip operation is triggered, it sets T[s, v] to true, which is originally false
+    there are |V|^2 entries in the matrix, after |V|^2 zip operations, no further zip operations may happen
+    the aggregated running time thereby is O(nV + V^3)
+    since there are at most |V|^2 edges in G, n = O(V^2), overall running time is O(V^3)
+
+25-2
+a.  by 6-2:
+        (n^α)^(1/α) = n, thus log(n^α, n) = 1/α
+        INSERT:         O(log(d, n)) = O(1/α) = O(1)
+        EXTRACT-MIN:    O(dlog(d, n)) = O(n^α * 1/α) = O(n^α)
+        DECREASE-KEY:   O(log(d, n)) = O(1)
+    fibonacci heap:
+        INSERT:         O(1)
+        EXTRACT-MIN:    O(lgn)
+        DECREASE-KEY:   O(1)
+b.  using Dijkstra's algorithm
+    shortest paths can be computed with O(V) INSERT, O(V) EXTRACT-MIN and O(E) DECREASE-KEY
+    let α = ε, O(V) EXTRACT-MIN can be done in O(V * V^α) = O(V^(1 + ε)) = O(E)
+    O(V + E + E) = O(E) combined
+c.  run the algorithm described in part b from each vertex
+    O(VE) in total
+d.  reweight edges in the same way to Johnson's algorithm in O(VE) before running algorithm in part c, O(VE) in total
+
+Chapter 26
+26.1-1
+let f be a maximum flow of G
+f(u, v) <= c(u, v), the flow can go through u ~> x ~> v instead since
+    c'(u, x) = c'(x, v) = c(u, v) >= f(u, v)
+    x doesn't exist in D, no flow through x in f
+let f' be the flow where f'(u, v) = 0 and f'(u, x) = f'(x, v) = f(u, v)
+f(u, v) amount of flow still leaves u and enters v
+f' is a valid flow defined on G' with same amount of flow leaving s to f
+let f' be a maximum flow of G'
+since (u, x) is the only edge entering x, (x, v) is the only edge leaving x
+by flow conservation, f'(u, x) = f'(x, v) <= c'(x, v) = c(u, v)
+the flow can go through (u, v) instead, still f(u, v) = f'(u, x) = f'(x, v) enters v and leaves u
+f is a valid flow with same amount of flow leaving s to f
+therefore the maximum flow of G is no greater than the maximum of G' and vice versa
+G and G' have the same maximum flow
+
+26.1-2
+it's not equivalent
+let |fi| be the flow of a source si, |gi| be the flow of a sink ti
+when |f| < 0, there's no trivial way to redirect the additional flow into some source to restore flow conservation
+assume |f| >= 0, the flow into each source si is less or equal to the flow leaving each source
+add a supersource and set f(s, si) = |fi| for each source si (always possible since c(s, si) = +∞)
+symmetrically add a supersink and set f(ti, t) = -|gi|
+flow conservation is restored for all sources and sinks, the resulting flow is still valid
+conversely the supersink and supersource can be simply removed with incident edges
+as supersource and supersink have edges only to sinks and sources, removing them will not violate flow conservation
+
+26.1-3
+thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch26.pdf
+let d(u) = Σf(u, v) - Σf(v, u)
+by flow conservation, d(u) = 0 for all u ∈ V - {s, t}
+each flow leaving a vertex must enter another, Σd(u) = 0, thus |f| = d(s) = -d(t)
+if for some v0, f(v0, u) > 0
+by flow conservation, there must be the same amount of flow leaving u
+let w0 be a vertex that f(u, w0) > 0, w0 must exist
+if there is a path s ~> u, there's no path u ~> t
+by flow conservation, until reaching t
+the path u ~> wi can always be extended with an edge (wi, wi+1) which has f(wi, wi+1) > 0
+but there's no path u ~> t and |G.V| is finite, u ~> wi must form a cycle somewhere
+decrease all f(wi, wi+1) by the minimum flow on the cycle then sets at least one positive f(wi, wi+1) to 0
+the decrease will not affect |f| since t is not on the cycle, d(t) will not be changed as well as d(s)
+symmetrically if there is a path u ~> t, one positive f(wi, wi+1) may be decreased to 0 without affecting |f|
+as long as Σf(u, v) > 0, positive flow on some edge can be decreased to zero
+since |G.E| is finite, there is a maximum flow where Σf(u, v) = Σf(v, u) = 0
+
+26.1-4
+for any u ∈ V - {s, t}
+if f1 and f2 are valid flows, for each flow (v, u) entering u,
+    f1(v, u) <= c(v, u), αf1(v, u) <= αc(v, u)
+    f2(v, u) <= c(v, u), (1 - α)f2(v, u) <= (1-α)c(v, u)
+    αf1(v, u) + (1-α)f2(v, u) <= αc(v, u) + (1-α)c(v, u) = c(v, u)
+symmetrically for each flow (u, v) leaving u, αf1(u, v) + (1-α)f2(u, v) <= c(u, v)
+the flow f' = αf1 + (1-α)f2 satisfies capacity constraint
+also for any u ∈ V - {s, t}
+    Σf'(v, u)   = αΣf1(v, u) + (1-α)Σf2(v, u)
+                = αΣf1(u, v) + (1-α)Σf2(u, v)
+                = Σf'(u, v)
+f' also satisfies flow conservation, f' is a valid flow defind on the graph
+
+26.1-5
+define an unknown for each edge
+flow conservation can be translated to
+    (u, v) <= c(u, v)
+flow conservation around a vertex u can be translated to
+    Σ(v ∈ V)(v, u) - Σ(v ∈ V)(u, v) = 0
+the objective function is
+    Σ(v ∈ V)(s, v) - Σ(v ∈ V)(v, s)
+
+26.1-6
+give each road a capacity 1
+determine the maximum flow |f| from the house to the school
+iff |f| >= 2, it's possible to send both children to school
+
+26.1-7
+define G' by divide each vertex u to two vertices ui, uo and an edge (ui, uo)
+c'(ui, u0) = c(u), the vertex capacity of u
+each edge enters u now enters ui, each edge leaves u now leaves uo, their capacity unchanged
+a valid flow f in G is a valid flow in G' since:
+    capacity constraint of each edge in G still satisfied
+    Σf(v, u) <= c(u) = c'(ui, u0) = Σf(u, v), capacity constraint of each (ui, u0) is satisfied
+    Σf'(v, ui) = Σf(v, u) = Σf(u, v) = Σf'(uo, v)
+    by setting f(ui, u0) = Σf(u, v) = Σf(v, u), flow conservation of each new vertex is restored
+conversely:
+    since (ui, uo) is the only edge entering uo and the only edge leaving ui
+    Σf'(v, ui) = Σf'(uo, v) = f'(ui, uo) <= c(ui, uo) = c(u)
+    merging ui and uo satisfies vertex capacities
+|V'| = 2(|V| - 2) + 2, |E'| = (|V| - 2) + |V|
+
