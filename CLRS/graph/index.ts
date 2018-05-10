@@ -20,6 +20,11 @@ import {
   Vertex,
 } from "./directed-graph";
 import {
+  edmondsKarp,
+  flowCheck,
+  flowReport,
+} from "./maximum-flow";
+import {
   dijkstraCheck,
   minimumMeanWeightCycle,
   spBellmanFord,
@@ -31,7 +36,7 @@ import {
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_25_3_1();
+  problem_26_2_3();
 }
 
 function problem_22_2_1() {
@@ -53,10 +58,11 @@ function problem_22_2_1() {
     [6, 6],
   ].forEach(([i, j]) => G.createEdge(V[i], V[j]));
 
-  let [d, p] = bfs(G, V[3]);
+  let attrs = bfs(G, V[3]);
   for (let i = 1; i <= 6; i++) {
-    let parent = p[V[i].key];
-    let distance = d[V[i].key];
+    let ia = attrs[V[i].key];
+    let parent = ia.p;
+    let distance = ia.d;
     console.log(`${V[i].name}.d = ${distance}, ${V[i].name}.π = ${parent ? parent.name : "NIL"}`);
   }
 }
@@ -87,11 +93,12 @@ function problem_22_2_2() {
     G.createEdge(V[v], V[u]);
   });
 
-  let [d, p] = bfs(G, V["u"]);
+  let attrs = bfs(G, V["u"]);
   for (let name of Object.keys(V)) {
     let v = V[name];
-    let dist = d[v.key];
-    let parent = p[v.key];
+    let va = attrs[v.key];
+    let dist = va.d;
+    let parent = va.p;
     console.log(`${name}.d = ${dist}, ${name}.π = ${parent ? parent.name : "NIL"}`);
   }
 }
@@ -438,6 +445,27 @@ function problem_25_3_1() {
 
   console.log(floydWarshall(W)[0]);
   console.log(johnson(G));
+}
+
+function problem_26_2_3() {
+  let G = WeightedGraph.fromDirected(
+    "s v1 v2 v3 v4 t",
+    [
+      "s v1 16", "s v2 13",
+      "v1 v3 12",
+      "v2 v1 4", "v2 v4 14",
+      "v3 v2 9", "v3 t 20",
+      "v4 v3 7", "v4 t 4",
+    ],
+  );
+  let V = G.vertexMap();
+  let s = V["s"];
+  let t = V["t"];
+
+  let f = edmondsKarp(G, s, t);
+  console.log("Final result");
+  flowReport(G, s, f);
+  flowCheck(G, s, t, f);
 }
 
 main();

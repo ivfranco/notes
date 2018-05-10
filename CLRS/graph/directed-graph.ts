@@ -1,8 +1,8 @@
 export {
   Graph, Vertex, Edge,
-  Color, EdgeType,
-  DFS, DFSVertexAttrs, DFSEdgeAttrs,
-  bfs, dfs,
+  Color, EdgeType, showEdge,
+  bfs, BFSAttrs,
+  dfs, DFS, DFSVertexAttrs, DFSEdgeAttrs,
   dfsReport,
   alterTopologicalSort,
   numberOfPaths,
@@ -148,39 +148,48 @@ enum Color {
   BLACK = "BLACK",
 }
 
-function bfs<V extends Vertex>(G: Graph<V, Edge<V>>, s: V): [number[], Array<V | null>] {
-  let color: Color[] = [];
-  let d: number[] = [];
-  let p: Array<V | null> = [];
+interface BFSAttrs<V, E> {
+  color: Color;
+  d: number;
+  p: V | null;
+  e: E | null;
+}
 
-  for (let v of G.vertices()) {
-    let k = v.key;
-    color[k] = Color.WHITE;
-    d[k] = +Infinity;
-    p[k] = null;
+function bfs<V extends Vertex, E extends Edge<V>>(G: Graph<V, E>, s: V): Array<BFSAttrs<V, E>> {
+  let attrs: Array<BFSAttrs<V, E>> = [];
+
+  for (let { key } of G.vertices()) {
+    attrs[key] = {
+      color: Color.WHITE,
+      d: +Infinity,
+      p: null,
+      e: null,
+    };
   }
 
-  color[s.key] = Color.GRAY;
-  d[s.key] = 0;
-  p[s.key] = null;
+  attrs[s.key].color = Color.GRAY;
+  attrs[s.key].d = 0;
 
   let Q: Queue<V> = new Queue(G.size());
   Q.enqueue(s);
   while (!Q.isEmpty()) {
     let u = Q.dequeue();
+    let ua = attrs[u.key];
     for (let e of G.edgeFrom(u)) {
       let v = e.to;
-      if (color[v.key] === Color.WHITE) {
-        color[v.key] = Color.GRAY;
-        d[v.key] = d[u.key] + 1;
-        p[v.key] = u;
+      let va = attrs[v.key];
+      if (va.color === Color.WHITE) {
+        va.color = Color.GRAY;
+        va.d = ua.d + 1;
+        va.p = u;
+        va.e = e;
         Q.enqueue(v);
       }
     }
-    color[u.key] = Color.BLACK;
+    ua.color = Color.BLACK;
   }
 
-  return [d, p];
+  return attrs;
 }
 
 enum EdgeType {

@@ -8476,3 +8476,178 @@ conversely:
     merging ui and uo satisfies vertex capacities
 |V'| = 2(|V| - 2) + 2, |E'| = (|V| - 2) + |V|
 
+26.2-1
+since V1 = {v | (s, v) ∈ E},
+    Σ(v ∈ V - V1)f(s, v) = 0
+    Σ(v ∈ V)f(s, v) = Σ(v ∈ V1)f(s, v)
+similarly since V2 = {v | (v, s) ∈ E},
+    Σ(v ∈ V - V2)f(v, s) = 0
+    Σ(v ∈ V)f(v, s) = Σ(v ∈ V2)f(v, s)
+by the definition of residual graph, f'(s, v) > 0 iff f(s, v) > 0 or f(v, s) > 0
+which means (s, v) ∈ E or (v, s) ∈ E, v ∈ V1 ∪ V2
+    Σ(v ∈ V - (V1 ∪ V2))f'(s, v) = 0
+    Σ(v ∈ V)f'(s, v) = Σ(v ∈ V1 ∪ V2)f'(s, v)
+similarly,
+    Σ(v ∈ V - (V1 ∪ V2))f'(v, s) = 0
+    Σ(v ∈ V)f'(v, s) = Σ(v ∈ V1 ∪ V2)f'(v, s)
+
+26.2-2
+flow is 11 + 1 + 7 + 4 - 4 = 19
+capacity is 16 + 4 + 7 + 4 = 31
+
+26.2-3
+Before iteration 0
+s -> v1: 0/16
+s -> v2: 0/13
+v1 -> v3: 0/12
+v2 -> v1: 0/4
+v2 -> v4: 0/14
+v3 -> v2: 0/9
+v3 -> t: 0/20
+v4 -> v3: 0/7
+v4 -> t: 0/4
+The maximum flow is 0
+Before iteration 1
+s -> v1: 12/16
+s -> v2: 0/13
+v1 -> v3: 12/12
+v2 -> v1: 0/4
+v2 -> v4: 0/14
+v3 -> v2: 0/9
+v3 -> t: 12/20
+v4 -> v3: 0/7
+v4 -> t: 0/4
+The maximum flow is 12
+Before iteration 2
+s -> v1: 12/16
+s -> v2: 4/13
+v1 -> v3: 12/12
+v2 -> v1: 0/4
+v2 -> v4: 4/14
+v3 -> v2: 0/9
+v3 -> t: 12/20
+v4 -> v3: 0/7
+v4 -> t: 4/4
+The maximum flow is 16
+Final result
+s -> v1: 12/16
+s -> v2: 11/13
+v1 -> v3: 12/12
+v2 -> v1: 0/4
+v2 -> v4: 11/14
+v3 -> v2: 0/9
+v3 -> t: 19/20
+v4 -> v3: 7/7
+v4 -> t: 4/4
+The maximum flow is 23
+
+26.2-4
+the minimum cut is ({s, v1, v2, v4}, {v3, t}) with capacity 23
+c cancels f(v3, v2)
+
+26.2-5
+by lemma 26.4, any cut has net flow |f|
+assume there are no edges with infinite capacity in the original multi-source/sink graph G
+|f| must be finite in G
+let ss, st be the supersource and supersink in the resulting graph G'
+the cut ({ss}, G'.V - {ss}) has net flow |f|
+the only edges crossing the cut are (ss, si) for each source si in G, no edge entering ss
+hence |f| = Σf(ss, si) is finite, f(ss, si) >= 0, each f(ss, si) is finite
+similarly |f| = Σ(ti, st) is finite, each f(ti, st) is finite
+those are the only edges added to G', all flow in G' is finite
+
+26.2-6
+define c(ss, si) = pi and c(ti, st) = qi
+by an argument similar to 26.1-2, a valid flow in G is a valid flow in G'
+
+26.2-7
+as p is a simple path, each edge other than s and t on p is entered and leaved exactly once
+for a vertex u != s or t on p, 
+    exactly one edge entering u has flow cf(p)
+    exactly one edge leaving u has flow cf(p)
+Σfp(v, u) = cf(p) = Σfp(u, v), flow conservation is satisfied
+for a vertex u != s or t not on p,
+    all edges entering u have flow 0
+    all edges leaving u have flow 0
+Σfp(v, u) = 0 = Σfp(u, v), flow conservation is satisfied
+cf(p) is defined as min{cf(u, v) | (u, v) on p}
+for all edges (u, v) on p, cf(u, v) >= cf(p), capacity constraints are satisfied
+for all edges (u, v) not on p, cf(u, v) >= 0, capacity constraints are satisfied
+therefore fp is a valid flow defined on Gf
+there is exactly one edge leaving s and no edge entering s on p,
+    |f| = Σfp(s, v) - Σfp(v, s) = cf(p) - 0 = cf(p) >= 0
+
+26.2-8
+an augment path is simple and starts from s
+such edges will never be on any augment path, hence will not affect the algorithm
+
+26.2-9
+if (u, v) ∈ E, by definition of flow network (v, u) ∉ E
+    (f↑f')(u, v) = f(u, v) + f'(u, v) - f'(v, u) = f(u, v) + f'(u, v)
+    Σ(f↑f')(u, v) = Σf(u, v) + Σf'(u, v) = Σf(v, u) + Σf'(v, u) = Σ(f↑f')(v, u)
+flow conservation is still satisfied
+however capacity constraints are violated
+define G with vertices s, t and a single edge (s, t) with capacity 1
+a flow f(s, t) = 1 is a valid and maximum flow defined on G
+but (f↑f)(s, t) = 2 > c(s, t), the augmented flow is not valid
+
+26.2-10
+thanks http://www.cs.princeton.edu/courses/archive/spr03/cs423/download/PS5-solutions.doc
+by 26.2-8, there is always a maximum flow with no flow entering the source 
+given the maximum flow f, find any path p = s ~> t where f(u, v) > 0 for all (u, v) on p
+such a path always exist as long as |f| > 0:
+    if otherwise |f| > 0 and there's no path p = s ~> t where f(u, v) > 0 for all (u, v) on p
+    considering only the edges with positive flow, the graph is disconnected
+    thereby there must be a cut (S, T) that all edges crossing it has zero flow
+    by Lemma 26.4 |f| = 0, in contradiction to |f| > 0
+take fp = min{f(u, v) | (u, v) on p} > 0, decrease all f(u, v) on p by fp results another flow f'
+the residual graph Gf' must contain an augment path p, since c(u, v) >= f(u, v) > f(u, v) - fp = f'(u, v) on p
+f can be computed from augmenting f' with the path p and path flow fp
+also f' contains at least one more edge with zero flow compared to f
+after at most |E| such augmentation, |f| = 0
+by assumption no flow enters the source, Σf(s, v) - Σf(v, s) = Σf(s, v) = 0, f(s, v) = 0 for all v ∈ V
+if f(u, v) > 0 for some (u, v), it must be on a loop without reaching s or t
+since the procedure only decreases flows, it must contain such a loop back when it is still the maximum flow
+choose a maximum flow with no redundent loop of flow then guarentees f(u, v) = 0 for all (u, v) ∈ E after |E| steps
+reverse the process, an initial empty flow can be augmented to a maximum flow with at most |E| augmentation
+
+26.2-11
+on a directed graph with c(u, v) = 1 for each (u, v) ∈ E
+for any two vertices s and t, let f be the maximum flow from s to t
+similar to 26.1-6, |f| is the maximum number of edge-disjoint paths from s to t
+claim: |f| is the minimum number of edges have to be removed before there's no path between s and t
+    since there are |f| edge-disjoint paths from s to t
+    removing k < |f| edges will leave at least |f| - k > 0 such paths intact
+    thus removing k < |f| edges will not disconnect s and t
+    by max-flow min-cut theorem, there is a cut (S, T) of G with capacity |f|
+    Σ(u ∈ S, v ∈ T)c(u, v) = |f|, as c(u, v) = 1 for all (u, v), there are |f| edges from S to T
+    remove all of them thereby disconnects S and T, no path from s to t after the removing
+for a particular vertex s on an undirected graph G is disconnected iff there's some t that no path s ~> t exists
+hence by choosing randomly a source s and for all t ∈ V, calculate min{|f| | t ∈ V} gives the connectivity of G
+G have to be transformed first to a valid flow network G' with no antiparallel edges
+|G'.V| = |V| + |E|, |G'.E| = 3|E|
+(is there any way to remove antiparallel edges while keeping |G'.V| = O(V)?)
+
+26.2-12
+EDMONDS-KARP correctly computes a maximum flow by repeatedly finding augment paths
+an edge (v, s) will never appear on an augment path, hence EDMONDS-KARP will never set f(v, s) > 0
+the maximum flow computed by EDMONDS-KARP must have f(v, s) = 0 for all v ∈ V
+construct a new graph G' containing only edges (u, v) ∈ G.E where f(u, v) > 0 in O(V + E)
+do dfs from s, there must be a tree path s ~> v:
+    let S be the set of vertices v where there is a path s ~> v with positive flow
+    V - S is the set of vertices with no positive flow path from s
+    Σ(u ∈ V - S)Σ(v ∈ V)f(u, v) = Σ(u ∈ V - S)Σ(v ∈ V)f(v, u)
+    Σ(u ∈ V - S)Σ(v ∈ V - S)f(u, v) + Σ(u ∈ V - S)Σ(v ∈ S)f(u, v)
+    = Σ(u ∈ V - S)Σ(v ∈ V - S)f(v, u) + Σ(u ∈ V - S)Σ(v ∈ S)f(v, u)
+each flow within V - S enters and leaves exactly one vertex, thus
+    Σ(u ∈ V - S)Σ(v ∈ V - S)f(u, v) = Σ(u ∈ V - S)Σ(v ∈ V - S)f(v, u)
+    Σ(u ∈ V - S)Σ(v ∈ S)f(u, v) = Σ(u ∈ V - S)Σ(v ∈ S)f(v, u)
+by definition of V - S, 
+    Σ(u ∈ V - S)Σ(v ∈ S)f(v, u) = 0, otherwise u ∈ S
+    Σ(u ∈ V - S)Σ(v ∈ S)f(u, v) = Σ(u ∈ V - S)Σ(v ∈ S)f(v, u) = 0
+    f(u, v) = 0 for all u ∈ V - S and v ∈ S
+as f(v, s) > 0, there must be a positive path s ~> v, v is reachable from s during the dfs by white path theorem
+the tree path s ~> v and (v, s) forms a cycle
+by assumption, f(x, y) > 0 for (x, y) on the cycle, f(x, y) is integral, f(x, y) >= 1
+decrease all these f(x, y) by 1 sets f(v, s) to 0 and gives an equally optimal f'
+
