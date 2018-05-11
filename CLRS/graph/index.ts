@@ -15,6 +15,7 @@ import {
   numberOfPaths,
   PlainGraph,
   scc,
+  showEdge,
   singlyConnected,
   topologicalSort,
   Vertex,
@@ -23,6 +24,8 @@ import {
   edmondsKarp,
   flowCheck,
   flowReport,
+  maximumMatching,
+  pushRelabel,
 } from "./maximum-flow";
 import {
   dijkstraCheck,
@@ -36,7 +39,7 @@ import {
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  problem_26_2_3();
+  pushRelabelTest();
 }
 
 function problem_22_2_1() {
@@ -463,6 +466,48 @@ function problem_26_2_3() {
   let t = V["t"];
 
   let f = edmondsKarp(G, s, t);
+  console.log("Final result");
+  flowReport(G, s, f);
+  flowCheck(G, s, t, f);
+}
+
+function problem_26_3_1() {
+  let G = PlainGraph.fromDirected(
+    "1 2 3 4 5 6 7 8 9",
+    [
+      "1 6",
+      "2 6", "2 8",
+      "3 7", "3 8", "3 9",
+      "4 8",
+      "5 8",
+    ],
+  );
+  let V = G.vertexMap();
+  let L = [V["1"], V["2"], V["3"], V["4"], V["5"]];
+  let R = [V["6"], V["7"], V["8"], V["9"]];
+  let M = maximumMatching(G, L, R);
+  console.log("A maximum matching contains: ");
+  for (let e of M) {
+    console.log(showEdge(e));
+  }
+}
+
+function pushRelabelTest() {
+  let G = WeightedGraph.fromDirected(
+    "s v1 v2 v3 v4 t",
+    [
+      "s v1 16", "s v2 13",
+      "v1 v3 12",
+      "v2 v1 4", "v2 v4 14",
+      "v3 v2 9", "v3 t 20",
+      "v4 v3 7", "v4 t 4",
+    ],
+  );
+  let V = G.vertexMap();
+  let s = V["s"];
+  let t = V["t"];
+
+  let f = pushRelabel(G, s, t);
   console.log("Final result");
   flowReport(G, s, f);
   flowCheck(G, s, t, f);

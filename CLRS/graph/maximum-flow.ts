@@ -2,13 +2,18 @@ export {
   edmondsKarp,
   flowReport,
   flowCheck,
+  maximumMatching,
+  pushRelabel,
 };
 
-import { bfs, BFSAttrs, Color, Graph, showEdge, Vertex } from "./directed-graph";
+import { DList, DNode } from "../collection/dlist";
+import { minimumOn } from "../util";
+import { bfs, BFSAttrs, Color, Edge, Graph, showEdge, Vertex } from "./directed-graph";
 import { WeightedEdge, WeightedGraph } from "./weighted-graph";
 
 type ResidualGraph = WeightedGraph;
 type EdgeMap<E> = Array<[E, boolean]>;
+type Flow = number[];
 
 //  takes:
 //    1.  a graph
@@ -20,7 +25,7 @@ type EdgeMap<E> = Array<[E, boolean]>;
 //  the second mapping is not injective, two edges in residual graph may be mapped to the same edge in original graph
 //  thus an additional boolean indicates whether (u, v) in Gf corresponds to (u, v) or (v, u) in G
 function residualGraph<V extends Vertex, E extends WeightedEdge<V>>(
-  G: Graph<V, E>, f: number[],
+  G: Graph<V, E>, f: Flow,
 ): [ResidualGraph, Vertex[], EdgeMap<E>] {
   let edge_map: EdgeMap<E> = [];
   let Gf = new WeightedGraph();
@@ -63,7 +68,7 @@ function traverseBack<V extends Vertex, E>(attrs: Array<BFSAttrs<V, E>>, t: V): 
   return path;
 }
 
-function augmentPath<V extends Vertex, E extends WeightedEdge<V>>(f: number[], path: E[], e_map: EdgeMap<E>) {
+function augmentPath<V extends Vertex, E extends WeightedEdge<V>>(f: Flow, path: E[], e_map: EdgeMap<E>) {
   let cfp = Math.min(...path.map(e => e.weight));
   for (let ef of path) {
     let [e, same_direction] = e_map[ef.key];
@@ -75,7 +80,7 @@ function augmentPath<V extends Vertex, E extends WeightedEdge<V>>(f: number[], p
   }
 }
 
-function edmondsKarp<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): number[] {
+function edmondsKarp<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
   let f: number[] = [];
   for (let e of G.edges()) {
     f[e.key] = 0;
@@ -85,10 +90,11 @@ function edmondsKarp<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
   let sf = v_map[s.key];
   let tf = v_map[t.key];
   let attrs = bfs(Gf, sf);
-  // let iter = 0;
+  let iter = 0;
   while (attrs[tf.key].color === Color.BLACK) {
-    // console.log(`Before iteration ${iter}`);
-    // iter++;
+    console.log(`Before iteration ${iter}`);
+    console.log(Gf.show());
+    iter++;
     // flowReport(G, s, f);
     let path = traverseBack(attrs, tf);
     augmentPath(f, path, e_map);
@@ -101,7 +107,7 @@ function edmondsKarp<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
   return f;
 }
 
-function flowCheck(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, t: Vertex, f: number[]) {
+function flowCheck(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, t: Vertex, f: Flow) {
   for (let e of G.edges()) {
     let { key: k, weight: c } = e;
     console.assert(c >= f[k], `Capacity constraints not satisfied on edge ${showEdge(e)}`);
@@ -123,7 +129,7 @@ function flowCheck(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, t: Vertex,
   }
 }
 
-function flowReport(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, f: number[]) {
+function flowReport(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, f: Flow) {
   for (let { key: k, from: u, to: v, weight: c } of G.edges()) {
     console.log(`${u.name} -> ${v.name}: ${f[k]}/${c}`);
   }
@@ -138,4 +144,245 @@ function flowReport(G: Graph<Vertex, WeightedEdge<Vertex>>, s: Vertex, f: number
     }
   }
   console.log(`The maximum flow is ${flow}`);
+}
+
+function maximumMatching<V extends Vertex, E extends Edge<V>>(G: Graph<V, E>, L: V[], R: V[]): E[] {
+  let H = new WeightedGraph();
+  H.mapFrom(G, v => v, e => Object.assign({}, e, { weight: 1 }));
+  let s = H.createVertex("s");
+  let t = H.createVertex("t");
+  for (let v of L) {
+    H.createEdge(s, v, 1);
+  }
+  for (let v of R) {
+    H.createEdge(v, t, 1);
+  }
+
+  let f = edmondsKarp(H, s, t);
+  return Array.from(G.edges()).filter(e => f[e.key] > 0);
+}
+
+interface PRVertex extends Vertex {
+  h: number;
+  e: number;
+}
+
+interface PREdge extends WeightedEdge<PRVertex> {
+  f: number;
+  cf: number;
+  forward: boolean;
+  reverse: this;
+}
+
+class PRGraph extends Graph<PRVertex, PREdge> {
+  private nullEdge!: PREdge;
+
+  protected vertexFactory(name: string, k: number): PRVertex {
+    return {
+      name,
+      key: k,
+      h: 0,
+      e: 0,
+    };
+  }
+
+  protected edgeFactory(u: PRVertex, v: PRVertex, k: number, w?: number): PREdge {
+    return {
+      key: k,
+      from: u,
+      to: v,
+      weight: w ? w : 0,
+      f: 0,
+      cf: 0,
+      forward: true,
+      reverse: this.nullEdge,
+    };
+  }
+
+  public createEdge(u: PRVertex, v: PRVertex, w?: number): PREdge {
+    let e = this.edgeFactory(u, v, this.e_counter, w);
+    this.e_counter++;
+    this.Adj[u.key].push(e);
+    return e;
+  }
+
+  public fromWeighted<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>): E[] {
+    let V: PRVertex[] = [];
+    let e_map: E[] = [];
+    for (let v of G.vertices()) {
+      V[v.key] = this.createVertex(v.name);
+    }
+    for (let e of G.edges()) {
+      let { from: u, to: v, weight: c } = e;
+      //  the forward edge that's also in G.E
+      let f = this.createEdge(V[u.key], V[v.key], c);
+      //  the backward edge that only exists in Gf
+      let b = this.createEdge(V[v.key], V[u.key]);
+      f.reverse = b;
+      b.reverse = f;
+      b.forward = false;
+      updateFlow(f, 0);
+      e_map[f.key] = e;
+      e_map[b.key] = e;
+    }
+
+    return e_map;
+  }
+
+  public report(): void {
+    for (let v of this.vertices()) {
+      console.log(`${v.name}: e = ${v.e}, h = ${v.h}`);
+    }
+    for (let e of this.edges()) {
+      console.log(`${showEdge(e)}: f = ${e.f}, c = ${e.weight}, cf = ${e.cf}, ${e.forward ? "forward" : ""}`);
+    }
+  }
+
+  public diagnose() {
+    let balance: number[] = new Array(this.size());
+    balance.fill(0);
+    for (let v of this.vertices()) {
+      balance[v.key] -= v.e;
+    }
+    for (let e of this.edges()) {
+      let { from: u, to: v } = e;
+      if (e.forward) {
+        balance[u.key] -= e.f;
+        balance[v.key] += e.f;
+      }
+      //  capacity constraints
+      console.assert(e.f <= e.weight, `capacity constraints on edge ${showEdge(e)} not satisfied`);
+      //  validity of residual graph
+      if (e.forward) {
+        console.assert(e.cf === e.weight - e.f, `residual capacity on forward edge ${showEdge(e)} is incorrect`);
+      } else {
+        console.assert(e.cf === e.reverse.f, `residual capacity on backward edge ${showEdge(e)} is incorrect`);
+      }
+      //  validity of height function
+      if (e.cf > 0) {
+        console.assert(u.h <= v.h + 1, `${showEdge(e)} ∈ Ef but h(${u.name}) > h(${v.name}) + 1`);
+      }
+    }
+
+    //  preflow conservation
+    for (let v of this.vertices()) {
+      console.assert(balance[v.key] === 0, `Preflow conservation on ${v.name} not satisfied`);
+    }
+  }
+}
+
+type Pushable<E> = E[][];
+
+function updateFlow(e: PREdge, f: number) {
+  console.assert(e.forward === true, "only the flow of an edge in E can be updated");
+  console.assert(f >= 0 && f <= e.weight, "flow of an edge must be in the range 0 <= f(u, v) <= c(u, v)");
+
+  let d = f - e.f;
+  let { from: u, to: v } = e;
+  u.e -= d;
+  v.e += d;
+
+  e.f = f;
+  e.cf = e.weight - e.f;
+  e.reverse.cf = f;
+}
+
+function initializePreflow<V extends Vertex, E extends WeightedEdge<V>>(
+  G: Graph<V, E>, s: V,
+): [PRGraph, E[]] {
+  let H = new PRGraph();
+  let e_map = H.fromWeighted(G);
+
+  let hs = H.vertexMap()[s.name];
+  hs.h = H.size();
+
+  for (let e of H.edgeFrom(hs)) {
+    let { to: v, weight: c } = e;
+    updateFlow(e, c);
+  }
+
+  return [H, e_map];
+}
+
+function push(e: PREdge) {
+  let { from: u, to: v } = e;
+  console.assert(u.e > 0, `${u.name} on push must be overflowing`);
+  console.assert(e.cf > 0, `capacity of ${showEdge(e)} in residual graph must be positive`);
+  console.assert(u.h === v.h + 1, `${u.name} must have height one higher than ${v.name}`);
+
+  let d = Math.min(u.e, e.cf);
+  if (e.forward) {
+    updateFlow(e, e.f + d);
+  } else {
+    updateFlow(e.reverse, e.reverse.f - d);
+  }
+}
+
+//  returns a pushable edge from u
+function relabel(G: PRGraph, u: PRVertex): PREdge[] {
+  console.assert(u.e > 0, `${u.name} must be overflowing for relabel to apply`);
+  //  only edges in Ef (i.e. with positive cf) are considered
+  let adj = Array.from(G.edgeFrom(u)).filter(e => e.cf > 0);
+  let min_h = Math.min(...adj.map(e => e.to.h));
+  console.assert(u.h <= min_h, `${u.name} must have height no higher than any adjacent vertices`);
+  u.h = min_h + 1;
+  return adj.filter(e => e.to.h === u.h - 1);
+}
+
+function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
+  let [H, e_map] = initializePreflow(G, s);
+  let V = H.vertexMap();
+  let hs = V[s.name];
+  let ht = V[t.name];
+  let pushable: Pushable<PREdge> = [];
+  //  initially s = |V| >= 2, other vertices have u.h == 0, no edge is pushable
+  for (let i = 0, size = H.size(); i < size; i++) {
+    pushable[i] = [];
+  }
+
+  let exceeding: DList<PRVertex> = new DList();
+  let N: Array<DNode<PRVertex>> = [];
+  for (let v of H.vertices()) {
+    let node = new DNode(v);
+    N[v.key] = node;
+    if (v.e > 0 && v !== hs && v !== ht) {
+      exceeding.append(node);
+    }
+  }
+
+  while (!exceeding.isEmpty()) {
+    console.log("");
+    H.report();
+    H.diagnose();
+    let node = exceeding.head as DNode<PRVertex>;
+    let u = node.key;
+    let stack = pushable[u.key];
+    if (stack.length === 0) {
+      pushable[u.key] = relabel(H, u);
+    } else {
+      let e = stack[stack.length - 1];
+      let v = e.to;
+      let v_may_overflow = v.e === 0 && v !== hs && v !== ht;
+      push(e);
+      if (u.e === 0) {
+        exceeding.delete(node);
+      }
+      if (e.cf === 0) {
+        stack.pop();
+      }
+      if (v_may_overflow && v.e > 0) {
+        exceeding.append(N[v.key]);
+      }
+    }
+  }
+
+  let f: Flow = [];
+  for (let e of H.edges()) {
+    if (e.forward) {
+      let k = e_map[e.key].key;
+      f[k] = e.f;
+    }
+  }
+
+  return f;
 }

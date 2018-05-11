@@ -80,6 +80,15 @@ class WeightedGraph extends Graph<Vertex, WeightedEdge<Vertex>> {
     this.Adj[v.key].push(f);
     return [e, f];
   }
+
+  public show(): string {
+    let s = "";
+    for (let e of this.edges()) {
+      s += showWeighted(e);
+      s += "\n";
+    }
+    return s;
+  }
 }
 
 //  return type of MST functions
