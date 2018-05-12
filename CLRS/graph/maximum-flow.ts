@@ -7,7 +7,6 @@ export {
 };
 
 import { DList, DNode } from "../collection/dlist";
-import { minimumOn } from "../util";
 import { bfs, BFSAttrs, Color, Edge, Graph, showEdge, Vertex } from "./directed-graph";
 import { WeightedEdge, WeightedGraph } from "./weighted-graph";
 
@@ -175,7 +174,8 @@ interface PREdge extends WeightedEdge<PRVertex> {
 }
 
 class PRGraph extends Graph<PRVertex, PREdge> {
-  private nullEdge!: PREdge;
+  //  a dummy edge, should immediately be replaced by a real edge upon edge construction
+  private readonly nullEdge!: PREdge;
 
   protected vertexFactory(name: string, k: number): PRVertex {
     return {
@@ -217,7 +217,7 @@ class PRGraph extends Graph<PRVertex, PREdge> {
       //  the forward edge that's also in G.E
       let f = this.createEdge(V[u.key], V[v.key], c);
       //  the backward edge that only exists in Gf
-      let b = this.createEdge(V[v.key], V[u.key]);
+      let b = this.createEdge(V[v.key], V[u.key], 0);
       f.reverse = b;
       b.reverse = f;
       b.forward = false;
@@ -257,6 +257,7 @@ class PRGraph extends Graph<PRVertex, PREdge> {
         console.assert(e.cf === e.weight - e.f, `residual capacity on forward edge ${showEdge(e)} is incorrect`);
       } else {
         console.assert(e.cf === e.reverse.f, `residual capacity on backward edge ${showEdge(e)} is incorrect`);
+        console.assert(e.f === 0 && e.weight === 0, `backward edge ${showEdge(e)} has non-zero flow or capacity`);
       }
       //  validity of height function
       if (e.cf > 0) {
@@ -271,8 +272,8 @@ class PRGraph extends Graph<PRVertex, PREdge> {
   }
 }
 
-type Pushable<E> = E[][];
-
+//  updates everything may be changed by a new flow
+//  namely u.e, v.e, (u, v).f, (u, v).cf, (v, u).cf
 function updateFlow(e: PREdge, f: number) {
   console.assert(e.forward === true, "only the flow of an edge in E can be updated");
   console.assert(f >= 0 && f <= e.weight, "flow of an edge must be in the range 0 <= f(u, v) <= c(u, v)");
@@ -294,7 +295,7 @@ function initializePreflow<V extends Vertex, E extends WeightedEdge<V>>(
   let e_map = H.fromWeighted(G);
 
   let hs = H.vertexMap()[s.name];
-  hs.h = H.size();
+  hs.h = H.size() - 2;
 
   for (let e of H.edgeFrom(hs)) {
     let { to: v, weight: c } = e;
@@ -318,60 +319,91 @@ function push(e: PREdge) {
   }
 }
 
-//  returns a pushable edge from u
-function relabel(G: PRGraph, u: PRVertex): PREdge[] {
+//  returns
+//    1. a list of new pushable edges (from u or to u)
+//    2. a list of edges no longer pushable to u
+function relabel(G: PRGraph, u: PRVertex): [PREdge[], PREdge[]] {
   console.assert(u.e > 0, `${u.name} must be overflowing for relabel to apply`);
+  //  u.h is increased by at least 1, these edges originally pushable to u are no longer pushable
+  //  as u.h <= min{v.h | (u, v) ∈ Ef}, no edge from u is pushable before relabel
+  let unpushable = Array.from(G.edgeFrom(u))
+    .map(e => e.reverse)
+    .filter(e => e.cf > 0 && e.from.h === u.h + 1);
+
   //  only edges in Ef (i.e. with positive cf) are considered
   let adj = Array.from(G.edgeFrom(u)).filter(e => e.cf > 0);
   let min_h = Math.min(...adj.map(e => e.to.h));
   console.assert(u.h <= min_h, `${u.name} must have height no higher than any adjacent vertices`);
   u.h = min_h + 1;
-  return adj.filter(e => e.to.h === u.h - 1);
+  let pushable = adj.filter(e => e.to.h === u.h - 1);
+  for (let e of G.edgeFrom(u)) {
+    let b = e.reverse;
+    if (b.cf > 0 && b.from.h === u.h + 1) {
+      pushable.push(b);
+    }
+  }
+
+  return [pushable, unpushable];
 }
+
+type Pushable = Array<DList<PREdge>>;
 
 function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
   let [H, e_map] = initializePreflow(G, s);
   let V = H.vertexMap();
   let hs = V[s.name];
   let ht = V[t.name];
-  let pushable: Pushable<PREdge> = [];
+  let pushable: Pushable = [];
   //  initially s = |V| >= 2, other vertices have u.h == 0, no edge is pushable
   for (let i = 0, size = H.size(); i < size; i++) {
-    pushable[i] = [];
+    pushable[i] = new DList();
+  }
+  let NE: Array<DNode<PREdge>> = [];
+  for (let e of H.edges()) {
+    NE[e.key] = new DNode(e);
   }
 
   let exceeding: DList<PRVertex> = new DList();
-  let N: Array<DNode<PRVertex>> = [];
+  let NV: Array<DNode<PRVertex>> = [];
   for (let v of H.vertices()) {
     let node = new DNode(v);
-    N[v.key] = node;
+    NV[v.key] = node;
     if (v.e > 0 && v !== hs && v !== ht) {
       exceeding.append(node);
     }
   }
 
   while (!exceeding.isEmpty()) {
-    console.log("");
-    H.report();
-    H.diagnose();
-    let node = exceeding.head as DNode<PRVertex>;
-    let u = node.key;
-    let stack = pushable[u.key];
-    if (stack.length === 0) {
-      pushable[u.key] = relabel(H, u);
+    // console.log("");
+    // H.report();
+    // H.diagnose();
+    let u_node = exceeding.head as DNode<PRVertex>;
+    let u = u_node.key;
+    let u_pushable = pushable[u.key];
+    if (u_pushable.isEmpty()) {
+      let [edge_added, edge_deleted] = relabel(H, u);
+      for (let e of edge_added) {
+        let v = e.from;
+        pushable[v.key].append(NE[e.key]);
+      }
+      for (let e of edge_deleted) {
+        let v = e.from;
+        pushable[v.key].delete(NE[e.key]);
+      }
     } else {
-      let e = stack[stack.length - 1];
+      let e_node = u_pushable.head as DNode<PREdge>;
+      let e = e_node.key;
       let v = e.to;
       let v_may_overflow = v.e === 0 && v !== hs && v !== ht;
       push(e);
       if (u.e === 0) {
-        exceeding.delete(node);
+        exceeding.delete(u_node);
       }
       if (e.cf === 0) {
-        stack.pop();
+        u_pushable.delete(e_node);
       }
       if (v_may_overflow && v.e > 0) {
-        exceeding.append(N[v.key]);
+        exceeding.append(NV[v.key]);
       }
     }
   }

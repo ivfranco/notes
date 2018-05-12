@@ -8735,7 +8735,7 @@ on termination, f(u, v) are integers for all (u, v) ∈ E
 
 26.3-3
 let M* be a maximum matching of G
-|p| <= min(2|M*| - 1) + 2
+|p| <= 2|M*| + 1
 the augment path p must contain exactly one edge leaving s and exactly one edge entering t
 there's only edges from L to R in G, a back edge in residual graph must be from R to L
 let f be the flow before augmentation, f' be the flow after augmentation
@@ -8777,14 +8777,61 @@ therefore |N(A) >= |A| for all A ⊆ L, there is a matching of cardinality |L| b
 s.e = Σc(s, v) = c(s, V - {s}), by min-cut max-flow theorem s.e >= |f*|
 
 26.4-2
+./CLRS/graph/maximum-flow.ts#pushRelabel
 relabel can be implemented by explicitly examining all edges in Adj[u] in Gf
     |Adj[u]| <= |V|, relabel can be done in O(V)
-    additionally relabel operation updates an attribute u.edge, an edge (u, v) with u.h = v.h + 1 or NIL
+    additionally relabel searchs for new pushable edges and edges no longer pushable after the relabel
+    remove and append them to corresponding lists described below
+    both can be done in O(1) traversal of Adj[u], O(V) in total
 by taking pointer to an edge, all operations within push takes constant time
     push can be done in O(1)
     additionally push adds or removes node from a doubly linked list described below in O(1)
-maintain a doubly linked list of all the vertices with u.e > 0
+maintain 
+    a doubly linked list of all the vertices with u.e > 0
+    an array of doubly linked list of edges pushable from each vertex
 by lemma 26.14, if u.e > 0, either push or relabel applies
 by theorem 26.18, if no u.e > 0, the procedure terminates with a valid maximum flow
-by checking if u.edge == NIL, whether a push or relabel operation should apply can be determined in O(1)
+by checking the head of the corrsponding pushable list of a node is NIL or not (in O(1))
+the procedure can determine whether a push or a relabel operation may apply, and the edge to apply push operation
+(it's equivalent to maintaining a dynamic graph of pushable edges)
 
+26.4-3
+each vertex is relabeled at most O(V) times
+relabel each vertex in a graph once traverses Adj[u] once for each u, takes O(E) time
+relabel each vertex in a graph O(V) times then costs O(VE) time
+
+26.4-4
+by lemma 26.17, on termination of GENERIC-PUSH-RELABEL, there's no path s ~> t in the residual graph Gf
+which means when running dfs from s in G' = (V, E ∩ Ef), t is not reachable from s
+define a cut (S, V - S) where S = {v | v reachable from s in the dfs}, s ∈ S, t ∈ V - S
+for all edge (u, v) crossing the cut, it must have (u, v) ∉ Ef and cf(u, v) = 0, or it will be reachable from s
+as (u, v) ∉ E ∩ Ef, (u, v) is a forward edge, cf(u, v) = c(u, v) - f(u, v), c(u, v) = f(u, v)
+each edge (u, v) from S to V - S is saturated
+    |f| = Σ(u ∈ S, v ∈ S - V)f(u, v) - Σ(u ∈ S, v ∈ S - V)f(v, u)
+        >= Σ(u ∈ S, v ∈ S - V)f(u, v)
+        = Σ(u ∈ S, v ∈ S - V)c(u, v)
+        = c((S, V - S))
+since |f| <= c((S, T)) for each cut (S, T) by min-cut max-flow theorem, (S, V - S) is a minimum cut
+it can be find in O(V + E)
+
+26.4-5
+thanks http://i.stanford.edu/pub/cstr/reports/cs/tr/95/1556/CS-TR-95-1556.pdf
+derive flow network G' from the bipartite graph G
+do normal GENERIC-PUSH-RELABEL on G'
+claim: GENERIC-PUSH-RELABEL will only set integral flows with integral capacities
+    INITIALIZE-PREFLOW sets (s, v).f = c(s, v) which is integral
+    v.e = c(s, v) or 0 is integral, s.e -= c(s, v) is integral
+    similarly cf(u, v) is integral for all (u, v) ∈ Ef
+    after that flow is only changed by PUSH
+    by induction u.e, v.e, (u, v).f, (v, u).f, cf(u, v), cf(v, u) all integral
+    Δf(u, v) = min(u.e, cf(u, v)) is integral
+    (u, v).f, (v, u).f, u.e and v.e all integral after PUSH
+as each edge has capacity 1, cf = c - f or f = 0 or 1, a push must be saturating, PUSH costs O(VE)
+by 26.4-3, all relabel operations can be done in O(VE) aggregated time
+O(VE) in total
+
+26.4-6
+by claim in 26.4-5, a nonsaturating push decreases cf(u, v) by at least 1
+at most k nonsaturating push can be performed before a relabel which makes v.h = u.h + 1
+by a similar argument to lemma 26.22, each edge may support no more than 2k|V| nonsaturating pushs
+the total cost will be O(VE + VE + kVE) = O(kVE)
