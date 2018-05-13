@@ -524,9 +524,10 @@ function relabelFIFO<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
   while (!Q.isEmpty()) {
     let u = Q.dequeue();
     let [current, exceeding] = discharge(H, u, neighbours[u.key], currents[u.key]);
+    H.diagnose();
     currents[u.key] = current;
     for (let v of exceeding) {
-      if (overflowing(H, u)) {
+      if (overflowing(H, v)) {
         Q.enqueue(v);
       }
     }
