@@ -8170,7 +8170,7 @@ each vertex is thus checked at most once, all n checks can be done in O(n) amort
 ./CLRS/graph/all-pair-shortest-path.ts#slowAllPairShortestPaths
 
 25.1-8
-allocate two matrixes L and L'
+allocate two matrices L and L'
 compute each EXTEND-SHORTEST-PATHS(L, L) inplace in L'
 next iteration compute EXTEND-SHORTEST-PATHS(L', L') inplace in L
 
@@ -8793,7 +8793,7 @@ by lemma 26.14, if u.e > 0, either push or relabel applies
 by theorem 26.18, if no u.e > 0, the procedure terminates with a valid maximum flow
 by checking the head of the corrsponding pushable list of a node is NIL or not (in O(1))
 the procedure can determine whether a push or a relabel operation may apply, and the edge to apply push operation
-(it's equivalent to maintaining a dynamic graph of pushable edges)
+(it's equivalent to maintaining a dynamic admissible graph)
 
 26.4-3
 each vertex is relabeled at most O(V) times
@@ -8835,3 +8835,158 @@ by claim in 26.4-5, a nonsaturating push decreases cf(u, v) by at least 1
 at most k nonsaturating push can be performed before a relabel which makes v.h = u.h + 1
 by a similar argument to lemma 26.22, each edge may support no more than 2k|V| nonsaturating pushs
 the total cost will be O(VE + VE + kVE) = O(kVE)
+
+26.4-7
+initially all edge (s, v) is saturated by INITIALIZE-PREFLOW
+if there is a path s ~> t in the residual graph, there must be an edge (s, v) that's not saturated
+only a push (v, s) for some v ∈ Adj[s] may cause (v, s) to be nonsaturating
+but that means v.h = s.h + 1, if s.h is set to |V| - 2, v.h = |V| - 1
+by lemma 26.17, a simple path v ~> t with at most |V| - 2 edges implies v.h <= t.h + |V| - 2 = |V| - 2
+in contradiction to v.h = |V| - 1, therefore lemma 26.17 still holds, Theorem 26.18 still correct
+lemma 26.18 unchanged, lemma 26.19 now implies that u.h <= s.h + (|V| - 1) = 2|V| - 3 <= 2|V| - 1 the old bound
+no more relabel or push can be performed, asymptotic running time still the same
+
+26.4-8
+initialization:
+    s.h = |V|, u.h = 0 for u ∈ V - {s}
+    for all u with u.h < |V| (i.e. V - {s}), u.h = 0 <= δf(u, t)
+    s.h - |V| = 0 <= δf(s, s)
+maintenance:
+    before either operation, u must be overflowing, thereby u != s and u != t
+    for PUSH(u, v) operation where u.h < |V|:
+        by invariant u.h = v.h + 1 <= δf(u, t), v.h <= δf(v, t) if u.h, v.h < |V|
+        PUSH(u, v) may create an edge (v, u) in Gf
+        any simple path v -> u ~> t have length at least 1 + δf(u, t) >= v.h + 2 > v.h
+        v.h is smaller than length of any new simple path, v.h still a lower bound of δf(v, t)
+        starting from some w != v, if a path w ~> v -> u ~> t traverses (v, u) and have length < w.h
+        replace v -> u ~> t with shortest path before the addition of (v, u) will not increase the length
+        there must be a path w ~> v ~> t shorter than w.h before the addition, in contradiction to the invariant
+        PUSH(u, v) also may remove (u, v) from Ef, but removing an edge may not shorten any paths
+    for PUSH(u, v) operation where u.h >= |V|:
+        as u.h >= |V|, there's no path u ~> t in Gf, (v, u) will not change any δf(w, t)
+        u.h - |V| = 0 <= δf(u, s), for all p = w ~> v -> u ~> s in Gf, by definition of height function
+            w.h <= v.h + |w ~> v|
+            |p| = |w ~> v| + 1 + |u ~> s| 
+                >= |w ~> v| + 1 + δf(u, s) 
+                = |w ~> v| + 1
+                >= w.h - v.h + 1
+                = w.h - |V| + 2
+        thereby w.h - |V| is still a lower bound of δf(w, s)
+    for RELABEL(u) operation:
+        before RELABEL(u) operation, for all (u, v) ∈ Ef, u.h <= v.h
+        u.h is set to min{v.h | (u, v) ∈ Ef} + 1
+        a shortest path u ~> t must visit one v with (u, v) ∈ Ef first
+        if there is any v.h < |V| for some (u, v) ∈ f
+        δf(u, t)    >= min{δf(v, t) | (u, v) ∈ Ef} + 1
+                    >= min{v.h | (u, v) ∈ Ef} + 1
+                    = u.h
+        u.h is still a lower bound of δf(u, t) after RELABEL(u, t)
+        if v.h >= |V| for all (u, v) ∈ Ef, u.h will be updated to a lower bound of δf(u, s)
+        δf(u, s)    >= min{δf(v, s) | (u, v) ∈ Ef} + 1
+                    >= min{v.h - |V| | (u, v) ∈ Ef} + 1
+                    = u.h
+
+26.4-9
+still set s.h = |V| and t.h = 0 on initialization, s.h - |V| = 0 = δf(s, s), t.h = 0 = δf(t, t)
+Ef contains no (s, v) and an edge (v, s) for each (s, v) ∈ E as (s, v) ∈ E are saturated
+run bfs on transpose of current Gf from t, assign u.h to the minimial distance computed by bfs = δf(u, t)
+by triangle property, if (u, v) ∈ Ef
+    for u.h < |V|, 
+        if v.h < |V|, u.h = δf(u, t) <= δf(v, t) + 1 = v.h + 1 for all (u, v)
+        if v.h >= |V|, u.h <= |V| + 1 <= v.h + 1
+    for u.h >= |V|,
+        if v.h >= |V|, u.h = δf(u, s) + |V| <= δf(v, s) + 1 + |V| = v.h + 1 for all (u, v) and v.h >= |V|
+        if v.h < |V|, u -> v ~> t is a path u ~> t, in contradiction to the invariant proved below
+u.h is still a valid height function
+invariant:
+    if u.h < |V|, u.h = δf(u, t)
+    if u.h >= |V|, u.h = δf(u, s)
+    there's no path u ~> t in the residual graph for all u.h >= |V|
+initialization:
+    modified INITIALIZE-PREFLOW set s.h = |V| which is the only u.h >= |V|
+    no path s ~> t since all edge leaving s in E is saturated
+PUSH:
+    by 26.4-8, adding (v, u) will not change any δf(w, t)
+    if the push is saturating, (u, v) is removed from Gf
+    if that is the last pushable edge from u (can be determined in O(1) as described in 26.4-2)
+    there's no longer (u, w) in Ef where w.h + 1 = u.h
+    if u.h < |V|, u.h = δf(u, t) before push, w.h = δf(w, t) (shortest path w ~> t cannot visit u)
+    the new shortest path u ~> t must first visit one w where (u, w) ∈ Ef, δf(u, t) = min{δf(w, t)} + 1
+    it may have w.h >= |V| for all (u, w) ∈ Ef after push
+    u.h in this case will be updated to δf(u, s) as described below
+    if u.h = |V|, δf(u, s) = u.h - |V| = 0, u must be s, but u is also overflowing, hence u.h != |V|
+    if u.h > |V|, v.h = u.h - 1 >= |V|, u.h - |V| = δf(u, s), v.h - |V| = δf(v, s)
+    if (u, v) is the last pushable edge from u, u.h have to be updated
+    by definition of height function, w.h >= u.h - 1 = |V| for all (u, w) ∈ Ef, w.h - |V| = δf(w, s)
+    a shortest path w ~> s cannot traverse (u, w), w.h = δf(w, s) after push
+    u.h = δf(u, s) has to be updated to min{δf(w, s)} + 1 = min{w.h} + 1
+    u.h and recursively w.h for all predecessors w of u has to be fixed immediately by a relabel
+    for all w.h >= |V|, if w ~> t doesn't exist before (v, u), δf(w, t) = +∞
+    by 26.4-8 (v, u) will not change any δf(w, t), δf(w, t) is still +∞
+RELABEL:
+    relabel effectively computes u.h = δf(u, t) or δf(u, s) = min{w.h | (u, w) ∈ Ef}
+    then for each x where (x, u) ∈ Ef, if (x, u) is the last pushable edge from x before relabel
+    recursively x.h also have to be updated, no matter whether x is overflowing or not
+    all such x can be find by traversing Adj[u] in Gf and filter for backward edges
+    a single non-recursive call to RELABEL still can be done in O(|Adj[u]|), O(VE) aggregated
+    relabel operation does not modify Gf, if w ~> t doesn't exist before relabel it doesn't exist after
+correctness of this algorithm can be derived from the fact that h is still a valid height function
+the only difference in complexity is now RELABEL may be performed on non-overflowing vertices
+such non-overflowing relabels still increases u.h by at least 1
+since u.h = δf(u, t) or δf(u, s) + |V|, u.h <= 2|V| - 1
+the bound in Corollary 26.21 applies on non-overflowing relabels as well as overflowing relabels
+furthermore the O(VE) aggregated time by 26.4-3 holds for the same reason
+O(VE) additional work is required
+
+26.4-10
+RELABEL cannot decrease the height of a vertex, v.h <= 2|V| - 1
+RELABEL only applies on overflowing vertices
+all O(V^2) RELABEL operations only increases Φ by at most 
+    (2|V| - 1)(|V - {s, t}|) 
+    = (2|V| - 1)(|V| - 2)
+    = 2|V|^2 - 5|V| + 2
+by definition of flow network, there is at least one edge entering t and one edge leaving s
+s.h and t.h will not be updated, saturating pushes between (s, v) or (v, t) may only happen twice
+the number of saturating pushes in lemma 26.22 can be improved to 2|V|(|E| - 2) + 4
+saturating pushes increases Φ by at most 
+    (2|V|(|E| - 2) + 4)(2|V| - 1)
+    = (2|V||E| - 4|V| + 4)(2|V| - 1)
+    = 4|V|^2|E| - 8|V|^2 + 8|V| - 2|V||E| + 4|V| - 4
+    = 4|V|^2|E| - 8|V|^2 + 12|V| - 2|V||E| - 4
+combine both RELABEL and PUSH,
+    2|V|^2 - 5|V| + 2 + 4|V|^2|E| - 8|V|^2 + 12|V| - 2|V||E| - 4
+    = 4|V|^2|E| - 6|V|^2 + 7|V| - 2|V||E| - 4
+    <= 4|V|^2|E| - 6|V|^2 + 7|V|
+    when |V| >= 4, - 6|V|^2 + 7|V| < 0
+    <= 4|V|^2|E|
+which is an upper bound of unsaturating pushes
+
+26.5-1
+too long, see ./CLRS/graph/index.ts#problem_26_5_1
+
+26.5-2
+./CLRS/graph/maximum-flow.ts#relabelFIFO
+make DISCHARGE also record the vertices v that v.e = 0 before DISCHARGE(u) and (u, v) is pushed (i.e. v.e > 0)
+when RELABEL-FIFO terminates, no vertex has positive overflow, neither PUSH or RELABEL applies to any vertex
+Theorem 26.30 is independent to the order of DISCHARGE, the O(V^3) bound also applies to relabel FIFO algorithm
+the additional work recording new overflowing vertices is proportional to the number of pushes
+the number of pushes is at most O(V^3), time spend on the additional work thus is O(V^3), O(V^3) in total
+
+26.5-3
+redo the proof of correctness of push-relabel algorithm
+lemma 26.15:
+    vertex height still will never decrease
+    RELABEL(u) increases u.h by at least (exactly) 1
+lemma 26.16:
+    if h is a height function before RELABEL(u), by assumption of RELABEL, u.h <= v.h for all (u, v) ∈ Ef
+    for all (u, v) ∈ Ef, u.h + 1 <= v.h + 1
+    for all (w, u) ∈ Ef, w.h <= u.h + 1 < u.h + 1 + 1
+    h is still a height function after RELABEL(u)
+lemma 26.17:
+    no change
+Theorem 26.18 (the correctness of push-relabel algorithm):
+    no change
+redo the analysis of relabel-to-front algorithm:
+u.h <= 2|V| - 1, RELABEL(u) increases u.h by at least 1, there are still O(V^2) phases and O(V^3) call to DICHARGE
+since RELABEL is now O(1), O(V^2) RELABEL operations take O(V^2) aggregated time
+push still costs O(V^3) in total, the O(V^3) bound is not improved

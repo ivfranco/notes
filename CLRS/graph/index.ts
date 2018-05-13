@@ -26,6 +26,8 @@ import {
   flowReport,
   maximumMatching,
   pushRelabel,
+  relabelFIFO,
+  relabelToFront,
 } from "./maximum-flow";
 import {
   dijkstraCheck,
@@ -39,7 +41,7 @@ import {
 import { mstKruskal, mstPrim, showWeighted, WeightedGraph } from "./weighted-graph";
 
 function main() {
-  pushRelabelTest();
+  problem_26_5_1();
 }
 
 function problem_22_2_1() {
@@ -509,6 +511,33 @@ function pushRelabelTest() {
 
   let f = pushRelabel(G, s, t);
   console.log("Final result");
+  flowReport(G, s, f);
+  flowCheck(G, s, t, f);
+}
+
+function problem_26_5_1() {
+  let G = WeightedGraph.fromDirected(
+    "s v1 v2 v3 v4 t",
+    [
+      "s v1 16", "s v2 13",
+      "v1 v3 12",
+      "v2 v1 4", "v2 v4 14",
+      "v3 v2 9", "v3 t 20",
+      "v4 v3 7", "v4 t 4",
+    ],
+  );
+  let V = G.vertexMap();
+  let s = V["s"];
+  let t = V["t"];
+
+  let f = relabelToFront(G, s, t);
+  console.log("relabel to front");
+  flowReport(G, s, f);
+  flowCheck(G, s, t, f);
+
+  //  problem_26_5_2
+  f = relabelFIFO(G, s, t);
+  console.log("\nrelabel FIFO");
   flowReport(G, s, f);
   flowCheck(G, s, t, f);
 }

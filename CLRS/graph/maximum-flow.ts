@@ -4,9 +4,12 @@ export {
   flowCheck,
   maximumMatching,
   pushRelabel,
+  relabelToFront,
+  relabelFIFO,
 };
 
 import { DList, DNode } from "../collection/dlist";
+import { Queue } from "../collection/queue";
 import { bfs, BFSAttrs, Color, Edge, Graph, showEdge, Vertex } from "./directed-graph";
 import { WeightedEdge, WeightedGraph } from "./weighted-graph";
 
@@ -176,6 +179,8 @@ interface PREdge extends WeightedEdge<PRVertex> {
 class PRGraph extends Graph<PRVertex, PREdge> {
   //  a dummy edge, should immediately be replaced by a real edge upon edge construction
   private readonly nullEdge!: PREdge;
+  private _s!: PRVertex;
+  private _t!: PRVertex;
 
   protected vertexFactory(name: string, k: number): PRVertex {
     return {
@@ -199,6 +204,14 @@ class PRGraph extends Graph<PRVertex, PREdge> {
     };
   }
 
+  public s(): PRVertex {
+    return this._s;
+  }
+
+  public t(): PRVertex {
+    return this._t;
+  }
+
   public createEdge(u: PRVertex, v: PRVertex, w?: number): PREdge {
     let e = this.edgeFactory(u, v, this.e_counter, w);
     this.e_counter++;
@@ -206,12 +219,14 @@ class PRGraph extends Graph<PRVertex, PREdge> {
     return e;
   }
 
-  public fromWeighted<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>): E[] {
+  public fromWeighted<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): E[] {
     let V: PRVertex[] = [];
     let e_map: E[] = [];
     for (let v of G.vertices()) {
       V[v.key] = this.createVertex(v.name);
     }
+    this._s = V[s.key];
+    this._t = V[t.key];
     for (let e of G.edges()) {
       let { from: u, to: v, weight: c } = e;
       //  the forward edge that's also in G.E
@@ -234,7 +249,7 @@ class PRGraph extends Graph<PRVertex, PREdge> {
       console.log(`${v.name}: e = ${v.e}, h = ${v.h}`);
     }
     for (let e of this.edges()) {
-      console.log(`${showEdge(e)}: f = ${e.f}, c = ${e.weight}, cf = ${e.cf}, ${e.forward ? "forward" : ""}`);
+      console.log(`${showEdge(e)}: f = ${e.f}, c = ${e.weight}, cf = ${e.cf}, ${e.forward ? "forward" : "backward"}`);
     }
   }
 
@@ -289,13 +304,13 @@ function updateFlow(e: PREdge, f: number) {
 }
 
 function initializePreflow<V extends Vertex, E extends WeightedEdge<V>>(
-  G: Graph<V, E>, s: V,
+  G: Graph<V, E>, s: V, t: V,
 ): [PRGraph, E[]] {
   let H = new PRGraph();
-  let e_map = H.fromWeighted(G);
+  let e_map = H.fromWeighted(G, s, t);
 
-  let hs = H.vertexMap()[s.name];
-  hs.h = H.size() - 2;
+  let hs = H.s();
+  hs.h = H.size();
 
   for (let e of H.edgeFrom(hs)) {
     let { to: v, weight: c } = e;
@@ -319,23 +334,29 @@ function push(e: PREdge) {
   }
 }
 
-//  returns
-//    1. a list of new pushable edges (from u or to u)
-//    2. a list of edges no longer pushable to u
-function relabel(G: PRGraph, u: PRVertex): [PREdge[], PREdge[]] {
-  console.assert(u.e > 0, `${u.name} must be overflowing for relabel to apply`);
-  //  u.h is increased by at least 1, these edges originally pushable to u are no longer pushable
-  //  as u.h <= min{v.h | (u, v) ∈ Ef}, no edge from u is pushable before relabel
-  let unpushable = Array.from(G.edgeFrom(u))
-    .map(e => e.reverse)
-    .filter(e => e.cf > 0 && e.from.h === u.h + 1);
-
+function relabel(G: PRGraph, u: PRVertex) {
   //  only edges in Ef (i.e. with positive cf) are considered
   let adj = Array.from(G.edgeFrom(u)).filter(e => e.cf > 0);
   let min_h = Math.min(...adj.map(e => e.to.h));
   console.assert(u.h <= min_h, `${u.name} must have height no higher than any adjacent vertices`);
   u.h = min_h + 1;
-  let pushable = adj.filter(e => e.to.h === u.h - 1);
+}
+
+//  returns
+//    1. a list of new pushable edges (from u or to u)
+//    2. a list of edges no longer pushable to u
+function relabelAndScan(G: PRGraph, u: PRVertex): [PREdge[], PREdge[]] {
+  console.assert(u.e > 0, `${u.name} must be overflowing for relabel to apply`);
+  //  u.h is increased by at least 1, these edges originally pushable to u are no longer pushable
+  //  as u.h <= min{v.h | (u, v) ∈ Ef}, no edge from u is pushable before relabel
+  let adj = Array.from(G.edgeFrom(u));
+  let unpushable = adj
+    .map(e => e.reverse)
+    .filter(e => e.cf > 0 && e.from.h === u.h + 1);
+
+  relabel(G, u);
+
+  let pushable = adj.filter(e => e.cf > 0 && e.to.h === u.h - 1);
   for (let e of G.edgeFrom(u)) {
     let b = e.reverse;
     if (b.cf > 0 && b.from.h === u.h + 1) {
@@ -349,7 +370,7 @@ function relabel(G: PRGraph, u: PRVertex): [PREdge[], PREdge[]] {
 type Pushable = Array<DList<PREdge>>;
 
 function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
-  let [H, e_map] = initializePreflow(G, s);
+  let [H, e_map] = initializePreflow(G, s, t);
   let V = H.vertexMap();
   let hs = V[s.name];
   let ht = V[t.name];
@@ -381,7 +402,7 @@ function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
     let u = u_node.key;
     let u_pushable = pushable[u.key];
     if (u_pushable.isEmpty()) {
-      let [edge_added, edge_deleted] = relabel(H, u);
+      let [edge_added, edge_deleted] = relabelAndScan(H, u);
       for (let e of edge_added) {
         let v = e.from;
         pushable[v.key].append(NE[e.key]);
@@ -408,8 +429,12 @@ function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
     }
   }
 
+  return recoordFlow(H, e_map);
+}
+
+function recoordFlow(G: PRGraph, e_map: Array<Edge<Vertex>>): Flow {
   let f: Flow = [];
-  for (let e of H.edges()) {
+  for (let e of G.edges()) {
     if (e.forward) {
       let k = e_map[e.key].key;
       f[k] = e.f;
@@ -417,4 +442,95 @@ function pushRelabel<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
   }
 
   return f;
+}
+
+function discharge(G: PRGraph, u: PRVertex, N: PREdge[], current: number): [number, PRVertex[]] {
+  let exceeding: PRVertex[] = [];
+
+  while (u.e > 0) {
+    if (current >= N.length) {
+      relabel(G, u);
+      current = 0;
+    } else {
+      let edge = N[current];
+      let v = edge.to;
+      if (edge.cf > 0 && u.h === v.h + 1) {
+        if (v.e === 0) {
+          exceeding.push(v);
+        }
+        push(edge);
+      } else {
+        current++;
+      }
+    }
+  }
+
+  return [current, exceeding];
+}
+
+function initializeNeighbourhood(G: PRGraph): [number[], PREdge[][]] {
+  let currents = new Array(G.size());
+  currents.fill(0);
+  let neighbours: PREdge[][] = [];
+  for (let v of G.vertices()) {
+    neighbours[v.key] = [];
+    for (let e of G.edgeFrom(v)) {
+      neighbours[v.key].push(e);
+    }
+  }
+
+  return [currents, neighbours];
+}
+
+function relabelToFront<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
+  let [H, e_map] = initializePreflow(G, s, t);
+  let [currents, neighbours] = initializeNeighbourhood(H);
+  let L: DList<PRVertex> = new DList();
+  for (let v of H.vertices()) {
+    if (v.name !== s.name && v.name !== t.name) {
+      L.insert(v);
+    }
+  }
+
+  let node = L.head;
+  while (node !== null) {
+    let u = node.key;
+    let old_height = u.h;
+    currents[u.key] = discharge(H, u, neighbours[u.key], currents[u.key])[0];
+    if (u.h > old_height) {
+      L.delete(node);
+      L.prepend(node);
+    }
+    node = node.next;
+  }
+
+  return recoordFlow(H, e_map);
+}
+
+function overflowing(G: PRGraph, u: PRVertex): boolean {
+  return u.e > 0 && u !== G.s() && u !== G.t();
+}
+
+function relabelFIFO<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
+  let [H, e_map] = initializePreflow(G, s, t);
+  let [currents, neighbours] = initializeNeighbourhood(H);
+  let Q: Queue<PRVertex> = new Queue(G.size());
+  for (let v of H.vertices()) {
+    if (overflowing(H, v)) {
+      Q.enqueue(v);
+    }
+  }
+
+  while (!Q.isEmpty()) {
+    let u = Q.dequeue();
+    let [current, exceeding] = discharge(H, u, neighbours[u.key], currents[u.key]);
+    currents[u.key] = current;
+    for (let v of exceeding) {
+      if (overflowing(H, u)) {
+        Q.enqueue(v);
+      }
+    }
+  }
+
+  return recoordFlow(H, e_map);
 }

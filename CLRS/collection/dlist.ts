@@ -26,6 +26,10 @@ class DList<T> {
 
   public insert(x: T) {
     let node = new DNode(x);
+    this.prepend(node);
+  }
+
+  public prepend(node: DNode<T>) {
     node.next = this.head;
     if (this.head !== null) {
       this.head.prev = node;
