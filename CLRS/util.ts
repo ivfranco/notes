@@ -4,6 +4,8 @@ export function id<T>(a: T): T {
   return a;
 }
 
+export function noop(any?: any) { /* noop */ }
+
 export function randomAB(a: number, b: number) {
   if (a > b) {
     throw new Error("Error: lower bound greater than higher bound");

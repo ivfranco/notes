@@ -10,6 +10,7 @@ export {
 
 import { DList, DNode } from "../collection/dlist";
 import { Queue } from "../collection/queue";
+import { noop } from "../util";
 import { bfs, BFSAttrs, Color, Edge, Graph, showEdge, Vertex } from "./directed-graph";
 import { WeightedEdge, WeightedGraph } from "./weighted-graph";
 
@@ -444,20 +445,23 @@ function recoordFlow(G: PRGraph, e_map: Array<Edge<Vertex>>): Flow {
   return f;
 }
 
-function discharge(G: PRGraph, u: PRVertex, N: PREdge[], current: number): [number, PRVertex[]] {
-  let exceeding: PRVertex[] = [];
+type OnPush = (e: PREdge) => void;
+type OnRelabel = (u: PRVertex) => void;
 
+function genericDischarge(
+  G: PRGraph, u: PRVertex, N: PREdge[], current: number,
+  onPush: OnPush, onRelabel: OnRelabel,
+): number {
   while (u.e > 0) {
     if (current >= N.length) {
+      onRelabel(u);
       relabel(G, u);
       current = 0;
     } else {
       let edge = N[current];
       let v = edge.to;
       if (edge.cf > 0 && u.h === v.h + 1) {
-        if (v.e === 0) {
-          exceeding.push(v);
-        }
+        onPush(edge);
         push(edge);
       } else {
         current++;
@@ -465,7 +469,11 @@ function discharge(G: PRGraph, u: PRVertex, N: PREdge[], current: number): [numb
     }
   }
 
-  return [current, exceeding];
+  return current;
+}
+
+function discharge(G: PRGraph, u: PRVertex, N: PREdge[], current: number): number {
+  return genericDischarge(G, u, N, current, noop, noop);
 }
 
 function initializeNeighbourhood(G: PRGraph): [number[], PREdge[][]] {
@@ -496,7 +504,7 @@ function relabelToFront<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V,
   while (node !== null) {
     let u = node.key;
     let old_height = u.h;
-    currents[u.key] = discharge(H, u, neighbours[u.key], currents[u.key])[0];
+    currents[u.key] = discharge(H, u, neighbours[u.key], currents[u.key]);
     if (u.h > old_height) {
       L.delete(node);
       L.prepend(node);
@@ -511,6 +519,19 @@ function overflowing(G: PRGraph, u: PRVertex): boolean {
   return u.e > 0 && u !== G.s() && u !== G.t();
 }
 
+function dischargeFIFO(G: PRGraph, u: PRVertex, N: PREdge[], current: number): [number, PRVertex[]] {
+  let exceeding: PRVertex[] = [];
+
+  let new_current = genericDischarge(G, u, N, current, e => {
+    let v = e.to;
+    if (v.e === 0) {
+      exceeding.push(v);
+    }
+  }, noop);
+
+  return [new_current, exceeding];
+}
+
 function relabelFIFO<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>, s: V, t: V): Flow {
   let [H, e_map] = initializePreflow(G, s, t);
   let [currents, neighbours] = initializeNeighbourhood(H);
@@ -523,8 +544,8 @@ function relabelFIFO<V extends Vertex, E extends WeightedEdge<V>>(G: Graph<V, E>
 
   while (!Q.isEmpty()) {
     let u = Q.dequeue();
-    let [current, exceeding] = discharge(H, u, neighbours[u.key], currents[u.key]);
-    H.diagnose();
+    let [current, exceeding] = dischargeFIFO(H, u, neighbours[u.key], currents[u.key]);
+    // H.diagnose();
     currents[u.key] = current;
     for (let v of exceeding) {
       if (overflowing(H, v)) {

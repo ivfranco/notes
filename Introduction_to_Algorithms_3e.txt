@@ -8474,7 +8474,7 @@ conversely:
     since (ui, uo) is the only edge entering uo and the only edge leaving ui
     Σf'(v, ui) = Σf'(uo, v) = f'(ui, uo) <= c(ui, uo) = c(u)
     merging ui and uo satisfies vertex capacities
-|V'| = 2(|V| - 2) + 2, |E'| = (|V| - 2) + |V|
+|V'| = 2(|V| - 2) + 2, |E'| = (|V| - 2) + |E|
 
 26.2-1
 since V1 = {v | (s, v) ∈ E},
@@ -8990,3 +8990,132 @@ redo the analysis of relabel-to-front algorithm:
 u.h <= 2|V| - 1, RELABEL(u) increases u.h by at least 1, there are still O(V^2) phases and O(V^3) call to DICHARGE
 since RELABEL is now O(1), O(V^2) RELABEL operations take O(V^2) aggregated time
 push still costs O(V^3) in total, the O(V^3) bound is not improved
+
+26.5-4
+relabel operations will not create overflowing vertices, only push may change the order of overflowing vertices
+if v.e changed from 0 to a positive value during DISCHARGE(u), it must be changed by PUSH(u, v)
+as PUSH(u, v) only applies to admissible edges, v.h = u.h - 1, u is still the highest vertex
+by maintaining an array of doubly linked lists of vertices keyed by their height ("buckets")
+also maintain another doubly linked list that links all the non-empty lists in the array in decreasing order of height
+("root list")
+initially all overflowing vertices have height 0, thus they are in the same list, the root list has a single node
+a vertex of maximum height can be picked by take any item in the first bucket in the root list in O(1)
+PUSH(u, v) only applies to a vertex u of maximum height, if PUSH(u, v) overflows v,
+if v is the only item in its bucket, since height is integral
+the bucket must have second maximum height, can be appended to the head of the root list
+RELABEL(u) removes u from its bucket, removes the bucket from the head of the root list if it becomes empty
+then allocate a new bucket keyed by the new u.h and prepend the bucket to the root list
+only O(1) additional work is required for each PUSH and RELABEL, the O(V^3) bound proved in Theorem 26.30 still holds
+
+26.5-5
+if there's no vertices with height k where 0 < k < |V| - 1, for all v.h > k there's no v ~> t in the residual graph
+let (v0, .., vp), v0 = v, vp = t be a path v ~> t in the residual graph, by the definition of height function
+(vi, vi+1) ∈ Ef implies that vi.h <= vi+1.h + 1
+height function is integral, if vi+1.h < k, vi.h must also < k since
+    if vi+1.h < k-1, vi.h < k - 1 + 1 < k
+    if vi+1.h = k-1, vi.h <= k
+    but there's no vertex with height k, vi.h <= k-1 < k
+inductively v0.h < k, in contradiction to v.h > k
+let T be the set of vertices v where there is a path v ~> t in Gf
+during push relabel algorithm there's no path s ~> t, s ∈ V - T, t ∈ T
+(V - T, T) cuts no edges in residual graph since if there is an edge (u, v) where u ∈ V - T and v ∈ T
+u -> v ~> t is a path u ~> t, u ∈ T
+hence all edges from V - T to T in graph G is saturated, |f| = f(V - T, T) >= c(V - T, T), (V - T, T) is a minimum cut
+all v.h > k has no path v ~> t in Gf, v ∈ V - T, the source side of a minimum cut
+let v.h > k, for any (u, v) ∈ Ef, u.h <= v.h + 1, increasing will not change the inequality
+for any (v, u) ∈ Ef, if u.h <= k, u.h < k since there's no vertex with height k
+v.h <= u.h + 1 <= k, in contradiction to v.h > k
+thereby u.h > k, both v.h and u.h will be updated to |V| + 1, v.h <= u.h + 1
+h is still a valid height function
+
+26-1
+a.  same to 26.1-7
+    |V'| = (|V| - 2) + |V| = O(V), |E'| = (|V| - 2) + |E| = O(E)
+b.  a multiple-source multiple-sink maximum flow problem with unit weighted edges
+    each starting point is a source, each point on the boundary is a sink
+    can be solved in O(V^3) by any algorithm in this chapter as E = O(V) in a grid
+
+26-2
+a.  assign unit capacity to each edge in E' defined in the problem
+    define a set of edges E* where
+        (i, j) ∈ E* if (xi, yj) has positive flow in a valid flow of G'
+    claim 1: E* is a path cover
+        by flow conservation, Σf(v, u) = Σf(u, v)
+        for a particular i, there is an edge (j, i) entering i iff f(xj, yi) = 1
+        the only edge leaving yi is (yi, y0) with capacity 1, Σf(v, yi) = Σf(yi, v) <= 1
+        (xj, yi) is the only edge entering yi, (j, i) is the only edge entering i
+        similarly there is at most one edge leaving each vertex i ∈ V
+        the paths formed by E* are vertex-disjoint
+    define a flow f on G' from a path cover P of a dag as
+        f(x0, xi) = f(xi, yj) = f(yj, y0) = 1 iff (i, j) is an edge in the path cover
+    claim 2: f is a valid flow, |f| equals the number of edges in the path cover
+        f(x, y) <= 1, capacity constraints are satisfied
+        for any xi, if f(x0, xi) = 0, there must not be any f(xi, yj) > 0, Σf(v, xi) = Σf(xi, v) = 0
+        if f(x0, xi) = 1, there must be some yi that f(xi, yj) = 1
+        which means (i, j) ∈ P
+        each path in a dag is simple, by definition of path cover (i, j) is the only edge leaving i
+        f(xi, yi) is the only edge with positive flow leaving xi, Σf(v, xi) = Σf(xi, v) = 1
+        similarly for each yj, Σf(v, yi) = Σf(yi, v)
+        flow conservation is satisfied
+        furthermore, since there are at most one edge leaving each vertex i ∈ V
+        f(x0, xi) = 1 iff there is an edge leaving i, f(x0, xi) = 0 iff there is no edge leaving i
+        each edge in P leaves a distinct vertex, |f| = Σf(x0, xi) equals the number of edges in P
+    claim 3: |Ep| the number of edges in a path cover P of a dag equals |V| - |P|, |P| is the number of paths
+        prove by induction on |V|
+        when |V| = 1, the only possible path cover is a single path of length 0, |Ep| = |V| - 1 = 0
+        assume |Ep| = |V| - |P| for all |V| < k
+        for a dag with |V| vertices, take any path p in the path cover P
+        p must be simple, let |p| be the number of edges in p, the number of vertices covered by p is |p| + 1
+        P - {p} is a path cover of |V| - |p| - 1 < k vertices
+        P - {p} by induction has |V| - |p| - 1 - |P| + 1 = |V| - |p| - |P| edges
+        |Ep| = |V| - |p| - |P| + |p| = |V| - |P|
+    for a flow f and a set E* computed by maximum flow algorithm
+    by claim 1 E* is a path cover
+    by claim 2 and 3 if there is another path cover with fewer paths, it must have flow > |f|
+    therefore E* is a minimum path cover
+b.  claim 2 and 3 no longer true
+
+26-3
+a.  for each Ak ∈ Ri, c(Ak, Ji) = +∞
+    if Ji ∈ T but some Ak ∈ Ri and Ak ∉ T, (Ak, Ji) crosses the cut, c(S, T) >= c(Ak, Ji) = +∞
+    thereby a finite cut must include all Ak ∈ Ri in T if Ji ∈ T
+b.  since c({s}, V - {s}) = Σc(s, v) = Σck is finite, a minimum cut is finite
+    a minimum cut (S, T) must have Ji ∈ T => Ri ⊆ T by part a
+    hiring all Ak ∈ T and accept all Ji ∈ T thus is a valid solution to the problem
+    the net revenue defined by a finite capacity cut (S, T) is Σ(Ji ∈ T)pi - Σ(Ak ∈ T)ck
+    the cut (S, T) cuts all edges (Ji, t) for Ji ∉ T and all (s, Ak) for Ak ∈ T
+        c(S, T) = Σ(Ak ∈ T)ck + Σ(Ji ∉ T)pi
+                = Σ(Ak ∈ T)ck + Σ(Ji)pi - Σ(Ji ∈ T)pi
+                = Σ(Ji)pi - (Σ(Ji ∈ T)pi - Σ(Ak ∈ T)ck)
+    Σ(Ji)pi over all jobs is a constant, a minimum cut hence maximizes the net revenue
+c.  |V| = 2 + m + n = O(m + n), |E| = m + n + r = O(m + n + r)
+    the maximum flow can be computed in O(V^3) = O((m + n)^3)
+    the minimum cut can be found given the maximum flow in O(V + E) = O(m + n + r) by 26.4-4
+    O((m + n)^3 + r) = O(m^3 + n^3 + r) in total
+
+26-4
+a.  by min-cut max-flow theorem
+    increase the capacity of an edge by 1 at most increases min-cut by 1 as well as max-flow
+    there's no augmenting path in Gf before the increase
+    if f(u, v) < c(u, v), (u, v) ∈ Ef, increase c(u, v) will not create new edge in Gf
+    otherwise f(u, v) = c(u, v), increase c(u, v) by 1 will add (u, v) to Ef
+    if (u, v) form a new augmenting path in residual graph (can be found in O(V + E) by bfs)
+    augment f↑f' will increase the flow
+    by Theorem 26.10, the flow computed by Ford-Fulkerson method must be integral given integral capacities
+    |f↑f'| >= |f| + 1, f↑f' must be the new maximum flow
+    the residual graph can be constructed from f and G in O(V + E)
+    bfs costs O(V + E), augmenting a path f' to f costs O(V)
+    O(V + E) in total
+b.  by min-cut max-flow theorem, decrease the capacity of an edge by 1 will not increase the maximum flow
+    if f(u, v) < c(u, v), decrease c(u, v) by 1 will not invalidate f, f is still a maximum flow
+    otherwise f(u, v) = c(u, v) >= 1, f is no longer valid
+    define G' = (V, E') where E' = {(u, v) | f(u, v) > 0}
+    if (u, v) is on a cycle in G', one unit of flow can be removed from every edge on the cycle
+    the cycle can be found by single source dfs from v in G', if the dfs find a path v ~> u there is a cycle
+    otherwise there must be a path s ~> u -> v ~> t in G': (prove)
+    such a path can be found by dfs from u to s in transpose of G' and dfs from v to t in G'
+    combine these two paths and dedup gives a simple path s ~> u -> v ~> t
+    remove one unit of flow from the path decreases |f| by 1, f is now valid again
+    either f is already a maximum flow or a maximum flow can be computed within one augmenting path
+
+26-5

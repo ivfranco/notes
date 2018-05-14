@@ -100,6 +100,20 @@ class DList<T> {
     }
     return dlist;
   }
+
+  public *nodes(): IterableIterator<DNode<T>> {
+    let cursor = this.head;
+    while (cursor) {
+      yield cursor;
+      cursor = cursor.next;
+    }
+  }
+
+  public *entries(): IterableIterator<T> {
+    for (let node of this.nodes()) {
+      yield node.key;
+    }
+  }
 }
 
 class DNode<T> {
@@ -111,5 +125,11 @@ class DNode<T> {
     this.key = k;
     this.prev = null;
     this.next = null;
+  }
+
+  public append(other: this) {
+    other.next = this.next;
+    other.prev = this;
+    this.next = other;
   }
 }
