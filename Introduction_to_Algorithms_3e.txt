@@ -9112,10 +9112,21 @@ b.  by min-cut max-flow theorem, decrease the capacity of an edge by 1 will not 
     define G' = (V, E') where E' = {(u, v) | f(u, v) > 0}
     if (u, v) is on a cycle in G', one unit of flow can be removed from every edge on the cycle
     the cycle can be found by single source dfs from v in G', if the dfs find a path v ~> u there is a cycle
-    otherwise there must be a path s ~> u -> v ~> t in G': (prove)
+    if (u, v) is not on a cycle, there must be a path s ~> u -> v ~> w:
+        the maximum flow of G has no flow leaving t or can be transformed into one in O(E) by 26.2-12
+        extend flow conservation to set of vertices
+        for U a set of vertices where s, t ∉ U
+        Σ(u ∈ U, v ∈ V)f(u, v) = Σ(u ∈ U, v ∈ V)f(v, u)
+        Σ(u ∈ U, v ∈ U)f(u, v) + Σ(u ∈ U, v ∈ V - U)f(u, v) = Σ(u ∈ U, v ∈ U)f(v, u) + Σ(u ∈ U, v ∈ V - U)f(v, u) 
+        since Σ(u ∈ U, v ∈ U)f(u, v) and Σ(u ∈ U, v ∈ U)f(v, u) are the same set of flows
+        Σ(u ∈ U, v ∈ V - U)f(u, v) = Σ(u ∈ U, v ∈ V - U)f(v, u)
+        flow leaving set U equals flow entering set U
+        assume there's no path s ~> u in G', define u be the set with positive flow path to u
+        s, t ∉ U by assumption, v ∉ U or (u, v) on a cycle in G'
+        there's no flow entering U, Σ(u ∈ U, v ∈ V - U)f(v, u) = 0
+        there is a flow f(u, v) leaving u, in contradiction to the extended flow conservation
+        hence there must be a path s ~> u, similarly there must be a path v ~> t
     such a path can be found by dfs from u to s in transpose of G' and dfs from v to t in G'
     combine these two paths and dedup gives a simple path s ~> u -> v ~> t
     remove one unit of flow from the path decreases |f| by 1, f is now valid again
     either f is already a maximum flow or a maximum flow can be computed within one augmenting path
-
-26-5
