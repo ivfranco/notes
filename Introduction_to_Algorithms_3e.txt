@@ -9130,3 +9130,154 @@ b.  by min-cut max-flow theorem, decrease the capacity of an edge by 1 will not 
     combine these two paths and dedup gives a simple path s ~> u -> v ~> t
     remove one unit of flow from the path decreases |f| by 1, f is now valid again
     either f is already a maximum flow or a maximum flow can be computed within one augmenting path
+
+26-5
+a.  a cut (S, T) at most cuts each edge in G once
+    c(S, T) <= Σ((u, v) ∈ E)c(u, v) <= C|E|
+b.  filter (u, v) ∈ Ef by cf(u, v) >= K, costs O(E)
+    run bfs on the filtered Gf
+    if bfs finds an augmenting path, each edge has residual capacity cf(u, v) >= K, cf(p) >= K
+    if there is such a path beforehand, filter Ef will not remove any edge on the path, it still can be found
+c.  in the last iteration of the outer loop, K = 1
+    by Theorem 26.10, each augmenting path has path flow >= 1
+    the last iteration searches all possible augmenting paths in Gf
+    on termination of the loop, there's no augmenting path in Gf, f is a maximum flow
+d.  initialization:
+        K = 2^[lgC] >= 2^(lgC - 1) >= C / 2
+        cf(u, v) = c(u, v) - f(u, v) = c(u, v) for each (u, v) ∈ E, no backward edges in Ef
+        by part a c(S, T) <= 2K|E| for any cut (S, T) of Gf
+    maintenance:
+        before line 7, all augmenting path of flow capacity at least K is augmented to f
+        there's no path s ~> t with flow capacity >= K, the minimum cf(u, v) along any path < K
+        as long as there is a path s ~> t in Gf, an edge with cf(u, v) < K can be removed from the path
+        then eventually there will be no path s ~> t in Gf, Gf is disconnected
+        V can be divided to two sets (S, T) cutting no edge
+        thereby only (u, v) with cf(u, v) < K crosses (S, T) in Ef
+        for pairs of edges in Ef, at most one in each pair may contribute to c(S, T)
+        c(S, T) < K|E|
+        K is set to K / 2 on line 7, c(S, T) < 2K|E|, the minimum cut has capacity <= c(S, T)
+e.  let p be an augment path s ~> t, any cut (S, T) must cut at least one edge on p
+    claim: augment f along p will decrease each c(S, T) by at least K
+        let cf(p) = K*, for each (u, v) on p, the augmentation will change capacity of a cut (S, T) in two ways
+        1.  if u ∈ S, v ∈ T, cf(u, v) decreased by K* as well as c(S, T)
+        2.  if u ∈ T, v ∈ S, cf(v, u) increased by K* as well as c(S, T)
+        case 1 happens one more time than case 2:
+        let p = (e0 .. ek), let ei be the last backward edge to (S, T) (i.e. ei = (u, v), u ∈ T, v ∈ S)
+        since t ∉ S, p = s ~> t, there must be a forward edge after ei that leaves S
+        between any two backward edge in the middle, the path have to leave S once
+        s ∈ S implies that the first backward edge (if any) is preceded by a forward edge
+        thereby c(S, T) is decreased by K* >= K
+        min{c(S, T)} <= 2K|E|, c(S, T) >= 0, at most 2|E| = O(E) augmentations may happen
+f.  line 7 sets K = K / 2, the outer loop executes lgC times
+    each inner loop executes O(E) iterations, each iteration augments f along p in O(E)
+    O(E^2lgC) in total
+
+26-6
+A ⊕ B = B ⊕ A
+(A ⊕ B) ⊕ C = A ⊕ (B ⊕ C)
+A ⊕ A = ∅, (A ⊕ B) ⊕ B = A ⊕ (B ⊕ B) = A ⊕ ∅ = A
+for disjoint B1 and B2, B1 ⊕ B2 = B1 ∪ B2, A ⊕ (B1 ∪ B2) = A ⊕ B1 ⊕ B2
+a.  let P = (e0 .. ek), edges in p belong to M and E - M alternately
+    M ⊕ P is the edges with odd indices in P
+    let ei = (x, u), ei+1 = (u, v), ei+2 = (v, y) be three consecutive edges in P, ei+1 ∈ M, ei, ei+2 ∈ E - M
+    by definition of matching, there's no other edges in M sharing end points with ei = (u, v)
+    if ei is the first edge in P, x is the only vertex in P that x ∈ L ∩ E - M
+    otherwise x is also an endpoint of an edge in M
+    similarly y is the only vertex in P that y ∈ R ∩ E - M or y is an endpoint in M
+    thereby all x, u, v, y are distinct in P, P is a simple path = (v0, v1 .. vk+1)
+    P - M = ((v0, v1), (v2, v3) .. (vk, vk+1)) are edges with distinct endpoints i.e. a matching
+    let e = (u, v) ∈ M - P, if either u or v on P, it cannot be the first and last unmatched vertices
+    but then there is an edge (u, w) ∈ M ∩ P, M = (M - P) ∪ (M ∩ P) contains two edges incident on the same vertex
+    in contradiction to M being a matching
+    therefore M - P contains only edges that are vertex-disjoint to P, M ⊕ P = M - P ∪ P - M is a matching
+    every second edge in P ∈ M, the first and the last edge in P ∉ M
+    |P - M| = 1 + |P ∩ M|
+    |M ⊕ P| = |M - P| + |P - M| // M - P and P - M are disjoint
+            = |M| - |P ∩ M| + 1 + |P ∩ M|
+            = |M| + 1
+    M ⊕ (P1 ∪ .. ∪ Pk) = M ⊕ P1 ⊕ .. ⊕ Pk
+    for any Pi, if M ⊕ P1 .. Pi-1 is a matching, Pi is an augmenting path to M ⊕ P1 .. Pi-1
+        the starting vertex of Pi is not in M or any P1 .. Pi-1, similarly the end vertex
+        every second edge of Pi ∈ M, other edges not in M or any P1 .. Pi-1
+    thus M ⊕ P1 ⊕ .. ⊕ Pi is also a matching, |M ⊕ P1 .. Pi| = |M ⊕ P1 .. Pi-1| + 1
+    |M ⊕ {P1 ∪ .. ∪ Pk}| = |M| + k
+b.  for a vertex u, there are at most one edge incident to u in M or M'
+    M ⊕ M ⊆ M ∪ M*, u has degree at most 2 in G = (V, M ⊕ M*)
+    let p = (v0 .. vk) be any non-simple path, vi = vj be the first repeated vertex on p for some different i and j
+    assume i < j, if i != 0, (vi-1, vi), (vi, vi+1), (vj-1, vj) are distinct edges incident on vi unless i+1 = j
+    when i+1 = j, (vi, vi+1) is a self loop on vi, contributes two degrees
+    either case vi has degree 3 > 2
+    similarly if j != k, vj has degree 3 > 2
+    thereby p is either a simple path with no repeated vertex or a simple cycle with a single repeated vertex v0 = vk
+    if two consecutive edges (u, v), (v, w) on p both belongs to M or M*
+    M or M* has two edges incident to a single vertex, in contradiction to M and M* being matchings
+    edges on p must belong to M and M* alternately
+    a simple cycle has same number of edges from M and M*
+    a simple path may have one more edge from M than from M* or vice versa
+    let P be the set of simple paths in G = (V, M ⊕ M*)
+    if any two path p and p' are not vertex-disjoint
+    either they are actually parts of the same path or a vertex has degree > 2
+    hence paths in P are mutually vertex-disjoint
+    all edges in M ⊕ M* = M - M* ∪ M* - M are on some simple path or cycle in G
+    a simple path p may contain one more edge from M* - M than M - M* iff it starts and ends with edges in M* - M
+    let the first edge of p be (u, v) ∈ M* - M, the last be (x, y) ∈ M* - M ((u, v) may equal to (x, y))
+    (u, v), (x, y) ∉ M or they are not in M* - M
+    if there's (w, u) ∈ M that w != v, (w, u) ∈ M - M* since there's no other edge incident on u in M*
+    p will be suffix of a longer path, (u, v) is not the first edge
+    similarly if there's (y, z) ∈ M that z != x, (x, y) will not be the last edge, u and y are unmatched in M
+    p is undirected with odd number of edges, all edges are between L and R in G
+    p or the reverse of p starts from L and ends in R, p is an augmenting path to M in G
+    thus if |M*| - |M| > 0, there are at least |M*| - |M| vertex-disjoint augmenting paths to M in G
+c.  assume P has length l
+    claim 1: if u is matched in M, it is also matched in M ⊕ P for some augmenting path p with respect to M
+        if no edge e ∈ P ∩ M incident on u, it will not be affected by the augmentation
+        otherwise e ∈ P ∩ M incidents on u, let it be (u, v)
+        there must be another edge (w, u) ∈ P as u cannot be starting or ending point of P
+        (w, u) ∉ M, (w, u) will be included in M ⊕ P, u is still matched in the new matching
+    claim 2: M ⊕ P contains exactly two more matched vertices than M, which are the starting and ending point of P
+        the starting and ending vertices of P are the only endpoint in P but not in M
+        the first and last edges are in P - M, both endpoints will be matched in M ⊕ P
+        other vertices in M still in M ⊕ P by claim 1
+    claim 3: if e ∉ P and e ∉ M ⊕ P, e ∉ M
+        assume e ∈ M, e ∈ M - P, e ∈ M - P ∪ P - M = M ⊕ P, contradiction
+    as P is vertex-disjoint to P1 .. Pk, the starting and ending vertices of P are unmatched in M by claim 2
+    P is automatically edge-disjoint to P1 .. Pk
+    if an edge e ∈ P ∩ M', e ∉ P1 .. Pk, e ∈ M' = M ⊕ P1 .. Pk ⊆ M ∪ P1 .. Pk, e must ∈ M
+    if an edge e ∈ P - M', e ∉ P1 .. Pk and M', by claim 3 e ∉ M
+    edges in P alternately belongs to M and E - M, P is an augmenting path with respect to M
+    then { P1 .. Pk } ∪ {P} is a larger set of vertex-disjoint paths of length l with respect to M
+    thus P must have length > l
+d.  (M ⊕ M') ⊕ P = M ⊕ (M ⊕ (P1 ∪ .. ∪ Pk)) ⊕ P = (P1 ∪ .. ∪ Pk) ⊕ P
+    (M ⊕ M') ⊕ P = M ⊕ (M' ⊕ P) = M ⊕ (M ⊕ {P1 ∪ .. ∪ Pk} ⊕ P)
+    by part a, |M'| = |M| + k, |M' ⊕ P| = |M| + k + 1
+    by part b, A = M ⊕ (M' ⊕ P) contains at least k + 1 edge disjoint augmenting paths with respect to M
+    there are at most k augmenting paths of minimum length l
+    there must be an augmenting path in A longer than l, |A| > (k + 1)l
+    |P1| + .. + |Pk| + |P| >= |P1 ∪ .. ∪ Pk ∪ P| >= |(P1 ∪ .. ∪ Pk) ⊕ P| > (k + 1)l
+    |P| > (k + 1)l - kl = l, P has length longer than l
+e.  let M* be a maximum matching of G
+    M ⊕ M* has at least |M*| - |M| vertex-disjoint augmenting path with respect to M
+    each of them has at least l edges and (l+1) disjoint vertices, (l+1)(|M*| - |M|) distinct vertices in total
+    if |M*| > |M| + |V| / (l + 1), there more than (l + 1)|V| / (l + 1) = |V| vertices in |M ⊕ M*|, which is impossible
+f.  each iteration augments M with at least one path P or terminates
+    after |V|^(1/2) iteration, |M| >= |V|^(1/2)
+    by part c and d, at the beginning of iteration k
+    the shortest augmenting path with respect to M has length at least k = |V|^(1/2)
+    a maximum matching has |M*| <= |M| + |V| / (l + 1) <= |M| + |V|^(1/2)
+    |M*| - |M| <= |V|^(1/2), each iteration increases |M| by at least 1
+    at most |V|^(1/2) iterations may happen after |V|^(1/2)th iteration, 2|V|^(1/2) in total
+g.  thanks 
+        http://www.cs.princeton.edu/courses/archive/fall09/cos521/Handouts/Hopcroft.pdf
+        https://resources.mpi-inf.mpg.de/departments/d1/teaching/ss12/AdvancedGraphAlgorithms/Slides05.pdf
+        http://www.cs.cornell.edu/courses/cs6820/2016fa/handouts/matchings.pdf
+    (no proof of correctness)
+    let U be the set of unmatched vertices with respect to M
+    length of shortest augmenting path in G can be found by modified bfs that alternately follows edge in M and E - M
+    the bfs starts from some u ∈ U and terminates on reaching another different v ∈ U
+    by starting bfs from each unmatched vertex and visit each v ∈ V once
+    l the length of shortest augmenting path starting from each u ∈ U can be computed in O(E) 
+    level assigned to each vertex in V during the bfs defines a level graph on G
+    traverse backward from vertices on level l to level 0, delete edges and vertices on the traversal
+    a maximum set of minimum length augmenting paths can be enumerated in this way
+
+Chapter 27
