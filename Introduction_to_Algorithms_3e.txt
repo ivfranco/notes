@@ -9281,3 +9281,66 @@ g.  thanks
     a maximum set of minimum length augmenting paths can be enumerated in this way
 
 Chapter 27
+//  node.js is single threaded by design, implementations in this chapter are just proof of concept with async API
+27.1-1
+some call edges are replaced by spawn edges, T1, T∞ and parallelism won't change
+
+27.1-2
+one P-FIB(4) and one P-FIB(3) spawned from a vertex
+T1(5) = T1(4) + T1(3) + 3 = 17 + 9 + 3 = 29
+T∞(5) = max(T∞(4), T∞(3)) + 2 = max(8, 5) + 2 = 10
+T1 / T∞ = 29/10
+
+27.1-3
+assume there are i incomplete steps and c compete steps during the execution
+each incomplete step performs at least one unit of work
+complete steps can perform at most T1 - i units of works
+    c   <= (T1 - i) / P
+    Tp  <= (T1 - i) / P + i
+        = T1 / P + (P - 1)i / P
+    as P >= 1, Tp is monotonically increasing with respect to i, i <= T∞
+    Tp  <= (T1 - T∞) / P + T∞
+
+27.1-4
+let the starting strand s has three successors v1, v2 and v3, each is a linear chain of length k, let P = 2
+if a greedy scheduler executes strand on (v2, v3), (v1, v3), (v1, v2) alternately
+the scheduler executes a portion of length 2 from each chain in every 3 steps
+3k / 2 steps are performed in total
+otherwise if a greedy scheduler executes (v1, v2) until the two chains are exhausted
+works on chain v3 have to be performed seperately, k + k = 2k steps are performed in total
+generally if it has P = p and p+1 chains of length k
+the two strategies will perform (p+1)k / p and 2k steps
+2k / ((p+1)k / p) = 2p / (p+1) approachs 2 as p -> ∞
+
+27.1-5
+work law gives T1 <= T4 * 4 = 80 * 4 = 320
+span law gives T∞ <= T64 = 10
+T10 <= (T1 - T∞) / 10 + T∞ = T1 / 10 + (10 - 1)T∞ / 10
+    <= 32 + 9 * 10 / 10 = 41
+in contradiction to T10 = 42
+
+27.1-6
+take the sum Σ(j)aij * xj by divide and conquer for each i in Θ(lgn) span and Θ(n) work
+    split the summation in the middle, recursively spawn two children that calculates each half of the sum
+    the computation dag is an almost complete binary tree with height Θ(lgn)
+    the overhead (internal nodes in computation dag) is no more than twice the number of j, Θ(n) works in total
+each sum can be calculated independently, T∞ = Θ(lgn + lgn) = Θ(lgn) in total, T1 = Θ(n^2) in total
+parallelism is T1 / T∞ = Θ(n^2 / lgn)
+
+27.1-7
+T1 = Θ(n^2) by the nested loop
+T∞ = Θ(lgn + lgn) = Θ(lgn) as each exchange can be performed independently
+parallelism = T1 / T∞ = Θ(n^2 / lgn)
+
+27.1-8
+T1 = Θ(n^2) unchanged
+T∞ = Θ(lgn + n) = Θ(n) as the span from line 2 to a inner loop is Θ(lgn), the inner loop has T1 = T∞ = Θ(n)
+parallelism = T1 / T∞ = Θ(n)
+
+27.1-9
+2048 / P + 1 = 1024 / P + 8
+2048 + P = 1024 + 8P
+1024 = 7P
+P = 1024/7 is not an integer, the two algorithms will never run equally fast
+
+27.2-1

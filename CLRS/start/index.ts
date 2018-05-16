@@ -1,14 +1,14 @@
+import { randomAB } from "../util";
+import { BadChip, Chip, GoodChip, testChips } from "./chip-test";
 import { insertionSort } from "./insertion-sort";
-import { mergeSort, inversionCount } from "./mergesort";
+import { matrixMultiplication, strassen } from "./matrix-mul";
 import {
   findMaximumSubarray,
   findMaximumSubarrayBrute,
+  findMaximumSubArrayLinear,
   findMaximumSubarrayMix,
-  findMaximumSubArrayLinear
 } from "./max-subarray";
-import { matrixMultiplication, strassen } from "./matrix-mul";
-import { Chip, GoodChip, BadChip, testChips } from "./chip-test";
-import { randomAB } from "../util"
+import { inversionCount, mergeSort } from "./mergesort";
 
 function main() {
   problem_4_5();
@@ -22,7 +22,7 @@ function problem_2_1_2() {
 
 function linearSearch<T>(v: T, arr: T[]): number | null {
   for (let i = 0; i < arr.length; i++) {
-    if (v == arr[i]) {
+    if (v === arr[i]) {
       return i;
     }
   }
@@ -77,7 +77,7 @@ function problem_2_3_1() {
 function binaryPosition<T>(v: T, A: T[], p: number, q: number): number {
   if (p < q) {
     let mid = Math.floor((p + q) / 2);
-    if (v == A[mid]) {
+    if (v === A[mid]) {
       return mid;
     } else if (v > A[mid]) {
       return binaryPosition(v, A, mid + 1, q);
@@ -91,7 +91,7 @@ function binaryPosition<T>(v: T, A: T[], p: number, q: number): number {
 
 function binarySearch<T>(v: T, A: T[]): number | null {
   let idx = binaryPosition(v, A, 0, A.length - 1);
-  if (A[idx] == v) {
+  if (A[idx] === v) {
     return idx;
   } else {
     return null;
@@ -113,7 +113,7 @@ function pairSum(x: number, A: number[]): [number, number] | null {
   mergeSort(C, 0, C.length - 1);
   for (let i = 0; i < C.length; i++) {
     let idx = binarySearch(x - C[i], C);
-    if (idx != null && idx != i) {
+    if (idx != null && idx !== i) {
       return [C[i], C[idx]];
     }
   }
@@ -164,7 +164,7 @@ function benchSubarray(size: number) {
     findMaximumSubArrayLinear(testSet, 0, size - 1);
   });
 
-  console.log("Test size:       ", size)
+  console.log("Test size:       ", size);
   console.log("Recurrance time: ", t_recur);
   console.log("Bruteforce time: ", t_brute);
   console.log("Mix time:        ", t_mix);
@@ -190,11 +190,11 @@ function problem_4_1_5() {
 function problem_4_2_1() {
   let A = [
     [1, 3],
-    [7, 5]
+    [7, 5],
   ];
   let B = [
     [6, 8],
-    [4, 2]
+    [4, 2],
   ];
   console.log(matrixMultiplication(A, B));
   console.log(strassen(A, B));
@@ -254,15 +254,15 @@ function randomSearch<T>(x: T, A: T[]): number | null {
   while (cnt > 0) {
     let idx = randomAB(0, n - 1);
     // the exact index is generated before, skip this iteration
-    if (slots[idx] == false) {
+    if (slots[idx] === false) {
       continue;
     }
     // equal, search succeeded
-    if (x == A[idx]) {
+    if (x === A[idx]) {
       return idx;
     }
     // not equal, and the index is not seen before, decrement the count, fill the slot
-    if (slots[idx] == true) {
+    if (slots[idx] === true) {
       slots[idx] = false;
       cnt--;
     }
