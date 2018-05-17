@@ -1,7 +1,7 @@
 import {
   fasterAllPairsShortestPaths,
   floydWarshall,
-  fromDirectedGraph,
+  fromWeightedGraph,
   johnson,
   predecessorMatrix,
   slowAllPairsShortestPaths,
@@ -402,7 +402,7 @@ function problem_25_1_1() {
       "6 2 5", "6 3 10",
     ],
   );
-  let W = fromDirectedGraph(G);
+  let W = fromWeightedGraph(G);
   console.log(W);
 
   console.log("Slow");
@@ -429,7 +429,7 @@ function problem_25_2_1() {
       "6 2 5", "6 3 10",
     ],
   );
-  let W = fromDirectedGraph(G);
+  let W = fromWeightedGraph(G);
 
   floydWarshall(W);
 }
@@ -446,7 +446,7 @@ function problem_25_3_1() {
       "6 2 5", "6 3 10",
     ],
   );
-  let W = fromDirectedGraph(G);
+  let W = fromWeightedGraph(G);
 
   console.log(floydWarshall(W)[0]);
   console.log(johnson(G));

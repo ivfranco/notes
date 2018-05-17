@@ -1,7 +1,7 @@
 export {
   slowAllPairsShortestPaths,
   fasterAllPairsShortestPaths,
-  fromDirectedGraph,
+  fromWeightedGraph,
   predecessorMatrix,
   floydWarshall,
   showShortestPath,
@@ -17,7 +17,7 @@ type Weight = number;
 type Matrix<V> = V[][];
 type PredMatrix = Matrix<Vtx | null>;
 
-function fromDirectedGraph(G: Graph<Vertex, WeightedEdge<Vertex>>): Matrix<Weight> {
+function fromWeightedGraph(G: Graph<Vertex, WeightedEdge<Vertex>>): Matrix<Weight> {
   let W: Matrix<Weight> = [];
   let n = G.size();
   for (let i = 0; i < n; i++) {

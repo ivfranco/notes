@@ -1,7 +1,10 @@
 export {
-  pSquareMatrixMultiply,
+  pMatrixMultiply,
   pMatrixMultiplyDivide,
   pStrassen,
+  pTranspose,
+  pFloydWarshall,
+  parallelFor,
 };
 
 type Matrix = number[][];
@@ -41,13 +44,15 @@ async function parallelSum(A: Matrix, B: Matrix, i: number, j: number, p: number
   }
 }
 
-async function pSquareMatrixMultiply(A: Matrix, B: Matrix): Promise<Matrix> {
-  let n = A.length;
+async function pMatrixMultiply(A: Matrix, B: Matrix): Promise<Matrix> {
+  let p = A.length;
+  let q = B.length;
+  let r = B[0].length;
   let C: Matrix = [];
-  await parallelFor(0, n - 1, async i => {
+  await parallelFor(0, p - 1, async i => {
     C[i] = [];
-    await parallelFor(0, n - 1, async j => {
-      C[i][j] = await parallelSum(A, B, i, j, 0, n - 1);
+    await parallelFor(0, r - 1, async j => {
+      C[i][j] = await parallelSum(A, B, i, j, 0, q - 1);
     });
   });
   return C;
@@ -244,4 +249,64 @@ async function pStrassenRecursive(A: SubMatrix, B: SubMatrix, C: SubMatrix): Pro
       .then(c => c.sub(P3))
       .then(c => c.sub(P7));
   }
+}
+
+async function pTranspose(A: Matrix): Promise<void> {
+  let SA = new SubMatrix(A);
+  await pTransposeRecursive(SA);
+}
+
+async function pTransposeRecursive(A: SubMatrix): Promise<void> {
+  if (A.dimension() > 1) {
+    let half = A.dimension() / 2;
+    let [A11, A12, A21, A22] = A.partition();
+    let handles = [
+      pTransposeRecursive(A11),
+      pTransposeRecursive(A12),
+      pTransposeRecursive(A21),
+      pTransposeRecursive(A22),
+    ];
+    await Promise.all(handles);
+
+    await parallelFor(0, half - 1, async i => {
+      await parallelFor(0, half - 1, async j => {
+        let temp = A12.get(i, j);
+        A12.set(i, j, A21.get(i, j));
+        A21.set(i, j, temp);
+      });
+    });
+  }
+}
+
+//  T1 = O(V^2), T∞ = O(lgV)
+async function copy(A: Matrix, B: Matrix) {
+  let n = B.length;
+  let m = B[0].length;
+
+  await parallelFor(0, n - 1, async i => {
+    A[i] = [];
+    await parallelFor(0, m - 1, async j => {
+      A[i][j] = B[i][j];
+    });
+  });
+}
+
+async function pFloydWarshall(W: Matrix): Promise<Matrix> {
+  let n = W.length;
+  let D: Matrix = [];
+  await copy(D, W);
+  //  transform W to the form used in the book
+  parallelFor(0, n - 1, async i => {
+    D[i][i] = 0;
+  });
+
+  for (let k = 0; k < n; k++) {
+    parallelFor(0, n - 1, async i => {
+      await parallelFor(0, n - 1, async j => {
+        D[i][j] = Math.min(D[i][j], D[i][k] + D[k][j]);
+      });
+    });
+  }
+
+  return D;
 }

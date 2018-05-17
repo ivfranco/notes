@@ -9344,3 +9344,97 @@ parallelism = T1 / T∞ = Θ(n)
 P = 1024/7 is not an integer, the two algorithms will never run equally fast
 
 27.2-1
+//  graphviz code
+digraph G {
+    subgraph cluster_0 {
+        stype=filled;
+        shape=square;
+        color=lightgrey;
+        s1 -> s2 -> s3;
+        label="start";
+    }
+    subgraph cluster_1 {
+        color = blue;
+        w11 -> w12 -> w13;
+        label = "first row";
+    }
+    subgraph cluster_2 {
+        color = blue;
+        w21 -> w22 -> w23;
+        label = "second row";
+    }
+    s1 -> w11 [style=bold, fillcolor = grey];
+    w13 -> s3 [style=bold, fillcolor = grey];
+    s2 -> w21 [style=bold, fillcolor = grey];
+    w23 -> s3 [style=bold, fillcolor = grey];
+    w11 -> a [style=bold, fillcolor = grey];
+    w12 -> b [style=bold, fillcolor = grey];
+    a -> w13 [style=bold, fillcolor = grey];
+    b -> w13 [style=bold, fillcolor = grey];
+    w21 -> c [style=bold, fillcolor = grey];
+    w22 -> d [style=bold, fillcolor = grey];
+    c -> w23 [style=bold, fillcolor = grey];
+    d -> w23 [style=bold, fillcolor = grey];
+}
+if any constant time portion of program between calls or spawns is a unit strand
+T1 = 13, T∞ = 5, parallelism is T1 / T∞  = 13 / 5
+
+27.2-2
+the definition of a strand is rough, T1 and T∞ can be anything
+
+27.2-3
+./CLRS/multithreaded/p-matrix-multiply.ts#pMatrixMultiply
+use a divide and conquer sum function with O(lgn) span
+the innermost loop new have span O(lgn) instead of O(n), O(3lgn) = O(lgn) span in total
+
+27.2-4
+./CLRS/multithreaded/p-matrix-multiply.ts#pMatrixMultiply
+the algorithm in 27.2-3 can be easily modified to support non-square matrices
+the total work is Θ(pqr), total span is Θ(lgp + lgr + lgq) = Θ(lg(pqr))
+as long as one of p, q or r is not 1, the parallelism Θ(pqr / lg(pqr)) is nearly linear
+
+27.2-5
+./CLRS/multithreaded/p-matrix-multiply.ts#pTranspose
+if A.rows = 1, the transpose of A is A itself
+if A.rows >= 2, partition A into
+    A11 A12
+    A21 A22
+the transpose of A will be
+    T(A11)  T(A21)
+    T(A12)  T(A22)
+transpose the four sub matrices inplace then swap each entry in A12 and A21 in parallel
+T1(n) = 4T1(n/2) + Θ(n^2) = Θ(n^2lgn)
+T∞(n) = T∞(n/2) + Θ(lgn) = Θ(lg^2n)
+parallelism = T1 / T∞ = Θ(n^2 / lgn)
+
+27.2-6
+./CLRS/multithreaded/p-matrix-multiply.ts#pFloydWarshall
+simply make the two inner loops parallel
+by 25.2-4, D[i, k] and D[k, j] will not be updated in iteration k of the outmost loop
+each iteration of the outmost loop depends on the result of the last iteration, it has to be serial
+T1 = Θ(V^3) as the serial implementation
+the two inner loops now have span Θ(lgV)
+T∞ = n * Θ(lgn) = Θ(VlgV)
+parallelism is T1 / T∞ = Θ(V^2 / lgV)
+
+27.3-1
+when n1 + n2 is small enough, merge T[p1 .. r1] and T[p2 .. p2] with serial implementation MERGE to A
+
+27.3-2
+let A[p1 .. r1] and A[p2 .. r2] be two disjoint sorted slices in A
+give a mutual median mid of the two slices, it must have
+    let A[q1] be the last item smaller than mid in A[p1 .. r1]
+    there are l1 = q1 - p1 + 1 items <= mid in A[p1 .. r1], g1 = r1 - q1 items >= mid
+    mid is the mutual median, let l2 and g2 defined similarly in A[p2 .. r2]
+        |(l1 + l2) - (g1 + g2)| <= 1
+        |(l1 - g1) + (l2 - g2)| <= 1
+        |(l1 - g1) - (g2 - l2)| <= 1
+given (l1 - g1), (g2 - l2) may only take one of the three values: (l1 - g1), (l1 - g1) - 1 and (l1 - g1) + 1
+given l2 + g2 = r2 - p2 + 1, l2 and g2 can be solved
+for one of the solution it must have A[p2 + l2 - 1] <= mid and A[p2 + l2] >= mid
+the test can be done in O(1) given q1, p1, r1, p2 and r2
+binary search on A[p1 .. r1] with the test then computes the mutual median in O(lgn1), n1 = r1 - p1 + 1
+if the mutual median is not in A[p1 .. r1], run the same procedure on A[p2 .. r2] must find the mutual median
+O(lgn1 + lgn2) = O(lgn + lgn) = O(lgn) in total
+binary search A[p1 .. r1] and A[p2 .. r2] for the median makes the two subproblems have equal size
+asymptotic T∞(n) and T1(n) will not change
