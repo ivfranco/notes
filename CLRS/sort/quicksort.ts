@@ -7,10 +7,11 @@ export {
   fuzzysort,
   isFuzzySorted,
   partition,
-  randomPivoter
+  randomPivoter,
+  Pivoter,
 };
 
-import { SWAP, randomAB, swapReport } from "../util";
+import { randomAB, SWAP, swapReport } from "../util";
 
 // a function choosing a pivot from an array slice
 type Pivoter<T> = (A: T[], p: number, r: number) => number;

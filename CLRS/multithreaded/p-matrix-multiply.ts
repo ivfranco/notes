@@ -20,7 +20,7 @@ function linearSum(A: Matrix, B: Matrix, i: number, j: number, p: number, q: num
 }
 
 async function parallelFor(low: number, high: number, f: (i: number) => Promise<void>) {
-  if (high - low <= MIN_SIZE) {
+  if (high - low + 1 <= MIN_SIZE) {
     for (let i = low; i <= high; i++) {
       await f(i);
     }

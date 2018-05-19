@@ -1,36 +1,36 @@
-import {
-  MaxHeap,
-  heapSort,
-  MaxPriorityQueue,
-  FIFOQueue,
-  Stack,
-  mergeArrays
-} from "./heap";
+import { id, isSorted, randomAB, randomStr, shuffle } from "../util";
 import { MaxDHeap } from "./d-heap";
-import { randomAB, isSorted, id, randomStr, shuffle } from "../util";
-import { YoungTableau } from "./young-tableau";
 import {
-  quicksort,
-  hoarePartition,
-  hoareQuicksort,
-  quicksort2,
-  tailRecursiveQuicksort,
-  fuzzysort,
-  isFuzzySorted,
-} from "./quicksort";
+  FIFOQueue,
+  heapSort,
+  MaxHeap,
+  MaxPriorityQueue,
+  mergeArrays,
+  Stack,
+} from "./heap";
 import {
-  countingSort,
-  radixSort,
   bucketSort,
+  countingSort,
   inplaceCountingSort,
-  stringSort
+  radixSort,
+  stringSort,
 } from "./linear-sort";
 import { randomizedSelect2 } from "./order";
+import {
+  fuzzysort,
+  hoarePartition,
+  hoareQuicksort,
+  isFuzzySorted,
+  quicksort,
+  quicksort2,
+  tailRecursiveQuicksort,
+} from "./quicksort";
+import { YoungTableau } from "./young-tableau";
 
 function main() {
   for (let i = 0; i < 100; i++) {
     if (!problem_9_2_3()) {
-      throw "Fail";
+      throw new Error("Fail");
     }
   }
   console.log("Pass");
@@ -50,7 +50,7 @@ function problem_6_4_1() {
 function problem_6_5_1() {
   let A = [15, 13, 9, 5, 12, 8, 7, 4, 0, 6, 2, 1];
   let max_pq = new MaxPriorityQueue(A);
-  console.log(`Maximum key is ${max_pq.extractRoot()}`)
+  console.log(`Maximum key is ${max_pq.extractRoot()}`);
 }
 
 function problem_6_5_2() {
@@ -74,10 +74,10 @@ function problem_6_5_7() {
     stack.insert(r);
   }
   for (let i = 0; i < n; i++) {
-    if (A[i] != queue.extract()) {
+    if (A[i] !== queue.extract()) {
       console.error(`wrong queue behavior on A[${i}]`);
     }
-    if (A[n - 1 - i] != stack.extract()) {
+    if (A[n - 1 - i] !== stack.extract()) {
       console.error(`wrong stack behavior on A[${i}]`);
     }
   }
@@ -221,7 +221,7 @@ function problem_6_3_f(): boolean {
   tableau.diagnose();
   console.log("Expected answer: ", inserted);
   console.log("Search result:   ", tableau.find(key));
-  return (tableau.find(key) !== null) == inserted;
+  return (tableau.find(key) !== null) === inserted;
 }
 
 function problem_7_1_1() {
@@ -260,7 +260,7 @@ function problem_7_4() {
 
 function problem_7_6() {
   let n = randomAB(1, 10000);
-  let A: [number, number][] = [];
+  let A: Array<[number, number]> = [];
   for (let i = 0; i < n; i++) {
     let a = randomAB(0, 100);
     let b = a + randomAB(0, 100);
@@ -318,7 +318,7 @@ function problem_9_2_3(): boolean {
   }
   shuffle(A);
   let m = randomAB(1, n);
-  return randomizedSelect2(A, 0, A.length - 1, m) == m;
+  return randomizedSelect2(A, 0, A.length - 1, m) === m;
 }
 
 main();

@@ -9438,3 +9438,60 @@ if the mutual median is not in A[p1 .. r1], run the same procedure on A[p2 .. r2
 O(lgn1 + lgn2) = O(lgn + lgn) = O(lgn) in total
 binary search A[p1 .. r1] and A[p2 .. r2] for the median makes the two subproblems have equal size
 asymptotic T∞(n) and T1(n) will not change
+
+27.3-3
+./CLRS/multithreaded/p-merge-sort.ts#pPartition
+let 2^h be the next power of 2 greater than |A|
+2^h <= 2|A|, 2^h = O(|A|)
+construct a complete trie with 2^h leaves and 2^h - 1 internal nodes in parallel, keyed by the index of A
+the height of the trie will be O(log2(2^h)) = O(h) = O(lg|A|)
+each internal node corresponding to a prefix p stores:
+    le: the number of items less than or equal to the pivot in A with index starting with p
+    gt: the number of items greater than the pivot in A with index starting with p
+the root has p = ε
+both le and gt can be computed recursively from le and gt of the children of a node
+if a leaf corresponds to a prefix (index) p,
+    le = 1, gt = 0 if A[p] <= pivot
+    le = 0, gt = 1 if A[p] > pivot
+    le = 0, gt = 0 if p is out of boundary
+let TC(h) be the construction time of a trie with height h
+    TC1(h)  = 2TC1(h - 1) + O(1)
+            = 2^h
+            = O(2^lg|A|) = O(|A|)
+    TC∞(h)  = TC∞(h - 1) + O(1)
+            = O(h) = O(lg|A|)
+for a particular index p
+the number of items less or equal to pivot before index p can be computed by traversing a path from root to p:
+    let sum = 0 initially
+    if a right-going edge if followed, le of the left child is added to sum
+similarly the number of items greater than the pivot before p can be computed in O(lg|A|)
+by simultaneously traverse all the paths, all the items in A can be assigned to T in O(|A|) with O(lg|A|) span
+elements less than or equal to the pivot is assigned from left end to right into T
+elements greater than the pivot is assigned from right end to left into T
+
+27.3-4
+-
+
+27.3-5
+./CLRS/multithreaded/p-merge-sort.ts#pRandomizedSelect
+a stright forward translation of RANDOMIZED-SELECT
+by the same argument in 9.2
+    E[T1(n)] = O(n)
+    E[T∞(n)] <= 2/n * Σ(k = {n/2 .. n - 1})E[T∞(k)] + O(lgn)
+    assume T∞(n) <= cln(n)
+    E[T∞(n)]    <= 2/n * Σ(k = {n/2 .. n - 1})clgk + O(ln(n))
+                <= 2/n * int(n/2 <= k <= n, clgk) + aln(n)
+                = c/n * (nln(n) - n - n/2ln(n/2) + n/2) + aln(n)
+                = c(ln(n) - 1 - ln(n/2)/2 + 1/2) + aln(n)
+                = cln(n) - c/2(ln(n/2) + 1) + aln(n)
+                = cln(n) - c/2(ln(n) - ln2 + 1) + aln(n)
+sufficiently large c gives c/2(ln(n) - ln2 + 1) >= aln(n)
+    E[T∞(n)]    = O(lgn)
+
+27.3-6
+./CLRS/multithreaded/p-merge-sort.ts#pSelect
+the non-recursive works of the pivoter can be done in O(lgn) span
+by the same argument in 9.3
+    T1(n) = O(n)
+    T∞(n)   <= T∞(n/5) + T∞(7n/10 + 6) + O(lgn)
+            = O(n)
