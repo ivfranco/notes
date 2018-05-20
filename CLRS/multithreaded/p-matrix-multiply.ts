@@ -1,6 +1,7 @@
 export {
   pMatrixMultiply,
   pMatrixMultiplyDivide,
+  pMatrixMultiplyDivide2,
   pStrassen,
   pTranspose,
   pFloydWarshall,
@@ -181,6 +182,40 @@ async function pMatrixMultiplyRecursive(A: SubMatrix, B: SubMatrix, C: SubMatrix
         C.set(i, j, C.get(i, j) + T.get(i, j));
       });
     });
+  }
+}
+
+async function pMatrixMultiplyDivide2(A: Matrix, B: Matrix): Promise<Matrix> {
+  let SA = new SubMatrix(A);
+  let SB = new SubMatrix(B);
+  let SC = await emptySubMatrix(A.length);
+  await pMatrixMultiplyAndAdd(SA, SB, SC);
+  return SC.orig;
+}
+
+async function pMatrixMultiplyAndAdd(A: SubMatrix, B: SubMatrix, C: SubMatrix): Promise<void> {
+  if (C.dimension() === 1) {
+    C.set(0, 0, C.get(0, 0) + A.get(0, 0) * B.get(0, 0));
+  } else {
+    let n = C.dimension();
+    let [A11, A12, A21, A22] = A.partition();
+    let [B11, B12, B21, B22] = B.partition();
+    let [C11, C12, C21, C22] = C.partition();
+
+    let handles = [
+      pMatrixMultiplyAndAdd(A11, B11, C11),
+      pMatrixMultiplyAndAdd(A11, B12, C12),
+      pMatrixMultiplyAndAdd(A21, B11, C21),
+      pMatrixMultiplyAndAdd(A21, B12, C22),
+    ];
+    await Promise.all(handles);
+    handles = [
+      pMatrixMultiplyAndAdd(A12, B21, C11),
+      pMatrixMultiplyAndAdd(A12, B22, C12),
+      pMatrixMultiplyAndAdd(A22, B21, C21),
+      pMatrixMultiplyAndAdd(A22, B22, C22),
+    ];
+    await Promise.all(handles);
   }
 }
 

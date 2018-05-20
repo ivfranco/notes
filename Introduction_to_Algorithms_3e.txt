@@ -9444,6 +9444,7 @@ asymptotic T∞(n) and T1(n) will not change
 let 2^h be the next power of 2 greater than |A|
 2^h <= 2|A|, 2^h = O(|A|)
 construct a complete trie with 2^h leaves and 2^h - 1 internal nodes in parallel, keyed by the index of A
+(basically a two-way order statistics tree / trie)
 the height of the trie will be O(log2(2^h)) = O(h) = O(lg|A|)
 each internal node corresponding to a prefix p stores:
     le: the number of items less than or equal to the pivot in A with index starting with p
@@ -9470,7 +9471,7 @@ elements less than or equal to the pivot is assigned from left end to right into
 elements greater than the pivot is assigned from right end to left into T
 
 27.3-4
--
+//  wait for Chapter 30
 
 27.3-5
 ./CLRS/multithreaded/p-merge-sort.ts#pRandomizedSelect
@@ -9495,3 +9496,133 @@ by the same argument in 9.3
     T1(n) = O(n)
     T∞(n)   <= T∞(n/5) + T∞(7n/10 + 6) + O(lgn)
             = O(n)
+
+27-1
+a.  a simple application of parallelFor defined as
+    ./CLRS/multithreaded/p-matrix-multiply.ts#parallelFor
+    T1(n) = O(n), T∞(n) = O(lgn)
+b.  the same to SUM-ARRAYS
+    the serial loop `for k = 0 to r - 1` dominates both T1(n) and T∞(n)
+    T1(n) = T∞(n) = O(n), T1(n) / T∞(n) = O(1)
+c.  the serial loop in SUM-ARRAYS' has r = n / grain-size iteration
+    each sub procedure spawned from the loop has T1 = T∞ = O(grain-size)
+    the span of SUM-ARRAYS' is max(O(n / grain-size), O(grain-size))
+    which is minimized when grain-size = Θ(n^(1/2)), T∞(n) = O(n^(1/2)), T1(n) / T∞(n) = Θ(n^(1/2))
+
+27-2
+a.  ./CLRS/multithreaded/p-matrix-multiply.ts#pMatrixMultiplyDivide2
+    insert a sync after line 9
+    perform both addition and multiplication in the base case
+b.  the matrix C can be initialized to zero matrix in O(n^2) work and O(lgn) span
+    the span now contains two recursive calls instead of one
+    T1(n) = Θ(n^3)
+    T∞(n) = 2T∞(n) + O(1) = Θ(n)
+c.  T1(n) / T∞(n) = Θ(n^2)
+    when n = 1000, parallelism is about 10^6
+
+27-3
+//  wait for Chapter 29
+
+27-4
+a.  ./CLRS/multithreaded/p-loop.ts#pReduce
+    assume the operation can be done in O(1)
+    T1(n) = 2T1(n/2) + O(1) = Θ(n)
+    T∞(n) = T∞(n/2) + O(1) = Θ(lgn)
+    T1(n) / T∞(n) = Θ(n/lgn)
+b.  P-REDUCE(A, 1, l) is calculated for each l ∈ {1 .. n}
+    T1(n) = Σ(l ∈ {1 .. n})Θ(l) = Θ(n^2)
+    T∞(n) = max{Θ(lgn + lgl)} = Θ(lgn)
+    T1(n) / T∞(n) = Θ(n^2 / lgn)
+c.  induct on j - i
+    assume y[k] is the sum of x[i .. k] for i <= k <= j
+    when j - i = 0, i = j, y[i] = x[i] is the sum of x[i .. i]
+    when j - i > 0, by induction
+        P-SCAN-2-AUX(x, y, i, k) computes y[p] = sum of x[i .. p] for i <= p <= k
+        P-SCAN-2-AUX(x, y, k+1, j) computes y[p] = sum of x[k+1 .. p] for k+1 <= p <= j
+        add y[k] to each y[p], k+1 <= p <= j
+        y[p] = Σ(r ∈ {i .. k})x[r] + Σ(r ∈ {k+1 .. r})x[r] = Σ(r ∈ {i .. p})x[r]
+    thereby y[p] = Σ(r ∈ {i .. p})x[r] for each i <= p <= j
+    P-SCAN-2-AUX(x, y, 1, n) correctly computes the sum of prefixes
+    T1(n) = 2T1(n/2) + Θ(n) = Θ(nlgn)
+    T∞(n) = T1(n/2) + Θ(lgn) = Θ(lg^2n)
+    T1(n) / T∞(n) = Θ(n / lgn)
+d.  P-SCAN-UP:
+        return t[k] * right;
+    P-SCAN-DOWN:
+        spawn P-SCAN-DOWN(v, x, t, y, i, k)
+        P-SCAN-DOWN(v * t[k], x, t, y, k + 1, j)
+    induct on j - i: P-SCAN-UP(x, t, i, j) returns Σ(p ∈ {i .. j})x[p]
+    when j - i = 0, Σ(p ∈ {i})x[p] = x[i] is returned
+    when j - 1 > 0, by induction
+        t[k] = P-SCAN-UP(x, t, i, k) = Σ(p ∈ {i .. k})x[p]
+        right = P-SCAN-UP(x, t, k+1, j) = Σ(p ∈ {k+1 .. j})x[p]
+        t[k] * right = Σ(p ∈ {i .. j})x[p]
+    P-SCAN-UP and P-SCAN-DOWN have exacly the same computation graph
+    upon calling P-SCAN-DOWN(v, x, t, y, i, j), P-SCAN-UP(x, t, i, j) is already computed
+    k = [(i + j) / 2], t[k] = Σ(p ∈ {i .. k})x[p] for each call to P-SCAN-DOWN(v, x, t, y, i, j)
+    induct on depth of recurrence: v = Σ(p = {1 .. i - 1})x[p] upon calling P-SCAN-DOWN(v, x, t, y, i, j)
+    on depth 0, the initial call P-SCAN-DOWN(x[1], x, t, y, 2, n) gives v = x[1] = Σ(p = {1 .. 2-1})x[p]
+    on depth d
+        recursive call on depth d must be issued by a recursive call P-SCAN-DOWN(v, x, t, y, i, j) on depth d - 1
+        by induction v = Σ(p ∈ {1 .. i - 1})x[p]
+        if current call is P-SCAN-DOWN(v, x, t, y, i, k), v = Σ(p ∈ {1 .. i - 1})x[p] still holds
+        if current call is P-SCAN-DOWN(v * t[k], x, t, y, k+1, j)
+        v * t[k]    = Σ(p ∈ {1 .. i - 1})x[p] + Σ(p ∈ {i .. k})x[p]
+                    = Σ(p ∈ {1 .. k})x[p]
+    thereby when i == j, y[i] is assigned v * x[i] = Σ(p ∈ {1 .. i})x[p], the prefix sum of x[1 .. i]
+e.  T1(n) = 2T1(n/2) + O(1) = Θ(n)
+    T∞(n) = Θ(lgn) + Θ(lgn) = Θ(lgn)
+    T1 / T∞ = Θ(n / lgn)
+
+27-5
+a.  divide the array into four subarrays in O(1)
+    recursively compute stencil of A11
+    recursively compute stencil of A12 and A21 in parallel
+    recursively compute stencil of A22
+    T1(n) = 4T1(n/2) + O(1) = Θ(n^2)
+    T∞(n) = 3T∞(n/2) + O(1) = Θ(n^(3/2))
+    T1 / T∞ = Θ(n^(1/2))
+b.  recursively compute stencil of A11
+    recursively compute stencil of A12 and A21 in parallel
+    recursively compute stencil of A13, A22 and A31 in parallel
+    recursively compute stencil of A23 and A32 in parallel
+    recursively compute stencil of A33
+    T1(n) = 9T1(n/3) + O(1) = Θ(n^2)
+    T∞(n) = 5T∞(n/3) + O(1) = Θ(n^log(3, 5))
+    T1 / T∞ = Θ(n^(2 - log(3, 5)))
+c.  T1(n) = Θ(n^2) regardless of b
+    T∞(n) = (2b - 1)Θ(n/b) + O(1) = Θ(n^log(b, 2b - 1))
+    T1 / T∞ = Θ(n^(2 - log(b, 2b - 1)))
+    for b >= 2, log(b, 2b - 1) > 1, 2 - log(b, 2b - 1) < 1
+    the parallelism is o(n)
+d.  take b = n
+    T1(n) = Θ(n^2)
+    now 1 x 1 submatrices (entries) on a diagonal is proportional to n, a parallel loop has span Θ(lgn)
+    T∞(n) = (2n - 1) * Θ(lgn) * O(1) = Θ(nlgn)
+    T1 / T∞ = Θ(n^2 / nlgn) = Θ(n / lgn)
+    no entry in the stencil has non-linear span
+    induct on i + j, assume the span of the stencil of A[i, j] <= i + j
+    stencil of A[1, 1] cannot depend on any other entries, span of A[1, 1] <= 1 <= 1 + 1
+    stencil of A[i, j] can be computed in O(1), hence only depends on a constant number of entries on left / top
+    span of A[i, j] is defined as 1 + max{span of A[i', j'] | A[i, j] is calculated from A[i', j']}
+    by definition of stencil, i' + j' < i + j, inductively span of A[i', j'] <= i' + j' < i + j
+    1 + span of A[i', j'] <= i + j
+    each entry in the stencil has span <= i + j <= 2n = O(n), the span of the whole calculation must be O(n)
+    the parallelism may achieve Θ(n)
+
+27-6
+a.  a particular sample in the sample space is defined by fixing all the random bits used on the random tape
+    thus for a particular sample, the computation graph is fixed, work law and span law still applies
+        Tp >= T1 / P, Tp >= T∞, Tp <= T1 / P + T∞
+    take expectation of both sides
+        E[Tp] >= E[T1] / P, E[Tp] >= E[T∞], E[Tp] <= E[T1] / P + E[T∞]
+    rearranging the equations also gives:
+        E[Tp / T1] >= P, E[Tp / T∞] >= 1, E[(Tp - T∞) / T1] <= 1/P
+b.  E[T1 / Tp] = 1% * 10^4 + 99% * 1 = 100.99
+    E[T1] / E[Tp] ≒ 10^9 / 10^9 = 1 
+    most of the time (99%) T1 = Tp, 1 is a better measure than 100.99
+c.  similar to part b
+d.  ./CLRS/multithreaded/p-quicksort.ts#pRandomizedQuicksort
+e.  expected work is still Θ(nlgn)
+    span recurs into the bigger subproblem, the analysis of RANDOMIZED-SELECT applies
+    expected span is Θ(n), E[T∞] / E[T1] = Θ(lgn)

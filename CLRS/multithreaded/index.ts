@@ -3,10 +3,12 @@ import { WeightedGraph } from "../graph/weighted-graph";
 import { matrixMultiplication } from "../start/matrix-mul";
 import { isSorted } from "../util";
 import { randomAB } from "../util";
+import { pScan } from "./p-loop";
 import {
   pFloydWarshall,
   pMatrixMultiply,
   pMatrixMultiplyDivide,
+  pMatrixMultiplyDivide2,
   pStrassen,
   pTranspose,
 } from "./p-matrix-multiply";
@@ -19,8 +21,8 @@ import {
 } from "./p-merge-sort";
 
 async function main() {
-  while (1) {
-    await problem_27_3_6();
+  for (let i = 0; i < 100; i++) {
+    await problem_27_4();
   }
 }
 
@@ -44,6 +46,9 @@ async function matrixTest() {
   console.log(C);
   console.log("P-STRASSEN-RECURSIVE:");
   C = await pStrassen(A, B);
+  console.log(C);
+  console.log("P-MATRIX-MULTIPLY-RECURSIVE2:");
+  C = await pMatrixMultiplyDivide(A, B);
   console.log(C);
 }
 
@@ -141,6 +146,25 @@ async function problem_27_3_6() {
   console.log(B);
   console.log(`${i}th smallest item: ${selected}`);
   console.assert(selected === B[i - 1]);
+}
+
+async function problem_27_4() {
+  let n = randomAB(1, 10);
+  let A: number[] = [];
+  for (let i = 0; i < n; i++) {
+    A[i] = randomAB(0, 100);
+  }
+  let sum: number[] = [];
+  sum[0] = A[0];
+  for (let i = 1; i < n; i++) {
+    sum[i] = sum[i - 1] + A[i];
+  }
+
+  let scan = await pScan(A, (a, b) => a + b);
+  for (let i = 0; i < n; i++) {
+    console.assert(scan[i] === sum[i]);
+  }
+  console.log("Pass");
 }
 
 main();
