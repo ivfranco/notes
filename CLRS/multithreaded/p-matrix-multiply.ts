@@ -1,4 +1,5 @@
 export {
+  pMatrixPairwise,
   pMatrixMultiply,
   pMatrixMultiplyDivide,
   pMatrixMultiplyDivide2,
@@ -6,6 +7,8 @@ export {
   pTranspose,
   pFloydWarshall,
   parallelFor,
+  Matrix,
+  SubMatrix,
 };
 
 type Matrix = number[][];
@@ -43,6 +46,19 @@ async function parallelSum(A: Matrix, B: Matrix, i: number, j: number, p: number
     let left_sum = await left_p;
     return left_sum + right_sum;
   }
+}
+
+async function pMatrixPairwise(A: Matrix, B: Matrix, f: (a: number, b: number) => number): Promise<Matrix> {
+  let n = A.length;
+  let m = A[0].length;
+  let C: Matrix = [];
+  await parallelFor(0, n - 1, async i => {
+    C[i] = [];
+    await parallelFor(0, m - 1, async j => {
+      C[i][j] = f(A[i][j], B[i][j]);
+    });
+  });
+  return C;
 }
 
 async function pMatrixMultiply(A: Matrix, B: Matrix): Promise<Matrix> {
@@ -87,6 +103,20 @@ class SubMatrix {
 
   public set(i: number, j: number, v: number) {
     this.orig[this.top + i][this.left + j] = v;
+  }
+
+  public async extract(): Promise<Matrix> {
+    let A: Matrix = [];
+    let { orig, top, left, right, bottom } = this;
+    let n = bottom - top + 1;
+    let m = right - left + 1;
+    await parallelFor(0, n - 1, async i => {
+      A[i] = [];
+      await parallelFor(0, m - 1, async j => {
+        A[i][j] = this.get(i, j);
+      });
+    });
+    return A;
   }
 
   public shrink(top: number, left: number, right: number, bottom: number): SubMatrix {

@@ -9521,7 +9521,25 @@ c.  T1(n) / T∞(n) = Θ(n^2)
     when n = 1000, parallelism is about 10^6
 
 27-3
-//  wait for Chapter 29
+a.  ./CLRS/multithreaded/p-matrix-decomposition.ts#pLuDecomposition
+    the outer loop cannot be parallelized
+    T1(n) = Θ(n^3)
+    T∞(n) = Θ(nlgn)
+    T1 / T∞ = Θ(n^2 / lgn)
+b.  ./CLRS/multithreaded/p-matrix-decomposition.ts#pLupDecomposition
+    the outer loop again cannot be parallelized
+    T1(n) = Θ(n^3)
+    T∞(n) = Θ(nlgn)
+    T1 / T∞ = Θ(n^2 / lgn)
+c.  ./CLRS/multithreaded/p-matrix-decomposition.ts#pLupSolve
+    the outer loop in both forward and backward substitution cannot be parallelized
+    T1(n) = Θ(n^2)
+    T∞(n) = Θ(nlgn)
+    T1 / T∞ = Θ(n / lgn)
+c.  ./CLRS/multithreaded/p-matrix-decomposition.ts#pInverse
+    T1(n) = Θ(n^3)
+    T∞(n) = 2T∞(n/2) + O(lgn) = Θ(n)
+    T1 / T∞ = Θ(n^3 / lgn)
 
 27-4
 a.  ./CLRS/multithreaded/p-loop.ts#pReduce
@@ -9626,3 +9644,44 @@ d.  ./CLRS/multithreaded/p-quicksort.ts#pRandomizedQuicksort
 e.  expected work is still Θ(nlgn)
     span recurs into the bigger subproblem, the analysis of RANDOMIZED-SELECT applies
     expected span is Θ(n), E[T∞] / E[T1] = Θ(lgn)
+
+28.1-1
+./CLRS/matrix/index.ts#problem_28_1_1
+
+28.1-2
+./CLRS/matrix/index.ts#problem_28_1_2
+
+28.1-3
+./CLRS/matrix/index.ts#problem_28_1_3
+
+28.1-4
+for a diagonal matrix A
+P = I since there are exacly one non-zero entry on each column
+a LUP decomposition of diagonal matrix is equivalent to a LU decomposition
+both v = w = 0, L = ((1 0) (0 L')), U = ((a11 0) (0 U'))
+recursively, L = I, U = A
+
+28.1-5
+L = I, U = I, P = A^-1
+PA = LU, both P and A are permutation matrices, PA = LU is also a permutation matrix
+PAU^-1 = L, where U^-1 is also an upper triangular matrix
+L the unit lower triangular matrix is a row permutation of U^-1 an upper triangular matrix
+l12 .. l2n = 0, the first row of L must be the first row of U^-1, otherwise U^-1 is singular
+recursively each row k of L must be row k or U^-1, L = U^-1 = I, U = I
+PA = I, P = A^-1
+
+28.1-6
+let L = In, U = 0n, L is unit lower triangular, U is lower triangular
+P0 = LU = 0 for any permutation P
+
+28.1-7
+it is necessary in LU-DECOMPOSITION as unn is only assigned in nth iteration
+it is unnecessary in LUP-DECOMPOSITION since:
+    k' is chosen from {k .. n} = {n}, k' = k, exchanging π[k] and π[k'] or aki and ak'i are no-ops
+    the loop starting from line 16 will not execute as k + 1 = n + 1 > n
+
+28.2-1
+S(n) = O(M(n)) because squaring is just a special case of multiplying
+let D = ((0 A) (B 0)), D^2 = ((AB 0) (0 AB)), AB can be calculated from squaring
+
+28.2-2

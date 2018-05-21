@@ -1,6 +1,7 @@
 export {
   pReduce,
   pForEach,
+  pFoldMap,
   pScan,
 };
 
@@ -9,12 +10,12 @@ const GRAIN_SIZE = 1;
 import { id, noop } from "../util";
 
 async function pFoldMap<A, B>(
-  A: A[], i: number, j: number, f: (a: A) => B, g: (a: B, b: B) => B,
+  A: A[], i: number, j: number, f: (a: A, i?: number) => B, g: (a: B, b: B) => B,
 ): Promise<B> {
   if (j - i + 1 <= GRAIN_SIZE) {
-    let acc = f(A[i]);
+    let acc = f(A[i], i);
     for (let k = i + 1; k <= j; k++) {
-      acc = g(acc, f(A[k]));
+      acc = g(acc, f(A[k], k));
     }
     return acc;
   } else {
@@ -30,7 +31,7 @@ async function pReduce<T>(A: T[], i: number, j: number, f: (a: T, b: T) => T): P
   return pFoldMap(A, i, j, id, f);
 }
 
-async function pForEach<T>(A: T[], i: number, j: number, f: (a: T) => void): Promise<void> {
+async function pForEach<T>(A: T[], i: number, j: number, f: (a: T, i?: number) => void): Promise<void> {
   return pFoldMap(A, i, j, f, noop);
 }
 

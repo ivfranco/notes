@@ -1,9 +1,11 @@
 import { floydWarshall, fromWeightedGraph } from "../graph/all-pair-shortest-path";
 import { WeightedGraph } from "../graph/weighted-graph";
+import { copyMatrix, multiplyByVector } from "../matrix/lup-decomposition";
 import { matrixMultiplication } from "../start/matrix-mul";
 import { isSorted } from "../util";
 import { randomAB } from "../util";
 import { pScan } from "./p-loop";
+import { pInverse, pLuDecomposition, pLupDecomposition, pLupSolve } from "./p-matrix-decomposition";
 import {
   pFloydWarshall,
   pMatrixMultiply,
@@ -21,9 +23,7 @@ import {
 } from "./p-merge-sort";
 
 async function main() {
-  for (let i = 0; i < 100; i++) {
-    await problem_27_4();
-  }
+  await problem_27_3();
 }
 
 async function matrixTest() {
@@ -146,6 +146,49 @@ async function problem_27_3_6() {
   console.log(B);
   console.log(`${i}th smallest item: ${selected}`);
   console.assert(selected === B[i - 1]);
+}
+
+async function problem_27_3() {
+  let A = [
+    [4, -5, 6],
+    [8, -6, 7],
+    [12, -7, 12],
+  ];
+  console.log("Given matrix:");
+  console.log(A);
+
+  let [L, U] = await pLuDecomposition(A);
+  console.log("Calculated matrix:");
+  console.log(matrixMultiplication(L, U));
+
+  A = [
+    [1, 5, 4],
+    [2, 0, 3],
+    [5, 8, 2],
+  ];
+  let B = copyMatrix(A);
+  let b = [12, 9, 5];
+
+  let P = await pLupDecomposition(A);
+  let x = await pLupSolve(A, A, P, b);
+  console.log("Given vector:");
+  console.log(b);
+  console.log("Calculated vector:");
+  console.log(multiplyByVector(B, x));
+
+  A = [
+    [5, 6, 6, 8],
+    [2, 2, 2, 8],
+    [6, 6, 2, 8],
+    [2, 3, 6, 7],
+  ];
+
+  let Inv = await pInverse(A);
+  console.log("Should be identity matrix:");
+  let I = await pMatrixMultiply(A, Inv);
+  //  stabilize
+  I = I.map(row => row.map(a => Math.round(a * 1e6) / 1e6));
+  console.log(I);
 }
 
 async function problem_27_4() {
