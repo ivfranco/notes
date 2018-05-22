@@ -9659,6 +9659,7 @@ for a diagonal matrix A
 P = I since there are exacly one non-zero entry on each column
 a LUP decomposition of diagonal matrix is equivalent to a LU decomposition
 both v = w = 0, L = ((1 0) (0 L')), U = ((a11 0) (0 U'))
+L'U' = A' - vw' / a11 = A' is also a diagonal matrix
 recursively, L = I, U = A
 
 28.1-5
@@ -9685,3 +9686,67 @@ S(n) = O(M(n)) because squaring is just a special case of multiplying
 let D = ((0 A) (B 0)), D^2 = ((AB 0) (0 AB)), AB can be calculated from squaring
 
 28.2-2
+errata: http://www.cs.dartmouth.edu/~thc/clrs-bugs/bugs-3e.php
+    Eliminate one direction of the exercise
+    so that the exercise should read Let M(n) be the time to multiply two n × n matrices. 
+    Show that an M(n)-time matrix-multiplication algorithm implies an O(M(n))-time LUP-decomposition algorithm.
+thanks https://math.stackexchange.com/questions/1084486/
+let A be a matrix of dimension 2^b
+if b = 0, A is upper triangular, PA = LU, P = L = I, U = A
+if b > 0, partition A into
+    B   C
+    D   E
+and recursively compute the LUP decomposition of B, P1B = L1U1, which gives
+    A = P1T 0   x   L1U1    P1C
+        0   I       D       E 
+      = P1T 0   x   L1      0                   x   U1  L1^-1P1C
+        0   I       DU1^-1  E - DU1^-1L1^-1P1C      0   I
+as P1^-1 = P1T
+take a second LUP decomposition of E - DU1^-1L1^-1P1C = P2TL2U2
+    A = P1T 0   x   L1      0           x   U1  L1^-1P1C
+        0   I       DU1^-1  P2TL2U2         0   I
+      = P1T 0   x   I   0       x   L1      0   x   U1  L1^-1P1C
+        0   I       0   P2T         DU1^-1  L2      0   U2
+      = P1T 0   x   L1      0   x   U1  L1^-1P1C
+        0   P2T     DU1^-1  L2      0   U2
+which is a LUP decomposition of A = PTLU
+two recursive LUP decomposition are performed with constant number of multiplications
+L(n)    = 2L(n/2) + O(M(n/2))
+        = O(M(n/2)) = O(M(n)) assuming M(n) = Ω(n^2)
+
+28.2-3
+by 28.2-2, LUP decomposition of a matrix A can be computed in O(M(n))
+A = PTLU, where PT is a permutation and L, U are triangular
+det(A) = det(PT)det(L)det(U)
+det(PT) can be computed in time O(n) as only one entry in each row is nonzero, only one minor matters
+det(L) and det(U) are the product of elements on their diagonal, can be computed in O(n)
+D(n) = O(M(n)) + O(n) = O(M(n))
+conversely?
+
+28.2-4
+multiplying two boolean matrices AB is equivalent to extend a transitive closure A with another
+aij = 1 iff there is a path i ~> j so far, bij = 1 defines a path in similar way
+let C = AB, cij = 1 iff aik && bkj = 1 for some k, there is a path a ~> k ~> j in the extended transitive closure
+if cij = 0, aik && bkj = 0 for all k, there's no path a ~> k ~> j such that a ~> k defined by A and k ~> j defined by B
+=>: by repeated squaring, similar to FAST-ALL-PAIRS-SHORTEST-PATHS
+<=: thanks https://www.student.cs.uwaterloo.ca/~cs466/Old_courses/F08/transitiveClosure.pdf
+    for two boolean matrices A and B, construct the same matrix D in Theorem 28.1:
+    D = I   A   0
+        0   I   B
+        0   0   I
+    it can be seen as the adjacency matrix of a three-component graph
+    Dij describes the connectivity between component i and component j
+    there's no edge from component i to j if i > j
+    also there's no edge from component 1 to 3, or from any vertex in component 3 to any other vertex but itself
+    D12 = A defines a set of edges from component 1 to 2
+    D23 = B defines a set of edges from component 2 to 3
+    all other edges (i, j) either is a self loop (i = j) or doesn't exist in D
+    hence if there is a path from component 1 to 3
+    it must follow an edge defined by A once, then another edge defined by B
+    D*13 = AB
+
+28.2-5
+wait for 28.3
+
+28.2-6
+wait for 28.3
