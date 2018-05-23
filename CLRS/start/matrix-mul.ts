@@ -10,6 +10,8 @@ type Quad<A> = [A, A, A, A];
 
 function matrixMultiplication(A: Matrix, B: Matrix): Matrix {
   let n = A.length;
+  let q = A[0].length;
+  let m = B[0].length;
   //  used to be
   //    let C = new Array(n).fill([]);
   //  the argument of .fill is evaluated only once
@@ -18,9 +20,9 @@ function matrixMultiplication(A: Matrix, B: Matrix): Matrix {
   let C = new Array(n);
   for (let i = 0; i < n; i++) {
     C[i] = [];
-    for (let j = 0; j < n; j++) {
+    for (let j = 0; j < m; j++) {
       let sum = 0;
-      for (let k = 0; k < n; k++) {
+      for (let k = 0; k < q; k++) {
         sum += A[i][k] * B[k][j];
       }
       C[i][j] = sum;

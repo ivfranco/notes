@@ -8177,7 +8177,7 @@ next iteration compute EXTEND-SHORTEST-PATHS(L', L') inplace in L
 25.1-9
 perform another iteration of EXTEND-SHORTEST-PATHS, check if any entry changed
 no entry should change if the graph contains no negative cycle by argument in the text
-if there is a negative cycle in the graph, the shortest path weight may be decreased indifinitely
+if there is a negative cycle in the graph, the shortest path weight may be decreased indefinitely
 however if EXTEND-SHORTEST-PATHS(L, L) = L, it will never change in any iteration afterwards
 therefore EXTEND-SHORTEST-PATHS(L, L) = T must be different to L
 
@@ -9746,7 +9746,71 @@ if cij = 0, aik && bkj = 0 for all k, there's no path a ~> k ~> j such that a ~>
     D*13 = AB
 
 28.2-5
-wait for 28.3
+it may not be correct
+ATA may not be positive-definite in modulo 2 field, since ||Ax||^2 = 0 does not imply Ax = 0
 
 28.2-6
-wait for 28.3
+similar to 28.2-5, ||Ax||^2 = 0 no longer implies that Ax = 0 in complex field
+let A* be the conjugate transpose of A
+claim: A*A is positive-definite, x*A*Ax > 0
+    for any non-zero vector x, let (x*A*)(Ax) = yz
+    yi = Σ{j}(x*j)(a*ji), zi = Σ{j}(aij)(xj)
+    by definition of conjugate, let aijxj = vj + i(wj), (x*j)(a*ji) = vj - i(wj)
+    by http://mathworld.wolfram.com/HermitianInnerProduct.html
+    y = z*, yz = <z, z> is a Hermitian inner product, which is a non-negative real number where <z, z> = 0 iff z = 0
+    if z = Ax = 0, A is singular, hence <z, z> = x*A*Ax > 0
+Theorem 28.3, 28.4 and 28.5 apply with no modification
+the multiplication of complex matrices can be simulated by four real multiplications and three additions
+I(n) = O(M(n)) still holds
+
+28.3-1
+generalize Corollary 28.6
+if aii < 0, eiTAei = aii < 0, A is not positive-definite
+
+28.3-2
+let x = (v, w), xTAx = (va + wb, vb + wc)(v, w) = v^2a + vwb + vwb + w^2c = v^2a + 2vwb + w^2c > 0
+let v = -b/a, w = 1, b^2/a - 2b^2/a + c = c - b^2/a > 0
+by 28.3-1, a > 0, multiply both side by a gives ac - b^2 > 0
+
+28.3-3
+assume aij is the maximum entry for some i != j, aij = aji as A is symmetric
+(ei - ej)TA(ei - ej)    = (eiT - ejT)A(ei - ej)
+                        = eiTAei - eiTAej - ejTAei + ejTAej
+                        = aii + ajj - aij - aji
+                        = aii + ajj - 2aij < 0
+in contradiction to A being positive-definite
+
+28.3-4
+a11 > 0 by 28.6
+when the dimension of A is 1, det(A) = a11 > 0
+inductively, let A be a symmetric positive-definite square matrix with dimension n
+A = a11 vT
+    v   A'
+  = 1       0   x   a11 vT
+    v/a11   I       0   A' - vvT / a11
+  = BC
+A' - vvT / a11 the Schur complement of dimension n - 1 is also symmetric and positive-definite
+by induction, det(A' - vvT / a11) > 0
+det(A) = det(B)det(C) = det(C) as B is lower triangular
+let CT be the transpose of C, det(CT) = det(C)
+CT =    a11 0
+        v   A' - vvT / a11
+since the Schur complement is symmetric
+det(CT) = a11 * det(A' - vvT / a11) > 0
+thus all symmetric and positive-definite matrix has positive determinant
+by 28.4, each leading matrix of a symmetric and positive-definite matrix is also symmetric and positive-definite
+therefore each leading matrix of a symmetric and positive-definite matrix has positive determinant
+
+28.3-5
+thanks http://lya.fciencias.unam.mx/gfgf/sc091/archivos/stewart_chap3n4.pdf
+
+28.3-6
+[ 0.4117329408773238, -0.20486763824473878, 0.16954468012788065 ]
+
+28.3-7
+A+A = (ATA)^-1ATA = I
+(A+)T = ((ATA)^-1AT)T = A((ATA)^-1)T = A(ATA)^-1 since ATA and ATA^-1 are symmetric
+AA+A = A(A+A) = A
+A+AA+ = (A+A)A+ = A+
+(AA+)T = (A+)TAT = A((ATA)^-1)AT = AA+
+(A+A)T = I = A+A

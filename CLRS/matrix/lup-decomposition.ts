@@ -1,10 +1,13 @@
 export {
+  Matrix,
+  Vector,
   copyMatrix,
   multiplyByVector,
   lupDecomposition,
   luDecomposition,
   forwardSubst,
   backwardSubst,
+  luSolve,
   lupSolve,
 };
 
@@ -29,11 +32,12 @@ function copyMatrix(A: Matrix): Matrix {
 function multiplyByVector(A: Matrix, v: Vector): Vector {
   console.assert(A[0].length === v.length, "Matrix and vector are not compatible");
 
-  let n = v.length;
+  let n = A.length;
+  let m = v.length;
   let b: Vector = [];
   for (let i = 0; i < n; i++) {
     b[i] = 0;
-    for (let j = 0; j < n; j++) {
+    for (let j = 0; j < m; j++) {
       b[i] += A[i][j] * v[j];
     }
   }
@@ -146,7 +150,11 @@ function permute(P: Vector, b: Vector): Vector {
   return permuted;
 }
 
-function lupSolve(L: Matrix, U: Matrix, P: Vector, b: Vector): Vector {
-  let y = forwardSubst(L, permute(P, b));
+function luSolve(L: Matrix, U: Matrix, b: Vector): Vector {
+  let y = forwardSubst(L, b);
   return backwardSubst(U, y);
+}
+
+function lupSolve(L: Matrix, U: Matrix, P: Vector, b: Vector): Vector {
+  return luSolve(L, U, permute(P, b));
 }

@@ -1,4 +1,5 @@
 import { matrixMultiplication } from "../start/matrix-mul";
+import { leastSquareFit } from "./least-squares-approximation";
 import {
   copyMatrix,
   forwardSubst,
@@ -9,7 +10,7 @@ import {
 } from "./lup-decomposition";
 
 function main() {
-  problem_28_1_3();
+  problem_28_3_6();
 }
 
 function problem_28_1_1() {
@@ -57,6 +58,45 @@ function problem_28_1_3() {
   console.log(b);
   console.log("Calculated vector:");
   console.log(multiplyByVector(B, x));
+}
+
+function leastSquareFitTest() {
+  let points = [
+    [-1, 2],
+    [1, 1],
+    [2, 1],
+    [3, 0],
+    [5, 3],
+  ].map(([x, y]) => {
+    return { x, y };
+  });
+
+  let f = (x: number, n: number) => x ** n;
+  console.log(leastSquareFit(points, 3, f));
+}
+
+function problem_28_3_6() {
+  let points = [
+    [1, 1],
+    [2, 1],
+    [3, 3],
+    [4, 8],
+  ].map(([x, y]) => {
+    return { x, y };
+  });
+
+  let f = (x: number, n: number) => {
+    switch (n) {
+      case 0:
+        return 1;
+      case 1:
+        return x * Math.log2(x);
+      case 2:
+        return Math.exp(x);
+    }
+    throw Error("Error: Unreachable");
+  };
+  console.log(leastSquareFit(points, 3, f));
 }
 
 main();
