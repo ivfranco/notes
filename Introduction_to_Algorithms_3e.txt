@@ -9803,6 +9803,27 @@ therefore each leading matrix of a symmetric and positive-definite matrix has po
 
 28.3-5
 thanks http://lya.fciencias.unam.mx/gfgf/sc091/archivos/stewart_chap3n4.pdf
+after one step of decomposition in 28.8,
+A = 1       0       x   a11     vT
+    v/a11   In-1        v       A' - vvT/a11
+  = LA'
+for any leading submatrix Ak of A,
+L = Lk      0
+    v'/a11  In-k
+A'= A'k     v'T
+    v'      D
+Ak = LkA'k, det(Ak) = det(A'k) since Lk is unit lower triangular
+let A be the matrix before ith iteration of LU decomposition, A' be the matrix after ith iteration
+A = U   PT
+    0   D
+A'= U   PT
+    0   D'
+A = I   0   x   U   PT 
+    0   L       0   D'
+where LD' = D, L is unit lower triangular
+similarly, det(Ak) = det(A'k), each step of LU decomposition will not change determinant of any leading submatrix
+on termination, A' = U, det(Ak) = det(Uk) = Π{i ∈ {1 .. k}}(aii)
+det(Ak) / det(Ak-1) = akk, the kth pivot
 
 28.3-6
 [ 0.4117329408773238, -0.20486763824473878, 0.16954468012788065 ]
@@ -9814,3 +9835,146 @@ AA+A = A(A+A) = A
 A+AA+ = (A+A)A+ = A+
 (AA+)T = (A+)TAT = A((ATA)^-1)AT = AA+
 (A+A)T = I = A+A
+
+28-1
+a.  L:  [ [ 1, 0, 0, 0, 0 ],
+        [ -1, 1, 0, 0, 0 ],
+        [ 0, -1, 1, 0, 0 ],
+        [ 0, 0, -1, 1, 0 ],
+        [ 0, 0, 0, -1, 1 ] ]
+    U:  [ [ 1, -1, 0, 0, 0 ],
+        [ 0, 1, -1, 0, 0 ],
+        [ 0, 0, 1, -1, 0 ],
+        [ 0, 0, 0, 1, -1 ],
+        [ 0, 0, 0, 0, 1 ] ]
+b.  x: [ 15, 14, 12, 9, 5 ]
+c.  Inverse: 
+    [ [ 5, 4, 3, 2, 1 ],
+    [ 4, 4, 3, 2, 1 ],
+    [ 3, 3, 3, 2, 1 ],
+    [ 2, 2, 2, 2, 1 ],
+    [ 1, 1, 1, 1, 1 ] ]
+d.  all but the first entry of v and w is zero
+    vwT / a11 has only one leading non-zero entry
+    both v/a11 and A' - vwT / a11 can be computed in O(1)
+    A' is tridiagonal, only the first entry is modified, A' - vwT / a11 is still tridiagonal
+    all n steps of LU decomposition can be done in O(n)
+    both L and U will be bidiagonal, forward and backward substitutions on L and U takes O(n)
+    solving Ax = b takes O(n) time in total
+    constructing A^-1 takes Ω(n^2) = ω(n) time at least
+e.  only two rows may have non-zero entry in the first column, namely the first and second rows
+    the maximum can be found in O(1), row and π can be exchanged in O(1)
+    P'A' is still a tridiagonal matrix as well as P'(A' - vwT / aki)
+    P'v/ak1 and P'(A' - vwT / aki) can be computed in O(1), O(n) in total
+    if the first and second row is exchanged, wT may have two non-zero leading entries, v still has only one
+    L is bidiagonal, U is tridiagonal at worst
+    Pb can be computed from π and b in O(n)
+    both forward and backward substitution on bi/tridiagonal matrices takes O(n)
+    Ax = b can be solved in O(n) total time
+
+28-2
+a.  fi(0) = ai = yi
+    fi(1) = ai + bi + ci + di = yi+1
+    fi'(0) = bi = Di
+    fi'(1) = bi + 2ci + 3di = Di+1
+    ai = yi
+    bi = Di
+    ci + di = yi+1 - yi - Di
+    2ci + 3di = Di+1 - Di
+    di  = Di+1 - Di - 2yi+1 + 2yi + 2Di 
+        = Di+1 + Di + 2yi - 2yi+1
+    ci  = yi+1 - yi - Di - Di+1 - Di - 2yi + 2yi+1 
+        = 3yi+1 - 3yi - 2Di - Di+1
+    all 4n coefficients can be computed in O(n)
+b.  fi''(1) = 2ci + 6di = 2ci+1 = fi+1''(0)
+    ci + 3di = ci+1
+    3yi+1 - 3yi = ci + 2Di + Di+1
+    3yi - 3yi-1 = ci-1 + 2Di-1 + Di
+    3(yi+1 - yi-1)  = Di+1 + 3Di + 2Di-1 + ci + ci-1
+                    = Di+1 + 3Di + 2Di-1 + 2ci-1 + 3di-1
+                    = Di+1 + 3Di + 2Di-1 + Di - Di-1
+                    = Di+1 + 4Di + Di-1
+c.  f0''(0) = 2c0 = 0, c0 = 0
+    3(y1 - y0) = c0 + 2D0 + D1 = 2D0 + D1
+    fn-1''(1) = 2cn-1 + 6dn-1 = 0
+    Dn - Dn-1   = 2cn-1 + 3dn-1 
+                = -3dn-1
+                = -3(Dn + Dn-1 + 2yn-1 - 2yn)
+                = -3Dn - 3Dn-1 - 6yn-1 + 6yn
+    4Dn + 2Dn-1 = 6yn - 6yn-1
+    2Dn + Dn-1  = 3(yn - yn-1)
+d.  AiT be the ith row of the matrix, AiT is a vector of length n+1
+    AiT =   [2, 1, 0 ...] when i = 0
+            [0 ... 1, 2] when i = n
+            AiT[i-1] = 1, AiT[i] = 4, AiT[i+1] = 1, AiT[j] = 0 otherwise
+    the matrix is tridiagonal
+e.  by problem 28-1, Ax = b where A is a tridiagonal matrix of dimension n+1 can be solved in O(n+1) = O(n)
+f.  thanks http://sepwww.stanford.edu/sep/sergey/128A/answers6.pdf
+
+Chapter 29
+29.1-1
+c = [2, -3, 3]
+b = [7, -7, 4]
+A = [
+    [1, 1, -1],
+    [-1, -1, 1],
+    [1, -2, 2],
+]
+
+29.1-2
+(0, 7), z = 21
+(1, 6), z = 16
+(2, 5), z = 11
+
+29.1-3
+N = {1, 2, 3}
+B = {4, 5, 6}
+A = [
+    [1, 1, -1],
+    [-1, -1, 1],
+    [1, -2, 2],
+]
+b = [7, -7, 4]
+c = [2, -3, 3]
+v = 0
+
+29.1-4
+maximize -2x1 + 2x2 - 7x3 - x4 + x5
+subject to
+x1 - x2 - x4 + x5 <= 7
+-3x1 + 3x2 - x3 <= -24
+x4 - x5 <= 0
+x1, x2, x3, x4, x5 
+
+29.1-5
+slack form:
+z = 3x1 - 2x2
+x4 = 7 - x1 - x2 + x3
+x5 = -8 + 3x1 - x2
+x6 = 0x1 + 2x2 + 2x3
+x1 .. x6 >= 0
+N = {1, 2, 3}, B = {4, 5, 6}
+
+29.1-6
+add twice the first constraint to the second gives
+    0 <= -6
+which cannot be satisfied
+
+29.1-7
+let x = ∞, x2 = 0
+-2x1 + x2 = -∞ <= -1
+-x1 + 2x2 = -∞ <= -2
+x1, x2 >= 0
+x1 - x2 = ∞
+
+29.1-8
+let c be the number of constraints, let v be the number of variables
+if a variable has no non-negativity constraint, c is increased by 2, v is increased by 1
+if a constraint is an equality, c is increased by 1
+therefore c <= m + 2n + m = 2n + 2m
+v <= n + n <= 2n
+
+29.1-9
+minimize x1
+subject to
+    x1 >= 0

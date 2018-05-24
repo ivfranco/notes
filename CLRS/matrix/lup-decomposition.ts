@@ -9,6 +9,7 @@ export {
   backwardSubst,
   luSolve,
   lupSolve,
+  luInverse,
 };
 
 import { SWAP } from "../util";
@@ -157,4 +158,30 @@ function luSolve(L: Matrix, U: Matrix, b: Vector): Vector {
 
 function lupSolve(L: Matrix, U: Matrix, P: Vector, b: Vector): Vector {
   return luSolve(L, U, permute(P, b));
+}
+
+function unitVector(n: number, i: number): Vector {
+  let e: Vector = [];
+  for (let j = 0; j < n; j++) {
+    e[j] = i === j ? 1 : 0;
+  }
+  return e;
+}
+
+function luInverse(L: Matrix, U: Matrix): Matrix {
+  let n = L.length;
+  let Inv: Matrix = [];
+  for (let i = 0; i < n; i++) {
+    Inv[i] = [];
+  }
+
+  for (let i = 0; i < n; i++) {
+    let e = unitVector(n, i);
+    let x = luSolve(L, U, e);
+    for (let j = 0; j < n; j++) {
+      Inv[j][i] = x[j];
+    }
+  }
+
+  return Inv;
 }

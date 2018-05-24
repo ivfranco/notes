@@ -4,13 +4,15 @@ import {
   copyMatrix,
   forwardSubst,
   luDecomposition,
+  luInverse,
   lupDecomposition,
   lupSolve,
+  luSolve,
   multiplyByVector,
 } from "./lup-decomposition";
 
 function main() {
-  problem_28_3_6();
+  problem_28_1();
 }
 
 function problem_28_1_1() {
@@ -97,6 +99,25 @@ function problem_28_3_6() {
     throw Error("Error: Unreachable");
   };
   console.log(leastSquareFit(points, 3, f));
+}
+
+function problem_28_1() {
+  let A = [
+    [1, -1, 0, 0, 0],
+    [-1, 2, -1, 0, 0],
+    [0, -1, 2, -1, 0],
+    [0, 0, -1, 2, -1],
+    [0, 0, 0, -1, 2],
+  ];
+
+  let [L, U] = luDecomposition(A);
+  console.log("L:", L);
+  console.log("U:", U);
+  let b = [1, 1, 1, 1, 1];
+  let x = luSolve(L, U, b);
+  console.log("x:", x);
+  let Inv = luInverse(L, U);
+  console.log("Inverse:", Inv);
 }
 
 main();
