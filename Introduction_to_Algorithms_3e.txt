@@ -9978,3 +9978,137 @@ v <= n + n <= 2n
 minimize x1
 subject to
     x1 >= 0
+
+29.2-1
+split each variable dv to dv1 - dv2
+maximize dt1 - dt2
+subject to
+    dv1 - dv2 - du1 + du2 <= w(u, v)
+    ds1 - ds2 <= 0
+    ds2 - ds1 <= 0
+    dvi >= 0 for all v ∈ V and i ∈ {1, 2}
+
+29.2-2
+maximize dy
+subject to
+dt <= ds + 3
+dy <= ds + 5
+dx <= dt + 6
+dy <= dt + 2
+dz <= dx + 11
+dt <= dy + 3
+dx <= dy + 4
+dz <= dy + 6
+ds <= dz + 3
+dx <= dz + 7
+ds = 0
+
+29.2-3
+maximize Σdv
+subject to the same set of constraints
+an optimal solution to single source shortest path problem satisfies
+    dv = δ(s, v) <= δ(s, u) + w(u, v) for all (u, v) ∈ E
+thereby is a feasible to the linear program
+if there is another solution d* that Σdv* > Σdv = Σδ(s, v)
+there must be some dv* > δ(s, v)
+let v be the vertex with fewest edges in a shortest path s ~> v where dv* > δ(s, v)
+if v = s, dv* = 0 = δ(s, v), so v != s
+let u be the predecessor of v on the shortest path s ~> v, by definition of v, du* <= δ(s, u)
+dv* <= du* + w(u, v) <= δ(s, u) + w(u, v) = δ(s, v), contradiction
+therefore dv = δ(s, v) is the optimal solution to the linear program
+
+29.2-4
+maximize fss + fsv1 + fsv2 + fsv3 + fsv4 + fst - (fss + fv1s + fv2s + fv3s + fv4s + fts)
+subject to
+//  capacity constraints
+fss <= 0
+fsv1 <= 16
+fsv2 <= 13
+fsv3 <= 0
+fsv4 <= 0
+fst <= 0
+fv1s <= 0
+fv1v1 <= 0
+fv1v2 <= 0
+fv1v3 <= 12
+fv1v4 <= 0
+fv1t <= 0
+fv2s <= 0
+fv2v1 <= 4
+fv2v2 <= 0
+fv2v3 <= 0
+fv2v4 <= 14
+fv2t <= 0
+fv3s <= 0
+fv3v1 <= 0
+fv3v2 <= 9
+fv3v3 <= 0
+fv3v4 <= 0
+fv3t <= 20
+fv4s <= 0
+fv4v1 <= 0
+fv4v2 <= 0
+fv4v3 <= 7
+fv4v4 <= 0
+fv4t <= 4
+fts <= 0
+ftv1 <= 0
+ftv2 <= 0
+ftv3 <= 0
+ftv4 <= 0
+ftt <= 0
+//  conservation constraints
+fsv1 + fv1v1 + fv2v1 + fv3v1 + fv4v1 + ftv1 = fv1s + fv1v1 + fv1v2 + fv1v3 + fv1v4 + fv1t
+fsv2 + fv1v2 + fv2v2 + fv3v2 + fv4v2 + ftv2 = fv2s + fv2v1 + fv2v2 + fv2v3 + fv2v4 + fv2t
+fsv3 + fv1v3 + fv2v3 + fv3v3 + fv4v3 + ftv3 = fv3s + fv3v1 + fv3v2 + fv3v3 + fv3v4 + fv3t
+fsv4 + fv1v4 + fv2v4 + fv3v4 + fv4v4 + ftv4 = fv4s + fv4v1 + fv4v2 + fv4v3 + fv4v4 + fv4t
+//  nonnegativity constraints
+fss >= 0
+fsv1 >= 0
+fsv2 >= 0
+fsv3 >= 0
+fsv4 >= 0
+fst >= 0
+fv1s >= 0
+fv1v1 >= 0
+fv1v2 >= 0
+fv1v3 >= 0
+fv1v4 >= 0
+fv1t >= 0
+fv2s >= 0
+fv2v1 >= 0
+fv2v2 >= 0
+fv2v3 >= 0
+fv2v4 >= 0
+fv2t >= 0
+fv3s >= 0
+fv3v1 >= 0
+fv3v2 >= 0
+fv3v3 >= 0
+fv3v4 >= 0
+fv3t >= 0
+fv4s >= 0
+fv4v1 >= 0
+fv4v2 >= 0
+fv4v3 >= 0
+fv4v4 >= 0
+fv4t >= 0
+fts >= 0
+ftv1 >= 0
+ftv2 >= 0
+ftv3 >= 0
+ftv4 >= 0
+ftt >= 0
+
+29.2-5
+define fuv iff c(u, v) > 0
+if (u, v) ∉ E, fuv >= 0, fuv <= c(u, v) = 0, fuv = 0 and can be safely eliminated from object function
+there are at most O(E) capacity constraints, O(V) conservation constraints and O(E) nonnegativity constraints
+O(V + E) constraints in total
+
+29.2-6
+transform it to the corresponding maximum flow problem
+then solve the maximum flow problem as a linear programming problem
+
+29.2-7
+minimize Σa(u, v)fuv instead of 0 in multicommodity-flow problem
