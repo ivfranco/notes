@@ -10102,7 +10102,7 @@ ftt >= 0
 
 29.2-5
 define fuv iff c(u, v) > 0
-if (u, v) ∉ E, fuv >= 0, fuv <= c(u, v) = 0, fuv = 0 and can be safely eliminated from object function
+if (u, v) ∉ E, fuv >= 0, fuv <= c(u, v) = 0, fuv = 0 and can be safely eliminated from objective function
 there are at most O(E) capacity constraints, O(V) conservation constraints and O(E) nonnegativity constraints
 O(V + E) constraints in total
 
@@ -10112,3 +10112,51 @@ then solve the maximum flow problem as a linear programming problem
 
 29.2-7
 minimize Σa(u, v)fuv instead of 0 in multicommodity-flow problem
+
+29.3-1
+subtract 29.81 from 29.79 gives
+    Σc'jxj = (v - v') + Σcjxj
+apply lemma 29.3 gives cj = c'j for all j
+
+29.3-2
+cebe = ce * bl / ale
+by how e is chosen on line 4 of SIMPLEX, ce > 0
+by how l is chosen on line 9 of SIMPLEX, ale > 0
+by lemma 29.2, bl >= 0
+hence cebe >= 0 and v + cebe >= v
+
+29.3-3
+let x be a feasible solution to the slack form before pivot, xi >= 0 for all i ∈ N ∪ B
+there are two operations in the pivot
+switching the roles of two variable in a constraint will not change the meaning of the constraint
+x is still a feasible solution to the slack form after pivot
+xe is replaced by b'e - Σa'ejxj, which the new constraint guarentees xe = b'e - Σa'ejxj
+the objective value z' = z 
+similarly if x' is a feasible solution after the pivot
+x' is a feasible solution before the pivot with identical objective value
+
+29.3-4
+the basic solution sets all nonbasic variables to 0, nonnegativity constraints on basic variables are satisfied
+each equality constraint corresponds to a basic variable
+for each basic variable xi, xi is only involved in two constraints:
+    the equation constraint xi = bi - Σaijxj = bi and 
+    the nonnegativity constraint xi >= 0
+if bi >= 0, xi = bi >= 0, the nonnegativity constraint is satisfied
+if bi < 0, xi = bi < 0, the nonnegativity constraint is violated
+therefore the basic solution is feasible iff bi >= 0 for all i ∈ B, or bi >= 0 for all i ∈ {1 .. m} in standard form
+
+29.3-5
+x1 = 12, x2 = 8
+
+29.3-6
+x1 = 1, x2 = 0
+
+29.3-7
+it is the dual of a linear program which has feasible basic solution
+solve that program will give an optimal solution to this one as well
+./CLRS/linear-program/index.ts#problem_29_3_7
+x1 = 1250, x2 = 1000, x3 = 0
+
+29.3-8
+any program with a constraint xi <= 0 while xi does not appear in the objective function
+the constraint will be xj = xi in slack form, switching xj with xi will not change the equation or the objective

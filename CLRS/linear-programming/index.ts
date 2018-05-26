@@ -1,8 +1,9 @@
 import { WeightedGraph } from "../graph/weighted-graph";
 import { toCompactFlowLinearProgram, toFlowLinearProgram, toSSLinearProgram } from "./graph-linear-program";
+import { simplex, SlackForm } from "./simplex";
 
 function main() {
-  problem_29_2_4();
+  problem_29_3_7();
 }
 
 function problem_29_2_2() {
@@ -42,6 +43,69 @@ function problem_29_2_4() {
   //  problem_29_2_5
   console.log("\nCompact form: ");
   console.log(toCompactFlowLinearProgram(G, s, t));
+}
+
+function slackFormTest() {
+  let A = [
+    [1, 1, 3],
+    [2, 2, 5],
+    [4, 1, 2],
+  ];
+  let b = [30, 24, 36];
+  let c = [3, 1, 2];
+
+  let slack = new SlackForm(A, b, c);
+  console.log(slack.show());
+  console.log("\nPivot x0 and x5");
+  slack.pivot(0, 5);
+  console.log(slack.show());
+  console.log("\nPivot x2 and x4");
+  slack.pivot(2, 4);
+  console.log(slack.show());
+  console.log("\nPivot x1 and x2");
+  slack.pivot(1, 2);
+  console.log(slack.show());
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_3_5() {
+  let A = [
+    [1, 1],
+    [1, 0],
+    [0, 1],
+  ];
+  let b = [20, 12, 16];
+  let c = [18, 12.5];
+
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_3_6() {
+  let A = [
+    [1, -1],
+    [2, 1],
+  ];
+  let b = [1, 2];
+  let c = [5, -3];
+
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_3_7() {
+  let A = [
+    [2, 20],
+    [7.5, 5],
+    [3, 10],
+  ];
+  let b = [1, 1, 1];
+  let c = [10000, 30000];
+
+  let slack = new SlackForm(A, b, c);
+  slack.simplex();
+  console.log("Final slack form:");
+  console.log(slack.show());
+  console.log("Dual solution:");
+  console.log(slack.dualSolution());
 }
 
 main();
