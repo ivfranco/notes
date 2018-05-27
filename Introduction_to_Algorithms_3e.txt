@@ -10160,3 +10160,119 @@ x1 = 1250, x2 = 1000, x3 = 0
 29.3-8
 any program with a constraint xi <= 0 while xi does not appear in the objective function
 the constraint will be xj = xi in slack form, switching xj with xi will not change the equation or the objective
+
+29.4-1
+minimize 20y1 + 12y2 + 16y3
+subject to
+y1 + y2 >= 18
+y1 + y3 >= 12.5
+y1, y2, y3 >= 0
+
+29.4-2
+if the objective function is a minimization:
+    the constant in each constraint is defined by -c instead of c
+if there is a variable xi which has no nonnegativity constraint:
+    repeat the constraint in the dual program defined by xi with inverse cofficients and constant
+if there is an equality constraint Σaijxj = ci:
+    yi is repeated in objective function and every constraint of the dual program
+    once with normal cofficient and once with the inverse
+if there is a constraint Σaijxj >= ci in the primal program:
+    yi has inverse cofficient in both objective function and constraints in the dual program
+
+29.4-3
+each flow fuv appears at most five times in constraints of the primal program
+    1.  in capacity constraints fuv <= c(u, v) with cofficient 1
+    2.  twice in flow conservation of vertex u with cofficient 1 and -1 if u ∉ {s, t}
+    3.  twice in flow conservation of vertex v with cofficient 1 and -1 if v ∉ {s, t}
+define variable yuv for each capacity constraint and yu, yu' for each flow conservation constraint
+the dual program is defined as
+minimize Σc(u,v)yuv
+subject to
+    yuv - yu + yu' + yv - yv' >= 0  if u, v ∉ {s, t}
+    yuv + yv - yv' >= 1 if u = s, v != t
+    yuv >= 1 if u = s, v = t
+    yuv - yu + yu' >= -1 if v = s, u != t
+    yuv >= -1 if v = s, u = t
+    yuv, yu, yu' >= 0 for all (u, v) ∈ E and u ∈ V
+merge each yu - yu' into a single variable without nonnegative constraint gives
+    yuv - yu + yv >= 0 if u, v ∉ {s, t}
+    yuv + yv >= 1 if u = s, v != t
+    yuv - yu >= -1 if v = s, u != t
+    yuv - yu >= 0 if u != s, v = t
+    yuv >= 0
+on a simple path s ~> t, sum up the constraints on yuv for each (u, v) on the path
+yu cancels each other, Σyuv >= 1, yuv >= 0
+to minimize Σc(u, v)yuv, induct on the number of paths s ~> t in the graph
+let E* be a set of edges minimizes Σc(u, v)yuv that disconnects the graph when removed
+    if s ~> t is the only path, yuv that minimizes c(u, v) on the path should be set to 1, E* = {(u, v)}
+    if s ~> t shares some edges with existing paths, each with yuv = 1 for some (u, v) on the path
+    define d(u, v) be the set of edges can be removed from E* when (u, v) is included
+    σ(u, v) = Σ((x, y) ∈ d(u, v))c(x, y) is how the solution can be improved by including (u, v)
+    either yuv that maximizes σ(u, v) or minimizes c(u, v) should be set to 1
+there is an optimal solution to the dual program that only assigns integral value 0 or 1 to each yuv
+the set Y = {(u, v) | yuv = 1 in the optimal solution} defines a set of edge that disconnects the graph
+s, t are in different components of the graph since by removing Y there's no path s ~> t in the graph
+therefore Y defines a cut that minimizes Σc(u, v)
+
+29.4-4
+convert the primal to standard form:
+maximize Σ-a(u, v)fuv
+subject to
+    fuv <= c(u, v) for u, v ∈ V
+    Σfvu - Σfuv <= 0 for u ∈ V - {s, t}
+    Σfuv - Σfvu <= 0 for u ∈ V - {s, t}
+    Σfsv - Σfvs <= d
+    Σfvs - Σfsv <= -d
+    fuv >= 0
+a flow fuv appears in
+    1.  fuv <= c(u, v) the capacity constraint
+    2.  twice in flow conservation of vertex u with cofficient 1 and -1 if u != t
+    3.  twice in flow conservation of vertex v with cofficient 1 and -1 if v != t
+define yuv for each capacity constraint and yu, yu' for each flow conservation constraint
+the dual is 
+minimize Σc(u, v)yuv - d(ys - ys')
+subject to
+    yuv - yu + yu' + yv - yv' >= -a(u, v) for u, v != t
+    yuv - yu + yu' >= -a(u, v) if v = t
+    yuv + yv - yv' >= -a(u, v) if u = t
+    yuv, yu, yu' >= 0
+merge each (yu - yu') to a single variable without nonnegativity constraint
+minimize Σc(u, v)yuv - dys
+subject to
+    yuv - yu + yv >= -a(u, v) for u, v != t
+    yuv - yu >= -a(u, v) if v = t
+    yuv + yv >= -a(u, v) if u = t
+    yuv >= 0
+if there's no capacity constraints, c(u, v) = ∞ for all u, v ∈ V
+yuv should be set to 0
+maximize dys
+subject to
+    yu - yv <= a(u, v) for u, v != t
+    yu <= a(u, v) if v = t
+    -yv <= a(u, v) if u = t
+define a'(u, v) = a(v, u), the reverse cost
+similar to shortest path, yv <= a'(u, v) + yu for all u, yu = δ(t, u)
+the linear program defines a reverse minimum-cost flow problem
+yu is the minimum cost to transfer one unit of flow from t to u
+ys is the minimum cost to transfer one unit of flow from t to s
+dys is the minimum cost to transfer d unit of flow from t to s
+
+29.4-5
+let (A, b, c) be a linear program, A is m x n, |b| = m, |c| = n
+the dual of (A, b, c) is defined as 
+    minimize Σbiyi
+    subject to 
+        Σ(i ∈ {1 .. m})aijyi >= cj for j ∈ {1 .. n}
+        yi >= 0 for i ∈ {1 .. m}
+convert the dual to standard form:
+    maximize -Σbiyi
+    subject to
+        -Σ(i ∈ {1 .. m})aijyi <= -cj for j ∈ {1 .. n}
+        yi >= 0 for i ∈ {1 .. m}
+thereby the dual is defined by a tuple ((-A)T, -c, -b)
+(-A)T = -(AT)
+dual of the dual is defined by a tuple ((-(-A)T)T, -(-b), -(-c)) = ((-(-AT))T, b, c) = (A, b, c)
+dual of the dual is the primal program
+
+29.4-6
+min-cut max-flow theorem
