@@ -10250,7 +10250,7 @@ subject to
     yu - yv <= a(u, v) for u, v != t
     yu <= a(u, v) if v = t
     -yv <= a(u, v) if u = t
-define a'(u, v) = a(v, u), the reverse cost
+define a'(u, v) = a(v, u), the reverse cost / weight
 similar to shortest path, yv <= a'(u, v) + yu for all u, yu = δ(t, u)
 the linear program defines a reverse minimum-cost flow problem
 yu is the minimum cost to transfer one unit of flow from t to u
@@ -10276,3 +10276,59 @@ dual of the dual is the primal program
 
 29.4-6
 min-cut max-flow theorem
+
+29.5-1
+./CLRS/linear-program/simplex.ts#initializeSimplex
+
+29.5-2
+by lemma 29.2, SIMPLEX returns "unbounded" only when the linear program is unbounded
+by constraints x0 >= 0, the objective function -x0 is bounded by 0 from above
+therefore SIMPLEX cannot return "unbounded"
+
+29.5-3
+the initial slack form has v = 0, which is the objective value of the basic solution
+the initial slack form of the dual program also has v = 0
+0 is a feasible solution to both the primal and the dual program, by Theorem 29.10 0 is the optimal solution to both
+
+29.5-4
+define a linear program as
+maximize x
+subject to 
+    x < 1
+    x >= 0
+the program is feasible and bounded, but it does not have an optimal solution
+
+29.5-5
+[ 11.333333333333334, 3.333333333333334 ]
+
+29.5-6
+infeasible
+
+29.5-7
+unbounded
+
+29.5-8
+//  initially marked as infeasible
+//  due to numeral instability x0 ≒ 1e-15 != 0 in optimal solution to Laux
+//  programs in this chapter should be solved as rational numbers instead of real numbers
+[ 20.000000000000004, 0, 0, 9.000000000000002 ]
+
+29.5-9
+if r > 0, s >= 0, 0 <= x <= s/r, bounded, has optimal solution regardless of t
+if r > 0, s < 0, 0 <= x <= s/r < 0, infeasible
+if r <= 0, x is unbounded from above, has optimal solution when t <= 0
+the dual is defined as
+minimize sy
+subject to
+    ry >= t
+    y >= 0
+if r >= 0, y is unbounded from above, has optimal solution when s >= 0
+if r < 0, t > 0, 0 <= y <= t/r < 0, infeasible
+if r < 0, t <= 0, 0 <= y <= t/r, bounded, has optimal solution regardless of s
+a.  by Theorem 29.10, the dual has finite optimal solution iff the primal has finite optimal solution
+    r > 0, s >= 0 or r <= 0, t <= 0
+b.  D infeasible when r < 0, t > 0
+    when r < 0, P is always feasible
+c.  P infeasible when r > 0, s < 0
+    when r > 0, D is always feasible
+d.  cannot happen, r cannot be both > 0 and < 0

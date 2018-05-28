@@ -6,19 +6,26 @@ export {
 type Var = number;
 type Coff = number;
 
+const EPSILON = 1e-6;
+
 class SlackForm {
+  //  set of nonbasic variables, has fixed size same to n the number of variables in the standard form
   private N: Set<Var>;
+  //  set of basic variables, has fixed size same to m the number of constraints in the standard form
   private B: Set<Var>;
+  //  an (n + m) x (n + m) matrix of constraint cofficients
   private A: Coff[][];
+  //  an array of length (n + m) that stores constants in constraints
   private b: Coff[];
+  //  an array of length (n + m) that stores cofficients in objective functions
   private c: Coff[];
+  //  the objective value of the basic solution
   private v: Coff;
 
   constructor(A: Coff[][], b: Coff[], c: Coff[]) {
     let m = A.length;
     let n = A[0].length;
     console.assert(m === b.length && n === c.length, "Invalid standard form");
-    console.assert(b.every(coff => coff >= 0), "Infeasible standard form");
 
     let N = new Set();
     let B = new Set();
@@ -59,6 +66,46 @@ class SlackForm {
       }
     }
     return true;
+  }
+
+  private removeFromBasis(i: Var) {
+    let { A, B } = this;
+
+    if (B.has(i)) {
+      for (let j of this.nonbasic()) {
+        if (A[i][j] !== 0) {
+          this.pivot(j, i);
+          return;
+        }
+      }
+    }
+  }
+
+  private removeVariable(i: Var) {
+    let { A, b, c, N, B } = this;
+    A.forEach(r => r.splice(i, 1));
+    A.splice(i, 1);
+    b.splice(i, 1);
+    c.splice(i, 1);
+    N.delete(i);
+    let Ns = Array.from(N).map(j => j > i ? j - 1 : j);
+    let Bs = Array.from(B).map(j => j > i ? j - 1 : j);
+    this.N = new Set(Ns);
+    this.B = new Set(Bs);
+  }
+
+  public restoreObjective(i: Var, c: Coff[]) {
+    let { N, B } = this;
+    this.removeFromBasis(i);
+    this.removeVariable(i);
+    while (c.length <= N.size + B.size) {
+      c.push(0);
+    }
+    this.c = c;
+
+    for (let j of this.basic()) {
+      this.substObject(j, j);
+    }
   }
 
   public nextPivot(): [Var, Var] | null {
@@ -143,8 +190,8 @@ class SlackForm {
   }
 
   public basicSolution(): Coff[] {
-    let b = this.b;
     let n = this.N.size;
+    let b = this.b;
     let x: Coff[] = [];
 
     for (let i of this.basic()) {
@@ -155,6 +202,10 @@ class SlackForm {
     }
 
     return x.slice(0, n);
+  }
+
+  public value(): number {
+    return this.v;
   }
 
   public dualSolution(): Coff[] {
@@ -199,9 +250,9 @@ class SlackForm {
     }
 
     let B = Array.from(this.basic());
-    B.sort((a, b) => a - b);
+    B.sort((l, r) => l - r);
     let N = Array.from(this.nonbasic());
-    N.sort((a, b) => a - b);
+    N.sort((l, r) => l - r);
 
     let { A, b, c, v } = this;
 
@@ -229,7 +280,78 @@ class SlackForm {
 
 function simplex(A: Coff[][], b: Coff[], c: Coff[]): Coff[] | null {
   let n = A[0].length;
-  let slack = new SlackForm(A, b, c);
+  let slack = initializeSimplex(A, b, c);
+  if (slack) {
+    return slack.simplex();
+  } else {
+    return null;
+  }
+}
 
-  return slack.simplex();
+class StandardForm {
+  private A: Coff[][];
+  private b: Coff[];
+  private c: Coff[];
+
+  constructor(A: Coff[][], b: Coff[], c: Coff[]) {
+    this.A = A;
+    this.b = b;
+    this.c = c;
+  }
+
+  //  append -xn to each constraint, set objective function to -xn
+  public auxProgram(): StandardForm {
+    let { A, b, c } = this;
+    let n = c.length;
+
+    let A_aux = A.map(r => {
+      let row = r.slice();
+      row.push(-1);
+      return row;
+    });
+    let c_aux = new Array(n + 1);
+    c_aux.fill(0);
+    c_aux[n] = -1;
+
+    return new StandardForm(A_aux, b.slice(), c_aux);
+  }
+
+  public toSlackForm(): SlackForm {
+    let { A, b, c } = this;
+    return new SlackForm(A, b, c);
+  }
+}
+
+function minIndex(A: Coff[]): number {
+  let min = 0;
+  for (let i = 0; i < A.length; i++) {
+    if (A[i] <= A[min]) {
+      min = i;
+    }
+  }
+  return min;
+}
+
+function initializeSimplex(A: Coff[][], b: Coff[], c: Coff[]): SlackForm | null {
+  let m = b.length;
+  let n = c.length;
+  console.assert(A.length === m && A[0].length === n, "Invalid input size");
+
+  let k = minIndex(b);
+  if (b[k] >= 0) {
+    return new SlackForm(A, b, c);
+  }
+
+  let L = new StandardForm(A, b, c);
+  let Laux = L.auxProgram().toSlackForm();
+  Laux.pivot(n, n + k);
+  Laux.simplex();
+  if (Math.abs(Laux.value() - 0) <= EPSILON) {
+    Laux.restoreObjective(n, b);
+    return Laux;
+  } else {
+    console.log(Laux.value());
+    console.error("Error: Linear program is infeasible");
+    return null;
+  }
 }

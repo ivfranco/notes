@@ -3,7 +3,10 @@ import { toCompactFlowLinearProgram, toFlowLinearProgram, toSSLinearProgram } fr
 import { simplex, SlackForm } from "./simplex";
 
 function main() {
-  problem_29_3_7();
+  problem_29_5_5();
+  problem_29_5_6();
+  problem_29_5_7();
+  problem_29_5_8();
 }
 
 function problem_29_2_2() {
@@ -106,6 +109,54 @@ function problem_29_3_7() {
   console.log(slack.show());
   console.log("Dual solution:");
   console.log(slack.dualSolution());
+}
+
+function problem_29_5_5() {
+  let A = [
+    [1, -1],
+    [-1, -1],
+    [-1, 4],
+  ];
+  let b = [8, -3, 2];
+  let c = [1, 3];
+
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_5_6() {
+  let A = [
+    [1, 2],
+    [-2, -6],
+    [0, 1],
+  ];
+  let b = [4, -12, 1];
+  let c = [1, -2];
+
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_5_7() {
+  let A = [
+    [-1, 1],
+    [-1, -1],
+    [-1, 4],
+  ];
+  let b = [-1, -3, 2];
+  let c = [1, 3];
+
+  console.log(simplex(A, b, c));
+}
+
+function problem_29_5_8() {
+  let A = [
+    [2, -8, 0, -10],
+    [-5, -2, 0, 0],
+    [-3, 5, -10, 2],
+  ];
+  let b = [-50, -100, -25];
+  let c = [-1, -1, -1, -1];
+
+  console.log(simplex(A, b, c));
 }
 
 main();
