@@ -10173,6 +10173,7 @@ if the objective function is a minimization:
     the constant in each constraint is defined by -c instead of c
 if there is a variable xi which has no nonnegativity constraint:
     repeat the constraint in the dual program defined by xi with inverse cofficients and constant
+    or equivalently the constraint in dual corresponds to xi is an equality instead of an >=
 if there is an equality constraint Σaijxj = ci:
     yi is repeated in objective function and every constraint of the dual program
     once with normal cofficient and once with the inverse
@@ -10332,3 +10333,150 @@ b.  D infeasible when r < 0, t > 0
 c.  P infeasible when r > 0, s < 0
     when r > 0, D is always feasible
 d.  cannot happen, r cannot be both > 0 and < 0
+
+29-1
+a.  run the algorithm on the program with objective function 0
+    if the program is feasible, the algorithm must return an feasible solution as the program cannot be unbounded
+b.  derive the dual of the program defined as minimize bTy subject to ATy >= c, y >= 0
+    combine primal and dual program with two additional constraint
+        Ax <= b
+        ATy >= c
+        cTx <= bTy
+        cTx >= bTy
+        x, y >= 0
+    by Theorem 29.10, there is a solution cTx = bTy iff the solution is optimal to both programs
+
+29-2
+a.  the solution to primal program is x = (8, 4, 0)
+    the solution to dual program is y = (0, 1/6, 2/3)
+    for j ∈ {1 .. n}:
+        Σai1yi = 2 * 1/6 + 4 * 2/3 = 3 = c1
+        Σai2yi = 2 * 1/6 + 2/3 = 1 = c2
+        x3 = 0
+    for i ∈ {1 .. m}:
+        y1 = 0
+        Σa2jxj = 2 * 8 + 2 * 4 = 24 = b2
+        Σa3jxj = 4 * 8 + 4 = 36 = b3
+b.  bTy = cTx if x and y are optimal solutions to primal and dual programs by Theorem 29.10
+        Σbiyi   = Σcjxj
+                <= Σ(j)(Σ(i)aijyi)xj
+                = Σ(i)(Σ(j)aijxj)yi
+        Σ(i)(bi - Σ(j)aijxj)yi <= 0
+    since Σ(j)aijxj <= bi, bi - Σ(j)aijxj >= 0, yi >= 0, (bi - Σ(j)aijxj)yi >= 0 for each i
+    Σ(i)(bi - Σ(j)aijxj)yi = 0, bi = Σ(j)aijxj or yi = 0
+    similarly
+        Σcjxj   = Σbiyi
+                >= Σ(i)(Σ(j)aijxj)yi
+                = Σ(j)(Σ(i)aijyi)xj
+        Σ(j)(cj - Σ(i)aijyi)xj >= 0
+    since Σ(i)aijyi >= cj, cj - Σ(i)aijyi <= 0, xj >= 0, (cj - Σ(i)aijyi)xj <= 0 for each j
+    Σ(j)(cj - Σ(i)aijyi)xj = 0, cj = Σ(i)aijyi or xj = 0
+    conversely, if 
+        Σ(i)aijyi = cj or xj = 0
+        Σ(j)aijxj = bi or yi = 0
+    for some feasible solution x, y
+    if Σ(j)aijxj = bi, Σ(j)aijxjyi = biyi
+    if Σ(j)aijxj != bi, yi = 0, Σ(j)aijxjyi = biyi = 0
+    thus
+        Σ(j)(cj - Σ(i)aijyi)xj = 0
+        Σcjxj   = Σ(j)(Σ(i)aijyi)xj
+                = Σ(i)(Σ(j)aijxj)yi
+                = Σbiyi
+    x and y are optimal solutions by Theorem 29.10
+c.  if x is an finite optimal solution to the primal program
+    by part b and Theorem 29.10, the there exists y an optimal solution to the dual program that
+        Σ(i)aijyi = cj or xj = 0
+        Σ(j)aijxj = bi or yi = 0
+    y is feasible and xj > 0 if Σ(i)aijyi = cj, yi = 0 if Σ(j)aijxj < bi
+    conversely,
+    xj >= 0, if xj > 0, Σ(i)aijyi = cj, otherwise xj = 0
+    similarly Σ(j)aijxj <= bi, Σ(j)aijxj = bi or yi = 0
+    by part b, bTy = cTx, x and y are optimal solution to primal and dual programs
+
+29-3
+a.  inequalities 29.84 and 29.17 still holds, the proof of lemma 29.8 can be reused
+b.  define a single variable linear program as
+        maximize cx
+        subject to x <= b, x >= 0
+    the dual is defineds as 
+        minimize by
+        subject to y >= c, y >= 0
+    let b = c = 1/2
+    optimal solution to the primal program is x = 0 with value 0
+    optimal solution to the dual program is y = 1 with value 1/2
+c.  P = D by Theorem 29.10
+    let ix be any solution to the integral primal program
+    as ix satisfies the same set of constraints with additional integral constraints
+    ix is also a solution to the real primal program
+    as P is the optimal (maximum) solution to the primal program, value of ix <= P, IP <= P
+    similarly, D >= ID as the dual program is minimization
+    IP <= P = D <= ID
+
+29-4
+define a linear program as
+    maximize cTx
+    subject to Ax <= 0 (without nonnegativity constraints)
+by 29.4-2, the dual can be directly given as 
+    minimize 0
+    subject to ATy = c, y >= 0
+the primal program is always feasible
+set x = 0 will make Ax = 0, satisfies all the constraints
+if the dual program has a feasible solution y
+it is the optimal solution since the objective function is a constant independent to y
+hence the primal program must have maximum value cTx = 0, cTx > 0 cannot be satisfied
+if the dual program is infeasible, the primal program must be unbounded
+otherwise the primal program has an optimal value cTx >= 0
+by Theorem 29.10 either there is a feasible solution to the dual if cTx = 0
+or both program has an optimal value 0 = cTx > 0, contradiction
+when the primal program is unbounded, there is a solution cTx = ε > 0 for arbitrarily big ε
+therefore exactly one of the two systems are solvable
+
+29-5
+a.  minimize Σa(u, v)fuv
+    subject to
+        fuv <= c(u, v) for all u, v ∈ V
+        Σfvu = Σfuv for all u ∈ V
+        fuv >= 0 for all u, v ∈ V
+b.  set all fuv = 0, Σa(u, v)fuv = 0, both a(u, v) and fuv >= 0, 0 is the minimum
+c.  assume there is no edge leaving t and no edge entering s in the flow network
+    (there is always a maximum flow that does not use those edges by 26.2-12)
+    add a new edge (t, s) with a(t, s) = -1 
+    set a(u, v) = 0 for all other edge (u, v)
+    the optimal function is now a(t, s)fts = -fts
+    an optimal solution to minimum-cost circulation hence maximizes fts
+    the solution satisfies capacity constraints and flow conservation on all vertices 
+    removing (t, s) and flow on it thus gives a valid solution to maximum flow problem
+    Σfvs = fts = Σfsv, Σfsv is maximized in the solution
+    after (t, s) is removed, |f| = Σfsv - Σfvs = Σfsv is maximized ((t, s) is the only edge entering s)
+    the solution is a optimal solution to the maximum flow problem
+d.  the dual of a multiple-source single-sink minimum-cost flow problem is a single source shortest path problem
+    when there's no capacity constraints, exactly one unit of flow leaves each source
+    the minimum-cost problem is defined as
+    minimize Σa(u, v)fuv
+    subject to
+        Σfvu = Σfuv if u ∈ V - (S ∪ {t})
+        Σfsv - Σfvs = 1 if s ∈ S
+        fuv >= 0
+    similar to 29.4-4, the dual of this program is defined as
+    maximize Σ(s ∈ S)ys
+    subject to
+        yu - yv <= a(u, v) for u, v != t
+        yu <= a(u, v) if v = t
+        -yv <= a(u, v) if u = t
+    define a(u, v) = w(v, u), yt = 0
+        yu <= yv + w(v, u) for all u, v ∈ V
+    when S = V - {t}, this program is exactly the single-source shorest-path problem
+    the multiple-source single-sink minimum-cost problem can be converted to a normal minimum-cost problem
+    by adding a new source ss and edges (ss, si) from the supersource to each sources in the original graph
+    c(ss, si) = +∞, a(ss, si) = 0
+    the minimum-cost flow problem with no capacity constraints can be converted to a minimum-cost-circulation problem
+    similar to part c, add a new edge (t, s) with c(t, s) = d and 
+        a(t, s) = |E|min{a(u, v) | (u, v) ∈ E}
+    if it's possible to send d unit of flow from s to t in the original graph
+    an optimal solution to the minimum-cost flow problem then will maximize fts to d
+    while keep the flow cost in the original cost at minimum
+    overall the reduction is performed as
+    single-source shortest path problem
+    =>  multiple-source single-sink minimum-cost flow problem
+    =>  minimum-cost flow problem
+    =>  minimum-cost circulation problem

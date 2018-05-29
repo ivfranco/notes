@@ -3,10 +3,7 @@ import { toCompactFlowLinearProgram, toFlowLinearProgram, toSSLinearProgram } fr
 import { simplex, SlackForm } from "./simplex";
 
 function main() {
-  problem_29_5_5();
-  problem_29_5_6();
-  problem_29_5_7();
-  problem_29_5_8();
+  slackFormTest();
 }
 
 function problem_29_2_2() {
@@ -68,7 +65,11 @@ function slackFormTest() {
   console.log("\nPivot x1 and x2");
   slack.pivot(1, 2);
   console.log(slack.show());
-  console.log(simplex(A, b, c));
+  slack.simplex();
+  console.log("Solution to primal:");
+  console.log(slack.basicSolution());
+  console.log("Solution to dual:");
+  console.log(slack.dualSolution());
 }
 
 function problem_29_3_5() {
