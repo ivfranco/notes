@@ -10310,7 +10310,7 @@ unbounded
 
 29.5-8
 //  initially marked as infeasible
-//  due to numeral instability x0 ≒ 1e-15 != 0 in optimal solution to Laux
+//  due to numerical instability x0 ≒ 1e-15 != 0 in optimal solution to Laux
 //  programs in this chapter should be solved as rational numbers instead of real numbers
 [ 20.000000000000004, 0, 0, 9.000000000000002 ]
 
@@ -10480,3 +10480,66 @@ d.  the dual of a multiple-source single-sink minimum-cost flow problem is a sin
     =>  multiple-source single-sink minimum-cost flow problem
     =>  minimum-cost flow problem
     =>  minimum-cost circulation problem
+
+Chapter 30
+30.1-1
+56x^6 - 8x^5 - 34x^4 - 53x^3 - 9x^2 + 63x - 30
+
+30.1-2
+./CLRS/polynomial/polynomial.ts#quotient
+let degree(A) = k, k-1 is a degree bound of q
+q(x)(x - x0) = q(x)x - x0q(x) = A(x) - r
+qk-1x^k + Σ(i ∈ {1 .. k-2})(qi-1 - x0qi)x^i) + x0q0 = Σ(i ∈ {0 .. k}aix^i) - r
+by lemma 29.3
+    qk-1 = ak
+    qi-1 - x0qi = ai for i ∈ {1 .. k-1}, or qi = ai+1 + x0qi+1 for i ∈ {0 .. k-2}
+    x0q0 + r = a0
+the linear system with unknowns (q0 .. qk-1, r) is defined by a bidiagonal matrix, which can be solved in O(n)
+
+30.1-3
+a point-value pair (x, y) satisfies y = Σ(j = 0 .. n-1)ajx^j
+let x' = 1/x
+    y = Σ(j = 0 .. n-1)aj(1/x')^j
+multiply both sides by x'^n-1
+    yx'^n-1 = Σ(j = 0 .. n - 1)ajx'^(n - 1 - j)
+            = Σ(j = 0 .. n-1)a(n-1-j)x'^j
+            = Arev(x')
+(1/x, y/x^n-1) is a point-value pair of Arev
+if xi != xj, 1/xi != 1/xj, the set {x'i} is pairwise distinct
+
+30.1-4
+the rank of the matrix is less than n given less than n point-value pairs
+
+30.1-5
+./CLRS/polynomial/polynomial.ts#interpolate
+
+30.1-6
+let p1 = x, p2 = x^2
+p2 / p1 = x is well defined at x = 0
+but the point-value rep of p1 and p2 at x = 0 are both (0, 0), 0 / 0 is not defined
+otherwise (y != 0) the obvious method gives correct answer
+
+30.1-7
+define pA and pB as
+    pA(x) = Σ(j ∈ A)x^j
+    pB(x) = Σ(j ∈ B)x^j
+let pC(x) = pA(x) * pB(x) = Σcix^i
+then
+    ci = Σ(k = {0 .. i})ak * b(i - k)
+ak = b(i-k) = 1 iff k ∈ A and i - k ∈ B, hence k + (i - k) = i ∈ C
+ci is the number of times each element C is realized as a sum of elements of A and B
+by chapter outline, pC(x) can be computed in O(nlgn)
+
+30.2-1
+by cancellation lemma, w(n/2, n) = w(1, 2) = e^iπ = cos(π) + isin(π) = -1
+
+30.2-2
+[ '6', '-2 - 2i', '-2', '-1.9999999999999998 + 2i' ]
+
+30.2-3
+./CLRS/polynomial/index.ts#problem_30_2_3
+
+30.2-4
+./CLRS/polynomial/fft.ts#recursiveFFTInv
+
+30.2-5
