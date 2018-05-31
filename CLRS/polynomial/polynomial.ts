@@ -2,15 +2,15 @@ export {
   Polynomial,
   coffMultiply,
   interpolate,
-  Coff,
+  Coeff,
 };
 
-type Coff = number;
+type Coeff = number;
 
 class Polynomial {
-  public readonly coffs: Coff[];
+  public readonly coffs: Coeff[];
 
-  constructor(coffs: Coff[]) {
+  constructor(coffs: Coeff[]) {
     this.coffs = coffs;
   }
 
@@ -64,9 +64,9 @@ class Polynomial {
   }
 }
 
-function quotient(p: Polynomial, x0: number): [Polynomial, Coff] {
+function quotient(p: Polynomial, x0: number): [Polynomial, Coeff] {
   let k = p.degree();
-  let q: Coff[] = [];
+  let q: Coeff[] = [];
   let c = p.coffs;
   q[k - 1] = c[k];
   for (let i = k - 2; i >= 0; i--) {
@@ -80,7 +80,7 @@ function coffSum(pa: Polynomial, pb: Polynomial): Polynomial {
   let na = pa.degree();
   let nb = pb.degree();
 
-  let coffs: Coff[] = new Array(Math.max(na, nb) + 1);
+  let coffs: Coeff[] = new Array(Math.max(na, nb) + 1);
   coffs.fill(0);
   for (let i = 0; i <= na; i++) {
     coffs[i] += pa.coffs[i];
@@ -96,7 +96,7 @@ function coffMultiply(pa: Polynomial, pb: Polynomial): Polynomial {
   let na = pa.degree();
   let nb = pb.degree();
 
-  let coffs: Coff[] = [];
+  let coffs: Coeff[] = [];
   for (let i = 0; i <= na + nb; i++) {
     coffs[i] = 0;
     for (let k = 0; k <= i; k++) {

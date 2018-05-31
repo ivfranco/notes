@@ -37,7 +37,9 @@ class BitReversedCounter {
   private k: number;
 
   constructor(b: number, k: number) {
+    //  the initial value
     this.b = b;
+    //  the number of bits
     this.k = k;
   }
 

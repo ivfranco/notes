@@ -1,4 +1,10 @@
-import { fastMultiply, recursiveFFT, recursiveFFTInv } from "./fft";
+import {
+  fastIterMultiply,
+  fastMultiply,
+  iterativeFFT,
+  recursiveFFT,
+  recursiveFFTInv,
+} from "./fft";
 import { coffMultiply, interpolate, Polynomial } from "./polynomial";
 
 function main() {
@@ -34,6 +40,12 @@ function problem_30_2_3() {
   let B = new Polynomial([3, -6, 0, 8]);
 
   console.log(fastMultiply(A, B).show());
+  console.log(fastIterMultiply(A, B).show());
+}
+
+function problem_30_3_1() {
+  let A = [0, 2, 3, -1, 4, 5, 7, 9];
+  iterativeFFT(A);
 }
 
 main();

@@ -32,6 +32,14 @@ class Complex {
     return complexInverse(this);
   }
 
+  public pow(n: number): Complex {
+    return complexPow(this, n);
+  }
+
+  public norm(): number {
+    return complexNorm(this);
+  }
+
   public show(): string {
     let { real, img } = this;
     if (img === 0) {
@@ -85,4 +93,23 @@ function complexInverse(a: Complex): Complex {
   let { real, img } = a;
   let sqSum = real ** 2 + img ** 2;
   return new Complex(real / sqSum, -img / sqSum);
+}
+
+function complexPow(a: Complex, n: number): Complex {
+  if (n === 0) {
+    return new Complex(1, 0);
+  } else {
+    let half = Math.floor(n / 2);
+    let pow = complexPow(a, half);
+    pow = complexMul(pow, pow);
+    if (n % 2 === 1) {
+      pow = complexMul(pow, a);
+    }
+    return pow;
+  }
+}
+
+function complexNorm(a: Complex): number {
+  let { real, img } = a;
+  return Math.hypot(real, img);
 }
