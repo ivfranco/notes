@@ -10176,19 +10176,19 @@ y1, y2, y3 >= 0
 if the objective function is a minimization:
     the constant in each constraint is defined by -c instead of c
 if there is a variable xi which has no nonnegativity constraint:
-    repeat the constraint in the dual program defined by xi with inverse cofficients and constant
+    repeat the constraint in the dual program defined by xi with inverse coefficients and constant
     or equivalently the constraint in dual corresponds to xi is an equality instead of an >=
 if there is an equality constraint Σaijxj = ci:
     yi is repeated in objective function and every constraint of the dual program
-    once with normal cofficient and once with the inverse
+    once with normal coefficient and once with the inverse
 if there is a constraint Σaijxj >= ci in the primal program:
-    yi has inverse cofficient in both objective function and constraints in the dual program
+    yi has inverse coefficient in both objective function and constraints in the dual program
 
 29.4-3
 each flow fuv appears at most five times in constraints of the primal program
-    1.  in capacity constraints fuv <= c(u, v) with cofficient 1
-    2.  twice in flow conservation of vertex u with cofficient 1 and -1 if u ∉ {s, t}
-    3.  twice in flow conservation of vertex v with cofficient 1 and -1 if v ∉ {s, t}
+    1.  in capacity constraints fuv <= c(u, v) with coefficient 1
+    2.  twice in flow conservation of vertex u with coefficient 1 and -1 if u ∉ {s, t}
+    3.  twice in flow conservation of vertex v with coefficient 1 and -1 if v ∉ {s, t}
 define variable yuv for each capacity constraint and yu, yu' for each flow conservation constraint
 the dual program is defined as
 minimize Σc(u,v)yuv
@@ -10231,8 +10231,8 @@ subject to
     fuv >= 0
 a flow fuv appears in
     1.  fuv <= c(u, v) the capacity constraint
-    2.  twice in flow conservation of vertex u with cofficient 1 and -1 if u != t
-    3.  twice in flow conservation of vertex v with cofficient 1 and -1 if v != t
+    2.  twice in flow conservation of vertex u with coefficient 1 and -1 if u != t
+    3.  twice in flow conservation of vertex v with coefficient 1 and -1 if v != t
 define yuv for each capacity constraint and yu, yu' for each flow conservation constraint
 the dual is 
 minimize Σc(u, v)yuv - d(ys - ys')
@@ -10551,7 +10551,7 @@ when n is power of 3
     w(n/3, n) = w(1, 3)
     w(k + n/3, n)^3 = w(3k + n, n) = w(3k, n) * w(n, n) = w(3k, n)
     w(k + 2n/3, n)^3 = w(3k + 2n, n) = w(3k, n) * w(n, n)^2 = w(3k, n)
-split the cofficient array A into
+split the coefficient array A into
     A[0](x) = a0 + a3x + a6x^2 + .. + a(n-3)x^(n/3 - 1)
     A[1](x) = a1 + a4x + a7x^2 + .. + a(n-2)x^(n/3 - 1)
     A[0](x) = a2 + a5x + a8x^2 + .. + a(n-1)x^(n/3 - 1)
@@ -10569,7 +10569,7 @@ for k ∈ {0 .. n/3 - 1}
 
 30.2-6
 Σajw(kj, n) still has a unique result, DFT is well-defined
-let a, b be two cofficient arrays which both have DFT y
+let a, b be two coefficient arrays which both have DFT y
     Σajw(kj, n) = Σbjw(kj, n) = yk
     Σ(aj - bj)w(kj, n) = 0 for k ∈ {0 .. n-1}
 the coefficient array a - b has DFT 0
@@ -10623,5 +10623,148 @@ A after iteration m = 8:
   '0.9497474683058358 + 13.192388155425117i' ]
 
 30.3-2
-two neighbouring number in bit reversal order in fact are different by 2^n, where n is the number of bits
-in general, if i is 2^k position earlier than j in bit reversal order, j - i = 2^(n-k)
+define the butterfly operation as a function
+    BUTTERFLY(A, w, i, j):
+        t = wA[j]
+        u = A[i]
+        A[i] = u + t
+        A[j] = u - t
+the inverse of the operation will be
+    INVERSE-BUTTERFLY(A, w, i, j):
+        t = (A[i] - A[j]) / 2
+        A[i] = A[i] - t
+        A[j] = t / w
+similar to recursive FFT, inverse DFT can be computed by replacing ωm with its inverse in iterative FFT
+the inverse of inverse DFT, DFT itself can be computed by inverse the operations in inverse DFT one by one
+namely 
+    multiply each term by n
+    do INVERSE-BUTTERFLY in reverse order
+    perform bit reversed copy (bit reversed copy is the inverse of itself)
+./CLRS/polynomial/fft.ts#gIterativeFFT2
+
+30.3-3
+the twiddle factors are computed each time of the inner loop
+n/2 times in each stage
+compute ωm^i before hand in each stage for i ∈ {0 .. m/2 - 1} once is sufficient
+m/2 = 2^(s-1)
+./CLRS/polynomial/fft.ts#gIterativeFFT
+
+30.3-4
+?
+
+30-1
+a.  (ax + b)(cx + d) = acx^2 + (ad + bc)x + bd
+    (a + b)(c + d) = ac + ad + bc + bd
+    compute ac and bd, ad + bc = (a + b)(c + d) - ac - bd
+b.  generalize part a to polynomials
+    a polynomial A(x) = Σaix^i can be divided to 
+        Σ(i = {0 .. n/2 - 1})Σaix^i + x^n/2 * Σ(n = {n/2 .. n-1})Σaix^(i - n/2)
+        = C(x) + D(x)x^n/2
+    where C and D are polynomials of degree n/2
+    the product of two degree-n polynomial A and B can be computed as 
+        A(x)B(x)    = (C(x) + D(x)x^n/2)(E(x) + F(x)^n/2)
+                    = D(x)F(x)x^n + (C(x)F(x) + D(x)E(x))x^n/2 + C(x)E(x)
+    by part a A(x)B(x) can be computed by 3 recursive polynomial multiplication of size n/2 and constant additions
+    T(n) = 3T(n/2) + O(n) = Θ(n^lg3)
+    similarly, A(x) can be divided to
+        A(x)    = Σ(i = {0, 2 .. n-2})aix^i + Σ(i = {1, 3 .. n-1})aix^i
+                = C(x^2) + xD(x^2)
+    where C and D are polynomials of degree n/2
+        A(x)B(x)    = (C(x^2) + xD(x^2))(E(x^2) + xF(x^2))
+                    = D(x^2)F(x^2) + (C(x^2)F(x^2) + D(x^2)E(x^2))x + C(x^2)E(x^2)
+    and
+        A(x^2) = Σ(i = {0 .. n-1})aix^2i = A'(x)
+    A'(x) can be computed from A(x^2) by inserting 0 between each two coefficients in O(n)
+    again A(x)B(x) can be computed by 3 recursive polynomial multiplication of size n/2
+    and constant O(n) operations
+    T(n) = 3T(n/2) + O(n) = Θ(n^lg3)
+c.  divide an n-bit binary number b to
+        b = b1||0^n/2 + b2
+    where b1 and b2 are n/2-bit binary numbers
+        ab  = (a1||0^n/2 + a2)(b1||0^n/2 + b2)
+            = a1b1||0^n + (a1b2 + a2b1)||0^n/2 + a2b2
+    T(n) = 3T(n/2) + O(n) = Θ(n^lg3)
+
+30-2
+a.  sum of two Toeplitz matrices must be a Toeplitz matrix
+    let C = A + B
+        cij = aij + bij
+            = ai-1,j-1 + bi-1,j-1
+            = ci-1,j-1
+    let A = ((1 2 3) (2 1 2) (3 2 1)), a Toeplitz matrix
+    A^2 = ((14 10 10) (10 9 10) (10 10 4)) is not a Toeplitz matrix
+b.  each entry in a Toeplitz matrix equals to its top-left neighbour
+    if i >= j,
+        aij = ai-1,j-1 = .. = ai-j+1,1
+    if i <= j,
+        aij = ai-1,j-1 = .. = a1,j-i+1
+    define a vector v of dimension 2n-1 where
+        vi  = a1,n-i+1 if i <= n
+            = ai-n,1 if i > n
+        aij = v[i - j + n]
+    v records the first column and row of a Toeplitz matrix, which uniquely determines a Toeplitz matrix
+    adding two Toeplitz matrices hence requires only adding two vectors of length 2n - 1 in O(n)
+c.  let t = Ab, A is a Toeplitz matrix
+        ti  = Σ(k = {1 .. n})aikbk
+            = Σ(k = {1 .. n})v[i-k+n]bk
+    c can be interpreted as a convolution of two polynomials A, B where
+        A(x) = Σ(i = {1 .. 2n-1})vix^i
+        B(x) = Σ(i = {1 .. n})bix^(i+n)
+    let C(x) = A(x)B(x) = Σ(i = {1 .. 4n-1})cix^i
+        ci  = Σ(k = {n+1 .. 2n})vi-kbk-n
+            = Σ(k = {1 .. n})v[i-k-n]bk
+            = t[i+2n]
+    t = Ab can be computed by FFT in O(nlgn)
+d.  let C = AB, for i, j > 1,
+        cij = Σ(k = {1 .. n})aikbkj
+            = Σ(k = {2 .. n})ai-1,k-1 * bk-1,j-1 + ai1b1j
+            = Σ(k = {1 .. n-1})ai-1,k * bk,j-1 + ai1b1j
+            = ci-1,j-1 - aj-1,n * bn,j-1 + ai1b1j
+    cij can be computed from ci-1,j-1 in O(1)
+    first row and column of C can be computed strightforwardly in O(n^2)
+    each other entries can be derived from its top-left neighbour in O(1)
+    O(n^2) in total
+
+30-3
+a.  yk1,k2 .. kd is sum of entries of a d-dimensional matrix where
+        A[j1, .. ,jd] = aj1,..,jd * ω(j1k1, n1) * .. * ω(jdkd, nd)
+    the summation can be performed in arbitrary order
+    if the first dimension is collapsed first,
+        yk1,..,kd   = Σ(j1)..Σ(jd)A[j1,..,jd]
+                    = Σ(j2)..Σ(jd)(Σ(j1)A[j1,..,jd])
+                    = Σ(j2)..Σ(jd)(Σ(j1)aj1,..,jd * ω(j1k1, n1) * .. * ω(jdkd, nd))
+                    = Σ(j2)..Σ(jd)(Σ(j1)aj1,..,jd * ω(j1k1, n1)) * ω(j2k2, n2) * .. * ω(jdkd, nd)
+    where Σ(j1)aj1,..,jd * ω(j1k1, n1) is one entry of a 1-dimensional DFT
+    one 1-dimensional DFT then computes the sum respect to each possible value of k1
+    there are n / n1 possible different set of coefficients, n/n1 1-dimensional DFTs have to be performed
+    let the computed sum be k1[j2,..,jd]
+    Σ(j2)..Σ(jd)(Σ(j1)aj1,..,jd * ω(j1k1, n1)) * ω(j2k2, n2) * .. * ω(jdkd, nd)
+    = Σ(j3)..Σ(jd)(Σ(j2)k1[j2,..,jd] * ω(j2k2, n2)) * .. * ω(jdkd, nd)
+    there are as many possible values of k1 as j1, n/n2 1-dimensional DFTs have to be performed respect to n2 and so on
+b.  according to part a, the dimensions can be collapsed in arbitrary order in the n-dimensional matrix
+c.  T(n)    = Σ(i = {1 .. d})O(n/ni * n1lg(ni))
+            = Σ(i = {1 .. d})O(nlg(ni))
+            = O(nΣlg(ni))
+            = O(nlg(Πni))
+            = O(nlgn)
+
+30-4
+a.  A(t)(x) = bt(1 * .. * t) + B(x - x0)
+    A(t)(x0) = bt * t!
+    t! for t = 0 .. n-1 can be computed iteratively in O(n)
+    A(t)(x0) can be computed in O(1) given t!, O(n) for all t
+b.  let B(x) = A(x + x0)
+    B(ω(k, n)) = A(x0 + ω(k, n))
+    the inverse DFT of B(ω(k, n)) for k ∈ {0 .. n-1} computes the coefficients of B(x)
+        B(x) = Σbix^i
+        B(x - x0)   = Σbi(x - x0)^i
+                    = A(x)
+    {bi} can be computed by inverse FFT in O(nlgn)
+c.  A(x0 + ω(k, n)) = Σ(j = {0 .. n-1})aj(x0 + ω(k, n))^j
+                    = Σaj(Σ(r = 0 .. i)C(j, r)x0^(j-r)ω^r)
+                    = Σaj(Σ(r = 0 .. i)(j!/r!(j-r)!)x0^(j-r)ω^r)
+                    = Σ(r = 0 .. n-1)(Σ(j = 0 .. n-1)f(j)g(r-j)ω^r/r!
+                    = Σ(r = 0 .. n-1)((ω(kr, n) / r!)Σ(j = 0 .. n-1)f(j)g(r-j))
+d.  f(l) and g(l) can be computed in O(n) for each input l defined
+    Σf(j)g(r-j) may be interpreted as a convolution and can be computed in O(nlgn) for each r by FFT
+    

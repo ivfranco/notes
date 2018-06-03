@@ -54,7 +54,6 @@ function recursiveFFTInv(y: Complex[]): Coeff[] {
 
 function recursiveConvolution(a: Coeff[], b: Coeff[]): Coeff[] {
   let ya = recursiveFFT(a);
-  console.log(ya.map(z => z.show()));
   let yb = recursiveFFT(b);
   let y = ya.map((z, i) => z.mul(yb[i]));
   return recursiveFFTInv(y);
@@ -100,19 +99,52 @@ function gIterativeFFT(a: Complex[], inverse: boolean): Complex[] {
     if (inverse) {
       root = root.inverse();
     }
+    let w: Complex[] = [];
+    w[0] = new Complex(1, 0);
+    for (let i = 1; i < m / 2; i++) {
+      w[i] = w[i - 1].mul(root);
+    }
     for (let k = 0; k < n; k += m) {
-      let w = new Complex(1, 0);
       for (let j = 0; j < m / 2; j++) {
-        let twiddle = w.mul(A[k + j + m / 2]);
-        let u = A[k + j];
-        A[k + j] = u.add(twiddle);
-        A[k + j + m / 2] = u.sub(twiddle);
-        w = w.mul(root);
+        butterfly(A, w[j], k + j, k + j + m / 2);
       }
     }
   }
 
   return A;
+}
+
+function butterfly(A: Complex[], w: Complex, i: number, j: number) {
+  let t = w.mul(A[j]);
+  let u = A[i];
+  A[i] = u.add(t);
+  A[j] = u.sub(t);
+}
+
+function inverseButterfly(A: Complex[], w: Complex, i: number, j: number) {
+  let t = A[i].sub(A[j]).div(2);
+  A[i] = A[i].sub(t);
+  A[j] = t.div(w);
+}
+
+function gIterativeFFT2(a: Complex[], inverse: boolean): Complex[] {
+  let n = a.length;
+  let A = a.map(z => z.mul(n));
+  for (let m = n; m >= 2; m /= 2) {
+    let root = unityRoot(m);
+    if (!inverse) {
+      root = root.inverse();
+    }
+    for (let k = 0; k < n; k += m) {
+      let w = new Complex(1, 0);
+      for (let j = 0; j < m / 2; j++) {
+        inverseButterfly(A, w, k + j, k + j + m / 2);
+        w = w.mul(root);
+      }
+    }
+  }
+
+  return bitReverseCopy(A);
 }
 
 function iterativeFFT(a: Coeff[]): Complex[] {
@@ -126,7 +158,6 @@ function iterativeFFTInv(y: Complex[]): Coeff[] {
 
 function iterativeConvolution(a: Coeff[], b: Coeff[]): Coeff[] {
   let ya = iterativeFFT(a);
-  console.log(ya.map(z => z.show()));
   let yb = iterativeFFT(b);
   let y = ya.map((z, i) => z.mul(yb[i]));
   return iterativeFFTInv(y);

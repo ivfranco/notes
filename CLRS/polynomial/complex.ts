@@ -16,6 +16,10 @@ class Complex {
     return complexMul(this, b);
   }
 
+  public div(b: Complex | number): Complex {
+    return complexDiv(this, b);
+  }
+
   public add(b: Complex | number): Complex {
     return complexAdd(this, b);
   }
@@ -112,4 +116,13 @@ function complexPow(a: Complex, n: number): Complex {
 function complexNorm(a: Complex): number {
   let { real, img } = a;
   return Math.hypot(real, img);
+}
+
+function complexDiv(a: Complex, b: Complex | number) {
+  if (b instanceof Complex) {
+    return complexMul(a, complexInverse(b));
+  } else {
+    let { real, img } = a;
+    return new Complex(real / b, img / b);
+  }
 }
