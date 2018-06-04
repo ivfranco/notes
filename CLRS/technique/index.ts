@@ -8,14 +8,14 @@ import { editDistance } from "./edit-distance";
 import { huffman } from "./huffman";
 import { fractionalKnapsack, knapsack, linearKnapsack } from "./knapsack";
 import { greedyMatrixChain, matrixChainOrder, optimalParens } from "./matrix-chain";
-import { unitTaskScheduling } from "./matroid";
 import { constructOptimalBST, optimalBST, quadraticOptimalBST } from "./optimal-bst";
 import { printNeatly } from "./print-neatly";
 import { extendedBottomUpCutRod, extendedMemoizedCutRod } from "./rod";
 import { constrSubstring, lcs, linearSpaceLcs, lis, memoizedLcs, quadraticLis } from "./substring";
+import { unitTaskScheduling, unitTaskScheduling2 } from "./task-scheduling";
 
 function main() {
-  problem_17_2();
+  problem_16_5_1();
 }
 
 function problem_15_1_4() {
@@ -244,12 +244,17 @@ function problem_16_5_1() {
     return {
       index: i + 1,
       deadline: d,
-      weight: 80 - w,
-      original_weight: w,
+      weight: w,
     };
   });
 
   console.log(unitTaskScheduling(T));
+  console.log(unitTaskScheduling2(T));
+
+  T.forEach(t => t.weight = 80 - t.weight);
+  T.reverse();
+  console.log(unitTaskScheduling(T));
+  console.log(unitTaskScheduling2(T));
 }
 
 function problem_17_1() {

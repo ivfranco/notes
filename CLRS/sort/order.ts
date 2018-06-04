@@ -45,7 +45,8 @@ function randomizedSelect2<T>(A: T[], p: number, r: number, i: number): T {
 
 function mmPivoter<T>(A: T[], p: number, r: number): number {
   let medians = [];
-  for (let i = p; i <= r - 4; i += 5) {
+  let i = p;
+  for (; i <= r - 4; i += 5) {
     insertionSortSlice(A, i, i + 4);
     medians.push(A[i + 2]);
   }
@@ -54,9 +55,9 @@ function mmPivoter<T>(A: T[], p: number, r: number): number {
     medians.push(A[Math.floor((i + r) / 2)]);
   }
   let x = select(medians, 0, medians.length - 1, Math.floor(medians.length / 2));
-  for (let i = p; i <= r; i++) {
-    if (A[i] === x) {
-      return i;
+  for (let j = p; j <= r; j++) {
+    if (A[j] === x) {
+      return j;
     }
   }
 

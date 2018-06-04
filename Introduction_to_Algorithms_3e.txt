@@ -4958,7 +4958,11 @@ a.  case 1: such a slot t exists
         if ak is late, ak may still be late after the exchange
         the total penalty is not increased
     the subproblem is defined by the set of remaining tasks and remaining time slots, optimal substructure applies
-b.  wait for section 21.3
+b.  ./CLRS/technique/task-scheduling.ts#unitTaskScheduling2
+    maintain consecutive block of filled slots in a set
+    maintain the last empty slot before each block in the set representative
+    finding the last empty slot from a deadline thereby can be done in time O(α(n))
+    O(nα(n)) in total
 
 16-5
 a.  preprocess:
@@ -10766,5 +10770,189 @@ c.  A(x0 + ω(k, n)) = Σ(j = {0 .. n-1})aj(x0 + ω(k, n))^j
                     = Σ(r = 0 .. n-1)(Σ(j = 0 .. n-1)f(j)g(r-j)ω^r/r!
                     = Σ(r = 0 .. n-1)((ω(kr, n) / r!)Σ(j = 0 .. n-1)f(j)g(r-j))
 d.  f(l) and g(l) can be computed in O(n) for each input l defined
-    Σf(j)g(r-j) may be interpreted as a convolution and can be computed in O(nlgn) for each r by FFT
-    
+    Σf(j)g(r-j)/r! may be interpreted as a convolution and can be computed in O(nlgn) for each r by FFT
+    calculate
+        Σ(r = 0 .. n-1)((ω(kr, n) / r!)Σ(j = 0 .. n-1)f(j)g(r-j))
+    for k = 0 .. n-1 is now equivalent to evaluating a polynomial C(x) at n nth complex root of unity where
+        C(x) = cix^i
+        ci = Σf(j)g(i-j)/i!
+    C(ω(k, n)) = A(x0 + ω(k, n)) can be computed in O(nlgn) by FFT, O(nlgn) in total
+
+30-5
+a.  A(x) mod (x - z) must be a constant since (x - z) has degree 1
+    let A(x) mod (x - z) = b
+    there are some polynomial B(x) that
+        A(x) - B(x)(x - z) = b
+        A(z) - B(z)(z - z) = b
+        A(z) = b
+b.  Qkk(x)  = A(x) mod Pkk(x)
+            = A(x) mod (x - xk)
+            = A(xk)
+    Q0,n-1(x)   = A(x) mod P0,n-1(x)
+                = A(x) mod Π(k = {0 .. n-1})(x - xk)
+    as P0,n-1(x) has degree n, A(x) has degree only n-1, Q0,n-1(x) = A(x)
+c.  Qij(x) mod Pik(x) = (A(x) mod Pij(x)) mod Pik(x)
+    let Qij(x) mod Pik(x) = R(x), degree(R(x)) < degree(Pik(x)) = k - i + 1
+    R(x) + B(x)Pik(x) = Qij(x)
+    Qij(x) + C(x)Pij(x) = A(x)
+    Qij(x) + C(x)Pik(x)Pkj(x) = A(x)
+    R(x) + (B(x) + C(x)Pk+1,j(x))Pik(x) = A(x)
+    R(x) = A(x) mod Pik(x) = Qik(x)
+    similarly
+    Qij(x) mod Pkj(x) = Qkj(x)
+d.  assume Pij(x) is computed already
+    define a procedure that, given Qij(x),
+        if j > i, recursively compute Qik(x) and Qk+1,j(x) where k = [(i + j) / 2] by
+            Qik(x) = Qij(x) mod Pik(x), Qk+1,j(x) = Qij(x) mod Pk+1,j(x)
+        otherwise j = i, Qii(x) = A(xi)
+    let j - i = 2^p, when p = 0, j - i = 1, Qii(x) = A(x0) computes values at all points {xi .. xj}
+    for j - i = 2^p, the procedure recurses into two subproblem of size j - i = 2^(p-1)
+    the two subproblems compute values at all points {xi .. xk} and {xk+1 .. xj}, {xi .. xj} combined
+    given all necessary Pij(x), Qik(x) and Qkj(x) can be computed in O(nlgn)
+        T(n) = 2T(n/2) + O(nlgn) = O(nlg^2n)
+    Pii(x) is simply (x - xi)
+    given Pik(x) and Pk+1,j(x), Pij(x) can be computed by Pik(x)Pk+1,j(x) in O(nlgn) by FFT
+    all necessary Pij(x) can be computed in T(n) = 2T(n/2) + O(nlgn) = O(nlg^2n) as well
+
+30-6
+wait for Chapter 31
+
+Chapter 31
+//  javascript and its preprocessors are not proper languages for this chapter
+//  there is no strict integer type in these languages
+//  no integral division and modular operations
+//  no consistent bitwise operations
+//  some algorithms in this chapter is covered by the book Cryptography Engineering
+//  Rust implementations of them can be found at
+//  ./Cryptography_Engineering/prime and
+//  ./Cryptography_Engineering/rsa
+31.1-1
+c = a + b, 0 <= b < a
+by Theorem 31.1, this division is unique
+c mod a = b
+
+31.1-2
+assume there are only finite primes, let them be {pi}
+let c = Πpi + 1 
+c = Π(j != i)pj + 1, 0 <= 1 < pi
+this division is unique, c mod pi = 1, pi doesn't divide c for each i
+by Theorem 31.8, the unique factorization of c does not contains any of pi
+there must be some new prime pk ∉ {pi} that c = pk * d
+
+31.1-3
+a|b => b = pa
+b|c => c = qb
+c = pqa, a|c
+
+31.1-4
+the only positive divisor of p is 1 and p
+as p > k > 0, |p| > |k|, !(p|k)
+the greatest common divisor of p and k must be 1
+
+31.1-5
+n|ab => ab = zn for z ∈ Z
+gcd(a, n) = 1   => gcd(ab, bn) = b
+                => gcd(zn, bn) = b
+as n|zn and n|bn, n|gcd(zn, bn) = b
+
+31.1-6
+C(p, k) = p!/(k!(p-k)!) is an integer, k!(p-k)!|(p-1)!p
+since |p| > |k| > 0, by 31.1-4, for each n <= max(k, p-k), gcd(n, p) = 1
+by Theorem 31.6, gcd(k!(p-k)!, p) = 1, k!(p-k)!|(p-1)!
+C(p, k) = ((p-1)! / (k!(p-k)!)) * p, p|C(p, k)
+(a + b)^p   = Σ(i = {0 .. p})C(p, i)a^ib^(p-i) mod p
+            = C(p, 0)b^p + C(p, p)a^p mod p
+            = a^p + b^p mod p
+
+31.1-7
+let p = x mod b, r = p mod a
+x   = tb + p
+p   = qa + r
+b   = na
+x   = tna + qa + r = (tn + q)a + r, 0 <= r < a
+this division is unique, x mod a = r = (x mod b) mod a
+x ≡ y mod b => x = y + kb for k ∈ Z
+            => x = y + kna
+            => x ≡ y mod a
+
+31.1-8
+by techniques that will be introduced later
+a power a^b can be computed in time O(lg^algb)
+if n is a kth nontrival power of an integer, as 2^β has β+1 bits, 1 < k < β
+testing if n is a kth power for some particular k can be done by binary search a that a^k = n
+a^k can be computed in O(lg^2algk), the binary search can be done in O(lg^3nlgk) = O(β^3lgk)
+for all possible k, the test can be done in O(β^3Σlgk) = O(β^4lgβ) = POLY(β)
+./CLRS/number/nontrival-power.ts#nontrivalPower
+
+31.1-9
+a.  let s = gcd(a, b)
+    s is the smallest positive integer that s = ax + by for x, y ∈ Z
+    then s is obviously the smallest positive integer that s = by + ax for x, y ∈ Z
+    gcd(b, a) = s 
+b.  let s = gcd(a, b)
+    s is the smallest positive integer that s = ax + by for x, y ∈ Z
+    since {-x | x ∈ Z} = Z
+    s is trivially the smallest positive integer that s = -ax + by for x, y ∈ Z
+    gcd(-a, b) = s
+c.  by part a and b, gcd(-a, b) = gcd(a, b) = gcd(a, -b)
+    gcd(|a|, |b|) = gcd(±a, ±b) = gcd(a, b)
+d.  the greatest divisor of a is |a|
+    |a||0, gcd(a, 0) = |a|
+e.  the greatest divisor of a is |a|
+    |a||ka, gcd(a, ka) = |a|
+
+31.1-10
+let s = gcd(a, gcd(b, c))
+s|a, s|b and s|c
+for any t that t|a, t|b and t|c
+t|gcd(b, c) & t|a => t|gcd(a, gcd(b, c)) => t|s
+let r = gcd(gcd(a, b), c)
+r|a, r|b and r|c => r|s
+similarly, t|a, t|b, t|c => t|r
+r|s, s|r => s = r
+
+31.1-11
+let p, q be two prime factorization
+    p = Πpi^ei
+    q = Πqi^fi
+    pq = Πri^gi where
+        {ri} = {pi} ∪ {qi}
+        ri  = ej if ri = pj ∈ {pi} - {qi}
+            = fj if ri = qj ∈ {qi} - {pi}
+            = ej + fk if ri = pj = qk ∈ {pi} ∩ {qi}
+pq is also a prime factorization
+the smallest composite number is 4 = 2^2
+inductively for any composite number a > 4, assume all composite number < a has a prime factorization
+a has a divisor b that 1 < b < a
+    a = bc, 1 < b < a, 1 < c < a
+if b is a prime number, b = b is a prime factorization
+if b is a composite number, by induction it has a prime factorization
+similarly c has a prime factorization, a = bc has a prime factorization by multiplying the factorization of b and c
+let p, q be two different prime factorization of a composite number a
+    a = p = Πpi^ei = q = Πqi^fi
+if {pi} != {qi}, without loss of generality assume {pi} - {qi} != ∅, let pk ∈ {pi} - {qi}
+q doesn't contain pk, pk|q = Πqi^fi
+by Theorem 31.7, pk|qi for some i, in contradiction to pk and qi being different prime numbers
+if {pi} = {qi}, p = Πpi^ei = Πpi^fi = q, there must be some ei != fi
+assume without loss of generality ei > fi, divide both side by pi^fi,
+    p / pi^fi = pi^(ei - fi)Π(j != i)pj^ej = Π(j != i)pj^fj = q / pi^fi
+where Π(j != i)pj^fj doesn't contain a power of pi, leads to a contradiction by the same argument above
+
+31.1-12
+long division
+for a and a possibly shorter b, first take absolute value of a, b and pad b to the same length of a by 0, let it be b'
+    b' = b2^s, s = ||a|| - ||b||
+a < 2b', a = qb' + r, q = 0 or 1
+if a > b', a = b' + r, 0 <= r = a - b' < b'
+if a < b', a = 0b' + r, 0 <= r = a < b'
+r < b' = 2(b'/2), assume the recursive call computes the quotient q' of r/b
+r < b' = b2^s, q has length shorter than s+1
+a   = qb' + (q'b + r')
+    = qb2^s + q'b + r'
+    = (q2^s + q')b + r'
+the most significant bit (s+1th least significant bit) is q, attach q to q' gives quotient of a/b
+comparsion and addition take time O(β), the quotient can be computed in
+    T(β)    = T(β-1) + O(β)
+            = O(β^2)
+given q, r = a - q * b can be computed in O(β^2)
+./CLRS/number/long-division.ts

@@ -1,6 +1,5 @@
 export {
   greedy,
-  unitTaskScheduling,
 };
 
 interface Matroid<T> {
@@ -22,36 +21,4 @@ function greedy<T>(M: Matroid<T>): T[] {
   }
 
   return A;
-}
-
-interface Task {
-  index: number;
-  deadline: number;
-  weight: number;
-}
-
-function unitTaskScheduling(T: Task[]): Task[] {
-  let n = T.length;
-  let matroid = {
-    S: T,
-    weight(t: Task): number {
-      return t.weight;
-    },
-    independent(A: Task[]): boolean {
-      let D: number[] = new Array(n + 1);
-      D.fill(0);
-      for (let t of A) {
-        let d = t.deadline;
-        D[d]++;
-        if (D[d] > d) {
-          return false;
-        }
-      }
-      return true;
-    },
-  };
-
-  let opt = greedy(matroid);
-  opt.sort((a, b) => a.deadline - b.deadline);
-  return opt;
 }
