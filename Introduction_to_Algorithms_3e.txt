@@ -11085,6 +11085,4 @@ n1n3, n2n4 and n1n3, n2n4 shares no common prime factor, gcd(n1n2, n3n4) = gcd(n
 the argument can easily be extended to k numbers given proper pairing
 the problem is reduced to make [lgn] pairs of numbers derived from {ni} that 
 for each ni, nj, there is a pair (a, b) that ni|a, nj|b or nj|a, ni|b
-if numbers a, b must be products of some subset of {ni}, the problem is analogue to 
-find [lgn] cuts that cut every edge in a complete graph with k vertices
 have no idea how to do this formally
