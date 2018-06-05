@@ -11085,4 +11085,24 @@ n1n3, n2n4 and n1n3, n2n4 shares no common prime factor, gcd(n1n2, n3n4) = gcd(n
 the argument can easily be extended to k numbers given proper pairing
 the problem is reduced to make [lgn] pairs of numbers derived from {ni} that 
 for each ni, nj, there is a pair (a, b) that ni|a, nj|b or nj|a, ni|b
-have no idea how to do this formally
+denote the relation above as R(ni, nj, P) for the set of pairs P
+for two numbers the pair (n1, n2) is sufficient, lg2 = 1
+assume lgn pairs are sufficient for k numbers, a pair is (a, b) where a and b are product of k/2 numbers
+then for a set of 2k numbers
+divide the set of numbers to two sets {n1 .. nk} and {nk+1 .. n2k}
+compute recursively the lgk pairs for the first set {n1 .. nk}, let the set of pairs be P
+for all ni, nj ∈ {n1 .. nk}, i != j, there is a pair (a, b) ∈ P that ni and nj are on different side of (a, b)
+extend P to P' such that
+    for each (Πni, Πnj) ∈ P, (Πnini+k, Πnjnj+k) ∈ P'
+|P| = |P'| = lgk, also for any two numbers ni, nj, i != j,
+    if 1 <= i, j <= k, by definition of P, R(ni, nj, P) and R(ni, nj, P')
+    if k+1 <= i, j <= 2k, by definition of P, R(ni-k, nj-k, P)
+    there is a pair (a, b) ∈ P that contains ni-k, nj-k on different sides
+    by defintion of P', (a, b) is extended so it contains ni, nj on different sides, R(ni, nj, P')
+    if ni ∈ {n1 .. nk}, nj ∈ {nk+1 .. n2k}, j != i + k
+    R(ni, nj-k, P), there is a pair (a, b) ∈ P that contains ni and nj-k on different sides
+    similarly by how (a, b) is extended, R(ni, nj, P')
+thus for all pairs of ni, nj except j = i+k it has R(ni, nj, P')
+a pair p = (Π(i = {1 .. k})ni, Π(j = {k+1 .. 2k})nj) contains ni, ni+k on different sides
+R(ni, nj, P' ∪ {p}) for each ni, nj ∈ {n1 .. n2k}, i != j, where |P' ∪ {p}| = lgk + 1 = lg(2k)
+
