@@ -10956,3 +10956,135 @@ comparsion and addition take time O(β), the quotient can be computed in
             = O(β^2)
 given q, r = a - q * b can be computed in O(β^2)
 ./CLRS/number/long-division.ts
+
+31.1-13
+errata:
+    Add the restriction that M(β) = Ω(β), and change the desired time bound from Θ(M(β) lg β) to O(M(β) lg β).
+thanks https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf
+let a = b10^k + c, c < 10^k, 
+the decimal representation of a is the concatenation of the decimal representations of b and c and some padding zeros
+by computing a/10^k, b and c are given as the quotient and the remainder
+if k is chosen as [log(10, a) / 2], or equivalently 10^(2k-2) <= a <= 10^2k 
+both b and c are of roughly the same length β/2:
+    c < 10^k = a^(1/2), ||c|| <= ||a^1/2|| = β/2
+    b = (a - c)/10^k = (a-c) / a^(1/2), ||b|| ≒ ||a-c|| - ||a^1/2|| = β - β/2 = β/2
+the problem is divided into two subproblems of half size
+T(β) = 2T(β/2) + M(β), M(β) = Ω(β)
+if M(β) = Θ(β), T(β) = Θ(βlgβ) = O(M(β)lgβ)
+if M(β) = ω(β), for elementary functions M(β) that mentioned in this book
+    if M(β) = βlg^tβ, T(β) = O(βlg^(t+1)β) = O(M(β)lgβ)
+    if M(β) is greater than β to a polynomial factor, T(β) = O(M(β)) = O(M(β)lgβ)
+have no idea whether this result is universal
+./CLRS/number/to-decimal.ts
+
+31.2-1
+let a = Πpi^ei, b = Σpi^fi
+if c|a, by similar argument in 31.1-11
+c contains only prime factors ∈ {pi}, c = Πpi^e'i where 0 <= e'i <= ei
+similarly, if c|b, c = Πpi^f'i, 0 <= f'i <= fi
+if c|a and c|b, c = Πpi^e'i, 0 <= e'i <= min(ei, fi)
+let s = Πpi^min(ei, fi), s|a and s|b
+if c|a and c|b, c|s, |c| <= |s| = s
+therefore s is the greatest common divisor of a and b
+
+31.2-2
+d = 29, x = -6, y = 11
+
+31.2-3
+let c|a and c|n, c|(a + kn)
+let c|(a + kn) and c|n, c|(a + kn - kn) = a
+the set of common divisors between (a, n) and between (a + kn, n) are equivalent
+(a, n) and (a + kn, n) has the same greatest common divisors
+
+31.2-4
+./CLRS/number/euclid.ts#euclid
+
+31.2-5
+Fk ≒ φ^k / 5^(1/2) = φ^k / (2φ - 1)
+if b < Fk+1, the number of recursive calls <= k-1
+let k = 1 + log(φ, b)
+F(1 + log(φ, b) + 1) = φ^2b / 5^(1/2) = b(φ+1)/(2φ-1) > b
+hence the number of recursive calls <= k - 1 = log(φ, b) < 1 + log(φ, b)
+the last call is EUCLID(gcd(a, b), 0)
+if EUCLID(a, b) makes k = 1 recursive call
+the next call is EUCLID(b, a mod b)
+    b = gcd(a, b) = F2(gcd(a, b))
+    a mod b = 0, as a > b, a = nb where n >= 2, a >= F3(gcd(a, b))
+inductively, if EUCLID(a, b) makes k recursive calls
+the next call will be EUCLID(b, a mod b)
+by induction assumption, b >= Fk+1gcd(a, b), a mod b >= Fkgcd(a, b)
+b + (a mod b) = (Fk + Fk+1)gcd(a, b) = Fk+2gcd(a, b) <= a
+therefore if EUCLID(a, b) makes k recursive calls, b >= Fk+1gcd(a, b), b/gcd(a, b) >= Fk+1
+by similar argument to the first part of this problem, k < 1 + log(φ, b/gcd(a, b))
+
+31.2-6
+EXTENDED-EUCLID(Fk+1, Fk) recursively calls EXTENDED-EUCLID(Fk, Fk+1 mod Fk = Fk-1)
+let (d', x', y') = EXTENDED-EUCLID(Fk, Fk-1)
+    d = d'
+    x = y'
+    y   = x' - [Fk+1 / Fk]y' = x' - y' for k > 2
+        = x' - 2y' = x' for k = 2
+        = x' - y' for k = 1
+    EXTENDED-EUCLID(F1 = 1, F0 = 0), (d, x, y) = (1, 1, 0)
+    EXTENDED-EUCLID(F2, F1) = (1, 0, 1)
+    EXTENDED-EUCLID(F3, F2) = (1, 0, 1)
+    EXTENDED-EUCLID(F4, F3) = (1, 1, -1) = (1, (-1)^(3-1)F(3-2), (-1)^3F(3-1))
+assume EXTENDED-EUCLID(Fk+1, Fk) = (1, (-1)^(k-1)Fk-2, (-1)^kFk-1), k >= 3
+    EXTENDED-EUCLID(Fk+2, Fk+1) = (1, (-1)^kFk-1, (-1)^(k-1)Fk-2 - (-1)^kFk-1)
+where (-1)^(k-1)Fk-2 - (-1)^kFk-1 = (-1)^(k+1)(Fk-2 + Fk-1) = (-1)^(k+1)Fk
+
+31.2-7
+for a set of integers I, define C(I) = {c | c|n ∀n ∈ I}
+for two arguments, s = gcd(a, b) = gcd(b, a) computes s that 
+    s = max{C({a, b})}
+also for each c ∈ C(I), c|s
+for k arguments, gcd(n1, .., nk) = gcd(n1, gcd(n2, .., nk))
+by induction, gcd(n2, .., nk) computes s = max{C({n2 .. nk})}
+for each c ∈ C({n2 .. nk}), c|s
+let s' = gcd(n1, s)
+for any c' ∈ C({n1 .. nk}), c'|n1 and c' ∈ C({n2 .. nk}) => c'|s
+c'|gcd(n1, s) = s', s' = max{C({n1 .. nk})}
+since the definition of s only regards the numbers as a set, gcd(n1 .. nk) is independent to the order of arguments
+given s = gcd(n2 .. nk) and a sequence of integers {xi} that
+    s = Σnixi
+let (d, x, y) = EXTENDED-EUCLID(n1, s), d = gcd(n1 .. nk)
+    d = xn1 + ys = xn1 + Σynixi
+each call to EXTENDED-EUCLID performs 
+    O(1 + lg(s / gcd(ni, s))) 
+    = O(1 + lgs - lg(gcd(ni, s))) 
+    = O(1 + lgs - lgs') divisions
+let si = gcd(ni, si+1), sk = nk
+all k calls to EXTENDED-EUCLID performs 
+    ΣO(1 + lgsi - lgsi-1) 
+    = O(n + lgsk - lgs0)
+    = O(n + lgnk)
+    = O(n + max{ni})
+./CLRS/number/euclid.ts#extendedGcd
+
+31.2-8
+by an argument similar to 31.2-1, given a = Πpi^ei, b = Πpi^fi
+    lcm(a, b)   = Πpi^max(ei, fi)
+                = Πpi^(ei + fi - min(ei, fi))
+                = ab/gcd(a, b)
+for some c that a|c and b|c,
+c = Πpi^gi, gi >= max(ei, fi)
+thereby lcm(a, b)|c
+by a similar argument to 31.2-7
+lcm(n1 .. nk) = lcm(n1, lcm(n2 .. nk)) = min{c | n|c ∀n ∈ {n1 .. nk}}
+./CLRS/number/euclid.ts#lcm
+
+31.2-9
+if s = gcd(n1, n3) > 1
+gcd(n1n2, n3n4) = gcd(sp1, sp2) >= s for some p1, p2
+thereby if gcd(n1n2, n3n4) = 1, gcd(n1, n3) = 1, similarly gcd(n1, n4) = gcd(n2, n3) = gcd(n2, n4) = 1
+if gcd(n1n3, n2n4) = 1, gcd(n1, n2) = gcd(n3, n4) = n1
+all C(4, 2) = 6 pairs of gcd(ni, nj) = 1, {n1, .., n4} are pairwise coprime
+conversely, let gcd(ni, nj) = 1 for i, j ∈ {1 .. 4}
+no any two ni, nj shares a common prime factor
+n1n3, n2n4 and n1n3, n2n4 shares no common prime factor, gcd(n1n2, n3n4) = gcd(n1n3, n2n4) = 1
+the argument can easily be extended to k numbers given proper pairing
+the problem is reduced to make [lgn] pairs of numbers derived from {ni} that 
+for each ni, nj, there is a pair (a, b) that ni|a, nj|b or nj|a, ni|b
+if numbers a, b must be products of some subset of {ni}, the problem is analogue to 
+find [lgn] cuts that cut every edge in a complete graph with k vertices
+have no idea how to do this formally
