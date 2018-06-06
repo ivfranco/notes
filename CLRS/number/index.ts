@@ -1,11 +1,12 @@
 import { randomAB } from "../util";
 import { euclid, extendedEuclid, extendedGcd, gcd } from "./euclid";
 import { longDivision } from "./long-division";
+import { crtInv, linearSolver, modExp } from "./modular";
 import { nontrivalPower } from "./nontrival-power";
 import { toDecimal } from "./to-decimal";
 
 function main() {
-  problem_31_2_7();
+  problem_31_6_1();
 }
 
 function problem_31_1_8() {
@@ -81,6 +82,93 @@ function problem_31_2_7() {
   console.log(d, x);
   console.assert(d === gcd(...testCase));
   console.assert(testCase.map((a, i) => a * x[i]).reduce((a, b) => a + b) === d);
+}
+
+function problem_31_3_1() {
+  let add_group: number[][] = [];
+  let mul_group: number[][] = [];
+  for (let i = 0; i < 4; i++) {
+    add_group[i] = [];
+    mul_group[i] = [];
+    for (let j = 0; j < 4; j++) {
+      add_group[i][j] = (i + j) % 4;
+      mul_group[i][j] = ((i + 1) * (j + 1)) % 5;
+    }
+  }
+
+  console.log(add_group.map(r => r.join(" ")).join("\n"));
+  console.log("\n");
+  console.log(mul_group.map(r => r.join(" ")).join("\n"));
+}
+
+function problem_31_3_2() {
+  let z = 13;
+  for (let i = 1; i <= 12; i++) {
+    let sub: number[] = [1];
+    let g = i;
+    while (g !== 1) {
+      sub.push(g);
+      g = (g * i) % z;
+    }
+    console.log(i, sub);
+  }
+}
+
+function problem_31_4_1() {
+  let a = 35;
+  let b = 10;
+  let n = 50;
+  let solutions = linearSolver(a, b, n);
+  console.log(solutions);
+  solutions.forEach(x => {
+    console.assert((a * x) % n === b % n);
+    console.log(`${a} * ${x} mod ${n} == ${(a * x) % n} == ${b % n}`);
+  });
+}
+
+function problem_31_5_1() {
+  let ns = [5, 11];
+  let as = [4, 5];
+  let a = crtInv(as, ns);
+  let n = ns.reduce((l, r) => l * r);
+  console.log(`${a} + k * ${n} for k ∈ Z`);
+  for (let i = 0; i < ns.length; i++) {
+    console.assert(a % ns[i] === as[i]);
+  }
+}
+
+function problem_31_5_2() {
+  let ns = [9, 8, 7];
+  let as = [1, 2, 3];
+  let a = crtInv(as, ns);
+  let n = ns.reduce((l, r) => l * r);
+  console.log(`${a} + k * ${n} for k ∈ Z`);
+  for (let i = 0; i < ns.length; i++) {
+    console.assert(a % ns[i] === as[i]);
+  }
+}
+
+function problem_31_6_1() {
+  let p = 11;
+  let subs: number[][] = [];
+  for (let i = 0; i < p - 1; i++) {
+    subs[i] = [1];
+    let basis = i + 1;
+    let a = basis;
+    while (a !== 1) {
+      subs[i].push(a);
+      a = (a * basis) % p;
+    }
+  }
+  subs.forEach((sub, i) => {
+    console.log(`ord(${i + 1}) = ${sub.length}:`, sub);
+  });
+
+  let g = subs.findIndex(sub => sub.length === p - 1) + 1;
+  let generator = subs[g - 1];
+  generator.forEach((x, i) => {
+    console.log(`ind${p},${g}(${x}) = ${i}`);
+  });
 }
 
 main();

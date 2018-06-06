@@ -10970,11 +10970,11 @@ both b and c are of roughly the same length β/2:
     b = (a - c)/10^k = (a-c) / a^(1/2), ||b|| ≒ ||a-c|| - ||a^1/2|| = β - β/2 = β/2
 the problem is divided into two subproblems of half size
 T(β) = 2T(β/2) + M(β), M(β) = Ω(β)
-if M(β) = Θ(β), T(β) = Θ(βlgβ) = O(M(β)lgβ)
-if M(β) = ω(β), for elementary functions M(β) that mentioned in this book
-    if M(β) = βlg^tβ, T(β) = O(βlg^(t+1)β) = O(M(β)lgβ)
-    if M(β) is greater than β to a polynomial factor, T(β) = O(M(β)) = O(M(β)lgβ)
-have no idea whether this result is universal
+assume T(β) <= M(β)lgβ
+    T(β)    <= 2M(β/2)lg(β/2) + M(β)
+as M(β) = Ω(β), 2M(β/2) = Ω(M(β))
+            <= M(β)(lgβ - 1) + M(β)
+            = M(β)lgβ
 ./CLRS/number/to-decimal.ts
 
 31.2-1
@@ -11087,7 +11087,7 @@ the problem is reduced to make [lgn] pairs of numbers derived from {ni} that
 for each ni, nj, there is a pair (a, b) that ni|a, nj|b or nj|a, ni|b
 denote the relation above as R(ni, nj, P) for the set of pairs P
 for two numbers the pair (n1, n2) is sufficient, lg2 = 1
-assume lgn pairs are sufficient for k numbers, a pair is (a, b) where a and b are product of k/2 numbers
+assume lgk pairs are sufficient for k numbers, a pair is (a, b) where a and b are product of k/2 numbers
 then for a set of 2k numbers
 divide the set of numbers to two sets {n1 .. nk} and {nk+1 .. n2k}
 compute recursively the lgk pairs for the first set {n1 .. nk}, let the set of pairs be P
@@ -11103,6 +11103,196 @@ extend P to P' such that
     R(ni, nj-k, P), there is a pair (a, b) ∈ P that contains ni and nj-k on different sides
     similarly by how (a, b) is extended, R(ni, nj, P')
 thus for all pairs of ni, nj except j = i+k it has R(ni, nj, P')
-a pair p = (Π(i = {1 .. k})ni, Π(j = {k+1 .. 2k})nj) contains ni, ni+k on different sides
+a pair p = (Π(i = {1 .. k})ni, Π(j = {k+1 .. 2k})nj) contains ni, ni+k on different sides for i ∈ {1 .. k}
 R(ni, nj, P' ∪ {p}) for each ni, nj ∈ {n1 .. n2k}, i != j, where |P' ∪ {p}| = lgk + 1 = lg(2k)
 
+31.3-1
+Z4:
+    0 1 2 3
+    1 2 3 0
+    2 3 0 1
+    3 0 1 2
+Z5*:
+    1 2 3 4
+    2 4 1 3
+    3 1 4 2
+    4 3 2 1
+Πggi = Πgi, g^|G|Πgi = Πgi, g^|G| = 1
+define α(a) = 2^a mod 5 for a ∈ Z4
+2^a = 2^(a mod φ(5)) mod 5 = 2^(a mod 4) mod 5 since |Z5*| = φ(5) = 4
+if a + b = c mod 4, 2^a * 2^b = 2^(a + b) = 2^((a + b) mod 4) = 2^(c mod 4) mod 5
+if 2^a * 2^b = 2^c mod 5, 2^(a + b) = 2^c mod 5
+<2> = {1, 2, 4, 3}, ord(2) = 4 in group Z5*
+thereby a + b = c mod 4
+
+31.3-2
+for Z9, its subgroup has order k|9, k = 0, 1, 3, 9
+    ∅
+    {0}
+    Z9
+are obvious, for a subgroup G' of size 3
+    G' = {0, a, b}, a + b ∈ G', a != b, 0 <= a, b <= 8, a + a ∈ G', b + b ∈ G'
+    if a + b = a mod 9 or a + b = b mod 9, a = 0 or b = 0 mod 9, |G'| < 3
+    a + b = 0 mod 9, a = -b mod 9, b = 9-a
+    similarly a + a != a, b + b != b
+    a + a = 0 => a = 0 in Z9, it must have a + a = b and b + b = a
+    a + a = -a mod 9, 3a = 0 mod 9, a = 3, b = 6
+    {0, 3, 6}
+for Z13*, |Z13*| = φ(13) = 12 its subgroup has order k|12, k = 0, 1, 2, 3, 4, 6, 12
+    ∅
+    {1}
+    Z13*
+are obvious, for a group G' of size 2,
+    G' = {0, a}, a^2 = 0 mod 13, a = 12
+    {1, 12}
+for a subgroup G' of size 3 {0, a, b}
+    similar to Z9, ab = 1, a = -b
+    G' may only contain elements g that ord(g) <= 3
+    there are only 4 of them: 1, 3, 9, 12
+    -12 = 12, 12 ∉ G'
+    {1, 3, 9} is the only possibility
+for a subgroup G' of size 4,
+    G' may contain 1, 3, 5, 8, 9, 12
+    if 3 or 9 ∈ G', it must contain another, {1, 3, 9} ⊆ G'
+    if one of {5, 8} ∈ G', it must contain them all since <5> = <8> = {1, 5, 8, 12}
+    thus if 3 or 9 ∈ G', the only other valid element is 12, but 9 * 12 = 4 mod 13, ord(4) = 6 > 3
+    3, 9 ∉ G', G' = {1, 5, 8, 12}
+for a subgroup G' of size 6,
+    valid elements are 1, 3, 4, 5, 8, 9, 10, 12
+    ord(4) = ord(10) = 6, <4> = <6> = {1, 3, 4, 9, 10, 12}
+    assume 4, 10 ∉ G', valid elements are 1, 3, 5, 8, 9, 12
+    {1, 3, 5, 8, 9, 12} is not a subgroup since 9 * 12 = 4 mod 13, the operation is not closed
+    {1, 3, 4, 9, 10, 12} is the only subgroup of size 6
+
+31.3-3
+S' ⊆ S, a, b ∈ S' implies ab ∈ S'
+1.  closure is already given
+2.  by 31.3-1, if S' is non-empty, for some a ∈ S', a^|S'| = 1 ∈ S'
+3.  associativity is inherited from S
+4.  by 31.3-1, a^(|S'| - 1)a = aa^(|S'| - 1) = a^|S'| = 1
+    a^(|S'| - 1) = a^-1 ∈ S'
+
+31.3-4
+if c|p^e, the prime factorization of c is p^f for some 0 <= f <= e
+the only prime divisor of p^e thus is p
+φ(p^e)  = p^eΠ(1 - 1/p)
+        = p^e(p - 1)/p
+        = (p-1)p^(e-1)
+
+31.3-5
+let G be any abelian group, let g, gi, gj ∈ G
+if ggi = ggj, g^-1ggi = g^-1ggj, gi = gj
+therefore if gi != gj, ggi != ggj for arbitrary g
+define G' = {ggi | gi ∈ G}, G' ⊆ G as the operation is closed to G
+by observation above each ggi is distinct, |G'| = |G|, G' = G
+apply to Zn*, f(a, x) = ax mod n, G' = {ax | x ∈ G} = Zn*
+
+31.4-1
+[ 6, 16, 26, 36, 46 ]
+
+31.4-2
+gcd(a, n) = 1, there are x' and y' that ax' + ny' = 1
+    x'(ay) = x'(ax) mod n
+    (ax')y = (ax')x mod n
+    y = x mod n
+if a = 0, gcd(a, n) = n
+ax = by mod n for any x, y
+
+31.4-3
+ax0 = ax'(b/d) mod n/d
+    = (ax'(b/d) mod n/d) mod n  //  n >= n/d
+    = ax'(b/d) + i(n/d) mod n
+by Theorem 31.24, ax0 = b mod n
+
+31.4-4
+let g(x) = Σ(i = {1 .. t-1})gix^i mod p
+if f(x) = (x - a)g(x) mod p,
+    f(x) = xg(x) - ag(x) mod p
+the above condition can be achieved by setting
+    fi  = gi-1 - agi mod p, agi = gi-1 - fi mod p if i >= 1
+        = -agi mod p, agi = -fi mod p if i = 0
+seperately
+by Theorem 31.25, agi = -fi mod p has a unique solution since gcd(a, p) = 1
+given gi-1, agi = agi-1 - fi mod p also has a unique solution
+such a g(x) exists that f(x) = (x - a)g(x) mod p
+when t = 1, f(x) = f0 + f1x mod p
+f(x) = f1x + f0 = 0 mod p, f1x = -f0 mod p has a unique solution mod p, f(x) has a single distinct zero
+when f(x) has degree t, if f(x) has a zero at a
+f(x) = (x - a)g(x) mod p for some g(x) with degree t-1
+by induction, g(x) has at most t-1 distinct zero
+when (x - a) != 0 mod p and g(x) != 0 mod p, (x - a), g(x) ∈ Zp*, their product also ∈ Zp*, (x - a)g(x) != 0
+therefore f(x) implies (x - a) = 0 mod p or g(x) = 0 mod p, f(x) has at most t distinct zero
+
+31.5-1
+49 + k * 55 for k ∈ Z
+
+31.5-2
+10 + k * 504 for k ∈ Z
+
+31.5-3
+(a mod ni) * ((a^-1 mod n) mod ni) = (a * a^-1 mod n) mod ni = 1 mod ni
+thus (a^-1 mod n) mod ni = a^-1 mod ni = a1^-1 mod ni
+as a^-1 is a solution to a^-1 -> (a1^-1 mod n1, .., ak^-1 mod nk)
+it is the unique solution up to modulo n by Chinese remainder theorem
+
+31.5-4
+f(x) mod n  <-> (f(x) mod n1, .., f(x) mod nk)
+            <-> (f(x mod ni) mod ni, .., f(x mod nk) mod nk)
+if f(x) = 0 mod n, f(x mod ni) = 0 mod ni for i ∈ {1 .. k}
+given a sequence (xi) that f(xi) = 0 mod ni, 0 <= xi <= ni
+let x <-> (x1, .., xk), x is distinct given distinct sequence (xi)
+also f(x mod ni) mod ni = f(xi) mod ni = 0, f(x) mod n <-> (0, .., 0), f(x) mod n = 0
+therefore each sequence (xi) corresponds to a distinct zero of f(x)
+the number of sequences xi is the product of the number of each xi
+the number of each xi is the number of zeros of f(x) mod ni
+
+31.6-1
+ord(1) = 1: [ 1 ]
+ord(2) = 10: [ 1, 2, 4, 8, 5, 10, 9, 7, 3, 6 ]
+ord(3) = 5: [ 1, 3, 9, 5, 4 ]
+ord(4) = 5: [ 1, 4, 5, 9, 3 ]
+ord(5) = 5: [ 1, 5, 3, 4, 9 ]
+ord(6) = 10: [ 1, 6, 3, 7, 9, 10, 5, 8, 4, 2 ]
+ord(7) = 10: [ 1, 7, 5, 2, 3, 10, 4, 6, 9, 8 ]
+ord(8) = 10: [ 1, 8, 9, 6, 4, 10, 3, 2, 5, 7 ]
+ord(9) = 5: [ 1, 9, 4, 3, 5 ]
+ord(10) = 2: [ 1, 10 ]
+ind11,2(1) = 0
+ind11,2(2) = 1
+ind11,2(4) = 2
+ind11,2(8) = 3
+ind11,2(5) = 4
+ind11,2(10) = 5
+ind11,2(9) = 6
+ind11,2(7) = 7
+ind11,2(3) = 8
+ind11,2(6) = 9
+
+31.6-2
+./CLRS/number/modular.ts#modExp
+initialization:
+    pow = 1 = a^0 mod n, 0 is the length 0 suffix of b
+    e = b is the length ||b|| prefix of b
+    a = a^(2^0)
+maintenance:
+    before ith iteration (base 0), pow = a^suf mod n, suf is the length i suffix of b
+    e is the length ||b|| - i prefix of b
+    a = a^(2^i)
+    if the ith least significant bit (base 0) is 1
+        pow = pow * a mod n = a^(suf + 2^i) mod n = a^(suf') mod n
+        where suf' is the length i+1 suffix of b
+    if the ith least significant bit is 0
+        suf = suf', pow = a^suf = a^suf' mod n
+    e is shifted to right by 1, e >> 1 is the length i-1 prefix of e
+    a^2 = (a^(2^i))^2 = a^(2^(i+1))
+termination:
+    the loop runs until e = 0
+    e is shifted to right by 1 in each iteration
+    the number of iterations = ||b||
+    pow = a^suf mod n, where suf is the length ||b|| suffix of b, which is b itself
+    pow = a^b mod n
+
+31.6-3
+a^φ(n) = 1 mod n
+a^(φ(n) - 1)a = aa^(φ(n) - 1) = 1 mod n
+a^(φ(n) - 1) = a^-1 mod n
