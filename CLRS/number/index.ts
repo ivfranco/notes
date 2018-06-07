@@ -1,12 +1,13 @@
 import { randomAB } from "../util";
 import { euclid, extendedEuclid, extendedGcd, gcd } from "./euclid";
 import { longDivision } from "./long-division";
-import { crtInv, linearSolver, modExp } from "./modular";
+import { millerRabin } from "./miller-rabin";
+import { crtInv, inverse, linearSolver, modExp } from "./modular";
 import { nontrivalPower } from "./nontrival-power";
 import { toDecimal } from "./to-decimal";
 
 function main() {
-  problem_31_6_1();
+  //
 }
 
 function problem_31_1_8() {
@@ -169,6 +170,19 @@ function problem_31_6_1() {
   generator.forEach((x, i) => {
     console.log(`ind${p},${g}(${x}) = ${i}`);
   });
+}
+
+function problem_31_7_1() {
+  let p = 11;
+  let q = 29;
+  let n = p * q;
+  let e = 3;
+
+  let d = inverse(e, (p - 1) * (q - 1));
+  let M = 100;
+  let C = modExp(M, e, n);
+  console.log(`encryption of ${M} is ${C}`);
+  console.assert(modExp(C, d, n) === M);
 }
 
 main();

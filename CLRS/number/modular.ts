@@ -1,4 +1,5 @@
 export {
+  inverse,
   linearSolver,
   mod,
   crt,
