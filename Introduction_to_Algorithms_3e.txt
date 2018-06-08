@@ -11325,7 +11325,7 @@ w^2 mod n <-> (1^2, (-1)^2) = (1, 1) <-> 1, w^2 = 1 mod n
 w is a nontrival root of 1 mod n
 
 31.8-2
-by Chinese remainder theorem, there is a bijection between Zn* and Zp1^ei x .. x Zpr^er
+by Chinese remainder theorem, there is a bijection between Zn* and Zp1^ei* x .. x Zpr^er*
 φ(n) = |Zn*| = Πφ|Zpi^ei| = Πφ(pi^ei)
 φ(n) is a common multiple of {φ(pi^ei)}, λ(n) = lcm(p1^e1, .., pr^er)|φ(n)
 let pj^2|n, n = Πpi^ei where ej >= 2
@@ -11347,8 +11347,144 @@ therefore a Carmichael number has to be the product of at least three prime numb
 
 31.8-3
 x is a nontrival square root of 1 mod n, x != 1 and x != -1 mod n
-n is a composite number, the smallest composite number with a nontrival square root is 8, x >= 3
 1 < x-1, x+1 < n, gcd(x+1, n) and gcd(x-1, n) < n
 (x-1)(x+1) = x^2 - 1 = 0 mod n, gcd((x-1)(x+1), n) = n
 if either gcd(x-1, n) or gcd(x+1, n) = 1, gcd((x-1)(x+1), n) = gcd(x-1, n) or gcd(x+1, n) < n, contradiction
 therefore gcd(x-1, n), gcd(x+1, n) > 1, both are nontrival divisors of n
+
+31.9-1
+i = 12
+
+31.9-2
+u can be find by the same idea as POLLARD-RHO
+compute xi+1 = f(xi), save y = xi whenever i = 2^k for some k
+compare y and xi afterwards before i = 2^(k+1)
+when 2^k >= u and 2^k >= t, some i between 2^k + 1 and 2^(k+1) will have xi = y
+u = i - 2^k, u can be found in time O(max(t, u) + u) = O(t + u)
+from then t can be found by binary search minimial t that xt+u = xt for 1 <= t <= 2^k
+if all previous xi is stored, t can be found in time O(lg(t + u)), O(t + u) in total
+
+31.9-3
+according to the sequence xi mod p^e, it will take about Θ(p^(e/2)) steps by the analysis in the text
+
+31.9-4
+according to the original paper by Pollard, J. M. (1975), "A Monte Carlo method for factorization"
+    http://www.cs.cmu.edu/afs/cs/academic/class/15451-f11/www/lectures/lect1122_Pollard.pdf
+and the following paper by Brent, Richard P. (1980), "An Improved Monte Carlo Factorization Algorithm"
+    https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf
+instead of xi, the product of y - xi should be accumulated, it seems to be an error of the text
+if p|(y - xi), p|Π(y - xi), gcd(Π(y - xi), n) >= p
+if gcd(y - xi, n) gives a nontrival divisor of n
+gcd(Π(y - xi), n) also gives a nontrival divisor of n unless Π(y - xi) % n = 0
+accumulate (y - xi) until
+    1.  Π(y - xi) % n = 0 for one more xi
+    2.  ||y - xi|| 
+gcd(a, n) takes time lgn, independent of a
+let ||n|| = β = Θ(lgn), ||Π(y - xi)|| = α
+this change exchanges an O(β) operation for two O(α^2) operations (multiplication and remainder)
+for a = o(β^(1/2)) the exchange is asymptotically good
+
+31-1
+a.  a = 2a', b = 2b', gcd(a, b) = gcd(2a', 2b') = 2gcd(a', b') = 2gcd(a/2, b/2)
+b.  b = 2b', gcd(a, 2) = 1
+    for each c|a and c|b, gcd(c, 2) = 1, c|b'
+    conversely c|b' => c|b, each common divisor of a and b is a common divisor of a and b' and vice versa
+    gcd(a, b) = gcd(a, b') = gcd(a, b/2)
+c.  if c|a and c|b, c|(a - b)
+    both a and b are odd, (a - b) is even
+    gcd(c, 2) = 1, c|(a - b) => c|(a - b)/2
+    conversely, c|b, c|(a - b)/2 => c|b, c|(a - b) => c|a
+    gcd(a, b) = gcd((a - b)/2, b)
+d.  apply the three cases above
+    in part c, always take a be the greater in the two
+    at least one of a and b are halved, after at most lga + lgb steps one of them becomes 0
+    gcd(a, 0) or gcd(0, b) is simply a or b
+    ./CLRS/number/euclid.ts#binaryGcd
+
+31-2
+a.  the long division method does a trivial substraction for each bit of the quotient
+    each substraction takes time O(lgb), O((1 + lgq)lgb) in total
+b.  let a = qb + a mod b, computing a mod b takes time equal to a long division, which is O((1 + lgq)lgb)
+    μ(a, b) - μ(b, a mod b)
+    = (1 + lga)(1 + lgb) - (1 + lgb)(1 + lg(a mod b))
+    = 1 + lga + lgb + lgalgb - 1 - lgb - lg(a mod b) - lgblg(a mod b)
+    = lga + lgalgb - lg(a mod b) - lgblg(a mod b)
+    = (lga - lg(a mod b))(1 + lgb)
+    = (lg(a / a mod b))(1 + lgb)
+    as a mod b <= b, a / a mod b >= q
+    = Ω(lgq(1 + lgb)) = Ω((1 + lgq)lgb)
+    c(μ(a, b) - μ(b, a mod b)) >= O((1 + lgq)lgb)
+c.  cost of each step of EUCLID but the first and last cancels each other
+    the cost is bounded from above by c(μ(a, b) - k) = O(μ(a, b))
+    when applied to two β bit numbers, lga = lgb = O(β), μ(a, b) = (1 + β)^2 = O(β^2)
+
+31-3
+a.  by section 27.1, T(n) = Θ(φ^n)
+b.  given Fk for all k <= n+1, Fn+1 = Fn+1 + Fn can be computed in O(1)
+    iteratively Fn can be computed in time O(n)
+c.  let A = ((0 1) (1 1)), b = (b1 b2)
+    Ab = (b2, b1 + b2)
+    if b = (Fn Fn+1), Ab = (Fn+1 Fn+2)
+    inductively, A^kb = A(A^(k-1)b) = (Fn+k Fn+k+1)
+    A^k can be computed by the same idea as MODULAR-EXPONENTIATION in O(lgk)
+    set b = (F0 F1), Fn can be computed in time O(lgn)
+d.  for part a
+        T(n) = T(n - 1) + T(n - 2) + Θ(lgn)
+        assume T(n) <= aFn - bn
+        T(n)    <= (aFn-1 - b(n-1)) + (aFn-2 - b(n-2)) + Θ(lgn)
+                <= aFn - bn - b(n-3) + Θ(lgn)
+                <= aFn - bn
+        T(n) = Θ(Fn)
+        β = Θ(lgFn) = Θ(n), Θ(Fn) = Θ(2^β)
+    for part b
+        computing Fn+2 takes time O(lgFn + lgFn+1) = O(lgFn+2)
+        computing all Fi, i <= n takes time ΣO(lgFi) = ΣO(lg(φ^i)) = ΣO(i) = O(n^2)
+        as β = Θ(lgFn) = Θ(n), O(n^2) = O(β^2)
+    for part c
+        A = ((0 1) (1 1)) = ((F0 F1) (F1 F2))
+        A^2 = ((1 1) (1 2)) = ((F1 F2) (F2 F3))
+        if A^k = ((Fk Fk+1) (Fk+1 Fk+2))
+        A^(k+1) = AA^k = ((Fk+1 Fk+2) (Fk+2 Fk+3))
+        squaring Ak takes 8 multiplication and 4 addition with lgFk = Θ(k) bit numbers, Θ(k^2) in total
+        adding Ak takes 4 addition with lgFk = Θ(k) bit numbers, Θ(k) in total
+        the addition is covered by multiplication
+        k roughly doubles all the way to n
+        T(n) = O(Σ((n/2^i)^2)) = O(Σ(n^2 / 4^i)) = O(n^2 * Σ(1 / 4^i)) = O(n^2) = O(2^2β)
+
+31-4
+//  this problem is entirely covered by Chapter 11 of Introduction to Modern Cryptography
+a.  let y be a quadratic residue, there is an x ∈ Zp* that
+        x^2 = y mod p, (-x)^2 = y mod p
+    if x = -x mod p, 2x = 0 mod p, p | 2x
+    since p is an odd prime, gcd(p, x) = gcd(p, 2) = 1, gcd(p, 2x) = 1, contradiction
+    thus x and -x are two distinct square roots of y
+    let x'^2 = y = x^2 mod p
+        x'^2 - x^2 = 0 mod p
+        (x' + x)(x' - x) = 0 mod p
+        p|(x' + x) or p|(x' - x), x' = x mod p or x' = -x mod p
+    x and -x are the only square roots of y
+    hence f(x) = x^2 mod p is a two-to-one function, let QRp be the set of quadratic residues in Zp*
+        |QRp| = |Zp*| / 2 = (p - 1) / 2
+b.  by Theorem 31.32, Zp* is cyclic
+    let g be a generator of Zp*, Zp* = {g^i| 0 <= i <= p - 2}
+    QRp = {g^2i | 0 <= i <= p - 2}
+    g^2(p-1)/2 = g^(p-1) = 1
+    for each i, j < (p-1)/2, 2i, 2j < p - 1, if i != j g^2i != g^2j
+    QRp = {g^2i | 0 <= i <= (p-1)/2 - 1}, g^2 is a generator of QRp
+    if a ∈ QRp, a = g^2i mod p, a^(p-1)/2 = g^(p-1)i = 1^i = 1 mod p
+    if a ∉ QRp, a = g^(2i + 1) mod p, a^(p-1)/2 = g^i(p-1)g^(p-1)/2 = g^(p-1)/2 mod p
+    (g^(p-1)/2)^2 = 1 mod p, g^(p-1)/2 != 1 mod p, g^(p-1)/2 = -1 mod p as 1 and -1 are the only two square roots of 1
+    the Legendre symbol of a can be computed by MODULAR-EXPONENTIATION in 
+    O(lg((p-1)/2)) = O(lgp) multiplications and additions, which takes O(lg^2p) each
+    O(lg^3p) in total
+c.  a ∈ QRp, by part b 
+        a^(p-1)/2 = 1 mod p
+        a^((p-1)/2 + 1) = a mod p
+        a^((4k + 2) / 2 + 1) = a mod p
+        a^(2k + 2) = a mod p
+        (a^(k+1))^2 = a mod p, a^(k+1) is a square root of a
+    given a, a^(k + 1) can be computed in O(lgk) = O(lgp) multiplications and additions
+    O(lg^3p) in total
+d.  as |QRp| = |Zp*| / 2, by uniformly chose a <- Zp*, a ∉ QRp with probability 1/2
+    if a ∉ QRp, a^(p-1)/2 = -1 mod p, the Legendre symbol can be computed in O(lg^3p)
+    with 50 independent trials, a non-quadratic residue can be find in time (lg^3p) with probability 1 - 1e-15

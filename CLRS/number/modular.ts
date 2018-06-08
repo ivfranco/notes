@@ -23,6 +23,7 @@ function modExp(a: number, e: number, n: number): number {
     if ((e & 0x1) === 1) {
       pow = mod(pow * a, n);
     }
+    //  will err if a^2 > Number.MAX_SAFE_INTEGER, a cannot be greater than about 9.5e7
     a = mod(a * a, n);
     e >>= 1;
   }

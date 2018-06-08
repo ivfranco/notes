@@ -1,13 +1,26 @@
+import { matrixMultiplication } from "../start/matrix-mul";
 import { randomAB } from "../util";
-import { euclid, extendedEuclid, extendedGcd, gcd } from "./euclid";
+import { binaryGcd, euclid, extendedEuclid, extendedGcd, gcd } from "./euclid";
 import { longDivision } from "./long-division";
 import { millerRabin } from "./miller-rabin";
 import { crtInv, inverse, linearSolver, modExp } from "./modular";
 import { nontrivalPower } from "./nontrival-power";
+import { factorize } from "./pollard-rho";
 import { toDecimal } from "./to-decimal";
 
 function main() {
-  //
+  let A = [
+    [0, 1],
+    [1, 1],
+  ];
+  let B = [
+    [0, 1],
+    [1, 1],
+  ];
+  for (let i = 0; i < 10; i++) {
+    B = matrixMultiplication(A, B);
+    console.log(B);
+  }
 }
 
 function problem_31_1_8() {
@@ -183,6 +196,34 @@ function problem_31_7_1() {
   let C = modExp(M, e, n);
   console.log(`encryption of ${M} is ${C}`);
   console.assert(modExp(C, d, n) === M);
+}
+
+function factorizeTest() {
+  let testCase: number[] = [];
+  for (let i = 0; i < 10; i++) {
+    testCase.push(randomAB(2, 100000));
+  }
+  testCase.forEach(n => {
+    let ps = factorize(n);
+    for (let p of ps) {
+      console.assert(millerRabin(p), `factor ${p} of ${n} is not prime`);
+    }
+    console.log(n, ps);
+    console.assert(ps.reduce((a, b) => a * b) === n, `${ps} is not a factorization of ${n}`);
+  });
+}
+
+function problem_31_1() {
+  let testCase: Array<[number, number]> = [];
+  for (let i = 0; i < 10; i++) {
+    testCase.push([randomAB(0, 10000), randomAB(0, 10000)]);
+  }
+  testCase.forEach(([a, b]) => {
+    let bin = binaryGcd(a, b);
+    let euc = euclid(a, b);
+    console.log(`binary: ${bin}, euclid: ${euc}`);
+    console.assert(bin === euc);
+  });
 }
 
 main();

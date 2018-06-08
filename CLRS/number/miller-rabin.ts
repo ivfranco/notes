@@ -33,13 +33,15 @@ function witness(a: number, n: number): boolean {
   }
 }
 
+const RETRY = 50;
+
 //  return false if n is composite, return true if n is very likely prime
-function millerRabin(n: number, s: number): boolean {
+function millerRabin(n: number): boolean {
   console.assert(n >= 1 && Math.floor(n) === n, "n must be a positive integer");
   if ((n & 0x1) === 0) {
     return n === 2;
   }
-  for (let j = 0; j < s; j++) {
+  for (let j = 0; j < RETRY; j++) {
     let a = randomAB(1, n - 1);
     if (witness(a, n)) {
       return false;
