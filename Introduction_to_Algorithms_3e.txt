@@ -9653,6 +9653,7 @@ e.  expected work is still Θ(nlgn)
     span recurs into the bigger subproblem, the analysis of RANDOMIZED-SELECT applies
     expected span is Θ(n), E[T∞] / E[T1] = Θ(lgn)
 
+Chapter 28
 28.1-1
 ./CLRS/matrix/index.ts#problem_28_1_1
 
@@ -10815,7 +10816,43 @@ d.  assume Pij(x) is computed already
     all necessary Pij(x) can be computed in T(n) = 2T(n/2) + O(nlgn) = O(nlg^2n) as well
 
 30-6
-wait for Chapter 31
+a.  by Theorem 31.37, the number of prime number smaller than n is roughly n/ln(n)
+    for p = nln(n) + 1, approximately p/ln(p) = nln(n) / (ln(n) + lnln(n)) = n numbers smaller than p are primes 
+    n/p = ln(n), a prime number can be found by about ln(n) trials
+    ||p|| = lgp = lgn + lglgn = ||n|| + lglgn
+b.  if g^ki = g^kj mod p, j > i
+        g^k(j - i) * g^ki = g^ki * g^k(j - i) = g^kj = g^ki mod q
+        g^k(j - i) = 1 mod p
+        k(j - i) = 0 mod φ(p) = kn
+        k(j - i) = kqn, (j - i) = qn, n|(j - i)
+    g^kn = g^(p-1) = 1 mod p
+    ord(g^k) = |<g^k>| = n, <g^k> is the subgroup of nth root of unity
+    for each q ∈ Zn, w^qn = g^kqn = (g^kn)^q = 1 mod p, w^q is a distinct nth root of unity
+    summation lemma:
+        for !(n|j),
+        (w^j - 1)Σ(i = {0 .. n-1})w^ji
+        = Σ(i = {0 .. n-1})(w^j(i+1) - w^ji)
+        = w^jn - 1 = 0 mod p
+        if w^j - 1 = 0 mod p, w^j = 1 mod p, j = 0 mod n, n|j
+        thereby Σ(i = {0 .. n-1})w^ji = 0 mod p
+    Theorem 30.7 can be derived from summation lemma, V^-1 exists
+    let A, B be the inverse of the same matrix C
+        AC = CA = I, BC = CB = I
+        AI = A(CB) = (AC)B = IB = B
+    thus V^-1 is unique, if Va = y, a = V^-1y is unique, the inverse of DFT is well defined
+c.  halving lemma:
+        let w be a principal nth root of unity modulo p = kn + 1 defined as g^k, g is a generator of Zp*
+        <w> is a subgroup of Zp*, <w> is a subgroup of n nth roots of unity modulo p
+        w^j = w^(j mod n) mod p, w^jn = 1 mod p
+        let w' = w^2, for each 0 <= j' < n/2, w'^j(n/2) = w^jn = 1 mod p
+        (w^(j + n/2))^2 = w^(2j + n) = w^2j mod p
+        <w'> = {w^2i | 0 <= i < n}
+        |<w'>| = |<w>| / 2 = n/2, <w'> is a subgroup of n/2 n/2-th roots of unity modulo p
+    thereby replacing each operation in FFT by modular operations gives an implementation of FFT in modular arithmetic
+    assume all a and y are relatively small (a ∈ Zp), ||p|| = lgn + lglgn = O(lgn), all modular operation takes O(1)
+    the modular arithmetic FFT takes the same time as complex FFT, which is O(nlgn)
+d.  [ 14, 10, 10, 4, 8, 11, 13, 15 ]
+./CLRS/number/modular-fft.ts#modularFFT
 
 Chapter 31
 //  javascript and its preprocessors are not proper languages for this chapter
@@ -11488,3 +11525,66 @@ c.  a ∈ QRp, by part b
 d.  as |QRp| = |Zp*| / 2, by uniformly chose a <- Zp*, a ∉ QRp with probability 1/2
     if a ∉ QRp, a^(p-1)/2 = -1 mod p, the Legendre symbol can be computed in O(lg^3p)
     with 50 independent trials, a non-quadratic residue can be find in time (lg^3p) with probability 1 - 1e-15
+
+Chapter 32
+32.1-1
+compared 0001 to the text at offset 0
+compared 0001 to the text at offset 1
+compared 000 to the text at offset 2
+compared 00 to the text at offset 3
+compared 0 to the text at offset 4
+compared 0001 to the text at offset 5
+compared 000 to the text at offset 6
+compared 00 to the text at offset 7
+compared 0 to the text at offset 8
+compared 00 to the text at offset 9
+compared 0 to the text at offset 10
+compared 0001 to the text at offset 11
+
+32.1-2
+if for some shift s, the naive algorithm compared k characters in P to T
+Pk-1 is a prefix of T[s+1 ..]
+if k = 1, T[s+1] != P[1], s can be incremented by 1
+if k > 1, none of the characters in T[s+2, s+k-1] equals P[1]
+the next shift that's possibly valid is s+k-1, s may be incremented by k-1
+a character in T is at most compared to P twice
+the total number of comparsions done <= 2n = O(n)
+
+32.1-3
+at each shift s, there are probability 1/d that T[s+1] = P[1], T[s+2] = P[2] ...
+the probability that at least comparsions will be made at shift s is then P(k) = 1/d^(k-1)
+the probability that exact k comparsions will be made is p(k) = 1/d^(k-1) - 1/d^k for k < |P| and 1/d^(k-1) for k = |P|
+the expected number of comparsions is 
+    Σkp(k) = Σ{i = {1 .. m})1/d^(k-1) = (1 - (1/d)^m) / (1 - (1/d))
+    p(k) is maximized where d = 2, Σkp(k) <= lim(m -> ∞)Σkp(k) = 1/(1 - (1/2)) = 2
+the expected total number of comparsions <= 2(n - m + 1)
+
+32.1-4
+let P = P'♢S, where S contains no gap characters
+check whether S is a suffix of Pk starting from k = |T| - |S| + 1 and decrements
+if Tk = T'S, recursively match P' against T'
+if S is suffix to no Pk, return false
+inductively, if P = S contains no gap characters
+    the algorithm is just naive string matcher running backwards
+if P = P'♢S
+    if P occurs in T, P must contain an occurrence of S
+    there must be a prefix Tk of T that
+        Tk = T''S, P' occurs in T'
+    if P' occurs in T', P' occurs in T'W for arbitrary string W
+    by finding the last occurrence of S in T, T' = T''W, the algorithm will return true
+    if P doesn't occur in T, either T contains no occurrence of S or T contains no occurrence of P' before S
+    if T contains no occurrence of S, it cannot contain an occurrence of P', the algorithm will return false
+    if T contains no occurrence of P' before any occurrence of S
+    T contains no occurrence of P' before the last occurrence of S, the algorithm returns false
+each character is compared at most |S| times
+the running time is polynomial in |T| and max{|S|}
+./CLRS/string/naive.ts#gapStringMatcher
+
+32.2-1
+spurious fit at offset 3: t = 15, t mod q = 4 = p mod q
+spurious fit at offset 4: t = 59, t mod q = 4 = p mod q
+spurious fit at offset 5: t = 92, t mod q = 4 = p mod q
+
+32.2-2
+compare t to each of p computed from the patterns on line 10 of RABIN-KARP-MATCHER
+test each possible match seperately

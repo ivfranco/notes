@@ -1,3 +1,5 @@
+import { modExp } from "../number/modular";
+import { modularFFT, simpleModularDFT } from "../number/modular-fft";
 import {
   fastIterMultiply,
   fastMultiply,
@@ -8,8 +10,7 @@ import {
 import { coffMultiply, interpolate, Polynomial } from "./polynomial";
 
 function main() {
-  problem_30_1_1();
-  problem_30_2_3();
+  problem_30_6();
 }
 
 function problem_30_1_1() {
@@ -46,6 +47,22 @@ function problem_30_2_3() {
 function problem_30_3_1() {
   let A = [0, 2, 3, -1, 4, 5, 7, 9];
   iterativeFFT(A);
+}
+
+function problem_30_6() {
+  let a = [0, 5, 3, 7, 7, 2, 1, 6];
+  let p = 17;
+  let k = (p - 1) / a.length;
+  let g = 3;
+  let w = modExp(g, k, p);
+
+  let fft = modularFFT(a, p, w);
+  let simple = simpleModularDFT(a, p, w);
+  console.log(fft);
+  console.log(simple);
+  for (let i = 0; i < a.length; i++) {
+    console.assert(fft[i] === simple[i]);
+  }
 }
 
 main();
