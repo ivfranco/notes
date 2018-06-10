@@ -1,8 +1,9 @@
+import { Automaton, automatonGapMatcher, finiteAutomatonMatcher } from "./automaton";
 import { gapStringMatcher, match, naiveStringMatcher } from "./naive";
 import { rabinKarpMatcher } from "./rabin-karp";
 
 function main() {
-  problem_32_2_1();
+  problem_32_1_4();
 }
 
 function problem_32_1_1() {
@@ -20,6 +21,9 @@ function problem_32_1_4() {
 
   console.assert(gapStringMatcher(T, P1) === true);
   console.assert(gapStringMatcher(T, P2) === false);
+  //  problem_32_3_5
+  console.assert(automatonGapMatcher(T, P1) === true);
+  console.assert(automatonGapMatcher(T, P2) === false);
 }
 
 function problem_32_2_1() {
@@ -34,11 +38,26 @@ function problem_32_2_1() {
   for (let i = 0; i <= n - m; i++) {
     let t = parseInt(T.substr(i, m), 10);
     if (t % q === p && !match(T, P, i)) {
-      console.log(`spurious fit at offset ${i}: t = ${t}, t mod q = ${t % q} = p mod q`);
+      console.log(`spurious hit at offset ${i}: t = ${t}, t mod q = ${t % q} = p mod q`);
       cnt++;
     }
   }
   console.log(cnt);
+}
+
+function problem_32_3_1() {
+  let T = "aaababaabaababaab";
+  let P = "aabab";
+
+  console.log(finiteAutomatonMatcher(T, P));
+  console.log(naiveStringMatcher(T, P));
+}
+
+function problem_32_3_2() {
+  let P = "ababbabbababbababbabb";
+  let M = new Automaton(P);
+
+  M.print();
 }
 
 main();

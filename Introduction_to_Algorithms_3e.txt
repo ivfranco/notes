@@ -11527,6 +11527,9 @@ d.  as |QRp| = |Zp*| / 2, by uniformly chose a <- Zp*, a ∉ QRp with probabilit
     with 50 independent trials, a non-quadratic residue can be find in time (lg^3p) with probability 1 - 1e-15
 
 Chapter 32
+//  definition of a valid shift i is adjusted to
+//      T[i .. i + m - 1] = P
+//  so it fits better with base 0 indices in javascript
 32.1-1
 compared 0001 to the text at offset 0
 compared 0001 to the text at offset 1
@@ -11581,10 +11584,133 @@ the running time is polynomial in |T| and max{|S|}
 ./CLRS/string/naive.ts#gapStringMatcher
 
 32.2-1
-spurious fit at offset 3: t = 15, t mod q = 4 = p mod q
-spurious fit at offset 4: t = 59, t mod q = 4 = p mod q
-spurious fit at offset 5: t = 92, t mod q = 4 = p mod q
+spurious hit at offset 3: t = 15, t mod q = 4 = p mod q
+spurious hit at offset 4: t = 59, t mod q = 4 = p mod q
+spurious hit at offset 5: t = 92, t mod q = 4 = p mod q
 
 32.2-2
 compare t to each of p computed from the patterns on line 10 of RABIN-KARP-MATCHER
 test each possible match seperately
+if patterns have different lengths: maintain several t of different length
+
+32.2-3
+compute an (n-m+1) x (n-m+1) matrix H where
+    the entry Hij stores a hash of the submatrix of size m x m starting at Tij in the n x n matrix T
+the hash function must satisfie that
+    it effectively maps submatrix of T uniformly to a finite set
+    H11 can be computed in O(m^2) time
+    Hi+1,j and Hi,j+1 can be computed in O(m) from Hij
+Hij = Σ(r = {i .. i+m-1}, c = {j .. j+m-1})(d^r + d^c)Tij mod q
+possibly satisfies the conditions above
+then the matrix H can be computed in time O(m(n-m+1)^2) with O(m^2) preprocess
+a spurious hit can be distinguished from a hit in time O(m^2)
+
+32.2-4
+if A = B, ai = bi, Σaix^i mod q = Σbix^i mod q
+if A != B, for some i ai != bi, if A(x) = B(x)
+    Σaix^i = Σbix^i mod q
+    Σ(ai - bi)x^i = 0 mod q
+Σ(ai - bi)x^i is a polynomial of degree at most n-1
+by 31.4-4, it has at most n-1 distinct zeros
+in all q > 1000n possibles of x, only < n of them has A(x) = B(x)
+P{A(x) = B(x)} < n / 1000n = 1/1000
+
+32.3-1
+T[0] = a, δ(0, a) = 1
+T[1] = a, δ(1, a) = 2
+T[2] = a, δ(2, a) = 2
+T[3] = b, δ(2, b) = 3
+T[4] = a, δ(3, a) = 4
+T[5] = b, δ(4, b) = 5
+T[6] = a, δ(5, a) = 1
+T[7] = a, δ(1, a) = 2
+T[8] = b, δ(2, b) = 3
+T[9] = a, δ(3, a) = 4
+T[10] = a, δ(4, a) = 2
+T[11] = b, δ(2, b) = 3
+T[12] = a, δ(3, a) = 4
+T[13] = b, δ(4, b) = 5
+T[14] = a, δ(5, a) = 1
+T[15] = a, δ(1, a) = 2
+T[16] = b, δ(2, b) = 3
+
+32.3-2
+inputs: a, b
+0: [ 1, 0 ]
+1: [ 1, 2 ]
+2: [ 3, 0 ]
+3: [ 1, 4 ]
+4: [ 3, 5 ]
+5: [ 6, 0 ]
+6: [ 1, 7 ]
+7: [ 3, 8 ]
+8: [ 9, 0 ]
+9: [ 1, 10 ]
+10: [ 11, 0 ]
+11: [ 1, 12 ]
+12: [ 3, 13 ]
+13: [ 14, 0 ]
+14: [ 1, 15 ]
+15: [ 16, 8 ]
+16: [ 1, 17 ]
+17: [ 3, 18 ]
+18: [ 19, 0 ]
+19: [ 1, 20 ]
+20: [ 3, 21 ]
+21: [ 9, 0 ]
+
+32.3-3
+if Pk is a suffix of Pq||a, Pk-1 is a suffix of Pq
+k-1 = 0, k = 1 or k-1 = q, k = q + 1
+if P1 is a suffix of Pq||a, P[1] = a
+if Pk = Pq+1 is a suffix of Pq||a, Pq+1 = Pq||a, P[q+1] = a
+δ(q, a) = σ(Pq||a) 
+        = q+1   if a = P[q+1]
+        = 1     if a != P[q+1] but a = P[1]
+        = 0     otherwise
+
+32.3-4
+//  following two problems are covered by Automata and Computability by Dexter C. Kozen
+//  the proofs here are informal
+union of two DFA over the same alphabet has |P1||P2| states
+let M = (Q, q0, A, Σ, δ)
+    M' = (Q', q0', A', Σ, δ')
+define their union as 
+    U = (Q x Q', (q0, q0'), A x Q' ∪ Q x A', Σ, δu)
+where
+    δu((q, q'), a) = (δ(q, a), δ(q', a))
+let Φu be the final-state function of U, Φ be the final-state function of M, Φ' be the final-state function of M'
+it can be proved inductively that 
+    Φu(w) = (Φ(w), Φ'(w))
+therefore if Φ(w) ∈ A or Φ'(w) ∈ A'
+    Φu(w) ∈ AxQ' ∪ QxA'
+conversely if Φ(w) ∈ AxQ' ∪ QxA'
+    Φ(w) ∈ A or Φ(w) ∈ A'
+U accepts and only accepts all the strings accepted by M or M'
+
+32.3-5
+the proof of 32.1-4 also works in another direction:
+    P = S♢P' occurs in T iff P' occurs after the first occurrence of S in T
+let M = (Q, q0, A, Σ, δ)
+    M' = (Q', q0', A', Σ, δ')
+define their concatenation as
+    C = (Q ∪ Q', q0, A', Σ, δc)
+where
+    δc(q, a)    = δ(q, a) if q ∈ Q - A
+                = δ(q0', a) if q ∈ A
+                = δ'(q, a) if q ∈ Q'
+if M accepts w, M' accepts w',
+in the problem of string matching, if a machine M' accepts w, it accepts p||w for any prefix p
+if M accepts w, let w = p||s where Φ(p) ∈ A for the first time when M is evaluating w
+    δc(q0, w||w')   = δc(q0, p||s||w')
+                    = δc(δc(q0, p), s||w')
+                    = δc(Φ(p), s||w')   //  the evaluation of p will not enter A before the final state
+                    = δc(q0', s||w') ∈ A'
+C accepts w||w', conversely if C accepts w
+the only way to transfer from q0 to a state in Q' is from a state in A
+C must enter q ∈ A when envaluating a prefix p that w = p||s, then
+    δc(q0, p||s) = δc(δc(q0, p), s) = δc(q0', s) = δ'(q0', s) ∈ A'
+M accepts p and M' accepts s
+instead of accumulate a big DFA for the concatenation, automatas for each pattern can be built seperately
+once a machine is accepted, immediately start running the next one
+./CLRS/string/automaton.ts#automatonGapMatcher
