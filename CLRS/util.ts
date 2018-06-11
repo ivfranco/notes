@@ -104,3 +104,15 @@ export function binarySearch<T>(v: T, A: T[]): number | null {
     return null;
   }
 }
+
+export function equals<T>(A: T[], B: T[]): boolean {
+  if (A.length !== B.length) {
+    return false;
+  }
+  for (let i = 0; i < A.length; i++) {
+    if (A[i] !== B[i]) {
+      return false;
+    }
+  }
+  return true;
+}

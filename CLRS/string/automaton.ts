@@ -4,6 +4,8 @@ export {
   automatonGapMatcher,
 };
 
+import { computePrefixFunction } from "./kmp";
+
 interface Transit {
   [index: string]: number;
 }
@@ -32,6 +34,29 @@ function extractAlphabet(P: string): string {
   return alphabet;
 }
 
+function computeTransits(P: string): Transit[] {
+  let m = P.length;
+  let alphabet = extractAlphabet(P);
+  let trans: Transit[] = [];
+  for (let i = 0; i <= m; i++) {
+    trans[i] = Object.create(null);
+  }
+  let prefix = computePrefixFunction(P);
+
+  for (let a of alphabet) {
+    trans[0][a] = P[0] === a ? 1 : 0;
+    for (let q = 1; q <= m; q++) {
+      if (q === m || P[q] !== a) {
+        trans[q][a] = trans[prefix[q]][a];
+      } else {
+        trans[q][a] = q + 1;
+      }
+    }
+  }
+
+  return trans;
+}
+
 class Automaton {
   private q: number;
   private m: number;
@@ -41,20 +66,20 @@ class Automaton {
   constructor(P: string) {
     let alphabet = extractAlphabet(P);
     let m = P.length;
-    let trans: Transit[] = [];
-    for (let q = 0; q <= m; q++) {
-      trans[q] = Object.create(null);
-      for (let a of alphabet) {
-        let k = Math.min(m, q + 1);
-        while (!isSuffixOf(P.substr(0, k), P.substr(0, q) + a)) {
-          k--;
-        }
-        trans[q][a] = k;
-      }
-    }
+    // let trans: Transit[] = [];
+    // for (let q = 0; q <= m; q++) {
+    //   trans[q] = Object.create(null);
+    //   for (let a of alphabet) {
+    //     let k = Math.min(m, q + 1);
+    //     while (!isSuffixOf(P.substr(0, k), P.substr(0, q) + a)) {
+    //       k--;
+    //     }
+    //     trans[q][a] = k;
+    //   }
+    // }
     this.q = 0;
     this.m = m;
-    this.trans = trans;
+    this.trans = computeTransits(P);
     this.alphabet = alphabet;
   }
 

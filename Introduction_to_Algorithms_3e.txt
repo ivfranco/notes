@@ -11527,7 +11527,7 @@ d.  as |QRp| = |Zp*| / 2, by uniformly chose a <- Zp*, a ∉ QRp with probabilit
     with 50 independent trials, a non-quadratic residue can be find in time (lg^3p) with probability 1 - 1e-15
 
 Chapter 32
-//  definition of a valid shift i is adjusted to
+//  definition of a valid shift i in implementation is adjusted to
 //      T[i .. i + m - 1] = P
 //  so it fits better with base 0 indices in javascript
 32.1-1
@@ -11714,3 +11714,91 @@ M accepts p and M' accepts s
 instead of accumulate a big DFA for the concatenation, automatas for each pattern can be built seperately
 once a machine is accepted, immediately start running the next one
 ./CLRS/string/automaton.ts#automatonGapMatcher
+
+32.4-1
+[ <1 empty item>, 0, 0, 1, 2, 0, 1, 2, 0, 1, 2, 0, 1, 2, 3, 4, 5, 6, 7, 8 ]
+
+32.4-2
+π[q] < q, the sequence π*[q] strictly decreases, |π*[q]| <= q
+let P = a^m, Pq-1 is a suffix of Pq, π[q] = q - 1 for each 1 <= q <= m
+|π*[1]| = |(0)| = 1
+|π*[q]| = 1 + |π*[q-1]| = q
+
+32.4-3
+i is a valid shift iff P is a suffix of Ti+m, or equivalently m ∈ π*[i+2m]
+for each index m+1 .. m+n, traverse the sequence π*[i] by repeatedly compute q = π[q]
+if m ∈ π*[i], i - 2m is a valid shift
+
+32.4-4
+in the loop starting at line 5
+π is the prefix function, π[q] < q
+the only way q may increase is through line 9, which executes at most once each iteration
+q increases by at most n
+π[q] >= 0, the while loop on line 6 stops when q == 0, q is nonnegative
+each time line 7 executes, q is decreased by q - π[q] >= 1
+therefore the loop on line 6-7 executes at most n times in total
+each other lines executes at most once in each iteration of the outer loop, O(n) aggregated
+
+32.4-5
+let Di be the state of the loop at the beginning of the ith iteration, i is 0-based
+let qi be the value of q at the beginning of ith iteration
+define Φ(Di) = qi + i
+Φ(D0) = qi + i = 0, Φ(Di+1) - Φ(Di) = (qi+1 - qi) + 1
+line 7 and line 12 deceases q by at least 1
+in ith iteration, line 6-7 and line 12 combined may execute at most qi+1 - qi times
+other part of the iteration completes in constant time
+by adjusting the constant of Φ(Di), či = ci + Φ(Di+1) - Φ(Di) = O(1)
+the worst case cost of n iterations is O(n)
+
+32.4-6
+prove by induction that the while loop on line 6-7 of KMP-MATCHER terminates with the same value of q
+when q = 0, the two version of loop terminates immediately with q = 0
+assume the two versions of the loop terminates with the same value of q for all q < k, k > 0
+for q = k, if P[q+1] = T[i], both loops terminates immediately with q = k
+if P[q+1] != T[i],
+    let ti be the greatest element ti ∈ π*[q] where P[t + 1] != P[q + 1] 
+    π*[q] = (t1, t2 .. ti, ti+1 .. tr), P[tj + 1] = P[tj+1 + 1] = P[q + 1] != T[i] for j >= i + 1
+    the loop with π will traverse π*[q] backwards until q = ti
+    the loop with π' sets q = π'[π[q]] = ti in a single iteration:
+        for all j > i + 1, P[π[j] + 1] = P[j + 1], π'[tj] = π'[π[tj]] = π'[tj-1]
+        when j = i+1, P[π[tj] + 1] = P[ti + 1] != P[tj + 1], π'[tj] = π[tj] = ti
+    case 1 and case 3 has π[q] = π'[q], the two loops trivially have the same behavior
+whenever a series of prefixes (Pk .. Pk+i) share the same last character
+π' compresses several iterations with π to a single iteration 
+the more repititive P is, the more efficient π' is compared to π
+
+32.4-7
+T1 is a cyclic rotation of T2 iff |T1| = |T2| and T1 occurs in T2T2
+if T1 is a cyclic rotation of T2
+    T1 = xy, T2 = yx for some string x and y
+    T2T2 = yxyx contains an occurrence of xy
+if |T1| = |T2| and T1 occurs in T2T2
+    let T1 = x, T2 = y, x occurs in yy = pxs = pp's's, where y = pp' = s's, x = p's'
+    |x| = |y| = |p| + |p'| = |p'| + |s'|, |p| = |s'|, similarly |p'| = |s|
+    thereby p = s', p' = s, y = s'p', x is a cyclic rotation of y
+by calling KMP-MATCHER(T1, T2T2), whether there is a valid shift can be judged in O(|T1| + 2|T2|), linear in both
+
+32.4-8
+δ(q, a) = q + 1 if q < m and P[q+1] = a
+otherwise let δ(q, a) = k
+    Pk is the longest prefix of P that is also a suffix of Pq||a, 
+    if k = 0, no Pk is a suffix of Pq||a
+    Pπ[q]||a is a suffix of Pq||a, if Pk is suffix of Pπ[q]||a, Pk is also a suffix of Pq||a
+    thereby δ(π[q], a) = δ(q, a) = 0
+    otherwise P[k] = a, k <= q + 1
+    if k = q + 1, Pq||a = Pq+1, P[q+1] = a, hence k <= q
+    Pk-1 is a suffix of Pq, k-1 < q, π[q] >= k - 1
+    Pπ[q] is the longest suffix of Pq, by lemma 32.1 Pk-1 is a suffix of Pπ[q], Pk is a suffix of Pπ[q]||a
+    let t = δ(π[q], a), Pt is the longest suffix of Pπ[q]||a
+    by definition of π[q], Pπ[q] is a proper suffix of Pq, Pπ[q]||a is a proper suffix of Pq||a
+    Pt is a suffix of Pq||a, t <= k, but Pk is a suffix of Pπ[q]||a, t >= k, t = k
+./CLRS/string/automaton.ts#computeTransits
+
+32-1
+a.  ρ(Pi) = r iff:
+        Pi = Pj^r, j = i/r, or equivalently
+        Pi = Pi-jPj, j = i/r, ρ(Pi-j) = r - 1
+    given ρ(Pj) for j < i, ρ(Pi) can be computed by searching all j ∈ π*[i] that
+        i = jr, ρ(Pi-j) = r - 1
+    |π*[i]| <= i, ρ(Pi) for all i can be computed in O(m^2)
+b.  there are 2^k binary strings of length k

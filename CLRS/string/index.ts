@@ -1,9 +1,28 @@
 import { Automaton, automatonGapMatcher, finiteAutomatonMatcher } from "./automaton";
+import { computePrefixFunction, kmpMatcher } from "./kmp";
 import { gapStringMatcher, match, naiveStringMatcher } from "./naive";
 import { rabinKarpMatcher } from "./rabin-karp";
 
 function main() {
-  problem_32_1_4();
+  matchingTest();
+}
+
+function matchingTest() {
+  let T = `Text-editing programs frequently need to find all occurrences of a pattern in the text.
+Typically, the text is a document being edited, and the pattern searched for is a particular word supplied by the user.
+Efficient algorithms for this problem—called “string matching”—can greatly aid the responsiveness of the text-editing
+program. Among their many other applications, string-matching algorithms search for particular patterns in DNA
+sequences. Internet search engines also use them to find Web pages relevant to queries`;
+  let P = "the";
+
+  console.log("Naive:");
+  console.log(naiveStringMatcher(T, P));
+  console.log("Rabin-Karp");
+  console.log(rabinKarpMatcher(T, P));
+  console.log("Finite automaton:");
+  console.log(finiteAutomatonMatcher(T, P));
+  console.log("Knuth-Morris-Pratt:");
+  console.log(kmpMatcher(T, P));
 }
 
 function problem_32_1_1() {
@@ -51,6 +70,7 @@ function problem_32_3_1() {
 
   console.log(finiteAutomatonMatcher(T, P));
   console.log(naiveStringMatcher(T, P));
+  console.log(kmpMatcher(T, P));
 }
 
 function problem_32_3_2() {
@@ -58,6 +78,10 @@ function problem_32_3_2() {
   let M = new Automaton(P);
 
   M.print();
+}
+
+function problem_32_4_1() {
+  console.log(computePrefixFunction("ababbabbabbababbabb"));
 }
 
 main();

@@ -26,7 +26,11 @@ function rabinKarpMatcher(T: string, P: string): number[] {
     if (p === t && match(T, P, s)) {
       shifts.push(s);
     }
-    t = mod(DIGIT * (t - T.charCodeAt(s) * h) + T.charCodeAt(s + m), MODULO);
+    //  used to be an one liner
+    //    t = mod(DIGIT * (t - T.charCodeAt(s) * h) + T.charCodeAt(s + m), MODULO);
+    //  but the above operation may overflow Number.MAX_SAFE_INTEGER
+    t = mod(DIGIT * (t - T.charCodeAt(s) * h), MODULO);
+    t = mod(t + T.charCodeAt(s + m), MODULO);
   }
 
   return shifts;
