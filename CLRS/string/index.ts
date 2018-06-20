@@ -2,6 +2,7 @@ import { Automaton, automatonGapMatcher, finiteAutomatonMatcher } from "./automa
 import { computePrefixFunction, kmpMatcher } from "./kmp";
 import { gapStringMatcher, match, naiveStringMatcher } from "./naive";
 import { rabinKarpMatcher } from "./rabin-karp";
+import { repetitionMatcher } from "./repitition-factor";
 
 function main() {
   matchingTest();
@@ -23,6 +24,8 @@ sequences. Internet search engines also use them to find Web pages relevant to q
   console.log(finiteAutomatonMatcher(T, P));
   console.log("Knuth-Morris-Pratt:");
   console.log(kmpMatcher(T, P));
+  console.log("Repetition factor:");
+  console.log(repetitionMatcher(T, P));
 }
 
 function problem_32_1_1() {

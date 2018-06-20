@@ -1,6 +1,10 @@
+export {
+  repetitionMatcher,
+};
+
 import { computePrefixFunction } from "./kmp";
 
-function repitition(P: string): number[] {
+function repetition(P: string): number[] {
   let m = P.length;
   let rho: number[] = [];
   rho[1] = 1;
@@ -17,4 +21,28 @@ function repitition(P: string): number[] {
   }
 
   return rho;
+}
+
+function repetitionMatcher(T: string, P: string): number[] {
+  let m = P.length;
+  let n = T.length;
+  let k = repetition(P).reduce((a, b) => Math.max(a, b));
+  let q = 0;
+  let s = 0;
+
+  let shifts: number[] = [];
+  while (s <= n - m) {
+    if (T[s + q] === P[q]) {
+      q++;
+      if (q === m) {
+        shifts.push(s);
+      }
+    }
+    if (q === m || T[s + q] !== P[q]) {
+      s = s + Math.max(1, Math.ceil(q / k));
+      q = 0;
+    }
+  }
+
+  return shifts;
 }
