@@ -11834,3 +11834,33 @@ a new array without a particular p1 can be computed in O(n)
 n points can be sorted by polar angles in O(nlgn), O(n^2lgn) with n different origins
 cross product of neighboring points can be computed in O(n), O(n^2) with n different sorted arrays
 O(n^2 + n^2lgn) = O(n^2lgn) in total
+
+33.1-5
+thanks https://github.com/gzc/CLRS/blob/master/C33-Computational-Geometry/33.1.md
+by definition a convex polygon cannot have its vertices being a convex combination of any two points on the boundary
+if three consecutive vertices p1, p2 and p3 are colinear in a polygon 
+p2 will be a convex combination of the p1 and p3
+the angle p1p2p3 is neither a left or right turn, but the polygon is no longer convex
+the algorithm should also check if any angle in the set has direction 0 and reject if there's any
+
+33.1-6
+if the right horizontal ray intersects with a line segment p1p2
+they must share a point pk
+since pk is on p1p2, min(x1, x2) <= xk <= max(x1, x2)
+the line segment of the right horizontal ray p0pm where pm = (y0, max(x1, x2)) must intersect with p1p2
+conversely, if the line segment p0pm intersects with p1p2, obviously the right horizontal ray intersects with p1p2
+
+33.1-7
+./CLRS/geometry/polygon.ts#interior
+
+33.1-8
+assume the vertices are given in clockwise order
+the polygon is on the right hand side of the boundary
+take any three consecutive vertices p1, p2 and p3 which forms two sides, p1p2p3 is a triangle
+the area of the triangle can be computed by |p2p1 x p2p3| / 2
+if p1p2p3 takes a left turn, the triangle p1p2p3 is in the polygon
+the area of the polygon can be computed by the area of a polygon without vertex p2 + the area of p1p2p3
+if p1p2p3 takes a right turn, the triangle p1p2p3 is not in the polygon
+the area of the polygon can be computed by the area of a polygon without vertex p2 - the area of p1p2p3
+./CLRS/geometry/polygon.ts#area
+

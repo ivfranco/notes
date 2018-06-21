@@ -1,7 +1,22 @@
 export {
   Point,
   Segment,
+  direction,
+  Direction,
 };
+
+enum Quadrant {
+  I = 1,
+  II = 2,
+  III = 3,
+  IV = 4,
+}
+
+enum Direction {
+  LEFT = -1,
+  RIGHT = 1,
+  COLINEAR = 0,
+}
 
 class Point {
   public readonly x: number;
@@ -37,31 +52,32 @@ class Point {
     return x1 * y2 - x2 * y1;
   }
 
-  public quadrant(): number {
+  public quadrant(): Quadrant {
     let { x, y } = this;
     if (x === 0 && y === 0) {
       //  origin is treated as being in the first quadrant
-      return 1;
+      return Quadrant.I;
     } else if (x > 0 && y >= 0) {
       //  contains the positive x-axis
-      return 1;
+      return Quadrant.I;
     } else if (x <= 0 && y > 0) {
       //  contains the positive y-axis
-      return 2;
+      return Quadrant.II;
     } else if (x < 0 && y <= 0) {
       //  contains the negative x-axis
-      return 3;
+      return Quadrant.III;
     } else {
       //  contains the negative y-axis
-      return 4;
+      return Quadrant.IV;
     }
   }
 }
 
 const ORIGIN: Point = new Point(0, 0);
 
-function direction(p0: Point, p1: Point, p2: Point): number {
-  return p2.sub(p0).crossProduct(p1.sub(p0));
+function direction(p0: Point, p1: Point, p2: Point): Direction {
+  let d = p1.sub(p0).crossProduct(p2.sub(p0));
+  return Math.sign(d);
 }
 
 class Segment {
@@ -87,12 +103,13 @@ class Segment {
     return this.add(other.neg());
   }
 
-  public direction(p: Point): number {
+  public direction(p: Point): Direction {
     return direction(this.from, this.to, p);
   }
 
   public crossProduct(other: Segment): number {
     console.assert(this.from.eq(other.from), "the two line segments must share an endpoint");
+
     let p0 = this.from;
     let p1 = this.to.sub(p0);
     let p2 = other.to.sub(p0);
@@ -122,15 +139,15 @@ class Segment {
     let d2 = other.direction(p2);
     let d3 = this.direction(p3);
     let d4 = this.direction(p4);
-    if ((Math.sign(d1) * Math.sign(d2) < 0) && (Math.sign(d3) * Math.sign(d4) < 0)) {
+    if (d1 * d2 < 0 && d3 * d4 < 0) {
       return true;
-    } else if (d1 === 0 && other.bounds(p1)) {
+    } else if (d1 === Direction.COLINEAR && other.bounds(p1)) {
       return true;
-    } else if (d2 === 0 && other.bounds(p2)) {
+    } else if (d2 === Direction.COLINEAR && other.bounds(p2)) {
       return true;
-    } else if (d3 === 0 && this.bounds(p3)) {
+    } else if (d3 === Direction.COLINEAR && this.bounds(p3)) {
       return true;
-    } else if (d4 === 0 && this.bounds(p4)) {
+    } else if (d4 === Direction.COLINEAR && this.bounds(p4)) {
       return true;
     } else {
       return false;
