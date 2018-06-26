@@ -12,6 +12,8 @@ export {
   treeInsert,
   treeSearch,
   treeMinimum,
+  treePredecessor,
+  treeSuccessor,
 };
 
 import { randomAB, shuffle } from "../util";

@@ -10,7 +10,9 @@ import {
   SearchTreeNode,
   treeInsert,
   treeMinimum,
+  treePredecessor,
   treeSearch,
+  treeSuccessor,
 } from "./tree";
 
 enum Color {
@@ -42,7 +44,15 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
     }
   }
 
-  public insert(k: T) {
+  public predecessor(node: N): N | null {
+    return treePredecessor(node);
+  }
+
+  public successor(node: N): N | null {
+    return treeSuccessor(node);
+  }
+
+  public insert(k: T): N {
     const root = this.root;
     // initially black, the proper color for root
     const z = this.factory(k);
@@ -55,6 +65,8 @@ abstract class AbstractRBTree<T, N extends RBNode<T>> extends SearchTree<T, N> {
       z.color = RED;
       this.insertFixup(z);
     }
+
+    return z;
   }
 
   protected insertFixup(z: N) {
@@ -293,11 +305,7 @@ class RBNode<T> extends SearchTreeNode<T> {
 }
 
 function isBlack<T, N extends RBNode<T>>(x: N | null): boolean {
-  if (x === null) {
-    return true;
-  } else {
-    return x.color === BLACK;
-  }
+  return x === null || x.color === BLACK;
 }
 
 function isRed<T, N extends RBNode<T>>(x: N | null): x is N {

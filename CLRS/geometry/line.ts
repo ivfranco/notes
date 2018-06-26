@@ -71,6 +71,10 @@ class Point {
       return Quadrant.IV;
     }
   }
+
+  public show(): string {
+    return `(${this.x}, ${this.y})`;
+  }
 }
 
 const ORIGIN: Point = new Point(0, 0);
@@ -91,6 +95,22 @@ class Segment {
 
   public neg(): Segment {
     return new Segment(this.from.neg(), this.to.neg());
+  }
+
+  //  directed eq
+  public deq(other: Segment): boolean {
+    let { from: p1, to: p2 } = this;
+    let { from: p3, to: p4 } = other;
+
+    return p1.eq(p3) && p2.eq(p4);
+  }
+
+  //  undirected eq
+  public eq(other: Segment): boolean {
+    let { from: p1, to: p2 } = this;
+    let { from: p3, to: p4 } = other;
+
+    return p1.eq(p3) && p2.eq(p4) || p1.eq(p4) && p2.eq(p3);
   }
 
   public add(other: Segment): Segment {

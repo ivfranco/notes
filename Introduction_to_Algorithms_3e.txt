@@ -11864,3 +11864,220 @@ if p1p2p3 takes a right turn, the triangle p1p2p3 is not in the polygon
 the area of the polygon can be computed by the area of a polygon without vertex p2 - the area of p1p2p3
 ./CLRS/geometry/polygon.ts#area
 
+33.2-1
+let there be n/2 vertical lines and n/2 horizontal lines that forms a grid
+there will be (n/2)^2 = n^2/4 = Θ(n^2) different intersections
+
+33.2-2
+let the first segment be a = (x1, y1), (x2, y2), x1 < x2
+its value at x will be ya = y1 + (y2 - y1)(x - x1) / (x2 - x1)
+similarly for the second segment b = (x1', y1'), (x2', y2'), x1' < x2'
+its value at x will be yb = y1' + (y2' - y1')(x - x1') / (x2' - x1')
+a <=x b iff ya <= yb
+multiply both side by (x2 - x1)(x2' - x1') then both sides contain no division
+
+33.2-3
+the algorithm cannot enumerate all intersections
+the algorithm terminates in O(nlgn) time but it will take Θ(n^2) time at worst to enumerate all intersections
+the reporting order depends on the position of left endpoints instead of position of intersections
+if the first two segments when sorted by endpoints intersects each other
+eventhough there may be a pair of segments intersects earlier, they will always be reported first
+
+//  chapter skipped
+
+Chapter 34
+34.1-1
+a simple path consists of at most |E| edges
+for any reasonable encoding, |E| = O(length of the encoding of G) = O(b(G)) = O(n)
+if LONGEST-PATH ∈ P, LONGEST-PATH-LENGTH(G, u, v) can be solved by
+    decide <G, u, v, k> ∈ LONGEST-PATH for k = 0 .. |E| = O(n), find the maximum accepted k
+if LONGEST-PATH can be decided in O(n^k), LONGEST-PATH-LENGTH can be solved in O(n^(k+1))
+conversely, if LONGEST-PATH-LENGTH can be solved in polynomial time
+define an algorithm that given <G, u, v, k>
+    run k* = LONGEST-PATH-LENGTH(G, u, v)
+    if k <= k*, return 1; otherwise return 0
+the algorithm correctly decides LONGEST-PATH in polynomial time, hence LONGEST-PATH ∈ P
+
+34.1-2
+LONGEST-SIMPLE-CYCLE-LENGTH(G):
+    a relation between a graph G and a non-repeating sequence of vertices in G that forms a longest simple cycle
+LONGEST-SIMPLE-CYCLE(G, k):
+    return 1 if there is a simple cycle of length at least k in G, 0 otherwise
+LONGEST-SIMPLE-CYCLE = {<G, k>: G = <V, E> is an undirected graph,
+                                k >= 0 is an integer,
+                                there exists a simple cycle of length at least k in G}
+
+34.1-3
+adjacency matrix:
+    <adj-matrix>    ::= <vertices> "," <matrix>
+    <matrix>        ::= {<has-edge> ","}
+    <has-edge>      ::= "0" | "1"
+    vertices is the number of vertices in binary representation
+    matrix is a binary array of length n^2 delimited by comma which can be interpreted as the n x n matrix of adjacency
+    the encoding has 3 characters and length O(V^2 + lgV) = O(V^2)
+adjacency lists:
+    <adj-lists> ::= {<adj-list> ";"}
+    <adj-list>  ::= {<vertex-index> ","}    // adj-list may be empty string
+    where vertex-index is a binary number with length O(lgV)
+    the encoding has 4 characters and length O(V + ElgV) = O(V^2lgV)
+both encodings uniquely defines a graph, encoding and decoding both format takes polynomial time
+the two encodings are polynomially related
+
+34.1-4
+when the items has weights and prices smaller than a constant
+the encoding of the problem is O(lgW + n) = O(nlgW)
+if furthermore n is bounded by a constant, the encoding has length O(lgW) where the algorithm costs Θ(W) time
+the running time is exponential to the input length
+
+34.1-5
+1.  let n be the length of input, m be the number of subroutines called in the algorithm
+    if after a call to some subroutine the algorithm takes polynomial time so far
+    since only polynomial additional works are performed between any two calls to subroutine
+    the input to the next call may only have polynomial length
+    let the input size be O(n^k), if the next subroutine terminates in O(n^t) time 
+    the running time of the call will be O(n^kt), which is polynomial
+2.  let P be a subroutine that extends the input to twice the size with 0
+    P easily has running time O(n)
+    make Θ(n) consecutive calls to P that takes output of the last call to P as input
+    the output of the final call to P will have length Θ(n2^n)
+    the algorithm must take exponential time
+
+34.1-6
+L1 ∪ L2, L1 ∩ L2 and ~L1 are obvious
+for a string w, there are |w| = n possible ways to split w into two consecutive strings w1 and w2, |w1|, |w2| = O(n)
+w ∈ L1L2 iff for some splitting w1w2 = w, w1 ∈ L1 and w2 ∈ L2
+if L1 and L2 can be decided in time O(n^k1) and O(n^k2), 
+each splitting can be tested in O(n^k1 + n^k2) = O(n^max(k1, k2))
+all n splitting can be tested in O(n^(1 + max(k1, k2))), which is still polynomial, L1L2 ∈ P
+similarly, w ∈ L1* iff w = ε, w ∈ L1 or w = w1w2 that w1, w2 ∈ L1*, w1, w2 != ε
+by dynamic programming, there are n^2 subprograms
+each can be solved from results of O(n) subproblems and O(n^k) additional work
+O(n^2(n + n^k)) = O(n^(2 + max(1, k))) in total, which is polynomial, L1* ∈ P
+
+34.2-1
+assume graphs are encoded as adjacency matrices or can be converted to that encoding in polynomial time
+let the certificate be a permutation p that maps vertices of G1 to vertices of G2
+for each entry in the adjacency matrix of G1, verify G1.E[u, v] = G2.E[p(u), p(v)]
+the certificate has length O(V) = O(n)
+the verification can be done in O(n^2), hence GRAPH-ISOMORPHISM ∈ NP
+
+34.2-2
+G.V = L ∪ R, there are only edges between L and R but not inside any of them
+if a path p starting from L has odd length, it must end in R and vice versa
+therefore any path with odd length cannot be a simple cycle
+
+34.2-3
+for each edge e in G.E:
+    remove e from G
+    if that makes HAMILTONIAN(G) = 0, add e back
+the resulting graph will be hamiltonian by induction
+assume the resulting graph G' is not a simple hamiltonian cycle
+beside a simple hamiltonian cycle p, G' contains some additional edge e
+but then removing e will not make HAMILTONIAN(G) = 0, e must be removed by the algorithm
+if HAMILTONIAN terminates in O(n^k), the algorithm has running time O(En^k) = O(n^(k+1))
+
+34.2-4
+L1 = {x | ∃y A(x, y) = 1}, A terminates in O(n^k1)
+L2 = {x | ∃y B(x, y) = 1}, B terminates in O(n^k2)
+L1 ∪ L2:
+    define algorithm C that
+        C(x, y) = A(x, y) = 1 OR B(x, y) = 1
+    C is polynomial-time
+    if w ∈ L1 or w ∈ L2, ∃y A(w, y) = 1 or B(w, y) = 1, ∃y C(w, y) = 1
+    conversely if C(w, y) = 1, A(w, y) = 1 or B(w, y) = 1, w ∈ L1 or w ∈ L2
+    C verifies L1 ∪ L2
+L1 ∩ L2:
+    similar to union
+L1L2:
+    define algorithm C that
+        for two certificates y1 and y2 delimited unambiguously somehow
+        C(w, y1||y2) = A(w1, y1) AND B(w2, y2) unioned (OR) over all possible way to split w = w1w2
+    if w ∈ L1L2, w = w1w2 and w1 ∈ L1, w2 ∈ L2
+    there exists y1, y2 that A(w1, y1) = 1 and B(w2, y2) = 1, C(w, y1||y2) = 1
+    if C(w, y1||y2) = 1, for some w = w1w2
+    A(w1, y1) = 1 and B(w2, y2) = 1, w1 ∈ L1 and w2 ∈ L2, w ∈ L1L2
+    C has costs O(n^(1 + max(k1, k2)))
+L1*:
+    in term of nondeterministic turing machines
+    if L1 is decided by a polynomial time NTM M, define another NTM N that:
+        given input w of size n
+        guess a partition of w by inserting a delimiter or not between every two consecutive characters of w
+        run M on at most n substrings of w, accept if all instances of M accept
+    N terminates in polynomial time
+~L1:
+    ~L1 = {x | ~∃y A(x, y) = 1} = {x | ∀y A(x, y) = 0}
+    different to deterministic machines, the definition of acception in NTMs are not symmetric
+    there's no strightforward way to construct a machine that decides the complement of a language ∈ NP
+
+34.2-5
+by definition if w ∈ L, A(w, y) = 1 for some |y| = O(n^k)
+by enumerating all possible strings of length at most cn^k as certificates
+y must be among them if such a y exists and A(w, y) = 1
+the algorithm have to run A(w, y) for all 2^(cn^k) = 2^O(n^k) y
+total running time will be O(n^t2^O(n^k)) if A terminates in O(n^t)
+
+34.2-6
+a certificate p is a path u ~> v that visits every vertex of G exactly once
+this can be verified in time O(V + E) = O(n)
+
+34.2-7
+topologically sort the vertices
+u must be the first vertex in sorted order (or vertices before it cannot be visited from u)
+v must be the last vertex in sorted order (or the path cannot come back to v from vertices after it)
+let the sorted sequence be (vi), there must be an edge from vi to vi+1 for every i:
+    upon visiting vi, all vertices vi+k are unvisited since there's no edge back from there
+    if there's no edge (vi, vi+1), vi must visit vi+k for k >= 2 next
+    by definition of topological sort, vi+1 cannot be visited anymore
+    there's no hamiltonian path in this graph
+conversely, if there is an edge (vi, vi+1) for each i, connecting these edges forms a hamiltonian path
+running time is O(V + E)
+
+34.2-8
+φ is not a tautology iff there is an assignment with which the formula evaluates to 0
+given the assignment (of length O(n)), the formula can be evaluated in polynomial time
+define A(φ, y) = 1 iff φ evaluates to 0 given assignment y
+~TAUTOLOGY = {φ | A(φ, y) = 1}
+hence ~TAUTOLOGY ∈ NP, TAUTOLOGY ∈ coNP
+
+34.2-9
+for any L ∈ P decided by a polynomial time algorithm A
+define A'(x, y) = ~A(x), A' is polynomial time
+L'  = {x | ∀y A'(x, y) = 0}
+    = {x | ∀y A(x) = 1}
+    = {x | A(x) = 1}
+    = L ∈ coNP
+
+34.2-10
+P ⊆ NP and P ⊆ coNP
+if P = NP, each language L ∈ NP can be decided by a polynomial algorithm A
+the complement of L can be decided by A'(x) = ~A(x) in polynomial time, coNP = P, NP = coNP
+hence if NP != coNP, P != NP
+
+34.2-11
+thanks http://www.aco.gatech.edu/sites/default/files/documents/comp-fa14sol.pdf
+assumption:
+    for any connected undirected graph G, any edge e ∈ G.E
+    there is a hamilton cycle of G3 passing e
+base case (|V| = 3 and |V| = 4):
+    when |V| = 3, if G is connected, there is a path between every two vertices in G3 with length at most 2
+    hence G3 is a complete graph with 3 vertices, the only hamilton cycle passes every edge ∈ G.E
+    when |V| = 4, again G3 is the complete graph
+    the two hamilton cycle (v0, v1, v2, v3, v0) and (v0, v1, v3, v2, v0) passes every edge in G3
+induction:
+    assume for all graph G with 4 < |V| <= k, G3 is hamiltonian
+    let G be a connected graph with |G.V| = k + 1
+    for any edge e ∈ G.E, construct a spanning tree with e = (u, v)
+    removing e disconnects the spanning tree to two parts Tu and Tv, u ∈ Tu.V and v ∈ Tv.V
+    let Tu be the bigger tree, it must have |Tu.V| >= 3, Tu^3 is hamiltonian
+    let (u', u) be a the tree edge of Tu, by induction there is a hamilton cycle p passing (u', u)
+    if |Tv.V| = 1:
+        Tv is a single vertex, (u, v), (u', v) ∈ G3
+        insert v between u and u' in p forms a hamilton cycle of G3 that includes (u, v)
+    if |Tv.V| = 2:
+        Tv.V = {v, v'}, (v, v') ∈ Tv.E, (u, v), (v', u') ∈ G3
+        insert v' and v between u' and u in p forms a hamilton cycle of G3 that includes (u, v)
+    if |Tv.V| >= 3:
+        let (v, v') be a tree edge in Tv
+        there is a hamilton cycle p' of Tv^3 passes (v, v')
+        merge p and p' by removing (u, u') and (v, v'), adding (u, v), (v', u')
+        the resulting cycle is a hamilton cycle of G3
