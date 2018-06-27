@@ -12081,3 +12081,106 @@ induction:
         there is a hamilton cycle p' of Tv^3 passes (v, v')
         merge p and p' by removing (u, u') and (v, v'), adding (u, v), (v', u')
         the resulting cycle is a hamilton cycle of G3
+
+34.3-1
+to satisfiy the circuit, the and gate at the bottom must output 1, (x1, x2, x3) = (1, 1, 0)
+but then first input of the last and gate is 0
+
+34.3-2
+assume f is the reduction from L1 to L2, g is the reduction from L2 to L3
+the compose g . f is a reduction from L1 to L3 since
+    if w ∈ L1, f(w) ∈ L2, g(f(w)) ∈ L3
+    if w ∉ L1, f(w) ∉ L2, g(f(w)) ∉ L3
+if f costs O(n^k1), g costs O(n^k2)
+the output length of f is O(n^k1), g . f costs O(n^k1k2), polynomial in n
+hence g . f is a polynomial time reduction from L1 to L3, L1 <=p L3
+
+34.3-3
+if L <=p ~L
+    there is a polynomial time reduction f that
+        w ∈ L iff f(w) ∉ L
+    which is equivalent to
+        w ∉ L iff f(w) ∈ L
+    thereby f is also a polynomial-time reduction from ~L to L, ~L <=p L
+conversely: similar
+
+34.3-4
+since value of all other wires are computed from the input wires
+the assignment of input wires alone uniquely determines the values of all the wires in the circuit
+the proof complicates as it's now necessary to explain that
+the evalution of all the wires can be done in polynomial time
+
+34.3-5
+the assumption is used to bound the size of the configuration to polynomial
+the entire memory space can be appended to the configuration if it is contiguous
+the memory locations actually used for each input can always be mapped to a contiguous "virtual memory"
+what is a common practise among modern computer systems
+
+34.3-6
+if L != ∅ and L != {0,1}*, there are at least one accepted input and one rejected input for L
+let a ∈ L and r ∉ L, for any other L' ∈ P, there is a polynomial time algorithm A that decides L'
+define a function f that on input w:
+    compute A(w)
+    if A(w) = 1, return a
+    if A(w) = 0, return r
+then
+    if w ∈ L', A(w) = 1, f(w) = a ∈ L
+    if w ∉ L', A(w) = 0, f(w) = r ∉ L
+f is polynomial-time since is polynomial time
+therefore L' <=p L
+
+34.3-7
+if L is complete for NP, for each L' ∈ NP, there is a polynomial time reduction f from L' to L
+for any L' ∈ coNP, ~L' ∈ NP, there is a polynomial function f that
+    w ∈ ~L' iff f(w) ∈ L
+    w ∉ L' iff f(w) ∉ ~L
+    w ∈ L' iff f(w) ∈ ~L
+so f is also a polynomial time reduction from L' to ~L, L' <=p ~L, ~L is coNP complete
+conversely: similar
+
+34.3-8
+F only depends on |x| = n, once the circuit is built it can be applied to any input of length n
+
+34.4-1
+take any circuit which has a single output 
+extend two wires from the output to an and gate
+by adding a constant size of circuit, size of the strightforward reduction is doubled
+inductively the size of the reuduction is exponential
+
+34.4-2
+-
+
+34.4-3
+the formula derived from the truth table may contain more than 3 literals in each clause
+
+34.4-4
+by 34.3-7, ~SAT is coNP complete
+φ ∈ ~SAT iff φ cannot be satisfied iff ~φ is a tautology
+thereby ~SAT <=p TAUTOLOGY, TAUTOLOGY is coNP complete
+
+34.4-5
+for a DNF (set of ANDs joined by OR), the formula evaluates to 1 iff any clause evaluates to 1
+each AND clause can be evaluated by traversing all literals, the clause evaluates to 1 iff all literals have value 1
+there are n literals whose value can be referenced polynomial time O(n^k)
+evaluating a DNF therefore takes O(n^(k+1)) time
+
+34.4-6
+for each variable xi in a formula φ:
+    append ∧ xi (∧ ~xi) to φ, get a new formula φ' (φ'')
+    if the any one of the new formula is satisfiable, set the value of xi accordingly
+if the satisfiability algorithm is polynomial, an iteration is polynomial
+all n iteration can be done in polynomial time
+
+34.4-7
+each OR clause (x ∨ y) is equivalent to an implication (~x -> y) and its contrapositive (~y -> x)
+define a graph G from a 2-CNF φ where
+    G.V = {x | x is a variable in φ} ∪ {~x | x is variable in φ}
+    G.E = {(~x, y) | (x ∨ y) is a clause in φ} ∪ {(y, ~x) | (x ∨ y) is a clause in φ}
+    E = O(n) and V = (n)
+if there is a path x ~> y in G, there is a path ~y -> ~x in G
+x = 1 -> y = 1, y = 0 -> x = 0
+φ is satisfiable iff x and ~x are not reachable from each other in G for every pair of literals
+=>  either x or ~x = 1
+    if x and ~x are reachable from each other, x = 1 implies ~x = 1, ~x = 1 implies x = 1, contradiction
+    so x and ~x are not reachable from each other
+<=  
