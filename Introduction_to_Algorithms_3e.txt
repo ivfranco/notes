@@ -12179,8 +12179,17 @@ define a graph G from a 2-CNF φ where
     E = O(n) and V = (n)
 if there is a path x ~> y in G, there is a path ~y -> ~x in G
 x = 1 -> y = 1, y = 0 -> x = 0
-φ is satisfiable iff x and ~x are not reachable from each other in G for every pair of literals
+φ is satisfiable iff x and ~x are not on a cycle for each pair of literals
 =>  either x or ~x = 1
     if x and ~x are reachable from each other, x = 1 implies ~x = 1, ~x = 1 implies x = 1, contradiction
     so x and ~x are not reachable from each other
-<=  
+<=  if each pair of literals are not on a cycle, they are not in the same strongly connected component
+    topologically sort the SCC, let c[x] be the component index of x
+    if c[x] < c[~x], let x = 0, otherwise let x = 1
+    if x = 1, ~x = 0, c[x] > c[~x], there's no path x ~> ~x in the graph
+    for each pair of variables y and ~y, if both x ~> y and x ~> ~y exist, the contrapositives also exist
+    there are path ~y ~> ~x, which implies x ~> ~x, contradiction
+    if x = 0, ~x = 1, c[x] < c[~x], there's no path ~x ~> x in the graph, x affects no further implications
+    if another variable y ~> x is assigned 1, c[y] > c[~y]
+    but ~x ~> ~y, c[y] <= c[x] < c[~x] < c[~y], contradiction
+by computing SCC, it can be determined in O(E + V) whether there is a pair of literals in the same SCC
