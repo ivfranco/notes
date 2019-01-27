@@ -12193,3 +12193,139 @@ x = 1 -> y = 1, y = 0 -> x = 0
     if another variable y ~> x is assigned 1, c[y] > c[~y]
     but ~x ~> ~y, c[y] <= c[x] < c[~x] < c[~y], contradiction
 by computing SCC, it can be determined in O(E + V) whether there is a pair of literals in the same SCC
+
+34.5-1
+NP: 
+    define a certificate as a subgraph G' of G2 + a permutation from G'.V -> G1.V
+    checking whether G' is a subgraph of G2 can be done in polynomial time
+    checking whether G' and G1 are isomorphic according to the given permutation can be done in polynomial time
+    the certificate has size O(G2.V + G2.E + G1.V)
+NP-hard:
+    CLIQUE <=p subgraph-isomorphic problem
+    =>  if a graph G has a clique of size k, a complete graph with k vertices is isomorphic to a subgraph of G
+    <=  similar
+    the complete graph with k vertices can be constructed in polynomial time O(V^2)
+
+34.5-2
+NP:
+    define a certificate as assignments to the n variables 
+    all the m constraints can be verified in polynomial time
+NP-hard:
+    SUBSET-SUM <=p 0-1 integer-programming problem
+    define a variable xi for each element si in the set S
+    define a problem with two constraints:
+        Σsixi <= t
+        Σ-sixi <= -t (equivalent to Σsixi >= t)
+    the problem has size linear to the corresponding subset sum problem
+    if a subset S' ⊆ S has sum t, 
+        set xi = 1 for each si ∈ S' and 0 otherwise
+        Σsixi = t, both constraints are satisfied
+    if an assignment to x satisfies the constraints
+        Σsixi = t, take S' = {si | xi = 1}, Σsi = t since all other xi = 0
+
+34.5-3
+it's a generalization of 0-1 integer-programming problem
+a 0-1 problem can be reduced to the more general form by add two constraints for each variable xi:
+    xi <= 1
+    -xi <= 0 (equivalent to xi >= 0)
+the resulting problem has size O(mn), linear to the original problem
+
+34.5-4
+by dynamic programming
+a problem <S, t> can be computed from two subproblems:
+    let S' be S - {s0}, where s0 is the some element in S
+    if there is a S* ⊆ S with sum t, either s0 ∈ S* or s0 ∉ S*
+    if s0 ∈ S*, <S', t - s0> ∈ SUBSET-SUM
+    if s0 ∉ S*, <S', t> ∈　SUBSET-SUM
+if s0 is always chosen as the first element in some permutation of S, a subproblem can be indexed as (i, t')
+where i is the index of the first element in the subset S', t' is the target number
+since all s ∈ S are positive, only 0 < t' <= t have to be considered
+there are O(|S|t) subproblems, each can be computed in O(1) by dynamic programming
+since t is expressed in unary, O(|S|t) is linear to the size of the problem
+./CLRS/np-complete/subset-sum.ts
+
+34.5-5
+NP:
+    define a certificate as a subset S' of S, ΣS' = ΣS' / 2
+    the sum of S and S' can be computed in polynomial time NP-hard:
+NP-hard:
+    SUBSET-SUM <=p SET-PARTITON
+    given a subset sum problem <S, t>, define a set partition problem <S'> that
+        S' = S ∪ {2t - ΣS}
+    if <S, t> ∈ SUBSET-SUM, there are some subset S* of S with ΣS* = t
+    S' - S* = S - S* ∪ {t - ΣS} has sum ΣS - t + (t - ΣS) = t = ΣS*, <S'> ∈ SET-PARTITION
+    conversely, if <S'> can be partitioned to two subsets (S1, S2) with equal sum
+    each subset must has sum ΣS' / 2 = (ΣS + (2t - ΣS)) / 2 = t
+    the additional element {2t - ΣS} must be in one of the two subsets
+    the other subset thus is also a subset of S, <S, t> ∈ SUBSET-SUM
+
+34.5-6
+NP:
+    define a certificate as a sequence of vertices (vi)
+    it can be checked in polynomial time that 
+        (vi, vi+1) are all edges in G
+        (vi) contains each of G.V once
+NP-hard:
+    HAMILTONIAN-CYCLE <=p HAMILTONIAN-PATH
+    given an instance of hamiltonian-cycle problem <G>
+    for each edge (u, v) in G.E, define an instance of hamiltonian-path problem <G', u, v> where G'.E = G.E - {(u, v)}
+    if there is a hamiltonian cycle in G, the cycle contains at least one edge (u, v)
+    remove (u, v) from the cycle, <G, u, v> ∈ HAMILTONIAN-PATH
+    conversely, if there is a hamiltonian path u ~> v in G and (u, v), along with (u, v) it forms a hamiltonian cycle
+    all instances can be constructed in polynomial time, there are |G.E| instances in total
+
+34.5-7
+definiton:
+    <G, d, k>: G: a graph
+               d: a function from VxV -> Z 
+               k: an integer
+               <G, d, k> ∈ LONGEST-SIMPLE-CYCLE iff there is a simple cycle with length at least k in graph G
+NP:
+    define a certificate as a sequence of vertices (vi)
+    if can be checked in polynomial time that
+        vi are all distinct
+        each of (vi, vi+1) ∈ G.E
+        Σd(vi, vi+1) >= k
+NP-hard:
+    HAMILTONIAN-CYCLE <=p LONGEST-SIMPLE-CYCLE
+    given <G> a hamiltonian-cycle problem define d and k such that:
+        d(u, v) = 1 for all (u, v) ∈ G.E
+        d(u, v) = 0 for all (u, v) ∉ G.E
+        k = |G.V|
+    if G has an hamiltonian cycle, the cycle is simple and has length |G.V| = k
+    if <G, d, k> ∈ LONGEST-SIMPLE-CYCLE, there must be a simple cycle with k = |G.V| edges in G
+    the cycle then visits |G.V| distinct vertices and is hamiltonian
+
+34.5-8
+NP:
+    define a certificate as an assignment to the variables
+    the number of clauses evaluate to 1 and 0 can be computed in polynomial time
+NP-hard:
+    3-CNF-SAT <=p half 3-CNF-SAT
+    given a 3-CNF formula φ of n clauses, define an additional variable x
+    define φ' as φ with n copy of the clause (x ∨ x ∨ ~x) and 2n copy of the clause (x ∨ x ∨ x)
+    (x ∨ x ∨ ~x) are always true
+    (x ∨ x ∨ x) are either all true or all false
+    if φ is satisfiable, there is an assignment that makes each of its clauses true
+    define x = 0, (x ∨ x ∨ ~x) = 1, (x ∨ x ∨ x) = 0, there are 2n true clauses and 2n false clauses, φ' ∈ half 3-CNF-SAT
+    conversely, if φ' ∈ half 3-CNF-SAT, there are 2n true and 2n false clauses
+    if (x ∨ x ∨ x) are true, there are at least 3n true clauses, hence (x ∨ x ∨ x) must be false
+    the remaining 2n clauses thus must be true, including all clauses from φ, φ is satisfiable
+
+34-1
+a.  <G, k>: G: a graph
+            k: an integer
+            <G, k> ∈ INDEPENDENT-SET iff there is a independent set V' ⊆ G.V and |V'| = k
+    NP:
+        define a certificate as a set of vertices V'
+        it can be checked in polynomial time that 
+            V' ⊆ G.V 
+            for all vi, vj ∈ V', (vi, vj) ∉ G.E
+    NP-hard:
+        CLIQUE <=p INDEPENDENT-SET
+        let G̅ be the complement of G
+        for an instance of CLIQUE problem <G, k> define <G̅, k> as a independent set problem
+        if <G, k> ∈ CLIQUE, there is a set V' ⊆ G.V that |V'| = k and 
+        for all vi, vj ∈ V' (vi, vj) ∈ G.E => (vi, vj) ∉ G̅.E, V is an independent set of G̅
+        conversely, similar argument
+b.  
