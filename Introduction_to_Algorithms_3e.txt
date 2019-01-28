@@ -12247,7 +12247,7 @@ since t is expressed in unary, O(|S|t) is linear to the size of the problem
 34.5-5
 NP:
     define a certificate as a subset S' of S, ΣS' = ΣS' / 2
-    the sum of S and S' can be computed in polynomial time NP-hard:
+    the sum of S and S' can be computed in polynomial time
 NP-hard:
     SUBSET-SUM <=p SET-PARTITON
     given a subset sum problem <S, t>, define a set partition problem <S'> that
@@ -12328,4 +12328,191 @@ a.  <G, k>: G: a graph
         if <G, k> ∈ CLIQUE, there is a set V' ⊆ G.V that |V'| = k and 
         for all vi, vj ∈ V' (vi, vj) ∈ G.E => (vi, vj) ∉ G̅.E, V is an independent set of G̅
         conversely, similar argument
-b.  
+b.  first search for the maximum k which <G, k> ∈ INDEPENDENT-SET in O(V)
+    if k = 1, any {v} for v ∈ V is an independent set of maximum size
+    otherwise for each v ∈ V, define E' = E ∪ {(v, u) | u ∈ V - {v}}, G' = (V, E')
+    if <G', k> ∈ INDEPENDENT-SET
+        there is an independent set of size k which does not include v
+        G' is used in the next iteration, add v to a set V'
+    if <G', k> ∉ INDEPENDENT-SET, all independent set of size k include v
+        the modification is reverted, G is used in the next iteration
+    at the end, V - V' is an independent set of maximum size
+    by simple invariant, all v ∈ V' cannot be in an independent set of size >= 2
+    <(V - V', E'), k> ∈ INDEPENDENT-SET, there is an independent set V* ⊆ V - V' that |V*| = k
+    if |V - V'| > k, there is a vertex v ∈ (V - V') - V*
+    but adding (v, u) for all u ∈ V - {v} will not affect V*, v should be in V'
+    at most |V|^2 edges are added, total running time O(V^2)
+c.  when degree(v) = 2 for each v ∈ V, the graph is consisted of one or more simple cycles
+    these cycles can be identified by simply following edges of each vertex in O(V)
+    for a single cycle with n vertices, the maximum independent set has size floor(n / 2):
+        take every second vertex on the cycle starting from any vertex gives a set with size floor(n / 2)
+        take any more than floor(n / 2) vertices from the cycle, at least two are neighboring on the cycle
+    for all cycles Ci of G, the above algorithm can achieve an independent set of size Σfloor(|Ci| / 2)
+    if there is an independent set of size bigger than Σfloor(|Ci| / 2)
+    the set must contain more than floor(|Ci| / 2) vertices from some cycle Ci, contradict the analysis above
+    the total running time is O(V)
+d.  thanks https://en.wikipedia.org/wiki/K%C5%91nig%27s_theorem_(graph_theory)
+    lemma 1 (Kőnig's theorem): a minimum vertex cover can be computed from maximum matching in polynomial time
+        G is bipartite, let M be a maximum matching of G = (V, E), V = L ∪ R
+        define an alternating path as an augmenting path but can end at any vertex
+        let U be the unmatched vertices in L
+        let Z be the set of vertices that is in U or is connected to U by an alternating path
+        define K = (L - Z) ∪ (R ∩ Z)
+        if some (u, v) ∈ E is on an alternating path, u ∈ L, v ∈ R
+            v ∈ R ∩ Z ⊆ K, (u, v) is covered by K
+        if some (u, v) ∈ M is not on an alternating path, u ∈ L, v ∈ R
+            u is matched and cannot be on an alternating path 
+            (u cannot be incident on another matched edge or M ceases to be a matching)
+            thus u ∈ L - Z ⊆ K, (u, v) is covered by K
+        if some (u, v) ∈ E - M is not on an alternating path, u ∈ L, v ∈ R
+            u ∉ U or otherwise (u, v) is trivially an alternating path
+            u cannot be in an alternating path
+            (such a path will have a preceding edge (w, u) which must be matched)
+            (then the path can be extended by (u, v))
+            thus u ∈ L - Z ⊆ K, (u, v) is covered by K
+        also all v ∈ K is an endpoint of a matched edge
+            U ⊆ Z, L - Z contains only matched vertices
+            if some v ∈ R ∩ Z is unmatched, the alternating path to v is actually an augmenting path
+            by problem 26-6, the matching can be improved by the augmenting path, M is not maximum
+        no (u, v) ∈ M, u ∈ L, v ∈ R can have both u and v ∈ K
+            if (u, v) is on an alternating path, u ∉ K and v ∈ K
+            if (u, v) is not on an alternating path, u ∈ K and v ∉ K
+        therefore K is a vertex cover with size |M|
+        as no edges in M shares endpoints, a vertex cover of G must have size at least |M|, K is minimum
+        Z can be computed by a variation of DFT from all vertices in U in O(VE)
+        total running time O(VE) along with maximum matching algorithm introduced in 26.3
+    lemma 2: U is a vertex cover of G iff U̅ is an independent set of G
+        if there is an edge (u, v) with u and v ∈ U̅, (u, v) is not covered by U
+        if some (u, v) is not covered by U, both u and v ∈ U̅, U̅ is not independent
+        additionally, if U is a minimum vertex cover, U̅ is a maximum independent set
+        as minimizing |U| automatically maximizes |G.V - U|
+        the complement of U can be computed in O(G.V)
+    by lemma 1 and lemma 2, a maximum indepdendent set of bipartite graph can be computed in time O(VE)
+
+34-2
+a.  assume there are n1 coins of denomination x and n2 coins of denomination y
+    there are only n1n2 possible solutions, the solution can be brute forced in time O(n1n2) = O(n1 + n2)^2)
+    as the input has size Ω(n1 + n2), the brute force algorithm is polynomial
+b.  lemma 1: 
+        let (ci) be n coins in non-increasing order of denominations
+        for any ci, either Σ(k ∈ {i+1 .. j})ck = ci for some k or ci > Σ(k ∈ {i+1 .. n})ck, the sum of remaining coins
+        invariant: Σ(k ∈ {i+1 .. j})ck <= ci - cj+1
+        initialization: j = i, Σ(k ∈ {i+1 .. j})ck = 0 <= ci - ci+1 as (ci) is in non-increasing order
+        maintenance:
+            if Σ(k ∈ {i+1 .. j})ck = ci - cj+1, Σ(k ∈ {i+1 .. j+1}) = ci and the search succeeds
+            otherwise Σ(k ∈ {i+1 .. j})ck < ci - cj+1, ci > Σ(k ∈ {i+1 .. j+1})ck
+            since all ci is a power of 2 greater or equal to cj+1, both ci and the sum is a multiple of cj+1
+            ci = pcj+1, Σ(k ∈ {i+1 .. j+1})ck = qcj+1
+            ci - Σ(k ∈ {i+1 .. j+1})ck = qcj+1 = (p - q)cj+1 >= cj+1
+            Σ(k ∈ {i+1 .. j+1})ck <= ci - cj+1 <= ci - cj+2
+    define an algorithm that, given a set of coins S:
+        sort S in non-increasing order of denomination
+        let i = 1, A = ∅, B = ∅
+        while i < n:
+            add S[i] to A
+            find the sequence {S[i+1] .. S[j]} which has sum equals to S[i]
+            if such a sequence does not exist, return false
+            i = j + 1
+        return true
+    invariant: sum(A) = sum(B)
+    initialization: A = B = ∅
+    maintenance:
+        by lemma 1, when the sequence does not exist, Σ(k = {i+1 .. n})S[k] < S[i], sum(A) = sum(B) = pS[i]
+        if S can be partitioned evenly to A' and B'
+        sum(A') = sum(B') = pS[i] + q, 0 < q < S[i], 2q = S[i] + Σ(k = {i+1 .. n})S[k]
+        since q < S[i], it can only be made up by coins with denomination smaller than S[i]
+        but the sum of coins with denomination smaller than S[i] = Σ(k = {i+1 .. n})S[k] < S[i]
+        these coins cannot cover 2q, the set cannot be partitioned evenly
+    each iteration of the loop takes O(n), O(n^2) in total, polynomial to the input
+c.  exactly set partition problem, NP-complete
+d.  simple reduction from part c by multiplying the value of each check by 1000
+    then the difference is at least 1000, making the additional condition meaningless
+
+34-3
+a.  by definition, if G is 2-colorable, G is bipartite
+    do BFS from any vertex, assign c(v) = 1 if v has even depth and c(v) = 2 otherwise
+    if G is bipartite, assume without lose of generality the root of BFS ∈ L
+    all vertices at depth 1 is adjacent to the root, which mean all of them ∈ R
+    all vertices at depth 2 is adjacent to vertices in depth 1 and in L and so on
+b.  <G, k>: G: a graph
+            k: an integer 
+            <G, k> ∈ COLOR iff G can be colored by at most k colors
+    if <G, k> ∈ COLOR can be determined in polynomial time, all k ∈ {1 .. |V|} can be tested in polynomial time
+    the minimum such k is the answer to graph-coloring problem
+    conversely if graph-coloring problem can be solved in polynomial time, let G has a minimum k*-coloring 
+    <G, k> ∈ COLOR iff k >= k*
+c.  NP:
+        define a certificate as an assignment of color to the vertices
+        whether two adjacent vertices share the same color can be checked in O(E) polynomial time
+    NP-hard:
+        trivally <G> ∈ 3-COLOR iff <G, 3> ∈ COLOR
+d.  since RED, TRUE and FALSE are in a triangle, in a 3-coloring they must have different colors
+    since x, ~x and RED are in a triangle, x and ~x must take different colors which are not c(RED)
+    then either c(x) = c(TRUE), c(~x) = c(FALSE) or c(x) = c(FALSE), c(~x) = c(TRUE) as there are three colors in total
+e.  x---1---┐
+        |   3---4----┐
+    y---2---┘   |    TRUE
+    z-----------5----┘
+    if c(x) = c(y) = c(z) = c(FALSE)
+        c(5) must be c(RED)
+        c(4) must be c(FALSE)
+        c(1) and c(2) must be either c(TRUE) or c(RED)
+        c(3) must be c(FALSE), but then c(3) and c(4) shares the same color
+    if c(x) = c(TRUE), a possible assignment may be 
+        c(5) = c(2) = c(RED), c(1) = c(4) = c(FALSE), c(3) = c(TRUE)
+    if c(y) = c(TRUE), a possible assignment similar to c(x) = c(TRUE) is possible
+    if c(z) = c(TRUE), a possible assignment may be 
+        c(5) = c(FALSE), c(4) = c(RED)
+        if both c(x) and c(y) = c(TRUE), c(3) = c(TRUE), c(1) = c(RED), c(2) = c(FALSE)
+        if both c(x) and c(y) = c(FALSE), c(3) = c(FALSE), c(1) = c(RED), c(2) = c(TRUE)
+        if c(x) = c(TRUE) and c(y) = c(FALSE), c(3) = c(FALSE), c(1) = c(RED), c(2) = c(TRUE)
+        if c(x) = c(FALSE) and c(y) = c(TRUE), symmatric
+f.  NP: similar to certificate of COLOR
+    NP-hard:
+        3-CNF-SAT <=p 3-COLOR
+        for a formula φ with n clauses and m variables, construct a graph G as above
+        by part d and e, φ is satisfiable iff G is 3-colorable:
+        =>  give each variable x the color of its assignment
+        <=  assign each variable according to its color
+        the graph contains 2m + 5n + 3 vertices and 10n + 3m + 3 edges, the reduction is polynomial
+
+34-4
+a.  <T, P, D, k>: T: a sequence of time units ti
+                  P: a sequence of profits pi
+                  D: a sequence of deadlines di
+                  k: a non-negative number
+                  <A, T, P, D, k> ∈ SCHEDULING iff the tasks can be scheduled with total profit >= k
+b.  NP:
+        define a certificate as a permutation of tasks
+        it can be computed in polynomial time whether tasks scheduled in that case yields profit >= k
+    NP-hard:
+        SUBSET-SUM <=p SCHEDULING
+        given <S, t>, define task ai for each element si in S:
+            ti = si
+            pi = si
+            di = t
+            k = t
+        <T, P, D, t> has size linear to <S, t>
+        if <S, t> ∈ SUBSET-SUM, a subset S' of S can have its corresponding tasks scheduled in exactly t time
+        all these task meet deadline and yields profit Σpi = ΣSi = t in total, <T, P, D, t> ∈ SCHEDULING
+        since all tasks have dealine t and unit-time profit of each task is si / si = 1, the profit <= t
+        if <T, P, D, t> ∈ SCHEDULING, the total profit >= t, thus Σpi = t = Σsi, these tasks is a subset of S with sum t
+c.  see part d
+d.  similar to chapter 16.5,
+        a schedule can always be transformed to early first form by simply moving late tasks to end of the schedule
+        a schedule can always be transformed to canonical form (early tasks are in increasing order of deadline):
+            if early task aj is scheduled right after early task ai and dj < di
+            the two tasks can be safely swapped on the schedule
+            (still takes time ti + tj in total, aj now finished early, di > dj so ai is finished before deadline)
+            each such swap can reduce one invertion in the order
+            after at most n^2 swaps the schedule is sorted in increasing order of deadline (bubblesort)
+    let the tasks be sorted in increasing order of deadline, define a subproblem (i, t) as:
+        the maximum profit of tasks {ai .. an} scheduled starting from time t
+    then a problem (i, t) can be computed from two subproblems:
+        if t + ti > di, the task ai cannot be scheduled, the maximum profit is the solution to (i+1, t)
+        if t + ti <= di, the maximum profit is the greater of
+            pi + solution to (i+1, t+ti) and 
+            solution to (i+1, t)
+    as the processing time of a task is an integer at most n, 0 <= t <= n^2, there are O(n^3) subproblems
+    the optimization problem can be solved in O(n^3) polynomial time
+    
