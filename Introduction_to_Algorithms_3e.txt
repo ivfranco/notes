@@ -12515,4 +12515,57 @@ d.  similar to chapter 16.5,
             solution to (i+1, t)
     as the processing time of a task is an integer at most n, 0 <= t <= n^2, there are O(n^3) subproblems
     the optimization problem can be solved in O(n^3) polynomial time
+    ./CLRS/np-complete/task-scheduling.ts
+
+Chapter 35
+35.1-1
+u--v--w
+the minimum vertex cover is {v}, but the approximation algorithm will always return a set of size at least 2
+
+35.1-2
+if A the set of edges is not a maximial matching, there is some e ∈ E that not incident on any vertices in C
+e will not be removed on line 6, the loop should not terminate
+
+35.1-3
+thanks https://www.cs.helsinki.fi/webfm_send/1499
+define a bipartite graph with vertices and edges:
+    r1 adjacent to l1, l3, l4, l6, l7
+    r2 adjacent to l1, l2, l4, l6, l8
+    r3 adjacent to l1, l2, l3, l5, l9
+    r4 adjacent to l1, l2, l3, l5, l10
+    r5 adjacent to l1, l2, l3, l4, l11
+degree(l1) = 5, remove l1 and r1 - r5 have degree (4, 4, 4, 4, 4)
+degree(l2) = 4, remove l2 and r1 - r5 have degree (4, 3, 3, 3, 3)
+degree(l3) = 4, remove l3 and r1 - r5 have degree (3, 3, 2, 2, 2)
+degree(l4) = 3, remove l4 and r1 - r5 have degree (2, 2, 2, 2, 1)
+degree(l5) = 2, remove l5 and r1 - r5 have degree (2, 2, 1, 1, 1)
+degree(l6) = 2, remove l6 and r1 - r5 have degree (1, 1, 1, 1, 1)
+now the remaining edges is a matching, each of them must be covered by a vertex seperately
+the algorithm gives a vertex cover of size 11 >= 2 * 5, where 5 = |R|
+
+35.1-4
+./CLRS/approximation/vertex-cover.ts#treeVertexCover
+first dfs from any vertex to put the vertices into a parent-children structure (an n-ary tree)
+let S be a stack of trees, initially only the input tree in it
+let C be an empty set of nodes
+while S is not empty:
+    pop a tree T out from S, if T is not a single vertex:
+        go to some leaf v in T
+        add u, the parent of v to C
+        remove u and all children of it from the tree, push all grandchildren of u to S (if any)
+        push the parent of u (if exist) to S
+on finish C is a minimum vertex cover
+given a leaf v and the edge (u, v) connecting v and its parent
+since (u, v) only incidents on u and v, any vertex cover must contain either u or v
+for any vertex cover C containing v, (C - v) ∪ {u} is a vertex cover with size <= |C|
+so there must be a minimum vertex cover containing u
+removing u and all the adjacent vertices decomposes the tree into several subtrees
+the vertex cover then can be computed recursively from these subtrees
+by doing it carefully, each edge is traversed at most twice
+a vertex cover of tree can be computed in O(E) = O(V)
+
+35.1-5
+No. |C| <= 2|C*| gives no constant time relation between |V| - |C| and |V| - |C*|
+While out of scope of CLRS, a proof using PCP theorem can be found at:
+    https://courses.cs.washington.edu/courses/cse533/05au/lecture10.pdf
     

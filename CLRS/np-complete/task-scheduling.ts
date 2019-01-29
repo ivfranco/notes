@@ -10,9 +10,16 @@ interface Task {
 }
 
 function taskScheduling(tasks: Task[]): number {
+  let n = tasks.length;
+
+  for (let task of tasks) {
+    if (task.time > n) {
+      throw new Error("Input invalid: task processing time > n");
+    }
+  }
+
   tasks.sort((a, b) => a.deadline - b.deadline);
 
-  let n = tasks.length;
   let profits: number[][] = [];
 
   for (let i = 0; i <= n; i++) {
