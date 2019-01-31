@@ -22,7 +22,7 @@ class NAryTree<T> {
     if (this.isLeaf()) {
       return null;
     } else {
-      return this.children[ this.children.length - 1 ];
+      return this.children[this.children.length - 1];
     }
   }
 
@@ -31,10 +31,17 @@ class NAryTree<T> {
     this.children.push(child);
     return child;
   }
+
+  *preorder(): IterableIterator<T> {
+    yield this.key;
+    for (let child of this.children) {
+      yield* child.preorder();
+    }
+  }
 }
 
 function treeVertexCover<T>(T: NAryTree<T>): T[] {
-  let trees: NAryTree<T>[] = [ T ];
+  let trees: NAryTree<T>[] = [T];
   let cover: T[] = [];
 
   while (trees.length > 0) {

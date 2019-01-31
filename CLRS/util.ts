@@ -16,7 +16,7 @@ export function randomAB(a: number, b: number) {
 export function randomStr(len: number) {
   let chars = [];
   for (let i = 0; i < len; i++) {
-    // little case characters
+    // lower case characters
     chars.push(randomAB(0x61, 0x7a));
   }
   return String.fromCharCode(...chars);

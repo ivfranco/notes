@@ -12569,3 +12569,81 @@ No. |C| <= 2|C*| gives no constant time relation between |V| - |C| and |V| - |C*
 While out of scope of CLRS, a proof using PCP theorem can be found at:
     https://courses.cs.washington.edu/courses/cse533/05au/lecture10.pdf
     
+35.2-1
+assume c(u, v) < 0 for some (u, v)
+if |V| >= 3, there must be some vertex w with edges (u, w) and (v, w)
+by triangle inequality, 
+    c(u, v) + c(u, w) >= c(v, w) => c(u, w) > c(v, w)
+    c(u, v) + c(v, w) >= c(u, w) => c(v, w) > c(u, w)
+
+35.2-2
+let m = max{c(u, v) | (u, v) ∈ E}
+define a new cost function c'(u, v) = c(u, v) + m
+for each triangle (u, v), (v, w), (w, u) in the graph:
+    c'(u, v) = c(u, v) + m <= 2m <= c'(u, w) + c'(v, w)
+    similarly other two edges
+thus c' satisfies triangle inequality
+<G, c> and <G, c'> have the same set of optimal tours
+=>  if t is an optimal tour of <G, c>, assume t' is an optimal tour of <G, c'>
+    if c'(t) > c'(t'), c'(t) - |V|m > c'(t') - |V|m, c(t) > c'(t'), t is not optimal resp. to c
+<=  similar
+there is a 2-approximate algorithm for <G, c'>
+let t be a tour given by the approximation algorithm, t* be an optimal tour, c'(t) <= 2c'(t*)
+where c(t) = c'(t) - |V|m, c(t*) = c'(t*) - |V|m
+no constant relationship between c(t) and c(t*) can be derived from the equations above:
+    c'(t) <= 2c'(t*)
+    c'(t) - |V|m <= 2c'(t*) - |V|m
+    c(t) <= 2c(t*) + |V|m
+    by adjusting one edge not in t or t*, c(t) / c(t*) can be arbitrary big
+
+35.2-3
+the approximation algorithm is effectively Prim's algorithm of minimal spanning tree
+invariant: 
+    before each iteration, C (sequence of verices) is the preorder walk of a minimal spanning tree A
+initialization:
+    C = ∅, A = ∅
+maintenance:
+    by the algorithm, (v, u) is a light edge resp. to A
+    by Corollary 23.2, (v, u) is safe for A, A' = A ∪ {(v, u)} is an MST for V' = V ∪ {u}
+    let w be the vertex after v in the preorder walk
+    if w is the right-most child of v, insert v right before w in the child list of v and the preorder is now
+    (.. v, u, w ..) as u has no children
+    if w is not a child of v, insert u as the right-most child of v again makes the preorder to (.. v, u, w ..)
+then by Theorem 35.2 and triangle inequality
+the preorder walk of a minimal spanning tree has at most twice the cost of an optimal tour
+
+35.2-4
+let c(C) denote the cost of the costliest edge in cycle C or spanning tree A
+let C* be an optimal bottleneck hamiltonian cycle, removing any single edge in C gives a spanning tree A
+let A* be an optimal bottleneck spanning tree, c(A*) <= c(A) <= c(C*)
+it's possible to cycle all the nodes of the tree without skipping two consecutive intermediate nodes:
+    let T be a tree rooted at r
+    assume for all trees T' with root r' and size smaller than T,
+        it's possible to cycle all the nodes of the T' without skipping two consecutive nodes,
+        while the node following r adjacent r
+    each subtree under r can be walked without skipping more than two consecutive intermediate nodes
+    denote root and the node following root of subtrees as ri and vi
+    these cycles will be ri -> vi ~> ri for each subtree
+    all the cycles and r can be connected to a single cycle as r -> r1 ~> v1 -> r2 ~> v2 .. ~> vn -> r
+    where 
+        r is next to an adjacent node r1 in the cycle
+        vi -> ri+1 skips two intermediate nodes ri and r
+        vn -> r skips a single node rn
+so in such a cycle, an edge (u, v) either:
+    1.  is an edge of the MST with cost <= c(A*)
+    2.  skips one node w of the tree, i.e (u, w) and (w, v) ∈ A*
+        by triangle inequality c(u, v) <= c(u, w) + c(w, v) = 2c(A*)
+    3.  skips two consecutive nodes w, r of A*, (u, w), (w, r), (r, v) ∈ A*
+        by triangle inequality c(u, v) <= 3c(A*)
+therefore c(u, v) <= 3c(C*), the algorithm is a 3-approximation
+
+35.2-5
+assume the two edges that crosses each other are (u, v) and (r, w)
+where u, v, r, w forms a quadrilateral
+u   r
+w   v
+let the tour C be u -> v ~> r -> w ~> u
+where C' = u -> r ~> v -> w ~> u is also a valid tour
+by triangle inequality, the length of two diagonals (u, v) and (r, w) combined is longer than any pair of opposite edges
+    c(u, v) + c(r, w) > c(u, r) + c(v, w)
+hence c(C') < c(C), C cannot be an optimal tour
