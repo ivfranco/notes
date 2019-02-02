@@ -126,6 +126,23 @@ class PlainGraph extends Graph<Vertex, Edge<Vertex>> {
     return G;
   }
 
+  public static fromUndirected(vertices: string, edges: string[]): PlainGraph {
+    let G = new PlainGraph();
+    let V: { [index: string]: Vertex } = Object.create(null);
+    vertices
+      .split(" ")
+      .map(name => G.createVertex(name))
+      .forEach(v => V[v.name] = v);
+
+    edges.forEach(pair => {
+      let [u, v] = pair.split(" ");
+      G.createEdge(V[u], V[v]);
+      G.createEdge(V[v], V[u]);
+    });
+
+    return G;
+  }
+
   protected vertexFactory(name: string, k: number): Vertex {
     return {
       name,

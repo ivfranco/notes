@@ -12647,3 +12647,70 @@ where C' = u -> r ~> v -> w ~> u is also a valid tour
 by triangle inequality, the length of two diagonals (u, v) and (r, w) combined is longer than any pair of opposite edges
     c(u, v) + c(r, w) > c(u, r) + c(v, w)
 hence c(C') < c(C), C cannot be an optimal tour
+
+35.3-1
+assume X = {s | s ∈ S, S ∈ F}
+[ 'thread', 'lost', 'drain', 'shun' ]
+
+35.3-2
+<X, F, k>:  X: a set
+            F: a family of subsets of X
+            k: an integer
+            <X, F, k> ∈ SET-COVER iff X can be covered by <= k subsets in F
+NP:
+    define a certificate as a subset C ⊆ F
+    whether C covers X can be checked in polynomial time O(|C||X|)
+NP-hard:
+    VERTEX-COVER <=p SET-COVER
+    given <G, k>, construct an instance of SET-COVER as:
+        X = G.E
+        F = {edges incident on v | v ∈ G.V}
+        k = k
+    if <G, k> ∈ VERTEX-COVER, there is a set C ⊆ G.V where |C| <= k and C covers G.E
+    trivially <X, F, k> ∈ SET-COVER
+    if <X, F, k> ∈ SET-COVER, there is a family C ⊆ F where |C| <= k and C covers X = G.E
+    let C' be the set of vertices naturally defined by C, trivially |C'| <= k and C' covers G.E
+
+35.3-3
+thanks https://cs.stackexchange.com/questions/16142
+./CLRS/approximation/set-cover.ts#linearSetCover
+
+35.3-4
+by equation 35.9:
+    |C| = Σ(x ∈ X)cx
+by equation 35.10:
+    Σ(S ∈ C*)Σ(x ∈ S)cx >= Σ(x ∈ X)cx = |C|
+where cx <= 1, so trivally:
+    |C| <= Σ(S ∈ C*)Σ(x ∈ S)cx
+        <= Σ(S ∈ C*)|S|
+        <= |C*|max{|S| | S ∈ C*}
+        <= |C*|max{|S| | S ∈ F}
+
+35.3-5
+define F so that for each element in X, F contains a singleton of it twice (a family can have repititive elements)
+then there are 2^(n/2) ways to select an optimal set cover from F by any algorithm
+
+35.4-1
+again set Yi = I{clause i is satisfied}, Ci = clause i contains both a variable and its negation
+E[Yi]   = Pr(Ci)E[Yi | Ci] + (1 - Pr(Ci))E[Yi | ~Ci]
+        = Pr(Ci) + (1 - Pr(Ci))7/8
+        >= 7/8
+E[Y]    >= 7m/8
+
+35.4-2
+again assign 1 or 0 with 1/2 probability to each variable, set Yi = I{clause i is satisfied}
+for a clause with m variables, E[Yi] = 1 - (1/2)^m
+as m >= 1, E[Yi] >= 1/2, E[Y] = ΣE[Yi] = m/2, the algorithm is polynomial-time 2-approximation
+
+35.4-3
+for each edge (u, v) = ei ∈ E, define Yi = I{ei crosses the cut}
+Yi = 1 when u and v are both in S or V - S, since v and u are randomly placed in S and V - S, Pr[Yi = 1] = 1/2
+E[Yi] = 1/2, average number of edges crossing (S, V - S) is E[Y] = ΣE[Yi] = |E|/2
+let (S*, V - S*) be an optimal cut, the number of edges crossing (S*, V - S*) <= |E|
+therefore this algorithm is an polynomial-time 2-approximation
+
+35.4-4
+let x̅ be an optimal solution to the linear problem without constraint 35.19
+if some x(v) > 1, reduce x(v) to 1 will not increase the objective Σw(v)x(v)
+also each constraint x(u) + x(v) >= 1 still holds given x(u) >= 0
+thereby the constraint is not necessary

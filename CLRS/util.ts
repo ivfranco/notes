@@ -42,6 +42,7 @@ export function isSorted<T>(A: T[]): boolean {
 }
 
 // B: Ord
+// break ties by returning lhs
 export function maxOn<A, B>(lhs: A, rhs: A, f: (a: A) => B): A {
   if (f(lhs) < f(rhs)) {
     return rhs;
@@ -56,6 +57,7 @@ export function maximumOn<A, B>(arr: A[], f: (a: A) => B): A {
 }
 
 // B: Ord
+// break ties by returning lhs
 export function minOn<A, B>(lhs: A, rhs: A, f: (a: A) => B): A {
   if (f(lhs) > f(rhs)) {
     return rhs;
