@@ -1,8 +1,9 @@
 import { NAryTree, treeVertexCover } from "./vertex-cover";
 import { greedySetCover, linearSetCover, isCovered } from "./set-cover";
+import { exactSubsetSum, approxSubsetSum } from "./subset-sum"
 
 function main() {
-  problem_35_3_3();
+  problem_35_5_2();
 }
 
 function problem_34_1_4() {
@@ -72,6 +73,15 @@ function problem_35_3_3() {
   let C = linearSetCover(X, F, (c: string) => X.indexOf(c));
   console.log(C.map(S => S.join("")));
   console.assert(isCovered(X, C), "Error: Set is not covered")
+}
+
+function problem_35_5_2() {
+  let S = approxSubsetSum([104, 102, 201, 101], 308, 0.40);
+  console.log(S.set);
+  console.assert(
+    S.sum == 302,
+    "Error: Wrong answer to APPROX-SUBSET-SUM"
+  );
 }
 
 main();

@@ -12714,3 +12714,128 @@ let x̅ be an optimal solution to the linear problem without constraint 35.19
 if some x(v) > 1, reduce x(v) to 1 will not increase the objective Σw(v)x(v)
 also each constraint x(u) + x(v) >= 1 still holds given x(u) >= 0
 thereby the constraint is not necessary
+
+35.5-1
+define Si be the set {x1, x2 .. xi}, for a subset C ⊆ Si:
+    if xi ∉ C, C ⊆ Si-1, sum(C) ∈ Pi-1
+    if xi ∈ C, (C - {xi}) ⊆ Si-1, sum(C - {xi}) ∈ Pi-1, sum(C) ∈ (Pi-1 + xi)
+thus Pi ⊆ (Pi-1 ∪ (Pi-1 + xi))
+conversely
+    each subset of Si-1 is also a subset of Si, Pi-1 ⊆ Pi
+    for each subset C ⊆ Si-1, (C ∪ {xi}) ⊆ Si, so (Pi-1 + xi) ⊆ Pi
+thus (Pi-1 ∪ (Pi-1 + xi)) ⊆ Pi
+invariant:
+    Li = {x | x ∈ Pi, x <= t} sorted in non-decreasing order
+initialization:
+    L0 = P0 = {0}
+maintenance:
+    Li-1 = {x | x ∈ Pi-1, x <= t} sorted in non-decreasing order
+    Li-1 + xi is also sorted in non-decreasing order
+    by definition of MERGE-LISTS, Li is sorted in non-decreasing order
+    Pi = Pi-1 ∪ (Pi-1 + xi)
+    if x ∈ Li, either x ∈ Li-1 ⊆ Pi-1 or x ∈ Li-1 + xi ⊆ Pi-1 + xi, hence x ∈ Pi
+    if x ∈ Pi and x <= t
+        either x ∈ Pi-1 and x <= t => x ∈ Li-1 ⊆ Li, or
+        x ∈ Pi-1 + xi => x - xi ∈ Pi-1, where x - xi <= t, x - xi ∈ Li-1, x ∈ Li-1 + xi ⊆ Li
+    thus Li = {x | x ∈ Pi, x <= t}
+
+35.5-2
+denote δ = ε/2n
+invariant:
+    for every y ∈ Pi, there is a z ∈ Li such that y/(1 + δ)^i <= z <= y
+initialization:
+    Pi = Li = {0}
+mantenance:
+    for every y ∈ Pi-1, there is a z ∈ Li-1 such that y/(1 + δ)^(i-1) <= z <= y
+    before TRIM, for each y ∈ Pi and y <= t:
+        if y ∈ Pi-1, y/(1 + δ)^(i-1) <= z <= y for some z
+        if y ∉ Pi-1, y = y' + xi for some y' ∈ Pi-1
+        y'/(1 + δ)^(i-1) <= z' <= y' for some z' ∈ Li-1, z = z' + xi ∈ Li
+        y'/(1 + δ)^(i-1) + xi <= z' + xi <= y' + xi
+        as (1 + δ)^(i-1) >= 1, y'/(1 + δ)^(i-1) + xi >= (y' + xi)/(1 + δ)^(i-1)
+        so y/(1 + δ)^(i-1) <= z <= y
+    after TRIM, z is only removed from Li when there is another x that x <= z <= x(1 + δ)
+        z <= y => x <= y
+        y/(1 + δ)^(i-1) <= z 
+        => y/(1 + δ)^(i-1) <= x(1 + δ)
+        => y/(1 + δ)^i <= x
+        therefore y/(1 + δ)^i <= x <= y
+
+35.5-3
+d(1 + ε/2n)^n / dn
+= (1 + εn/2)^n * (εn/(2(εn/2 + 1)) + ln(εn/2 + 1))
+when n >= 0, ε > 0, the function above have positive value
+
+35.5-4
+for an instance <S, t> of SUBSET-SUM, define a complement instance <S, sum(S) - t>
+let the optimal solution to the complement instance be y*
+then sum(S) - y* will be the smallest possible sum of subset greater than t
+(otherwise let t <= sum(C) < sum(S) - y* for some C ⊆ S,
+    sum(S) - t >= sum(S - C) > y*
+contradicts y* being optimal)
+the approximation solution z* will be in range:
+    y*/(1 + ε) <= z* <= y*
+    sum(S) - y*/(1 + ε) >= sum(S) - z* >= sum(S) - y*
+
+35.5-5
+./CLRS/approximation/subset-sum.ts#approxSubsetSum
+
+35-1
+a.  define a relative decision problem BIN-PACK as 
+    <S, k>: S: a set of integers 0 < si < 1
+            k: an integer
+            <S, k> ∈ BIN-PACK iff the set of objects S can be packed in fewer than k unit-size bins
+    NP:
+        define a certificate as a permutation of S
+        whether S packed in that order uses less than k bins can be tested in polynomial time
+    NP-hard:
+        SET-PARTITION <=p BIN-PACK
+        for <S> an instance of SET-PARTITION, define <S', k> as
+            S' = {2s / sum(S) | s ∈ S}
+            k  = 2
+        all s = 0 can be ignored in SET-PARTITION
+        if any 2s / sum(S) >= 1, s >= sum(S) / 2, either SET-PARTITON is not possible or can be easily solved
+        if <S> ∈ SET-PARTITION, S can be partitoned to (C, S - C) that sum(C) = sum(S - C) = sum(S) / 2
+        thereby sum({2s / sum(S) | s ∈ C}) = 2sum(C) / sum(S) = 1 = 2sum(S - C) / sum(S)
+        S' can be packed by two bins, <S', k> ∈ BIN-PACK
+        conversely if <S', k> ∈ BIN-PACK
+        at least two bins are used since sum(S') = 2 > 1
+        let C and S' - C be the two subsets of elements in two bins
+        sum(C) = sum(S' - C) = 1, which means the corresponding elements in S for C have sum sum(S) / 2
+        <S> ∈ SET-PARTITION
+b.  each bin can contain at most elements with sizes sum to 1
+    if <S, k> ∈ BIN-PACK, sum(S) >= k, the optimal number of bins >= sum(S)
+    as k can only be integers, k >= ceil(sum(S))
+c.  invariant:
+        after i objects are placed by first-fit heuristic, no more than one bin is less than half-full
+    initialization:
+        no bin used before the first iteration
+    mantenance:
+        let si be the new object been placed into bins in the current iteration
+        if si <= 1/2,
+            if there is a bin less than half-full, si is placed into that bin, leaves no bin less than half-full
+            if there are no bin less than half-full
+            either si is placed into a bin which can accommodate it or a new bin is used 
+            either one or no bin is less than half-full after
+        if si > 1/2,
+            either the only bin less than half-full can accommodate si or a new bin is used
+            either one or no bin is less than half-full after
+d.  no more than one bin is less than half-full
+    if k bins are used, they have to contain objects with size more than (k-1)/2
+    thus (k-1)/2 < sum(S), k - 1 < 2sum(S), k < 2sum(S) + 1
+    as k is an integer, if 2sum(S) + 1 is also an integer, k <= 2sum(S) = ceil(2sum(S))
+    if 2sum(S) + 1 is not an integer, k <= floor(2sum(S) + 1) = ceil(2sum(S))
+e.  ceil(2x) <= 2ceil(x)
+    let k* be the optimal number of bins used
+    ceil(sum(S)) <= k* <= k <= ceil(2sum(S)) <= 2ceil(sum(S))
+    k / k* <= 2
+f.  with a max heap of bins by their remaining spaces, the algorithm can be implemented in O(|S|lg|S|) time
+    ./CLRS/approximation/bin-pack.ts
+
+35-2
+a.  let C^k be the maximum clique of G^k
+    let (v1 .. vk) and (u1 .. uk) be two k-tuples with elements from C
+    for 1 <= i <= k, vi, ui ∈ C, vi and ui are adjacent
+    hence (v1 .. vk) and (u1 .. uk) are adjacent in G^k
+    there are |C|^k possible such k-tuples, so |C^k| >= |C|^k
+    conversely, 

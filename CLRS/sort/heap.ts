@@ -64,6 +64,10 @@ abstract class Heap<T> {
     A[j] = temp;
   }
 
+  public size(): number {
+    return this._heap_size;
+  }
+
   public isEmpty(): boolean {
     return this._heap_size === 0;
   }
