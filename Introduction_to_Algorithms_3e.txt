@@ -12838,4 +12838,133 @@ a.  let C^k be the maximum clique of G^k
     for 1 <= i <= k, vi, ui ∈ C, vi and ui are adjacent
     hence (v1 .. vk) and (u1 .. uk) are adjacent in G^k
     there are |C|^k possible such k-tuples, so |C^k| >= |C|^k
-    conversely, 
+    assume for some k >= 1, |C^k| = |C|^k and |C^(k+1)| > |C|^(k+1)
+    for each vertex u in V^(k+1), let u' be the vertex of V^k with first k entries of u
+    let D = {u' | u ∈ C^(k+1)}, D is a clique in V^k, hence |D| <= |C^k| = |C|^k
+    a maximum C^(k+1) can be generated from D by appending every v ∈ C to each element of D:
+        the last entry for u ∈ C^(k+1) must adjacent each other, so they forms a clique in V
+        by choosing the maximum clique C in V, the size of {(u', v) | u' ∈ D, v ∈ C} is maximized
+    but then |C||D| = |C^(k+1)| > |C|^(k+1), |D| > |C|^k
+    therefore |C^(k+1)| = |C|^(k+1)
+b.  assume there is a ρ-approximation algorithm for maximum clique problem
+    given a graph G with maximum clique size m, on G^k the algorithm will give a solution n where 
+        m^k / n <= 1 + ρ
+        m / n^(1/k) <= (1 + ρ)^(1/k)
+    given 0 < ε < 1, by choosing k that
+        (1 + ρ)^(1/k) < 1 + ε
+        1 + ρ < (1 + ε)^k
+        lg(1 + ρ) < klg(1 + ε)
+        k > lg(1 + ρ) / lg(1 + ε)
+    there is a ε-approximation algorithm
+    without running time information of the original ρ-approximation algorithm
+    also G^k has size super-exponential
+    the running time of this scheme cannot be bounded
+
+35-3
+on line 4 of GREEDY-SET-COVER, select an Si ∈ F that maximizes |Si ∩ U| / wi
+the algorithm can still run in polynomial time
+instead of 1, a cost of wi is assigned evenly among each element |Si ∩ U| when Si is added to C
+    cx = wi/|Si - (S1 ∪ S2 .. Si-1)|
+    Σ(Si ∈ C)wi = Σ(x ∈ X)cx
+again each element x ∈ X is covered by the optimal cover C*, so 
+    Σ(S ∈ C*)Σ(x ∈ S)cx >= Σ(x ∈ X)cx, hence 
+    Σ(Si ∈ C)wi <= Σ(S ∈ C*)Σ(x ∈ S)cx
+if Σ(x ∈ Si)cx <= wiH(|Si|),
+    Σ(Si ∈ C)wi <= Σ(S ∈ C*)Σ(x ∈ S)cx
+                <= Σ(Si ∈ C*)wiH(|S|)
+                <= (Σ(Si ∈ C*)wi) * max{H(|S|)}
+    Σ(Si ∈ C)wi / Σ(Si ∈ C*)wi <= max{H(|S|)}
+to prove Σ(x ∈ S)cx <= wH(|S|) for all S ∈ F and its cost w, define ui the same way as the text,
+    u0 = |S|
+    ui = |S - (S1 ∪ S2 .. Si)|
+let k be the least index such that uk = 0, 
+    Σ(x ∈ S)cx = Σ(i = {1 .. k})(ui-1 - ui)wi/|Si - (S1 ∪ S2 ∪ .. ∪ Si-1)|
+by the greedy algorithm, 
+    wi / |Si - (S1 ∪ .. ∪ Si-1)| 
+    <= w / |S - (S1 ∪ .. ∪ Si-1)|
+    = w/ui-1
+otherwise S is chosen instead of Si, therefore
+    Σ(x ∈ S)cx
+    <= wΣ(i = {1 .. k})(ui-1 - ui)/ui-1
+    <= wH(|S|) (from proof of 35.12 in the text)
+
+35-4
+a.  a---b
+    |
+    c---d
+    M = {(a, c)} is a maximal matching, but a maximum matching {(a, b), (c, d)} has size 2
+b.  by 35.1-2, APPROX-VERTEX-COVER finds a maximal matching in time O(V + E)
+    it can be adjusted to run in time O(E):
+        maintain a linked list of edges in E
+        repeat until the linked list is empty:
+            take the first edge, remove all edges incident on its endpoints
+c.  if M is a maximum matching of G, all e ∈ M do not share endpoints
+    M can only be covered by |M| vertices
+    since M ⊆ E, an optimal vertex cover contains at least |M| vertices
+d.  the subgraph induced by V - T is an independent set
+    if there is an edge in it, M is no longer a maximal matching
+    the complement of V - T is a vertex cover
+e.  T in part d is a vertex cover and |T| = 2|M|
+f.  a maximal matching can be found in polynomial time O(E)
+    also let C* be a minimal vertex cover, by proofs above,
+        |M| <= |C*| <= |T| = 2|M|
+        |T| / |C*| <= 2
+    this algorithm is a polynomial-time 2-approximation 
+
+35-5
+a.  a job can only start from time 0, so a job with processing time pi cannot end eariler than pi
+b.  denote the load of machine i by mi, 
+        Σmi = Σpk
+        Cmax* = max{mi}
+    if all mi < Σpk / m, Σmi < Σpk, so there must be some mi >= Σpk / m, thereby Cmax* >= Σpk / m
+c.  ./CLRS/approximation/parallel-scheduling.ts
+    given m machines and n jobs, the running time is O(nlgm)
+d.  if some job is scheduled to run from time t
+    by the definition of the algorithm all machines are busy in time span [0, t]
+    if the last job is scheduled to start from time t, mt <= Σpk, t <= Σpk / m
+    from t no job are scheduled any more, all machines can only run for max{pk} longer at most
+    so Cmax <= t + max{pk} <= Σpk / m + max{pk}
+    along with part a and b, 2Cmax* >= Σpk / m + max{pk}, Cmax / Cmax* <= 2
+
+35-6
+a.  a---b--c
+        |
+        d
+    the weight of edges do not matter, both SG = TG = E
+b.  a---b
+    |
+    c---d
+    where w(a, c) < w(a, b) and w(a, c) < w(c, d)
+    SG = {(a, b), (c, d)}, TG = E
+c.  for any (u, v) ∈ SG, either (u, v) = max(u) or (u, v) = max(v)
+    assume without loss of generality (u, v) = max(u) and (u, v) ∉ TG
+    let (w, u) be the edge between u and its parent in the tree TG
+    all edges have distinct weights, w(w, u) < w(u, v)
+    let TG' = (TG - {(w, u)}) ∪ {(u, v)}, w(TG') > w(TG)
+    TG' is still a spanning tree: u and its decendents are reachable from the root by v and (u, v)
+    which contradicts TG being a maximum spanning tree, so (u, v) ∈ TG
+d.  errata: 
+        https://www.cs.dartmouth.edu/~thc/clrs-bugs/bugs-3e.php
+        Prove that w(SG) ≥ w(TG) / 2 for any graph G.
+    TG contains one edge for each vertex v that connects v and its parent except the root
+    let u be the parent of v, (u, v) <= max(v), w(TG) <= Σw(max(v))
+    each edge can be shared by at most two vertices, 2w(SG) >= Σw(max(v)) >= w(TG), w(SG) >= w(TG) / 2
+e.  compute SG by include max(v) for each v ∈ V in O(V + E)
+    return w(SG)
+
+35-7
+a.  if the optimal solution P includes the first item, P = P1
+    otherwise let I' be problem I without the first item, I' and I have the same optimal solution
+    inductively the optimal solution to I' is in {P2 .. Pn}
+b.  refer problem 16.2-1
+c.  by the greedy algorithm of fractional knapsack problem
+d.  each feasible solution to 0-1 knapsack problem is also a feasible solution to fractional knapsack problem,
+        v(Qj) >= v(Pj)
+    items are indexed in monotonically deceasing order of their values
+    each solution Qj includes vj, the fractional item has value xivi <= vi <= vj
+        v(Rj) >= v(Qj) - xivi >= v(Qj) / 2
+e.  compute Q1 .. Qn in polynomial time
+    compute R1 .. Rn from fractional solutions by removing the only fractional item
+    take R = max{R1 .. Rn} as the result
+    if the optimal solution P = Pi, R = max{R1 .. Rn} >= Ri >= v(Qi) / 2 >= v(Pi) / 2
+    the algorithm is a polynomial-time 2-approximation
