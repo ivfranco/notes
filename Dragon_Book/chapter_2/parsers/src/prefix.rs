@@ -1,8 +1,19 @@
-#[derive(Debug)]
+use std::fmt;
+
 enum Expr {
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     A,
+}
+
+impl fmt::Debug for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self {
+            Expr::Add(lhs, rhs) => write!(f, "+{:?}{:?}", lhs, rhs),
+            Expr::Sub(lhs, rhs) => write!(f, "-{:?}{:?}", lhs, rhs),
+            Expr::A => write!(f, "a"),
+        }
+    }
 }
 
 struct Parser<'a> {
@@ -68,7 +79,7 @@ fn prefix_test() {
     for string in strings.iter() {
         let mut parser = Parser::new(string.as_bytes());
         let expr = parser.expr();
-        println!("{:?}", expr);
-        assert!(parser.eof(), "Unexhausted input");
+        assert!(parser.eof(), "Unexhausted input: {}", string);
+        assert_eq!(&format!("{:?}", expr), string);
     }
 }
