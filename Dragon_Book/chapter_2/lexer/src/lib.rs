@@ -1,5 +1,10 @@
-use std::collections::HashMap;
+#![allow(dead_code)]
 
+use std::collections::HashMap;
+use std::fmt;
+use std::process;
+
+#[derive(Debug)]
 enum Tag {
     Keyword(u32),
     Id,
@@ -9,14 +14,24 @@ enum Tag {
     Comment,
 }
 
-mod tag {
+mod consts {
     pub const TRUE: u32 = 0;
     pub const FALSE: u32 = 1;
+
+    pub const OPERATORS: [&str; 12] = [
+        "+", "-", "*", "/", "<", ">", "=", ";", "<=", ">=", "==", "!=",
+    ];
 }
 
 struct Token {
     tag: Tag,
     lexeme: String,
+}
+
+impl fmt::Debug for Token {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "<{:?}, {:?}>", self.tag, self.lexeme)
+    }
 }
 
 impl Token {
@@ -49,6 +64,7 @@ struct Lexer<'a> {
     reserved: HashMap<&'static str, u32>,
 }
 
+#[derive(Debug)]
 enum LexerError {
     UnexpectedEof,
     UnexpectedByte(usize),
@@ -57,7 +73,7 @@ enum LexerError {
 
 impl<'a> Lexer<'a> {
     fn new(buf: &'a [u8]) -> Self {
-        let reserved = [("true", tag::TRUE), ("false", tag::FALSE)]
+        let reserved = [("true", consts::TRUE), ("false", consts::FALSE)]
             .iter()
             .cloned()
             .collect();
@@ -79,7 +95,12 @@ impl<'a> Lexer<'a> {
     }
 
     fn read_u8(&mut self) -> Result<u8, LexerError> {
-        self.peek_u8(0).ok_or(LexerError::UnexpectedEof)
+        if let Some(byte) = self.peek_u8(0) {
+            self.pos += 1;
+            Ok(byte)
+        } else {
+            Err(LexerError::UnexpectedEof)
+        }
     }
 
     fn consume_u8(&mut self, byte: u8) -> Result<(), LexerError> {
@@ -132,7 +153,9 @@ impl<'a> Lexer<'a> {
         let lexeme = match self.read_u8()? {
             b'/' => {
                 let lexeme = self.read_while(|b| b != b'\n');
-                self.consume_u8(b'\n')?;
+                if !self.eof() {
+                    self.consume_u8(b'\n')?;
+                }
                 lexeme
             }
             b'*' => {
@@ -141,7 +164,8 @@ impl<'a> Lexer<'a> {
                     .position(|word| word == b"*/")
                 {
                     let lexeme = &self.buf[self.pos..self.pos + offset];
-                    String::from_utf8(lexeme.to_vec()).expect("Error: Non utf8 string")
+                    self.pos += offset + 2;
+                    String::from_utf8(lexeme.to_vec()).expect("Error: Non utf8 input string")
                 } else {
                     return Err(LexerError::UnexpectedEof);
                 }
@@ -154,4 +178,71 @@ impl<'a> Lexer<'a> {
             lexeme,
         })
     }
+
+    fn read_operator(&mut self) -> Result<Token, LexerError> {
+        let pos = self.pos;
+        let lexeme = self.read_while(is_operator);
+
+        if consts::OPERATORS.contains(&lexeme.as_str()) {
+            Ok(Token {
+                tag: Tag::Operator,
+                lexeme,
+            })
+        } else {
+            Err(LexerError::MalformedToken(pos))
+        }
+    }
+
+    fn read_token(&mut self) -> Result<Token, LexerError> {
+        let pos = self.pos;
+
+        match self.peek_u8(0) {
+            Some(b'/') if self.peek_u8(1) == Some(b'/') || self.peek_u8(1) == Some(b'*') => {
+                self.read_comment()
+            }
+            Some(b) if b.is_ascii_digit() => self.read_num(),
+            Some(b) if b.is_ascii_alphabetic() => self.read_word(),
+            Some(b) if is_operator(b) => self.read_operator(),
+            Some(_) => Err(LexerError::UnexpectedByte(pos)),
+            None => Err(LexerError::UnexpectedEof),
+        }
+    }
+
+    fn read_tokens(&mut self) -> Result<Vec<Token>, LexerError> {
+        let mut tokens = vec![];
+        self.skip_whitespaces();
+
+        while !self.eof() {
+            tokens.push(self.read_token()?);
+            self.skip_whitespaces();
+        }
+
+        println!("{:?}", tokens);
+
+        Ok(tokens)
+    }
+}
+
+fn lex(input: &[u8]) -> Vec<Token> {
+    let mut lexer = Lexer::new(input);
+
+    lexer.read_tokens().unwrap_or_else(|err| {
+        eprintln!("{:?}", err);
+        process::exit(1);
+    })
+}
+
+fn is_operator(byte: u8) -> bool {
+    match byte {
+        b'+' | b'-' | b'*' | b'/' | b'<' | b'>' | b'=' | b'!' | b';' => true,
+        _ => false,
+    }
+}
+
+#[test]
+fn lex_test() {
+    assert!(lex(b"31 + 28 + 59").len() == 5);
+    assert!(lex(b"count = count + increment;").len() == 6);
+    assert!(lex(b"1.0 >= 2.0").len() == 3);
+    assert!(lex(b"/* this is a comment */ true == false // another comment").len() == 5);
 }
