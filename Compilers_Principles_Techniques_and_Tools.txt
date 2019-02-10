@@ -237,3 +237,6 @@ b.  the grammar is left-recursive, it is first transformed to:
         R -> (R)R | ε
 c.  two of the productions share the same lookahead symbol '0'
     look ahead two tokens instead of 1 to distinguish the two cases
+
+2.6.1 - 2.6.3
+./Dragon_Book/chapter_2/lexer
