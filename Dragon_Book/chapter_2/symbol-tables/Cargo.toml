@@ -1,0 +1,9 @@
+[package]
+name = "symbol-tables"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+pest = "^2.1"
+pest_derive = "^2.1"

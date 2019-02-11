@@ -1,0 +1,9 @@
+block   = { "{" ~ decls ~ stmts ~ "}" }
+decls   = { decl* }
+stmts   = { stmt* }
+decl    = { ty ~ id ~ ";" }
+stmt    = { block | id ~ ";" }
+id      = @{ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+ty      = { "int" | "char" | "bool" }
+
+WHITESPACE = _{ " " | "\n" }
