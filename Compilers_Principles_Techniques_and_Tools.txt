@@ -240,3 +240,12 @@ c.  two of the productions share the same lookahead symbol '0'
 
 2.6.1 - 2.6.3
 ./Dragon_Book/chapter_2/lexer
+
+2.8.1
+./Dragon_Book/chapter_2/codegen
+
+2.8.2
+it may auto insert an conversion from integer to boolean value
+three address code is special in the sense that it has concrete definition of boolean values
+while most assembly languages has conditional jump instructions that branches on numbers, or relation between numbers
+so the grammar of C is more natural
