@@ -245,7 +245,575 @@ c.  two of the productions share the same lookahead symbol '0'
 ./Dragon_Book/chapter_2/codegen
 
 2.8.2
-it may auto insert an conversion from integer to boolean value
+it may automatically insert a conversion from integer to boolean value
 three address code is special in the sense that it has concrete definition of boolean values
-while most assembly languages has conditional jump instructions that branches on numbers, or relation between numbers
+while most assembly languages have conditional jump instructions that branches on numbers, or relation between numbers
 so the grammar of C is more natural
+
+3.1.1
+./Dragon_Book/chapter_3/lexers/src/simple_c.rs
+<Ty, "float">
+<Id, "limitedSquare">
+<Punctuation, "(">
+<Id, "x">
+<Punctuation, ")">
+<Ty, "float">
+<Id, "x">
+<Punctuation, ";">
+<Punctuation, "{">
+<Keyword, "return">
+<Punctuation, "(">
+<Id, "x">
+<Operator, "<=">
+<Operator, "-">
+<Constant(10.0), "10.0">
+<Operator, "||">
+<Id, "x">
+<Operator, ">=">
+<Constant(10.0), "10.0">
+<Punctuation, ")">
+<Operator, "?">
+<Constant(100.0), "100">
+<Operator, ":">
+<Id, "x">
+<Operator, "*">
+<Id, "x">
+<Punctuation, ";">
+<Punctuation, "}">
+
+3.1.2
+./Dragon_Book/chapter_3/lexers/src/html.rs
+<Text, "Here is a photo of ">
+<Start("B"), "<B>">
+<Text, "my house">
+<End("B"), "</B>">
+<Text, ":\n">
+<Start("P"), "<P>">
+//  a lexer of HTML supposedly cannot and should not distinguish between void and start tag
+//  that requires further information that's only available during parsing
+<Start("IMG"), "<IMG SRC = \"house.gif\">">
+<Start("BR"), "<BR>">
+<Text, "\nSee ">
+<Start("A"), "<A HREF = \"morePix.html\">">
+<Text, "More Pictures">
+<End("A"), "</A>">
+<Text, " if you\nliked that one.">
+<Start("P"), "<P>">
+
+3.3.1
+a.  i.  https://en.cppreference.com/w/c/language/translation_phases
+        the source code can be written in any character set that's supported by the compiler
+        then the source code is translated in phase 1 of compilation to a character set of 96 characters:
+            a) 5 whitespace characters (space, horizontal tab, vertical tab, form feed, new-line)
+            b) 10 digit characters from '0' to '9'
+            c) 52 letters from 'a' to 'z' and from 'A' to 'Z'
+            d) 29 punctuation characters: _ { } [ ] # ( ) < > % : ; . ? * + - / ^ & | ~ ! = , \ " ’
+    ii. C99: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf 6.4.4.1
+        integer-constant: 
+            decimal-constant integer-suffix?
+            octal-constant integer-suffix?
+            hexadecimal-constant integer-suffix?
+        decimal-constant:
+            nonzero-digit
+            decimal-constant digit
+        octal-constant:
+            0   // what
+            octal-constant octal-digit
+        hexadecimal-constant:
+            hexadecimal-prefix hexadecimal-digit
+            hexadecimal-constant hexadecimal-digit
+        hexadecimal-prefix: 0x | 0X
+        nonzero-digit: [1-9]
+        octal-digit: [0-7]
+        hexadecimal-digit: [0-9a-fA-F]
+        integer-suffix:
+            unsigned-suffix long-suffix?
+            unsigned-suffix long-long-suffix
+            long-suffix unsigned-suffix?
+            long-long-suffix unsigned-suffix?
+        unsigned-suffix: u | U
+        long-suffix: l | L
+        long-long-suffix: ll | LL
+        http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf 6.4.4.2
+        floating-constant:
+            decimal-floating-constant
+            hexadecimal-floating-constant
+        decimal-floating-constant:
+            fractional-constant exponent-part? floating-suffix?
+            digit-sequence exponent-part floating-suffix?
+        hexadecimal-floating-constant:
+            hexadecimal-prefix hexadecimal-fractional-constant binary-exponent-part floating-suffix?
+            hexadecimal-prefix hexadecimal-digit-sequence binary-exponent-part floating-suffix?
+        fractional-constant:
+            digit-sequence? . digit-sequence
+            digit-sequence .
+        exponent-part:
+            e sign? digit-sequence
+            E sign? digit-sequence
+        sign: + | -
+        digit-sequence:
+            digit
+            digit-sequence digit
+        hexadecimal-fractional-constant:
+            hexadecimal-digit-sequence? . hexadecimal-digit-sequence
+            hexadecimal-digit-sequence .
+        binary-exponent-part:
+            p sign? digit-sequence
+            P sign? digit-sequence
+        hexadecimal-digit-sequence:
+            hexadecimal-digit
+            hexadecimal-digit-sequence hexadecimal-digit
+            floating-suffix: f | F | l | L
+    iii.C99: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf 6.4.2
+        identifier:
+            identifier-nondigit
+            identifier identifier-nondigit
+            identifier digit
+        identifier-nondigit:
+            nondigit
+            universal-character-name
+            other implementation-defined characters
+        nondigit: [a-zA-Z_]
+        universal-character-name:
+            \u hex-quad
+            \U hex-quad hex-quad
+        hex-quad:
+            hexadecimal-digit hexadecimal-digit hexadecimal-digit hexadecimal-digit
+        digit: [0-9]
+b.  i.  https://en.cppreference.com/w/cpp/language/translation_phases
+        additionally supports unicode characters
+    ii. integer literal: https://en.cppreference.com/w/cpp/language/integer_literal
+        additionally supports binary literals
+        binary-constant:
+            binary-literal integer-suffix?
+        binary-literal: (0b | 0B) (0 | 1)+
+        float literal: https://en.cppreference.com/w/cpp/language/floating_literal
+        totally different from C99
+        floating-constant:
+            digit-sequence exponent suffix?
+            digit-sequence . exponent? suffix?
+            digit-sequence? . digit-sequence exponent?
+            0x | 0X hex-digit-sequence exponent suffix? // since C++17
+            0x | 0X hex-digit-sequence . exponent suffix? // since C++17
+            0x | 0X hex-digit-sequence? . hex-digit-sequence exponent suffix? // since C++17
+        digit-sequence: [0-9]+
+        exponent: 
+            e | E exponent-sign? digit-sequence
+            p | P exponent-sign? digit-sequence // since C++17
+        exponent-sign: + | -
+        suffix: f | F | l | L
+        hex-digit-sequence: [0-9a-fA-F]+
+    iii.https://en.cppreference.com/w/cpp/language/identifiers
+        additionally supports most unicode characters
+c.  i.  C# 5.0: https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-334.pdf 7.1
+        unicode in utf-8 encoding
+    ii. https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-334.pdf 7.4.5.3
+        integer-literal::
+            decimal-integer-literal
+            hexadecimal-integer-literal
+        decimal-integer-literal::
+            decimal-digits integer-type-suffix?
+        decimal-digits::
+            decimal-digit
+            decimal-digits decimal-digit
+        decimal-digit:: [0-9]
+        integer-type-suffix:: u | U | l | L | (u | U) (l | L) | (l | L) (u | U)
+        hexadecimal-integer-literal::
+            0x hex-digits integer-type-suffix?
+            0X hex-digits integer-type-suffix?
+        hex-digits::
+            hex-digit
+            hex-digits hex-digit
+        hex-digit:: [0-9a-fA-F]
+        //  C# has real literals instead of float literals
+        https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-334.pdf 7.4.5.4
+        real-literal::
+            decimal-digits . decimal-digits exponent-part? real-type-suffix?
+            . decimal-digits exponent-part? real-type-suffix?
+            decimal-digits exponent-part real-type-suffix?
+            decimal-digits real-type-suffix
+        exponent-part::
+            e sign? decimal-digits
+            E sign? decimal-digits
+        sign:: + | -
+        //  m | M indicates decimal type, a precise base-10 representation of fractional numbers in C#
+        real-type-suffix:: f | F | d | D | m | M
+    iii.https://www.ecma-international.org/publications/files/ECMA-ST/ECMA-334.pdf 7.4.3
+        identifier::
+            available-identifier
+            @ identifier-or-keyword
+        available-identifier::
+            An identifier-or-keyword that is not a keyword
+        identifier-or-keyword::
+            identifier-start-character identifier-part-characters?
+        identifier-start-character::
+            letter-character
+            underscore-character
+        underscore-character::
+            _ (the underscore character U+005F)
+            A unicode-escape-sequence representing the character U+005F
+        identifier-part-characters::
+            identifier-part-character
+            identifier-part-characters identifier-part-character
+        identifier-part-character::
+            letter-character
+            decimal-digit-character
+            connecting-character
+            combining-character
+            formatting-character
+        letter-character::
+            A Unicode character of classes Lu, Ll, Lt, Lm, Lo, or Nl
+            A unicode-escape-sequence representing a character of classes Lu, Ll, Lt, Lm, Lo, or Nl
+        combining-character::
+            A Unicode character of classes Mn or Mc
+            A unicode-escape-sequence representing a character of classes Mn or Mc
+        decimal-digit-character::
+            A Unicode character of the class Nd
+            A unicode-escape-sequence representing a character of the class Nd
+        connecting-character::
+            A Unicode character of the class Pc
+            A unicode-escape-sequence representing a character of the class Pc
+        formatting-character::
+            A Unicode character of the class Cf
+            A unicode-escape-sequence representing a character of the class Cf
+d.  i.  FORTRAN 90: http://www2.southeastern.edu/Academics/Faculty/kyang/Cmps401/P1Fortran/Resources/N692.pdf 3.1
+        (1) Control characters (“newline”, for example)
+        (2) Graphic characters
+            (a) Letters: [A-Z], case insensitive
+            (b) Digits: [0-9]
+            (c) Underscore: _
+            (d) Special characters: space : = ! + " - % * & / ; ( < ) > , ? . $ ’             
+            (e) Other characters (only in character / string constants, comments and input / output records)
+    ii. http://www2.southeastern.edu/Academics/Faculty/kyang/Cmps401/P1Fortran/Resources/N692.pdf 4.3.1.1
+        signed-int-literal-constant:
+            sign? int-literal-constant
+            boz-literal-constant
+        int-literal-constant:
+            digit-string (_ kind-param)?
+        digit-string: [0-9]+
+        kind-param:
+            digit-string 
+            scalar-int-constant-name // dependent on platform (e.g. "SHORT")
+        sign: + | -
+        boz-literal-constant:   // in certain statements, must be non-negative
+            binary-constant
+            octal-constant
+            hex-constant
+        binary-constant: B (' (0 | 1)+ ')?
+        octal-constant: O (' [0-7]+ ')?
+        hex-constant: Z (' [0-8A-F]+ ')?
+        http://www2.southeastern.edu/Academics/Faculty/kyang/Cmps401/P1Fortran/Resources/N692.pdf 4.3.1.2
+        signed-real-literal-constant:
+            sign? real-literal-constant
+        real-literal-constant:
+            significand (exponent-letter exponent)? (_ kind_param)?
+            digit-string exponent-letter exponent (_ kind_param)?
+        significand:
+            digit-string . digit-string?
+            . digit-string
+        exponent-letter: E | D
+        exponent:
+            signed-digit-string
+        signed-digit-string: sign? digit-string
+        FORTRAN 90 also supports complex constant
+    iii.FORTRAN 90: http://www2.southeastern.edu/Academics/Faculty/kyang/Cmps401/P1Fortran/Resources/N692.pdf 3.2.2
+        called "name" instead of "identifer"
+        name: 
+            [A-Z] alphanumeric-character*
+        alphanumeric-character: [0-9A-Z_]   // called alphanumeric but includes underscore
+e.  i.  Java SE 11: https://docs.oracle.com/javase/specs/jls/se11/html/jls-3.html#jls-3.1
+        unicode in utf-16 encoding
+    ii. https://docs.oracle.com/javase/specs/jls/se11/html/jls-3.html#jls-3.10.1
+        IntegerLiteral:
+            DecimalIntegerLiteral 
+            HexIntegerLiteral 
+            OctalIntegerLiteral 
+            BinaryIntegerLiteral
+        DecimalIntegerLiteral:
+            DecimalNumeral IntegerTypeSuffix?
+        HexIntegerLiteral:
+            HexNumeral IntegerTypeSuffix?
+        OctalIntegerLiteral:
+            OctalNumeral IntegerTypeSuffix?
+        BinaryIntegerLiteral:
+            BinaryNumeral IntegerTypeSuffix?
+        IntegerTypeSuffix: l | L
+        DecimalNumeral:
+            0 
+            NonZeroDigit Digits?
+            NonZeroDigit Underscores Digits
+        NonZeroDigit: [1-9]
+        Digits:
+            Digit 
+            Digit DigitsAndUnderscores? Digit
+        Digit:
+            0 
+            NonZeroDigit
+        DigitsAndUnderscores:
+            DigitOrUnderscore {DigitOrUnderscore}
+            DigitOrUnderscore:
+            Digit 
+            _
+        Underscores: _+
+        HexNumeral:
+            0 x HexDigits 
+            0 X HexDigits
+        HexDigits:
+            HexDigit 
+            HexDigit HexDigitsAndUnderscores? HexDigit
+        HexDigit: [0-9a-fA-F]
+        HexDigitsAndUnderscores:
+            HexDigitOrUnderscore+
+        HexDigitOrUnderscore:
+            HexDigit 
+            _
+        OctalNumeral:
+            0 OctalDigits 
+            0 Underscores OctalDigits
+        OctalDigits:
+            OctalDigit 
+            OctalDigit OctalDigitsAndUnderscores? OctalDigit
+        OctalDigit: [0-7]
+        OctalDigitsAndUnderscores:
+            OctalDigitOrUnderscore+
+        OctalDigitOrUnderscore:
+            OctalDigit 
+            _
+        BinaryNumeral:
+            0 b BinaryDigits 
+            0 B BinaryDigits
+        BinaryDigits:
+            BinaryDigit 
+            BinaryDigit BinaryDigitsAndUnderscores? BinaryDigit
+        BinaryDigit: 0 | 1
+        BinaryDigitsAndUnderscores:
+            BinaryDigitOrUnderscore+
+        BinaryDigitOrUnderscore:
+            BinaryDigit 
+            _
+        https://docs.oracle.com/javase/specs/jls/se11/html/jls-3.html#jls-3.10.2
+        FloatingPointLiteral:
+            DecimalFloatingPointLiteral 
+            HexadecimalFloatingPointLiteral
+        DecimalFloatingPointLiteral:
+            Digits . Digits? ExponentPart? FloatTypeSuffix? 
+            . Digits ExponentPart? FloatTypeSuffix? 
+            Digits ExponentPart FloatTypeSuffix? 
+            Digits ExponentPart? FloatTypeSuffix
+        ExponentPart:
+            ExponentIndicator SignedInteger
+            ExponentIndicator: e | E
+        SignedInteger:
+            Sign? Digits
+        Sign: + | -
+        FloatTypeSuffix: f | F | d | D
+        HexadecimalFloatingPointLiteral:
+            HexSignificand BinaryExponent FloatTypeSuffix?
+        HexSignificand:
+            HexNumeral .? 
+            0 x HexDigits? . HexDigits 
+            0 X HexDigits? . HexDigits
+        BinaryExponent:
+            BinaryExponentIndicator SignedInteger
+        BinaryExponentIndicator: p | P
+    iii.https://docs.oracle.com/javase/specs/jls/se11/html/jls-3.html#jls-3.8
+        Identifier:
+            IdentifierChars but not a Keyword or BooleanLiteral or NullLiteral
+        IdentifierChars:
+            JavaLetter JavaLetterOrDigit*
+        JavaLetter:
+            any Unicode character that is a "Java letter"
+        JavaLetterOrDigit:
+            any Unicode character that is a "Java letter-or-digit"
+f.  i.  ANSI Common Lisp: http://cvberry.com/downloads/cl-ansi-standard-draft-w-sidebar.pdf 2.1.3
+        96 in total
+        (a) Non-graphic character NEWLINE
+        (b) Graphic character SPACE
+        (c) Letters: [a-zA-Z]
+        (b) Digits: [0-9]
+        (c) Special characters: ! $ " ’ ( ) , _ - . / : ; ? + < = > # % & * @ [ \ ] { | } ‘ ^ ~
+    ii. http://cvberry.com/downloads/cl-ansi-standard-draft-w-sidebar.pdf 2.3.1
+        numeric-token:
+            integer
+            ratio
+            float
+        integer:
+            sign? decimal-digit+ decimal-point
+            sign? digit+
+        ratio:
+            sign? digit+ slash digit+
+        float:
+            sign? decimal-digit* decimal-point decimal-digit+ exponent?
+            sign? decimal-digit+ (decimal-point decimal-digit*)? exponent
+        exponent:
+            exponent-marker sign? digit+
+        sign: + | -
+        slash: /
+        decimal-point: .
+        exponent-marker: e | E | d | D | f | F | l | L | s | S
+        decimal-digit: [0-9]
+        digit: [0-9a-zA-Z] 
+        // common lisp supports up to base-36, the radix of the input is controlled by a macro character
+        // e.g. #O10 = 8, #B1101 = 13
+        // common lisp also supports complex number in a similar way
+        // e.g. #C(3 -5)
+    iii.http://cvberry.com/downloads/cl-ansi-standard-draft-w-sidebar.pdf 2.3.4
+        "Any token that is not a potential number, does not contain a package marker, and does not consist
+        entirely of dots will always be interpreted as a symbol"
+        that means all of the following are valid symbols in common lisp:
+            FROBBOZ
+            frobboz
+            fRObBoz
+            unwind-protect
+            +$
+            1+
+            +1
+            pascal
+            file.rel.43
+            \(
+            \+1
+            +\1
+            \frobboz
+            3.14159265\s0
+            3.14159265\S0
+            3.14159265s0
+            APL\\360
+            apl\\360
+            \(b^2\)\ -\ 4*a*c
+            \(\b^2\)\ -\4*\a*\c
+            |"|
+            |(b^2) - 4*a*c|
+            |frobboz|
+            |APL\360|
+            |APL\\360|
+            |apl\\360|
+            |\|\||
+            |(B^2) - 4*A*C|
+            |(b^2) - 4*a*c|
+g.  i.  SQL 2011: https://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#_5_1_sql_terminal_character
+        <SQL language character>:
+            <simple Latin letter>
+            <digit>
+            <SQL special character>
+        <simple Latin letter>: [a-zA-Z]
+        <digit>: [0-9]
+        <SQL special character>: // details omitted
+            <space>
+            <double quote>
+            <percent>
+            <ampersand>
+            <quote>
+            <left paren>
+            <right paren>
+            <asterisk>
+            <plus sign>
+            <comma>
+            <minus sign>
+            <period>
+            <solidus>
+            <colon>
+            <semicolon>
+            <less than operator>
+            <equals operator>
+            <greater than operator>
+            <question mark>
+            <left bracket>
+            <right bracket>
+            <circumflex>
+            <underscore>
+            <vertical bar>
+            <left brace>
+            <right brace>
+    ii. https://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#signed-numeric-literal
+        <signed numeric literal>: 
+            <sign>? <unsigned numeric literal>
+        <sign>: + | -
+        <unsigned numeric literal>:
+            <exact numeric literal>
+            <approximate numeric literal> 
+        <exact numeric literal>:
+            <unsigned integer> (. <unsigned integer>?)?
+            . <unsigned integer>
+        <unsigned integer>:
+            <digit>+
+        <approximate numeric literal>:
+            <mantissa> E <exponent>
+        <mantissa>:
+            <exact numeric literal>
+        <exponent>:
+            <signed integer>
+        <signed integer>:
+            <sign>? <unsigned integer>
+    iii.https://jakewheat.github.io/sql-overview/sql-2011-foundation-grammar.html#_5_4_names_and_identifiers
+        <SQL language identifier>:
+            <SQL language identifier start> <SQL language identifier part>*
+        <SQL language identifier start>:
+            <simple Latin letter>
+        <SQL language identifier part>:
+            <simple Latin letter>
+            <digit>
+            <underscore>
+// one more
+h.  i.  Rust https://doc.rust-lang.org/reference/input-format.html
+        unicode in utf-8 encoding
+    ii. https://doc.rust-lang.org/reference/tokens.html#integer-literals
+        INTEGER_LITERAL:
+            ( DEC_LITERAL | BIN_LITERAL | OCT_LITERAL | HEX_LITERAL ) INTEGER_SUFFIX?
+        DEC_LITERAL:
+            DEC_DIGIT (DEC_DIGIT|_)*
+        TUPLE_INDEX:
+            0 | NON_ZERO_DEC_DIGIT DEC_DIGIT*
+        BIN_LITERAL:
+            0b (BIN_DIGIT|_)* BIN_DIGIT (BIN_DIGIT|_)*
+        OCT_LITERAL:
+            0o (OCT_DIGIT|_)* OCT_DIGIT (OCT_DIGIT|_)*
+        HEX_LITERAL:
+            0x (HEX_DIGIT|_)* HEX_DIGIT (HEX_DIGIT|_)*
+        BIN_DIGIT: [0-1]
+        OCT_DIGIT: [0-7]
+        DEC_DIGIT: [0-9]
+        NON_ZERO_DEC_DIGIT: [1-9]
+        HEX_DIGIT: [0-9 a-f A-F]
+        INTEGER_SUFFIX:
+            u8 | u16 | u32 | u64 | u128 | usize | i8 | i16 | i32 | i64 | i128 | isize
+        FLOAT_LITERAL:
+            DEC_LITERAL . (not immediately followed by ., _ or an identifier)
+            DEC_LITERAL FLOAT_EXPONENT
+            DEC_LITERAL . DEC_LITERAL FLOAT_EXPONENT?
+            DEC_LITERAL (. DEC_LITERAL)? FLOAT_EXPONENT? FLOAT_SUFFIX
+        FLOAT_EXPONENT:
+            (e|E) (+|-)? (DEC_DIGIT|_)* DEC_DIGIT (DEC_DIGIT|_)*
+        FLOAT_SUFFIX:
+            f32 | f64
+    iii.https://doc.rust-lang.org/reference/identifiers.html
+        IDENTIFIER:
+            NON_KEYWORD_IDENTIFIER | RAW_IDENTIFIER
+        NON_KEYWORD_IDENTIFIER: 
+            IDENTIFIER_OR_KEYWORD Except a strict or reserved keyword
+        IDENTIFIER_OR_KEYWORD:
+            [a-zA-Z] [a-zA-Z0-9_]*
+            _ [a-z A-Z 0-9 _]+
+        RAW_IDENTIFIER: 
+            r# IDENTIFIER_OR_KEYWORD Except crate, extern, self, super, Self
+
+3.3.2
+routine    
+
+3.3.3
+a.  n + 1
+b.  n + 1
+c.  n - 1
+d.  depends on the string
+    at most n(n+1)/2 if all characters are distinct
+    at least n + 1 if all characters are the same
+e.  depends on the string
+    at most 2^n if all charactersr are distinct
+    at least n + 1 if all characters are the same
+
+3.3.4
+(s|S)(e|E)(l|L)(e|E)(c|C)(t|T)
+
+3.3.5
+a.  define \l = [a-z]
+    \l*a\l*e\l*i\l*o\l*u\l*
+b.  a*b*c*d* ... z*

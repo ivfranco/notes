@@ -1,0 +1,11 @@
+tokens = { token* }
+token = { keyword | ty | punctuation | operator | constant | id }
+keyword = { "return" }
+ty = { "float" }
+punctuation = { "(" | ")" | "{" | "}" | ";" }
+operator = { "&&" | "||" | "<=" | ">=" | "<" | ">" | "=" | "+" | "-" | "*" | "/" | "?" | ":" }
+constant = { (ASCII_DIGIT | ".")+ }
+id = @{ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+
+WHITESPACE = _{ " " |  NEWLINE }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }

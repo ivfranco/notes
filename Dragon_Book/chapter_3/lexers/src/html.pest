@@ -1,0 +1,6 @@
+tokens = { token* }
+token = { end | start | text }
+start = { "<" ~ tag ~ (!">" ~ ANY)* ~ ">" }
+end = { "</" ~ tag ~ ">" }
+text = { (!"<" ~ ANY)+ }
+tag = @{ ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
