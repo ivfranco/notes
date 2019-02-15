@@ -861,7 +861,7 @@ f.  a corresponding DFA (can be previewd on http://ivanzuzak.info/noam/webapps/f
         oaob:a>eaob
         oaob:b>oaeb
     which can be translated to the following regex:
-        (a(bb)*a|(b|a(bb)*ba)(a(a|b(bb)*ba))*(b|ab(bb)*a))*(b|a(bb)*ba)(a(a|b(bb)*ba))*($|a(a|b(bb)*ba))
+        (a(bb)*a|(b|a(bb)*ba)(a(a|b(bb)*ba))*(b|ab(bb)*a))*(b|a(bb)*ba)(a(a|b(bb)*ba))*(ε|a(a|b(bb)*ba))
 g.  define 
         piece -> [KQRBNS]?
         rank -> [1-8]
@@ -980,4 +980,243 @@ d.  assume for all i < n, the failure function f for si equals to:
         as C(sn-2 || sn-3) = sn-3 || sn-2, j <= |sn| - 2, sn-3 || P(sn-2, j - |sn-1|) is a prefix of P(sn, j)
         f(j) >= j - |sn-1| + |sn-3| = j - |sn-2|
     if j = |sn| - 1, k = n, j - |sn-1| = |sn-2| - 1
-        
+        sn = sn-1 || sn-2 = sn-2 || sn-3 || sn-2
+        P(sn, j) = sn-2 || sn-3 || P(sn-2, |sn-2| - 1)
+        f(j) >= |sn-2| - 1
+    if j = |sn|, k = n, j - |sn-1| = |sn-2|
+        similar
+    //  have no idea how to prove the <= direction
+e.  never since sk is a prefix of sk+1
+
+3.4.10
+./Dragon_Book/chapter_3/aho-corasick/src/lib.rs#failure_trie
+cloned from the original paper of Aho and Corasick: https://cr.yp.to/bib/1975/aho.pdf
+
+3.4.11
+a.  Transitions:
+        δ(0, a) = 1
+        δ(1, b) = 4
+        δ(1, a) = 2
+        δ(2, a) = 3
+        δ(4, a) = 5
+        δ(5, b) = 8
+        δ(5, a) = 6
+        δ(6, a) = 7
+        δ(8, a) = 9
+        δ(9, a) = 10
+        δ(10, a) = 11
+    Failure function:
+        [0, 0, 1, 2, 0, 1, 2, 3, 4, 5, 6, 7]
+b.  Transitions:
+        δ(0, f) = 4
+        δ(0, l) = 11
+        δ(0, a) = 1
+        δ(1, l) = 2
+        δ(2, l) = 3
+        δ(4, a) = 5
+        δ(5, l) = 6
+        δ(5, t) = 8
+        δ(6, l) = 7
+        δ(8, a) = 9
+        δ(9, l) = 10
+        δ(11, a) = 16
+        δ(11, l) = 12
+        δ(12, a) = 13
+        δ(13, m) = 14
+        δ(14, a) = 15
+        δ(16, m) = 17
+        δ(17, e) = 18
+    Failure function:
+        [0, 0, 11, 12, 0, 1, 2, 3, 0, 1, 2, 0, 11, 16, 17, 1, 1, 0, 0]
+c.  Transitions:
+        δ(0, i) = 7
+        δ(0, p) = 1
+        δ(0, t) = 11
+        δ(1, i) = 2
+        δ(1, e) = 5
+        δ(2, p) = 3
+        δ(3, e) = 4
+        δ(5, t) = 6
+        δ(5, r) = 17
+        δ(7, t) = 8
+        δ(8, e) = 9
+        δ(9, m) = 10
+        δ(11, e) = 12
+        δ(12, m) = 13
+        δ(13, p) = 14
+        δ(14, e) = 15
+        δ(15, r) = 16
+        δ(17, p) = 18
+        δ(18, e) = 19
+        δ(19, t) = 20
+        δ(20, u) = 21
+        δ(21, a) = 22
+        δ(22, l) = 23
+    Failure function:
+        [0, 0, 7, 1, 5, 0, 11, 0, 11, 12, 13, 0, 0, 0, 1, 5, 17, 0, 1, 5, 6, 0, 0, 0]
+
+3.4.12
+as Aho & Corasick described in their paper, it's basically a breadth first search of the trie tree
+bfs takes time linear to the number of vertices
+which in turn is smaller or equal to the number of characters in patterns
+
+3.5.1
+a.  while { return(WHILE); }
+b.  change "<>" to "!="
+c.  letter [A-Za-z_]
+d.  string "(\\\\|\\"|[^\"])*"
+    {string} { yylval = (int) installString(); return(STRING); }
+    (int) installString() {/* puts string constants to a seperate table */}
+
+//  as there's no binding for lex in Rust
+//  will write a subset of pest-compatible PEG (hopefully confirms to regular language) instead
+3.5.2
+tokens = { (spaces | other)* }
+spaces = { space+ }
+space = { " " | "\n" | "\t" }
+other = { (!space ~ ANY)+ }
+./Dragon_Book/chapter_3/lexers/src/whitespace.rs
+
+3.5.3
+reuse the simple c lexer from 3.1.1
+./Dragon_Book/chapter_3/lexers/src/simple_c.rs#stripe_float
+
+3.5.4
+tokens = { token* }
+token = { conso_word | vowel_word | other }
+conso_word = { consonant ~ ASCII_ALPHA* }
+vowel_word = { vowel ~ ASCII_ALPHA* }
+other = { (!ASCII_ALPHA ~ ANY)+ }
+vowel = { "a" | "e" | "i" | "o" | "u" | "A" | "E" | "I" | "O" | "U" }
+consonant = { !vowel ~ ASCII_ALPHA }
+./Dragon_Book/chapter_3/lexers/src/pig_latin.rs
+
+3.5.5
+tokens = { (keyword | id)* }
+//  ^ before a string literal in PEG makes that string case-insensitive
+keyword = { ^"select" | ^"from" | ^"where" }
+id = { ASCII_ALPHA ~ ASCII_ALPHANUMERIC* }
+//  before putting the identifer into the symbol table, it has to be transformed to all lower or upper case
+
+3.6.1
+refer CLRS 32.4
+
+3.6.2
+http://ivanzuzak.info/noam/webapps/fsm2regex/
+
+3.6.3
+./Dragon_Book/chapter_3/nfa
+All paths:
+[0, 0, 0, 0, 0]
+[0, 0, 1, 1, 1]
+[0, 1, 1, 1, 1]
+[0, 1, 0, 0, 0]
+[0, 1, 2, 0, 0]
+[0, 1, 2, 2, 3]
+[0, 1, 2, 2, 0]
+[0, 1, 2, 2, 2]
+aabb is accepted
+
+3.6.4
+./Dragon_Book/chapter_3/nfa
+All paths:
+[0, 3, 2, 2, 0]
+[0, 3, 2, 2, 1]
+[0, 3, 2, 2, 2]
+[0, 3, 2, 2, 3]
+[0, 3, 2, 1, 0]
+[0, 3, 2, 1, 2]
+[0, 3, 2, 1, 1]
+[0, 3, 2, 1, 3]
+[0, 3, 1, 1, 2]
+[0, 3, 1, 1, 3]
+[0, 3, 1, 1, 1]
+[0, 3, 1, 1, 0]
+[0, 3, 1, 2, 2]
+[0, 3, 1, 2, 1]
+[0, 3, 1, 2, 0]
+[0, 3, 1, 2, 3]
+[0, 0, 2, 2, 2]
+[0, 0, 2, 2, 0]
+[0, 0, 2, 2, 3]
+[0, 0, 2, 2, 1]
+[0, 0, 2, 1, 0]
+[0, 0, 2, 1, 1]
+[0, 0, 2, 1, 3]
+[0, 0, 2, 1, 2]
+[0, 0, 1, 1, 0]
+[0, 0, 1, 1, 1]
+[0, 0, 1, 1, 3]
+[0, 0, 1, 1, 2]
+[0, 0, 1, 2, 2]
+[0, 0, 1, 2, 0]
+[0, 0, 1, 2, 3]
+[0, 0, 1, 2, 1]
+aabb is accepted
+
+3.6.5
+./Dragon_Book/chapter_3/nfa
+a.  δ(0, a) = {0, 1}
+    δ(0, b) = {0}
+    δ(1, a) = {1, 2}
+    δ(1, b) = {1}
+    δ(2, ε) = {0}
+    δ(2, a) = {2}
+    δ(2, b) = {2, 3}
+b.  δ(0, a) = {1}
+    δ(0, ε) = {3}
+    δ(1, b) = {2}
+    δ(1, ε) = {0}
+    δ(2, b) = {3}
+    δ(2, ε) = {1}
+    δ(3, a) = {0}
+    δ(3, ε) = {2}
+c.  δ(0, ε) = {1, 3}
+    δ(1, a) = {2}
+    δ(2, a) = {2}
+    δ(3, b) = {4}
+    δ(4, b) = {4}
+
+3.7.1
+a.  S = {0, 1, 3}
+    A = {2}
+    B = {4}
+    δ(S, a) = A
+    δ(S, b) = B
+    δ(A, a) = A
+    δ(B, b) = B
+    F = {A, B}
+b.  S = {0}
+    A = {0, 1}
+    B = {0, 1, 2}
+    C = {0, 1, 2, 3}
+    δ(S, a) = A
+    δ(S, b) = S
+    δ(A, a) = B
+    δ(A, b) = A
+    δ(B, a) = B
+    δ(B, b) = C
+    δ(C, a) = B
+    δ(C, b) = C
+    F = {C}
+c.  //  any state is reachable from any other through ε-transitions only
+    S = {0, 1, 2, 3}
+    δ(S, a) = S
+    δ(S, b) = S
+    F = {S}
+
+3.7.2
+a.  {0}
+    {1, 0}
+    {2, 1, 0}
+    {3, 0, 2, 1}
+    {3, 1, 2, 0}
+b.  {3, 1, 0, 2}
+    {1, 3, 0, 2}
+    {1, 0, 3, 2}
+    {0, 2, 3, 1}
+    {2, 3, 1, 0}
+
+3.7.3
+//  routine
+

@@ -1,0 +1,7 @@
+tokens = { token* }
+token = { conso_word | vowel_word | other }
+conso_word = { consonant ~ ASCII_ALPHA* }
+vowel_word = { vowel ~ ASCII_ALPHA* }
+other = { (!ASCII_ALPHA ~ ANY)+ }
+vowel = { "a" | "e" | "i" | "o" | "u" | "A" | "E" | "I" | "O" | "U" }
+consonant = { !vowel ~ ASCII_ALPHA }

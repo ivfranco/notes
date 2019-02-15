@@ -4,7 +4,7 @@ use std::fmt::{self, Debug, Formatter};
 
 #[derive(Parser)]
 #[grammar = "./simple_c.pest"]
-struct CLexer;
+pub struct CLexer;
 
 #[derive(Debug)]
 enum CTag {
@@ -67,6 +67,18 @@ pub fn lex_simple_c(input: &str) -> Vec<CToken> {
     pair.into_inner().map(CToken::from_pair).collect()
 }
 
+pub fn stripe_float(input: &str) -> String {
+    let tokens = lex_simple_c(input);
+    tokens
+        .into_iter()
+        .map(|token| match token.tag {
+            CTag::Ty if token.lexeme == "float" => "double".to_owned(),
+            _ => token.lexeme,
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
 #[test]
 fn lex_test() {
     let input = "float limitedSquare(x) float x; {
@@ -76,4 +88,14 @@ return (x<=-10.0||x>=10.0)?100:x*x;
 
     let pair = CLexer::parse(Rule::tokens, input).expect("Grammar definition error");
     println!("{:?}", pair);
+}
+
+#[test]
+fn stripe_float_test() {
+    let input = "float limitedSquare (x) float x; {
+/* returns x-squared, but never more than 100 */
+return (x<=-10.0||x>=10.0)?100:x*x;
+}";
+
+    assert!(stripe_float(input).starts_with("double limitedSquare ( x ) double x ; {"))
 }

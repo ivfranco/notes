@@ -1,3 +1,6 @@
+use std::collections::{HashMap, VecDeque};
+use std::fmt::{self, Debug, Formatter};
+use std::hash::Hash;
 use std::mem;
 
 pub fn failure<T: PartialEq>(pattern: &[T]) -> Vec<usize> {
@@ -20,20 +23,95 @@ pub fn failure<T: PartialEq>(pattern: &[T]) -> Vec<usize> {
     fail
 }
 
+type State = usize;
+
+pub struct Trie<T: Eq + Hash + Debug> {
+    map: Vec<HashMap<T, State>>,
+    pub failure: Vec<State>,
+}
+
+impl<T: Copy + Eq + Debug + Hash> Trie<T> {
+    pub fn new(patterns: &[&[T]]) -> Self {
+        let mut max_state = 0;
+        let mut map = vec![HashMap::new()];
+
+        for pattern in patterns {
+            let mut local_state = 0;
+            for c in pattern.iter() {
+                local_state = if map[local_state].contains_key(c) {
+                    map[local_state][c]
+                } else {
+                    max_state += 1;
+                    map.push(HashMap::new());
+                    map[local_state].insert(*c, max_state);
+                    max_state
+                }
+            }
+        }
+
+        Trie {
+            failure: failure_trie(&map),
+            map,
+        }
+    }
+}
+
+impl Debug for Trie<u8> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        writeln!(f, "Transitions: ")?;
+        for (from, trans) in self.map.iter().enumerate() {
+            for (c, to) in trans {
+                writeln!(f, "    δ({}, {}) = {}", from, char::from(*c), to)?;
+            }
+        }
+        writeln!(f, "Failure function: ")?;
+        writeln!(f, "    {:?}", self.failure)
+    }
+}
+
+fn failure_trie<T: Hash + Eq>(map: &[HashMap<T, State>]) -> Vec<State> {
+    let mut fail = vec![0; map.len()];
+    let mut queue = VecDeque::new();
+
+    for s in map[0].values() {
+        queue.push_back(s);
+    }
+
+    while let Some(r) = queue.pop_front() {
+        for (a, s) in map[*r].iter() {
+            queue.push_back(s);
+            let mut state = fail[*r];
+            while state != 0 && map[state].get(a).is_none() {
+                state = fail[state];
+            }
+            fail[*s] = *map[state].get(a).unwrap_or(&0);
+        }
+    }
+
+    fail
+}
+
 pub fn kmp<T: PartialEq>(string: &[T], pattern: &[T]) -> Option<usize> {
     let mut s = 0;
+    let mut max_app = 0;
 
     let fail = failure(pattern);
 
     for (i, c) in string.iter().enumerate() {
+        let mut local_app = 0;
         while s > 0 && c != &pattern[s] {
             s = fail[s - 1];
+            local_app += 1;
         }
+
+        max_app = std::cmp::max(local_app, max_app);
+
         if c == &pattern[s] {
             s += 1;
         }
         if s == pattern.len() {
-            return Some(i - s + 1);
+            // dbg!(max_app);
+            return Some(i + 1 - s);
         }
     }
 
@@ -109,5 +187,24 @@ mod test {
                 fibonacci_failure(i)
             );
         }
+    }
+
+    #[test]
+    fn fibonacci_kmp() {
+        for i in 2..=20 {
+            assert!(kmp(
+                fibonacci_string(i + 1).as_bytes(),
+                fibonacci_string(i).as_bytes(),
+            )
+            .is_some());
+        }
+    }
+
+    #[test]
+    fn trie_failure() {
+        let patterns: &[&[u8]] = &[b"he", b"she", b"his", b"hers"];
+
+        let trie = Trie::new(patterns);
+        assert_eq!(trie.failure, [0, 0, 0, 0, 1, 2, 0, 3, 0, 3]);
     }
 }

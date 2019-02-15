@@ -1,0 +1,4 @@
+tokens = { (spaces | other)* }
+spaces = { space+ }
+space = { " " | "\n" | "\t" }
+other = { (!space ~ ANY)+ }

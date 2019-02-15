@@ -1,9 +1,10 @@
-use aho_corasick::{failure, fibonacci_string, kmp};
+use aho_corasick::{failure, fibonacci_string, kmp, Trie};
 
 fn main() {
     exercise_3_4_3();
     exercise_3_4_6();
     exercise_3_4_9();
+    exercise_3_4_11();
 }
 
 fn exercise_3_4_3() {
@@ -39,4 +40,16 @@ fn exercise_3_4_9() {
 
     println!("{:?}", failure(fibonacci_string(6).as_bytes()));
     println!("{:?}", failure(fibonacci_string(7).as_bytes()));
+}
+
+fn exercise_3_4_11() {
+    println!("\nExercise 3.4.11:");
+
+    let input_1: &[&[u8]] = &[b"aaa", b"abaaa", b"ababaaa"];
+    let input_2: &[&[u8]] = &[b"all", b"fall", b"fatal", b"llama", b"lame"];
+    let input_3: &[&[u8]] = &[b"pipe", b"pet", b"item", b"temper", b"perpetual"];
+
+    println!("{:?}", Trie::new(input_1));
+    println!("{:?}", Trie::new(input_2));
+    println!("{:?}", Trie::new(input_3));
 }
