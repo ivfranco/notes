@@ -1,0 +1,6 @@
+union = { concat ~ "|" ~ union | concat }
+concat = { kleene ~ concat | kleene }
+kleene = { factor ~ star | factor }
+factor = { ASCII_ALPHANUMERIC | empty | "(" ~ union ~ ")" }
+empty = { "ε" }
+star = { "*" }

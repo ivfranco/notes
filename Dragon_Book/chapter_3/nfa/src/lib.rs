@@ -7,7 +7,6 @@ type Trans = HashMap<Option<char>, Vec<State>>;
 pub struct NFA {
     map: Vec<Trans>,
     finals: HashSet<State>,
-    pub states: HashSet<State>,
 }
 
 impl NFA {
@@ -15,98 +14,141 @@ impl NFA {
         NFA {
             map: vec![HashMap::new(); n_state],
             finals: finals.iter().cloned().collect(),
-            states: HashSet::new(),
         }
     }
 
     pub fn install_transition(&mut self, from: State, symbol: Option<char>, to: Vec<State>) {
+        if self.map.len() <= from {
+            self.map.resize(from + 1, HashMap::new());
+        }
         self.map[from].insert(symbol, to);
     }
 
-    pub fn init(&mut self) {
-        self.states.clear();
-        self.states.insert(0);
-        self.states = extend_with_empty(self, &self.states);
+    pub fn install_final(&mut self, state: State) {
+        self.finals.insert(state);
     }
 
-    pub fn next(&mut self, symbol: char) {
-        self.states = next(self, &self.states, symbol);
+    pub fn init(&self) -> HashSet<State> {
+        let mut state = HashSet::new();
+        state.insert(0);
+        self.extend_with_empty(&state)
     }
 
-    fn accepted(&self) -> bool {
-        !self.states.is_disjoint(&self.finals)
+    pub fn next(&self, states: &HashSet<State>, symbol: char) -> HashSet<State> {
+        let new_states = self.consume(states, Some(symbol));
+        self.extend_with_empty(&new_states)
     }
 
-    pub fn accept(&mut self, string: &str) -> bool {
-        self.init();
+    fn consume(&self, states: &HashSet<State>, symbol: Option<char>) -> HashSet<State> {
+        let mut new_states: HashSet<State> = HashSet::new();
 
-        for c in string.chars() {
-            self.next(c);
+        for state in states.iter() {
+            assert!(*state < self.map.len(), "Out of bound state");
+            if let Some(tos) = self.map[*state].get(&symbol) {
+                new_states.extend(tos);
+            }
         }
 
-        self.accepted()
+        new_states
+    }
+
+    fn extend_with_empty(&self, states: &HashSet<State>) -> HashSet<State> {
+        let mut empty_extended = states.clone();
+        let mut size = empty_extended.len();
+
+        // extend the states with ε transitions until the set of states no longer grow
+        loop {
+            let new_states = self.consume(&empty_extended, None);
+            empty_extended.extend(new_states);
+            if empty_extended.len() == size {
+                break;
+            } else {
+                size = empty_extended.len();
+            }
+        }
+
+        empty_extended
+    }
+
+    fn accepted(&self, states: &HashSet<State>) -> bool {
+        states.is_disjoint(&self.finals)
+    }
+
+    pub fn accept(&self, string: &str) -> bool {
+        let mut states = self.init();
+
+        for c in string.chars() {
+            states = self.next(&states, c);
+        }
+
+        self.accepted(&states)
     }
 
     pub fn all_paths(&self, string: &str) -> Vec<Vec<State>> {
-        all_paths(self, string)
-    }
-}
+        let mut paths = vec![vec![0]];
 
-fn consume(nfa: &NFA, states: &HashSet<State>, symbol: Option<char>) -> HashSet<State> {
-    let mut new_states: HashSet<State> = HashSet::new();
-
-    for state in states.iter() {
-        if let Some(tos) = nfa.map[*state].get(&symbol) {
-            new_states.extend(tos);
-        }
-    }
-
-    new_states
-}
-
-fn extend_with_empty(nfa: &NFA, states: &HashSet<State>) -> HashSet<State> {
-    let mut empty_extended = states.clone();
-    let mut size = empty_extended.len();
-
-    // extend the states with ε transitions until the set of states no longer grow
-    loop {
-        let new_states = consume(nfa, &empty_extended, None);
-        empty_extended.extend(new_states);
-        if empty_extended.len() == size {
-            break;
-        } else {
-            size = empty_extended.len();
-        }
-    }
-
-    empty_extended
-}
-
-fn next(nfa: &NFA, states: &HashSet<State>, symbol: char) -> HashSet<State> {
-    let new_states = consume(nfa, states, Some(symbol));
-    extend_with_empty(nfa, &new_states)
-}
-
-fn all_paths(nfa: &NFA, string: &str) -> Vec<Vec<State>> {
-    let mut paths = vec![vec![0]];
-
-    for c in string.chars() {
-        paths = paths
-            .into_iter()
-            .flat_map(|path| {
-                let last = *path.last().unwrap();
-                let mut states = HashSet::new();
-                states.insert(last);
-                next(nfa, &states, c).into_iter().map(move |state| {
-                    let mut next = path.clone();
-                    next.push(state);
-                    next
+        for c in string.chars() {
+            paths = paths
+                .into_iter()
+                .flat_map(|path| {
+                    let last = *path.last().unwrap();
+                    let mut states = HashSet::new();
+                    states.insert(last);
+                    self.next(&states, c).into_iter().map(move |state| {
+                        let mut next = path.clone();
+                        next.push(state);
+                        next
+                    })
                 })
-            })
-            .collect();
+                .collect();
+        }
+
+        paths
     }
 
-    paths
+    pub fn is_dfa(&self) -> bool {
+        self.map.iter().all(|trans| {
+            trans
+                .iter()
+                .all(|(symbol, to)| symbol.is_some() && to.len() == 1)
+        })
+    }
+
+    pub fn to_dfa(&self, alphabet: &str) -> (HashMap<Vec<State>, State>, NFA) {
+        let init = self.init();
+        let mut set_to_state: HashMap<Vec<State>, State> = HashMap::new();
+        set_to_state.insert(sorted(&init), 0);
+        let mut stack: Vec<HashSet<State>> = vec![self.init()];
+        let mut max_state: State = 0;
+        let mut dfa = NFA::new(0, &[]);
+
+        while let Some(states) = stack.pop() {
+            for c in alphabet.chars() {
+                let from = set_to_state[&sorted(&states)];
+                let next = self.next(&states, c);
+                if !next.is_empty() {
+                    let is_final = self.accepted(&next);
+                    let to = *set_to_state.entry(sorted(&next)).or_insert_with(|| {
+                        max_state += 1;
+                        stack.push(next);
+                        max_state
+                    });
+                    dfa.install_transition(from, Some(c), vec![to]);
+                    if is_final {
+                        dfa.install_final(to);
+                    }
+                }
+            }
+        }
+
+        (set_to_state, dfa)
+    }
+}
+
+fn sorted(states: &HashSet<State>) -> Vec<State> {
+    let mut vec: Vec<State> = states.iter().cloned().collect();
+    vec.sort();
+    vec
 }
 
 impl Debug for NFA {
@@ -140,4 +182,22 @@ fn all_path_test() {
     assert_eq!(paths.len(), 2);
     assert!(paths.contains(&vec![0, 0, 1, 2, 3]));
     assert!(paths.contains(&vec![0, 0, 0, 0, 0]));
+}
+
+#[test]
+fn to_dfa_test() {
+    let mut nfa = NFA::new(4, &[3]);
+    nfa.install_transition(0, Some('a'), vec![1]);
+    nfa.install_transition(0, None, vec![3]);
+    nfa.install_transition(1, Some('b'), vec![2]);
+    nfa.install_transition(1, None, vec![0]);
+    nfa.install_transition(2, Some('b'), vec![3]);
+    nfa.install_transition(2, None, vec![1]);
+    nfa.install_transition(3, Some('a'), vec![0]);
+    nfa.install_transition(3, None, vec![2]);
+
+    let (mapping, dfa) = nfa.to_dfa("ab");
+    assert!(dfa.is_dfa());
+    assert_eq!(mapping.len(), 1);
+    assert_eq!(mapping.keys().next().unwrap(), &[0, 1, 2, 3]);
 }

@@ -4,6 +4,7 @@ fn main() {
     exercise_3_6_3();
     exercise_3_6_4();
     exercise_3_6_5();
+    exercise_3_7_1();
     exercise_3_7_2();
 }
 
@@ -48,7 +49,7 @@ fn third_machine() -> NFA {
 fn exercise_3_6_3() {
     println!("\nExercise 3.6.3:");
 
-    let mut nfa = first_machine();
+    let nfa = first_machine();
     let input = "aabb";
 
     println!("All paths:");
@@ -65,7 +66,7 @@ fn exercise_3_6_3() {
 fn exercise_3_6_4() {
     println!("\nExercise 3.6.4:");
 
-    let mut nfa = second_machine();
+    let nfa = second_machine();
     let input = "aabb";
 
     println!("All paths:");
@@ -87,24 +88,38 @@ fn exercise_3_6_5() {
     println!("{:?}", third_machine());
 }
 
+fn exercise_3_7_1() {
+    println!("\nExercise 3.7.1:");
+
+    for nfa in &[third_machine(), first_machine(), second_machine()] {
+        let (mapping, dfa) = nfa.to_dfa("ab");
+        for (set, state) in mapping {
+            println!("set {:?} in nfa corresponds to state {} in dfa", set, state);
+        }
+        println!("{:?}", dfa);
+    }
+}
+
 fn exercise_3_7_2() {
     println!("\nExercise 3.7.2:");
 
     let input = "aabb";
+
     let mut nfa = first_machine();
-    nfa.init();
-    println!("{:?}", nfa.states);
+    let mut states = nfa.init();
+    println!("{:?}", states);
     for c in input.chars() {
-        nfa.next(c);
-        println!("{:?}", nfa.states);
+        states = nfa.next(&states, c);
+        println!("{:?}", states);
     }
 
     println!("");
+
     nfa = second_machine();
-    nfa.init();
-    println!("{:?}", nfa.states);
+    let mut states = nfa.init();
+    println!("{:?}", states);
     for c in input.chars() {
-        nfa.next(c);
-        println!("{:?}", nfa.states);
+        states = nfa.next(&states, c);
+        println!("{:?}", states);
     }
 }

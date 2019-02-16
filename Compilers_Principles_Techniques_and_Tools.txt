@@ -1178,34 +1178,33 @@ c.  δ(0, ε) = {1, 3}
     δ(4, b) = {4}
 
 3.7.1
-a.  S = {0, 1, 3}
-    A = {2}
-    B = {4}
-    δ(S, a) = A
-    δ(S, b) = B
-    δ(A, a) = A
-    δ(B, b) = B
-    F = {A, B}
-b.  S = {0}
-    A = {0, 1}
-    B = {0, 1, 2}
-    C = {0, 1, 2, 3}
-    δ(S, a) = A
-    δ(S, b) = S
-    δ(A, a) = B
-    δ(A, b) = A
-    δ(B, a) = B
-    δ(B, b) = C
-    δ(C, a) = B
-    δ(C, b) = C
-    F = {C}
-c.  //  any state is reachable from any other through ε-transitions only
-    S = {0, 1, 2, 3}
-    δ(S, a) = S
-    δ(S, b) = S
-    F = {S}
+./Dragon_Book/chapter_3/nfa
+a.  set [0, 1, 3] in nfa corresponds to state 0 in dfa
+    set [4] in nfa corresponds to state 2 in dfa
+    set [2] in nfa corresponds to state 1 in dfa
+    δ(0, b) = {2}
+    δ(0, a) = {1}
+    δ(1, a) = {1}
+    δ(2, b) = {2}
+b.  set [0, 1] in nfa corresponds to state 1 in dfa
+    set [0] in nfa corresponds to state 0 in dfa
+    set [0, 1, 2, 3] in nfa corresponds to state 3 in dfa
+    set [0, 1, 2] in nfa corresponds to state 2 in dfa
+    δ(0, a) = {1}
+    δ(0, b) = {0}
+    δ(1, a) = {2}
+    δ(1, b) = {1}
+    δ(2, b) = {3}
+    δ(2, a) = {2}
+    δ(3, b) = {3}
+    δ(3, a) = {2}
+c.  //  all states are reachable from any other state through ε-transitions alone
+    set [0, 1, 2, 3] in nfa corresponds to state 0 in dfa
+    δ(0, a) = {0}
+    δ(0, b) = {0}
 
 3.7.2
+./Dragon_Book/chapter_3/nfa
 a.  {0}
     {1, 0}
     {2, 1, 0}
@@ -1218,5 +1217,62 @@ b.  {3, 1, 0, 2}
     {2, 3, 1, 0}
 
 3.7.3
-//  routine
-
+the original design (./Dragon_Book/chapter_3/nfa) doesn't cope well with Thompson's construction
+./Dragon_Book/chapter_3/simple_regex
+works for a subset of regex which confirms to the grammar below:
+    union = { concat ~ "|" ~ union | concat }
+    concat = { kleene ~ concat | kleene }
+    kleene = { factor ~ star | factor }
+    factor = { ASCII_ALPHANUMERIC | empty | "(" ~ union ~ ")" }
+    empty = { "ε" }
+    star = { "*" }
+a.  Transitions:
+        δ(0, b) = 2
+        δ(0, a) = 1
+        δ(1, a) = 1
+        δ(1, b) = 2
+        δ(2, a) = 1
+        δ(2, b) = 2
+    Final states: {1, 2}
+b.  Transitions:
+        δ(0, b) = 2
+        δ(0, a) = 1
+        δ(1, b) = 2
+        δ(1, a) = 4
+        δ(2, b) = 3
+        δ(2, a) = 1
+        δ(3, a) = 1
+        δ(3, b) = 3
+        δ(4, b) = 2
+        δ(4, a) = 4
+    Final states: {4, 3, 1, 2}
+c.  Transitions:
+        δ(0, a) = 1
+        δ(0, b) = 2
+        δ(1, a) = 1
+        δ(1, b) = 2
+        δ(2, a) = 1
+        δ(2, b) = 3
+        δ(3, b) = 3
+        δ(3, a) = 1
+    Final states: {2, 3, 1}
+d.  Transitions:
+        δ(0, b) = 2
+        δ(0, a) = 1
+        δ(1, b) = 3
+        δ(1, a) = 1
+        δ(2, b) = 2
+        δ(2, a) = 1
+        δ(3, a) = 1
+        δ(3, b) = 4
+        δ(4, b) = 6
+        δ(4, a) = 5
+        δ(5, a) = 5
+        δ(5, b) = 7
+        δ(6, a) = 5
+        δ(6, b) = 6
+        δ(7, b) = 8
+        δ(7, a) = 5
+        δ(8, b) = 6
+        δ(8, a) = 5
+    Final states: {4, 5, 8, 6, 7}
