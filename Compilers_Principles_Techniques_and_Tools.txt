@@ -9,7 +9,7 @@ a.  by transforming directly to machine code, the program produced by a compiler
         especially when the target platform is some microcontroller which is not powerful enough to run the interpreter
         (lacking memory / storage, etc.)
 b.  a basic interpreter is easiler to write compared to a basic compiler
-        (in the sense that an interpreter don't have to consider the structure of the target language)
+        (in the sense that an interpreter doesn't have to consider the structure of the target language)
     the source code is cross-platform among platforms on which the interpreter is implemented
     by personal experience today a compiler can produce almost equally good error messages compared to an interpreter
     the structure of the program is controlled by the interpreter, makes certain techniques easier than compiled lang
@@ -17,11 +17,11 @@ b.  a basic interpreter is easiler to write compared to a basic compiler
 
 1.1.3
 today assembly code provides quite a lot abstraction over machine language
-the output program tends to be more meaningful and compact, also a little bit more compatibility
+the output program tends to be more meaningful and compact, also a little bit more compatible
 
 1.1.4
 C is usually the first high-level language a platform will ever support
-    if a language can be translated to C it can be executed on any platform that supports C
+if a language can be translated to C it can be executed on any platform that supports C
 C has much simpler structure than most of the high-level languages
 many languages are influenced by C and bears some degree of resemblance to C, the translation will be easier
 
@@ -30,7 +30,7 @@ expand macros
 transfer tags to literal memory locations
 transfer numerial constants from base 10 to hex
 translate instructions to machine op code
-do some obvious optimizations (is the compiler produced low quality assembly code, which is unlikely)
+do some obvious optimizations (if the compiler produced low quality assembly code, which is unlikely)
 
 1.3.1
 imperative: C, Cobol, Fortran, Perl 
@@ -1218,44 +1218,44 @@ b.  {3, 1, 0, 2}
 
 3.7.3
 the original design (./Dragon_Book/chapter_3/nfa) doesn't cope well with Thompson's construction
-./Dragon_Book/chapter_3/simple_regex
+./Dragon_Book/chapter_3/simple-regex
 works for a subset of regex which confirms to the grammar below:
-    union = { concat ~ "|" ~ union | concat }
-    concat = { kleene ~ concat | kleene }
-    kleene = { factor ~ star | factor }
+    union = { concat ~ ("|" ~ union)? }
+    concat = { kleene ~ concat? }
+    kleene = { factor ~ star? }
     factor = { ASCII_ALPHANUMERIC | empty | "(" ~ union ~ ")" }
     empty = { "ε" }
     star = { "*" }
 a.  Transitions:
         δ(0, b) = 2
         δ(0, a) = 1
-        δ(1, a) = 1
         δ(1, b) = 2
-        δ(2, a) = 1
+        δ(1, a) = 1
         δ(2, b) = 2
-    Final states: {1, 2}
+        δ(2, a) = 1
+    Final states: {0, 1, 2}
 b.  Transitions:
-        δ(0, b) = 2
         δ(0, a) = 1
+        δ(0, b) = 2
         δ(1, b) = 2
         δ(1, a) = 4
         δ(2, b) = 3
         δ(2, a) = 1
-        δ(3, a) = 1
         δ(3, b) = 3
-        δ(4, b) = 2
+        δ(3, a) = 1
         δ(4, a) = 4
-    Final states: {4, 3, 1, 2}
+        δ(4, b) = 2
+    Final states: {0, 1, 2, 3, 4}
 c.  Transitions:
         δ(0, a) = 1
         δ(0, b) = 2
-        δ(1, a) = 1
         δ(1, b) = 2
-        δ(2, a) = 1
+        δ(1, a) = 1
         δ(2, b) = 3
+        δ(2, a) = 1
         δ(3, b) = 3
         δ(3, a) = 1
-    Final states: {2, 3, 1}
+    Final states: {0, 1, 2, 3}
 d.  Transitions:
         δ(0, b) = 2
         δ(0, a) = 1
@@ -1263,16 +1263,16 @@ d.  Transitions:
         δ(1, a) = 1
         δ(2, b) = 2
         δ(2, a) = 1
-        δ(3, a) = 1
         δ(3, b) = 4
-        δ(4, b) = 6
+        δ(3, a) = 1
         δ(4, a) = 5
+        δ(4, b) = 6
         δ(5, a) = 5
         δ(5, b) = 7
         δ(6, a) = 5
         δ(6, b) = 6
-        δ(7, b) = 8
         δ(7, a) = 5
+        δ(7, b) = 8
         δ(8, b) = 6
         δ(8, a) = 5
-    Final states: {4, 5, 8, 6, 7}
+    Final states: {4, 5, 6, 7, 8}

@@ -135,9 +135,12 @@ impl NFA {
         let init = self.init();
         let mut set_to_state: HashMap<Vec<State>, State> = HashMap::new();
         set_to_state.insert(init.sorted(), 0);
+        let mut dfa = DFA::new(0, &[]);
+        if init.accepted() {
+            dfa.install_final(0);
+        }
         let mut stack: Vec<NFAState> = vec![init];
         let mut max_state: State = 0;
-        let mut dfa = DFA::new(0, &[]);
 
         while let Some(state) = stack.pop() {
             for c in alphabet.chars() {

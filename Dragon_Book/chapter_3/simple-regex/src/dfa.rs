@@ -58,7 +58,10 @@ impl Debug for DFA {
             }
         }
 
-        writeln!(f, "Final states: {:?}", self.finals)
+        let mut finals = self.finals.iter().collect::<Vec<_>>();
+        finals.sort();
+        write!(f, "Final states: ")?;
+        f.debug_set().entries(finals).finish()
     }
 }
 
