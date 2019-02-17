@@ -9,6 +9,7 @@ use std::rc::Rc;
 struct Node {
     state: State,
     symbol: Option<char>,
+    label: Option<String>,
     exits: Vec<SharedNode>,
 }
 
@@ -27,6 +28,7 @@ impl Node {
         Node {
             state,
             symbol,
+            label: None,
             exits: vec![],
         }
     }
@@ -38,6 +40,10 @@ impl Node {
 
     fn install_exit(&mut self, node: &SharedNode) {
         self.exits.push(node.clone());
+    }
+
+    fn install_label(&mut self, label: &str) {
+        self.label = Some(label.to_owned());
     }
 }
 
@@ -119,6 +125,45 @@ impl NFA {
         NFA::from_regex(&Regex::parse(regex), 0)
     }
 
+    pub fn install_label(&mut self, label: &str) {
+        self.end.borrow_mut().install_label(label);
+    }
+
+    pub fn multi_parse(parts: &[(&str, &str)]) -> Self {
+        let start = Node::new_shared(0, None);
+        let mut state = 1;
+
+        let branches: Vec<NFA> = parts
+            .iter()
+            .map(|(regex, label)| {
+                let mut nfa = NFA::from_regex(&Regex::parse(regex), state);
+                state += nfa.size;
+                nfa.install_label(label);
+                nfa
+            })
+            .collect();
+
+        let end = Node::new_shared(state, None);
+
+        for branch in branches.iter() {
+            start.borrow_mut().install_exit(&branch.start);
+            branch.end.borrow_mut().install_exit(&end);
+        }
+
+        NFA {
+            start,
+            end,
+            size: state + 1,
+        }
+    }
+
+    pub fn parse_lookahead(regex: &str) -> (NFA, NFA) {
+        let mut parts = regex.split('/');
+        let lhs = parts.next().unwrap();
+        let rhs = parts.next().unwrap();
+        (NFA::parse(lhs), NFA::parse(rhs))
+    }
+
     pub fn init(&self) -> NFAState {
         NFAState::new(self)
     }
@@ -139,6 +184,7 @@ impl NFA {
         if init.accepted() {
             dfa.install_final(0);
         }
+        dfa.install_labels(0, init.labels());
         let mut stack: Vec<NFAState> = vec![init];
         let mut max_state: State = 0;
 
@@ -147,6 +193,7 @@ impl NFA {
                 let from = set_to_state[&state.sorted()];
                 let next = state.next(c);
                 if !next.is_empty() {
+                    let labels = next.labels();
                     let is_final = next.accepted();
                     let to = *set_to_state.entry(next.sorted()).or_insert_with(|| {
                         max_state += 1;
@@ -154,6 +201,7 @@ impl NFA {
                         max_state
                     });
                     dfa.install_transition(from, c, to);
+                    dfa.install_labels(to, labels);
                     if is_final {
                         dfa.install_final(to);
                     }
@@ -172,6 +220,9 @@ impl Debug for NFA {
 
         while let Some(node) = stack.pop() {
             let borrow = node.borrow();
+            if let Some(ref label) = borrow.label {
+                println!("{}: {}", borrow.state, label);
+            }
             if !borrow.exits.is_empty() {
                 writeln!(f, "{:?}", borrow)?;
             }
@@ -183,7 +234,7 @@ impl Debug for NFA {
             }
         }
 
-        Ok(())
+        writeln!(f, "Final state: {}", self.end.borrow().state)
     }
 }
 
@@ -204,6 +255,13 @@ impl NFAState {
 
     fn is_empty(&self) -> bool {
         self.states.is_empty()
+    }
+
+    fn labels(&self) -> Vec<String> {
+        self.states
+            .iter()
+            .filter_map(|state| state.borrow().label.clone())
+            .collect()
     }
 
     pub fn sorted(&self) -> Vec<State> {
@@ -289,16 +347,38 @@ fn nfa_accept_test() {
     assert!(!nfa.accept("bba"));
     assert!(!nfa.accept(""));
     assert!(!nfa.accept("ababababab"));
-}
 
-#[test]
-fn dfa_accept_test() {
-    let nfa = NFA::parse("(a|b)*abb(a|b)*");
-    let (_, dfa) = nfa.to_dfa("ab");
+    let dfa = nfa.to_dfa("ab").1;
 
     assert!(dfa.accept("abb"));
     assert!(dfa.accept("aabbabbabab"));
     assert!(!dfa.accept("bba"));
     assert!(!dfa.accept(""));
     assert!(!dfa.accept("ababababab"));
+}
+
+#[test]
+fn multi_parse_test() {
+    const DIGIT: &str = "0|1";
+    const LETTER: &str = "(w|h|i|l|e|n)";
+
+    let nfa = NFA::multi_parse(&[
+        ("while", "WHILE"),
+        ("when", "WHEN"),
+        (&format!("{}({}|{})*", LETTER, LETTER, DIGIT), "ID"),
+    ]);
+
+    assert!(nfa.accept("while"));
+    assert!(nfa.accept("when"));
+    assert!(!nfa.accept(""));
+    assert!(!nfa.accept("0101"));
+    assert!(nfa.accept("w101"));
+
+    let dfa = nfa.to_dfa("whilen01").1;
+
+    assert!(dfa.accept("while"));
+    assert!(dfa.accept("when"));
+    assert!(!dfa.accept(""));
+    assert!(!dfa.accept("0101"));
+    assert!(dfa.accept("w101"));
 }
