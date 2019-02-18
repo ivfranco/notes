@@ -1,4 +1,4 @@
-use crate::dfa::{State, DFA};
+use crate::dfa::{State, DFA, START};
 use crate::parser::Regex;
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
@@ -122,7 +122,7 @@ impl NFA {
     }
 
     pub fn parse(regex: &str) -> Self {
-        NFA::from_regex(&Regex::parse(regex), 0)
+        NFA::from_regex(&Regex::parse(regex), START)
     }
 
     pub fn install_label(&mut self, label: &str) {
@@ -130,7 +130,7 @@ impl NFA {
     }
 
     pub fn multi_parse(parts: &[(&str, &str)]) -> Self {
-        let start = Node::new_shared(0, None);
+        let start = Node::new_shared(START, None);
         let mut state = 1;
 
         let branches: Vec<NFA> = parts
@@ -179,12 +179,12 @@ impl NFA {
     pub fn to_dfa(&self, alphabet: &str) -> (HashMap<Vec<State>, State>, DFA) {
         let init = self.init();
         let mut set_to_state: HashMap<Vec<State>, State> = HashMap::new();
-        set_to_state.insert(init.sorted(), 0);
+        set_to_state.insert(init.sorted(), START);
         let mut dfa = DFA::new(0, &[]);
         if init.accepted() {
-            dfa.install_final(0);
+            dfa.install_final(START);
         }
-        dfa.install_labels(0, init.labels());
+        dfa.install_labels(START, init.labels());
         let mut stack: Vec<NFAState> = vec![init];
         let mut max_state: State = 0;
 
@@ -348,7 +348,15 @@ fn nfa_accept_test() {
     assert!(!nfa.accept(""));
     assert!(!nfa.accept("ababababab"));
 
-    let dfa = nfa.to_dfa("ab").1;
+    let mut dfa = nfa.to_dfa("ab").1;
+
+    assert!(dfa.accept("abb"));
+    assert!(dfa.accept("aabbabbabab"));
+    assert!(!dfa.accept("bba"));
+    assert!(!dfa.accept(""));
+    assert!(!dfa.accept("ababababab"));
+
+    dfa = dfa.minimize("ab");
 
     assert!(dfa.accept("abb"));
     assert!(dfa.accept("aabbabbabab"));
@@ -374,7 +382,15 @@ fn multi_parse_test() {
     assert!(!nfa.accept("0101"));
     assert!(nfa.accept("w101"));
 
-    let dfa = nfa.to_dfa("whilen01").1;
+    let mut dfa = nfa.to_dfa("whilen01").1;
+
+    assert!(dfa.accept("while"));
+    assert!(dfa.accept("when"));
+    assert!(!dfa.accept(""));
+    assert!(!dfa.accept("0101"));
+    assert!(dfa.accept("w101"));
+
+    dfa = dfa.minimize("whilen01");
 
     assert!(dfa.accept("while"));
     assert!(dfa.accept("when"));

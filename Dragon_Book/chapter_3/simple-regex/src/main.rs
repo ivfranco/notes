@@ -1,9 +1,12 @@
+use simple_regex::dfa::DFA;
 use simple_regex::nfa::NFA;
 
 fn main() {
     exercise_3_7_3();
     exercise_3_8_1();
     exercise_3_8_2();
+    exercise_3_9_2();
+    exercise_3_9_4();
 }
 
 fn exercise_3_7_3() {
@@ -37,4 +40,24 @@ fn exercise_3_8_2() {
 
     println!("{:?}", nfa);
     println!("{:?}", nfa.to_dfa("whilen01").1);
+}
+
+fn exercise_3_9_2() {
+    println!("Exercise 3.9.2:");
+
+    println!("{:?}", DFA::parse("(a|b)*", "ab"));
+    println!("{:?}", DFA::parse("(a*|b*)*", "ab"));
+    println!("{:?}", DFA::parse("((ε|a)b*)*", "ab"));
+    println!("{:?}", DFA::parse("(a|b)*abb(a|b)*", "ab"));
+}
+
+fn exercise_3_9_4() {
+    println!("Exercise 3.9.4:");
+
+    println!("{:?}", DFA::parse("(a|b)*a(a|b)", "ab").minimize("ab"));
+    println!("{:?}", DFA::parse("(a|b)*a(a|b)(a|b)", "ab").minimize("ab"));
+    println!(
+        "{:?}",
+        DFA::parse("(a|b)*a(a|b)(a|b)(a|b)", "ab").minimize("ab")
+    );
 }

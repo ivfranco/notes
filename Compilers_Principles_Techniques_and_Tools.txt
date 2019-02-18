@@ -1605,3 +1605,258 @@ for each accepted state on the stack (from top to bottom), run another lookahead
 filter out if the second dfa failed
 ./Dragon_Book/chapter_3/simple-regex/src/dfa.rs
 
+3.9.1
+c1?     true            firstpos(c1)
+c1+     nullable(c1)    firstpos(c1)
+
+3.9.2
+./Dragon_Book/chapter_3/simple-regex
+a.  Transitions:
+        δ(0, a) = 0
+        δ(0, b) = 0
+    Final states: {0}
+b.  Transitions:
+        δ(0, b) = 0
+        δ(0, a) = 0
+    Final states: {0}
+c.  Transitions:
+        δ(0, b) = 0
+        δ(0, a) = 0
+    Final states: {0}
+d.  Transitions:
+        δ(0, a) = 1
+        δ(0, b) = 0
+        δ(1, a) = 1
+        δ(1, b) = 2
+        δ(2, a) = 1
+        δ(2, b) = 3
+        δ(3, b) = 3
+        δ(3, a) = 4
+        δ(4, a) = 4
+        δ(4, b) = 5
+        δ(5, a) = 4
+        δ(5, b) = 3
+    Final states: {3, 4, 5}
+
+3.9.3
+refer 3.9.2
+
+3.9.4
+./Dragon_Book/chapter_3/simple-regex
+a.  Transitions:
+        δ(0, b) = 0
+        δ(0, a) = 2
+        δ(1, b) = 0
+        δ(1, a) = 2
+        δ(2, b) = 1
+        δ(2, a) = 3
+        δ(3, a) = 3
+        δ(3, b) = 1
+    Final states: {1, 3}
+b.  Transitions:
+        δ(0, b) = 0
+        δ(0, a) = 7
+        δ(1, b) = 4
+        δ(1, a) = 1
+        δ(2, b) = 3
+        δ(2, a) = 6
+        δ(3, b) = 0
+        δ(3, a) = 7
+        δ(4, b) = 3
+        δ(4, a) = 6
+        δ(5, b) = 4
+        δ(5, a) = 1
+        δ(6, b) = 2
+        δ(6, a) = 5
+        δ(7, b) = 2
+        δ(7, a) = 5
+    Final states: {1, 3, 4, 6}
+c.  Transitions:
+        δ(0, a) = 15
+        δ(0, b) = 0
+        δ(1, a) = 11
+        δ(1, b) = 7
+        δ(2, a) = 12
+        δ(2, b) = 4
+        δ(3, a) = 3
+        δ(3, b) = 5
+        δ(4, a) = 2
+        δ(4, b) = 8
+        δ(5, a) = 14
+        δ(5, b) = 9
+        δ(6, a) = 3
+        δ(6, b) = 5
+        δ(7, a) = 2
+        δ(7, b) = 8
+        δ(8, a) = 1
+        δ(8, b) = 13
+        δ(9, a) = 1
+        δ(9, b) = 13
+        δ(10, a) = 14
+        δ(10, b) = 9
+        δ(11, a) = 6
+        δ(11, b) = 10
+        δ(12, a) = 6
+        δ(12, b) = 10
+        δ(13, b) = 0
+        δ(13, a) = 15
+        δ(14, b) = 4
+        δ(14, a) = 12
+        δ(15, a) = 11
+        δ(15, b) = 7
+    Final states: {1, 3, 4, 5, 9, 12, 13, 14}
+the number of states equals to 2^(the number of (a|b) at the end)
+
+3.9.5
+the DFA must remember all characters in the last n places
+otherwise there must be two different strings s1 and s2 of length n that:
+    after processing s1 and s2, the DFA ends in the same state p
+    let i be the last position where s1 and s2 differs
+    assume without loss of generality s1[i] = a and s2[i] = b
+    take s1[i..] and s2[i..], extend both to length n with identical substring c, get s1' and s2'
+        s1' = s1[i .. n] || c, s2' = s2[i .. n] || c
+    since s1 and s2 reaches the same state at position n - i, the last i characters are identical
+    the DFA must reach the same state p' after processing s1' and s2'
+    but s1 ∈ L((a|b)*a(a|b){n-1}), s2 ∉ L((a|b)*a(a|b){n-1}), p' must be both final and non-final
+
+4.2.1
+a.  S -> SS* -> SS+S* -> aS+S* -> aa+S* -> aa+a*
+b.  S -> SS* -> Sa* -> SS+a* -> Sa+a* -> aa+a*
+c.  S---S---S---a
+        |   |
+        |   S---a
+        |   |
+        |   +
+        |
+        S---a
+        |
+        *
+d.  the grammar generates postfix notation which is not ambiguous
+e.  see part d
+
+4.2.2
+a.  lm: S -> 0S1 -> 00S11 -> 000111
+    rm: the same
+    S---0
+        |
+        S---0
+        |   |
+        1   S---0
+            |   |
+            1   1
+    not ambiguous, only one production with one non-terminal symbol
+b.  prefix notation
+    similar to 4.2.1
+c.  lm: S   -> S(S)S -> (S)S -> (S(S)S)S -> ((S)S)S -> (()S)S 
+            -> (()S(S)S)S -> (()(S)S)S -> (()()S)S -> (()()S)S -> (()())S -> (()())
+    rm: symmetric
+    S---S---ε
+        |
+        (
+        |
+        S---S---S---ε
+        |   |   |
+        )   (   (
+        |   |   |
+        |   S   S---ε
+        |   |   |
+        |   )   )
+        |   |   |
+        |   |   S---ε
+        |   |
+        |   S---ε
+        |
+        S---ε
+    ambiguous since both S -> (S)S | ε and S -> S(S) | ε can generate all balanced parentheses
+d.  lm: S   -> SS -> S*S -> (S)*S -> (S+S)*S -> (a+S)*S -> (a+a)*S -> (a+a)*a
+    rm: S   -> SS -> Sa -> S*a -> (S)*a -> (S+S)*a -> (S+a)*a -> (a+a)*a
+    S---S---(
+        |   |
+        |   S---S---a
+        |   |   |
+        |   |   +
+        |   |   |
+        |   |   S---a
+        |   |
+        |   )
+        |
+        S---a
+    ambiguous as both S =>* S+S and S =>* S*S
+e.  lm: S   -> (L) -> (L,S) -> (L,S,S) -> (S,S,S) -> ((L),S,S) -> ((L,S),S,S) -> ((S,S),S,S)
+            -> ((a,S),S,S) -> ((a,a),S,S) -> ((a,a),a,S) -> ((a,a),a,(L)) -> ((a,a),a,(S)) -> ((a,a),a,(a))
+    rm: S   -> (L) -> (L,S) -> (L,(L)) -> (L,(S)) -> (L,(a)) -> (L,S,(a)) -> (L,a,(a)) -> (S,a,(a))
+            -> ((L),a,(a)) -> ((L,S),a,(a)) -> ((L,a),a,(a)) -> ((S,a),a,(a)) -> ((a,a),a,(a))
+    S---(
+        |
+        L---L---L---S---(
+        |   |   |       |
+        |   |   ,       L---L---S---a
+        |   |   |       |   |
+        |   |   S---a   )   ,
+        |   |               |
+        |   ,               S---a
+        |   |
+        |   S---a
+        |
+        )
+    not ambiguous
+    the generated strings have natural tree-like structure 
+f.  lm: S   -> aSbS -> aaSbSbS -> aabSbS -> aabbS -> aabbaSbS -> aabbabS -> aabbab
+    rm: S   -> aSbS -> aSbaSbS -> aSbaSb -> aSbab -> aaSbSbab -> aaSbbab -> aabbab
+    S---a
+        |
+        S---a
+        |   |
+        |   S---ε
+        |   |
+        |   b 
+        |   | 
+        |   S---ε
+        |
+        b
+        |
+        S---a
+            |
+            S---ε
+            |
+            b 
+            |
+            S---ε
+    ambiguous
+    as proved in 2.2.2, this grammar can generate any string with equal number of a and b
+    thus ababab can be generated by a parse tree with initial production 
+        a(S:baba)b(S:ε)
+    or
+        a(S:ε)b(S:abab)
+g.  unambiguous by the techniques introduced in chapter 2
+
+4.2.3
+a.  1*(01+)*, or 
+    S       -> ones L | L
+    ones    -> 1 ones | 1
+    L       -> F L | ε
+    F       -> 0 ones
+b.  S   -> 0S1 | 1S0 | 0 | 1 | ε
+c.  S   -> 0S1S | 1S0S | ε
+d.  thanks https://cs.stackexchange.com/questions/16642/
+    let La = {w: #a(w) > #b(w)}, Lb = {w: #b(w) > #a(w)}, L= = {w: #a(w) = #b(w)}
+    from 2.2.2, L= can be generated by S -> aSbS | bSaS | ε
+    lemma: La = L=(aL=)+
+        for w ∈ La, denote wi as the prefix of w with length i
+        assume for |w| < n, w can be generated by L=(aL=)+
+        for |w| = n, define f(w, i) = #a(wi) - #b(wi)
+        f(w, 0) = 0, f(w, n) > 0, |f(w, i+1) - f(w, i)| <= 1
+        hence there must be some 0 <= i < n that f(w, i) = 0 and f(w, i+1) = 1
+        which means wi ∈ L= and w[i+1] = a
+        w = wi a suffix, where |suffix| < n and either suffix ∈ La or suffix ∈ L=
+        if suffix ∈ La, suffix can be generated by L=(aL=)+, w can be generated by L=aL=(aL=)+ = L=(aL=)+
+        if suffix ∈ L=, w can be generated by L=aL= ⊆ L=(aL=)+
+        for w ∈ L=(aL=)+, trivially #a(w) > #b(w), w ∈ La
+    symmetrically, Lb = L=(bL=)+
+    Lab -> La | Lb
+    La  -> L= A
+    A   -> a L= A | a L=
+    Lb  -> L= B
+    B   -> b L= B | b L=
+    L=  -> aL=bL= | bL=aL= | ε
+e.  

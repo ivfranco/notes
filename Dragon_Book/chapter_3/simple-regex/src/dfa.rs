@@ -1,8 +1,10 @@
 use crate::parser::Regex;
+use disjoint_sets::UnionFind;
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Debug, Formatter};
 
 pub type State = usize;
+pub const START: State = 0;
 
 pub struct DFA {
     map: Vec<HashMap<char, State>>,
@@ -29,12 +31,12 @@ impl DFA {
         pos_tree.populate_follow_pos(&mut follow_pos);
 
         let mut dfa = DFA::new(0, &[]);
-        let mut max_state = 0;
+        let mut max_state = START;
         let mut seen: HashMap<Vec<State>, State> = HashMap::new();
         let init = sorted(&pos_tree.first_pos);
-        seen.insert(init.clone(), 0);
+        seen.insert(init.clone(), START);
         if init.contains(&pos_tree.final_state()) {
-            dfa.install_final(0);
+            dfa.install_final(START);
         }
         let mut stack: Vec<Vec<State>> = vec![init];
 
@@ -73,6 +75,10 @@ impl DFA {
         DFA::from_regex(&Regex::parse(regex), alphabet)
     }
 
+    pub fn size(&self) -> usize {
+        self.map.len()
+    }
+
     pub fn init(&self) -> DFAState {
         DFAState::new(self)
     }
@@ -97,10 +103,18 @@ impl DFA {
         self.labels.insert(state, labels);
     }
 
+    pub fn minimize(&self, alphabet: &str) -> DFA {
+        minimize(self, alphabet)
+    }
+
     fn goto(&self, state: State, symbol: char) -> Option<State> {
         assert!(self.map.len() > state, "Out of bound state");
 
         self.map[state].get(&symbol).cloned()
+    }
+
+    fn goto_usize(&self, state: State, symbol: char) -> State {
+        self.goto(state, symbol).unwrap_or_else(|| self.size())
     }
 
     pub fn accept(&self, string: &str) -> bool {
@@ -158,12 +172,114 @@ impl DFA {
     }
 }
 
+fn reps(sets: &UnionFind) -> HashSet<usize> {
+    sets.to_vec().into_iter().collect()
+}
+
+fn minimize(dfa: &DFA, alphabet: &str) -> DFA {
+    let mut sets = init_sets(dfa);
+
+    loop {
+        let new_sets = evolve(dfa, &sets, alphabet);
+        if reps(&sets).len() == reps(&new_sets).len() {
+            break;
+        } else {
+            sets = new_sets;
+        }
+    }
+
+    group_states(dfa, &sets, alphabet)
+}
+
+fn init_sets(dfa: &DFA) -> UnionFind {
+    let mut sets = UnionFind::new(dfa.size() + 1);
+    //  if there's no final state in DFA, final_state = dfa.size(), a virtual dead state
+    //  no state will be unioned with it in that case
+    let final_state = dfa
+        .finals
+        .iter()
+        .next()
+        .cloned()
+        .unwrap_or_else(|| dfa.size());
+    //  if there's no non-final state, non_final_state = dfa.size(), a virtual dead state
+    //  no state will be unioned with it in that case
+    let non_final_state = (0..=dfa.size())
+        .find(|state| !dfa.finals.contains(state))
+        .unwrap();
+
+    for i in 0..dfa.size() {
+        if dfa.finals.contains(&i) {
+            sets.union(i, final_state);
+        } else {
+            sets.union(i, non_final_state);
+        }
+    }
+
+    sets
+}
+
+fn evolve(dfa: &DFA, sets: &UnionFind, alphabet: &str) -> UnionFind {
+    let mut new_sets = UnionFind::new(dfa.size() + 1);
+
+    for i in 0..dfa.size() {
+        for j in i + 1..dfa.size() {
+            let common_dest = alphabet
+                .chars()
+                .all(|symbol| sets.equiv(dfa.goto_usize(i, symbol), dfa.goto_usize(j, symbol)));
+            let common_orig = sets.equiv(i, j);
+            if common_dest && common_orig {
+                new_sets.union(i, j);
+            }
+        }
+    }
+
+    new_sets
+}
+
+fn group_states(dfa: &DFA, sets: &UnionFind, alphabet: &str) -> DFA {
+    let mut minimized = DFA::new(0, &[]);
+    let mut map: HashMap<State, State> = HashMap::new();
+    map.insert(sets.find(START), START);
+
+    let reps: Vec<State> = reps(sets)
+        .into_iter()
+        .filter(|state| *state < dfa.size())
+        .collect();
+
+    for i in &reps {
+        if !map.contains_key(i) {
+            map.insert(*i, map.len());
+        }
+    }
+
+    for rep in reps {
+        let from = map[&rep];
+        for symbol in alphabet.chars() {
+            let to_rep = sets.find(dfa.goto_usize(rep, symbol));
+            if to_rep != dfa.size() {
+                let to = map[&to_rep];
+                minimized.install_transition(from, symbol, to);
+            }
+        }
+    }
+
+    for f in &dfa.finals {
+        minimized.install_final(map[&sets.find(*f)]);
+    }
+
+    minimized
+}
+
 impl Debug for DFA {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "Transitions:")?;
 
         for (from, trans) in self.map.iter().enumerate() {
-            let labels = &self.labels[&from];
+            let labels = self
+                .labels
+                .get(&from)
+                .map(|vec| vec.as_slice())
+                .unwrap_or(&[]);
             if !labels.is_empty() {
                 write!(f, "    {}: ", from)?;
                 f.debug_set().entries(labels).finish()?;
@@ -190,7 +306,7 @@ impl<'a> DFAState<'a> {
     fn new(dfa: &'a DFA) -> Self {
         DFAState {
             dfa,
-            state: Some(0),
+            state: Some(START),
         }
     }
 
@@ -289,22 +405,27 @@ impl PosTree {
                 let lhs = PosTree::from_regex(lhs, env, state);
                 let rhs = PosTree::from_regex(rhs, env, state + lhs.size);
 
-                PosTree {
-                    size: lhs.size + rhs.size,
-                    nullable: lhs.nullable && rhs.nullable,
-                    first_pos: if lhs.nullable {
-                        lhs.first_pos.union(&rhs.first_pos).cloned().collect()
-                    } else {
-                        lhs.first_pos.clone()
-                    },
-                    last_pos: if rhs.nullable {
-                        lhs.last_pos.union(&rhs.last_pos).cloned().collect()
-                    } else {
-                        rhs.last_pos.clone()
-                    },
-                    node: SynNode::Concat(Box::new(lhs), Box::new(rhs)),
-                }
+                lhs.concat(rhs)
             }
+        }
+    }
+
+    fn concat(self, rhs: Self) -> Self {
+        let lhs = self;
+        PosTree {
+            size: lhs.size + rhs.size,
+            nullable: lhs.nullable && rhs.nullable,
+            first_pos: if lhs.nullable {
+                lhs.first_pos.union(&rhs.first_pos).cloned().collect()
+            } else {
+                lhs.first_pos.clone()
+            },
+            last_pos: if rhs.nullable {
+                lhs.last_pos.union(&rhs.last_pos).cloned().collect()
+            } else {
+                rhs.last_pos.clone()
+            },
+            node: SynNode::Concat(Box::new(lhs), Box::new(rhs)),
         }
     }
 
@@ -323,13 +444,7 @@ impl PosTree {
 
         env.insert(self.size, '#');
 
-        PosTree {
-            size: self.size + 1,
-            nullable: false,
-            first_pos: self.first_pos.clone(),
-            last_pos: end.last_pos.clone(),
-            node: SynNode::Concat(Box::new(self), Box::new(end)),
-        }
+        self.concat(end)
     }
 
     fn populate_follow_pos(&self, follow_pos: &mut HashMap<State, HashSet<State>>) {
@@ -379,18 +494,45 @@ fn dfa_construction_test() {
 
 #[test]
 fn dfa_accept_test() {
-    let dfa = DFA::parse("(a|b)*abb(a|b)*", "ab");
+    let mut dfa = DFA::parse("(a|b)*abb(a|b)*", "ab");
 
     assert!(dfa.accept("abb"));
     assert!(dfa.accept("aabbabbabab"));
     assert!(!dfa.accept("bba"));
     assert!(!dfa.accept(""));
     assert!(!dfa.accept("ababababab"));
+
+    dfa = dfa.minimize("ab");
+
+    assert!(dfa.accept("abb"));
+    assert!(dfa.accept("aabbabbabab"));
+    assert!(!dfa.accept("bba"));
+    assert!(!dfa.accept(""));
+    assert!(!dfa.accept("ababababab"));
+
+    dfa = DFA::parse("(a|b)*a(a|b)(a|b)", "ab");
+
+    assert!(dfa.accept("abaab"));
+    assert!(dfa.accept("abababb"));
+    assert!(!dfa.accept("abba"));
+    assert!(!dfa.accept(""));
+
+    let dfa = dfa.minimize("ab");
+
+    assert!(dfa.accept("abaab"));
+    assert!(dfa.accept("abababb"));
+    assert!(!dfa.accept("abba"));
+    assert!(!dfa.accept(""));
 }
 
 #[test]
 fn dfa_capture_test() {
-    let dfa = DFA::parse("(a|b)*abb(a|b)*", "ab");
+    let mut dfa = DFA::parse("(a|b)*abb(a|b)*", "ab");
+
+    assert_eq!(dfa.capture("ababbababccccc"), Some("ababbabab"));
+    assert_eq!(dfa.capture("ababab"), None);
+
+    dfa = dfa.minimize("ab");
 
     assert_eq!(dfa.capture("ababbababccccc"), Some("ababbabab"));
     assert_eq!(dfa.capture("ababab"), None);
