@@ -5,13 +5,17 @@ use std::fmt::{self, Debug, Formatter};
 pub enum Symbol {
     NonTerminal(String),
     Terminal(String),
+    Empty,
 }
+
+use self::Symbol::*;
 
 impl Symbol {
     fn as_str(&self) -> &str {
         match self {
             Symbol::NonTerminal(s) => &s,
             Symbol::Terminal(s) => &s,
+            Symbol::Empty => "ε",
         }
     }
 }
@@ -23,9 +27,60 @@ pub struct Production {
 }
 
 impl Production {
-    fn first_body_symbol(&self) -> Option<Symbol> {
-        self.body.first().cloned()
+    fn new(head: &str, body: Vec<Symbol>) -> Self {
+        Production {
+            head: head.to_owned(),
+            body,
+        }
     }
+
+    fn prefix_nonterm(&self, nonterm: &str) -> bool {
+        self.body
+            .first()
+            .map(|s| match s {
+                NonTerminal(..) => s.as_str() == nonterm,
+                _ => false,
+            })
+            .unwrap_or(false)
+    }
+
+    fn prefix(&self) -> Symbol {
+        self.body.first().cloned().unwrap()
+    }
+}
+
+fn eliminate_immediate_left_recursion(productions: &[Production]) -> Vec<Production> {
+    assert!(
+        !productions.is_empty(),
+        "Error: Empty set of productions cannot be recursive",
+    );
+
+    assert!(
+        productions.iter().all(|p| p.head == productions[0].head),
+        "Error: Inconsistent head detected when eliminating immediate left recursions",
+    );
+
+    let head = productions[0].head.clone();
+    let interm = format!("{}'", head);
+
+    let mut ps: Vec<Production> = productions
+        .iter()
+        .map(|p| {
+            if p.prefix_nonterm(&head) {
+                let mut body = (&p.body[1..]).to_owned();
+                body.push(NonTerminal(interm.clone()));
+                Production::new(&interm, body)
+            } else {
+                let mut body = p.body.to_owned();
+                body.push(NonTerminal(interm.clone()));
+                Production::new(&head, body)
+            }
+        })
+        .collect();
+
+    ps.push(Production::new(&interm, vec![Empty]));
+
+    ps
 }
 
 impl Debug for Production {
@@ -57,18 +112,5 @@ impl Grammar {
         }
 
         map
-    }
-
-    fn eliminate_left_recursion(&self) -> Grammar {
-        let map = self.group_by_head();
-        let heads = map.keys().cloned().collect::<Vec<_>>();
-        let mut productions: HashMap<String, Vec<Production>> = HashMap::new();
-
-        for (i, head) in heads.iter().enumerate() {}
-
-        Grammar {
-            start: self.start.clone(),
-            productions: productions.drain().flat_map(|(_, ps)| ps).collect(),
-        }
     }
 }

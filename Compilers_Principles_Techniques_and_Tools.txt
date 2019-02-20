@@ -1945,3 +1945,60 @@ d.  the total production length can be reduced to O(n^2) if the options can only
     (like in most C-like languages)
     thus it is not practical to allow these options to appear in arbitrary order
 
+4.3.1
+//  useful tools: https://mdaines.github.io/grammophone/
+a.  no change
+b.  no, the grammar is left-recursive
+c.  rexpr       -> rterm rexpr'
+    rexpr'      -> + rterm rexpr' | ε
+    rterm       -> rfactor rterm'
+    rterm'      -> rfactor rterm' | ε
+    rfactor     -> rprimary rfactor'
+    rfactor'    -> * rprimary rfactor' | ε
+    rprimary    -> a | b
+d.  yes
+
+4.3.2
+a.  S   -> S S op | a    
+    op  -> + | *
+    no, the grammar is left-recursive
+    S   -> a S'
+    S'  -> S op S' | ε
+    op  -> + | *
+    yes
+b.  S   -> 0 S'
+    S'  -> S 1 | 0 1
+    yes
+    not left-recursive
+    yes
+c.  no change
+    no, the grammar is left-recursive
+    S   -> S'
+    S'  -> (S) S S' | ε
+    yes
+d.  no change
+    no, the grammar is left-recursive
+    S   -> ( L )
+    L   -> S L'
+    L'  -> , S L' | ε
+    yes
+e.  no change
+    no, the grammar is left-recursive
+    bexpr   -> bterm bexpr'
+    bexpr'  -> or bterm bexpr' | ε
+    bterm   -> bfactor bterm'
+    bterm'  -> and bfactor bterm' | ε
+    bfactor -> not bfactor | ( bexpr ) | true | false
+    yes
+
+4.3.3
+thanks https://github.com/fool2fish/dragon-book-exercise-answers/blob/master/ch04/4.3/4.3.md
+simplify the grammar:
+    replace "if expr then" by "a"
+    replace "else" by "b"
+    "stmt" -> S, "matchedStmt" -> M, "other" -> c
+S   -> aS | M
+M   -> aMbS | c
+a sentence aacbacbc can be parsed as:
+    S => M => aMbS => aaMbSbc => aacbaSbc => aacbaMbc => aacbacbc, or
+    S => aS => aaMbS => aacbaMbS => aacbacbM => aacbacbc
