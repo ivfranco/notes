@@ -1,46 +1,13 @@
+mod parse_table;
+
+use crate::parse_table::ParseTable;
+use crate::parse_table::Production;
+use crate::parse_table::Symbol::{self, *};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
 
-#[derive(Clone, Hash, PartialEq)]
-pub enum Symbol<T> {
-    N(usize),
-    T(T),
-}
-
-impl<T: Debug> Symbol<T> {
-    fn to_string(&self, rev_map: &HashMap<usize, &str>) -> String {
-        match self {
-            N(s) => rev_map[s].to_owned(),
-            T(t) => format!("{:?}", t),
-        }
-    }
-}
-
-use self::Symbol::*;
-
-#[derive(Clone)]
-pub struct Production<T> {
-    head: usize,
-    body: Vec<Symbol<T>>,
-}
-
-impl<T: Debug> Production<T> {
-    fn to_string(&self, rev_map: &HashMap<usize, &str>) -> String {
-        let mut symbols = self
-            .body
-            .iter()
-            .map(|symbol| symbol.to_string(rev_map))
-            .collect::<Vec<_>>()
-            .join(" ");
-
-        if symbols.is_empty() {
-            symbols = "ε".to_owned();
-        }
-
-        format!("{} -> {}", N::<T>(self.head).to_string(rev_map), symbols)
-    }
-}
+const START: usize = 0;
 
 pub struct Grammar<T> {
     start: usize,
@@ -65,11 +32,54 @@ impl<T> Grammar<T> {
             follow: HashMap::new(),
         }
     }
+
+    fn rev_map(&self) -> HashMap<usize, &str> {
+        self.term_map
+            .iter()
+            .map(|(k, v)| (*v, k.as_str()))
+            .collect()
+    }
+
+    fn nonterm_len(&self) -> usize {
+        self.prod_map.keys().max().unwrap() + 1
+    }
+
+    fn new_dash_term(&self, nonterm: &str) -> String {
+        let mut dash = format!("{}'", nonterm);
+        while self.term_map.contains_key(&dash) {
+            dash.push('\'');
+        }
+        dash
+    }
+
+    fn query(&self, nonterm: &str) -> usize {
+        *self
+            .term_map
+            .get(nonterm)
+            .expect("Error: Query of unmentioned non-terminate symbol")
+    }
+
+    pub fn first(&self, symbol: &str) -> &HashSet<Option<T>> {
+        self.first_nonterm(self.query(symbol))
+    }
+
+    fn first_nonterm(&self, nonterm: usize) -> &HashSet<Option<T>> {
+        &self.first[&nonterm]
+    }
+
+    pub fn follow(&self, symbol: &str) -> &HashSet<Option<T>> {
+        self.follow_nonterm(self.query(symbol))
+    }
+
+    fn follow_nonterm(&self, nonterm: usize) -> &HashSet<Option<T>> {
+        &self.follow[&nonterm]
+    }
 }
 
 impl Grammar<String> {
     pub fn parse(start: &str, input: &[&str]) -> Self {
         let mut term_map: HashMap<String, usize> = HashMap::new();
+        term_map.insert(start.to_owned(), START);
 
         let parts: Vec<(&str, &str)> = input
             .iter()
@@ -109,32 +119,68 @@ impl Grammar<String> {
             })
             .collect();
 
-        let mut grammar = Grammar::new(term_map[start], prods, term_map.clone());
+        let mut grammar = Grammar::new(START, prods, term_map.clone());
         for s in term_map.values() {
             grammar.alloc(*s);
         }
+        grammar.update_first_and_follow();
         grammar
     }
 }
 
 impl<T: Clone + Eq + Hash> Grammar<T> {
+    fn split_left_recursion(&mut self, nonterm: &str) {
+        let orig = self.term_map[nonterm];
+        let productions = self.prod_map.remove(&orig).unwrap_or_else(|| vec![]);
+        let dash = self.nonterm_len();
+
+        let mut orig_prod = vec![];
+        let mut dash_prod = vec![];
+        dash_prod.push(Production {
+            head: dash,
+            body: vec![],
+        });
+
+        for p in productions {
+            if p.is_left_recursive() {
+                let mut body = p.body;
+                body.remove(0);
+                body.push(N(dash));
+                dash_prod.push(Production { head: dash, body });
+            } else {
+                let mut body = p.body;
+                body.push(N(dash));
+                orig_prod.push(Production { head: orig, body });
+            }
+        }
+
+        self.alloc(dash);
+        self.prod_map.insert(orig, orig_prod);
+        self.prod_map.insert(dash, dash_prod);
+
+        self.term_map.insert(self.new_dash_term(nonterm), dash);
+    }
+
+    pub fn eliminate_immediate_left_recursions(&mut self) {
+        let nonterms: Vec<String> = self.term_map.keys().cloned().collect();
+        for nonterm in nonterms {
+            if self.prod_map[&self.query(&nonterm)]
+                .iter()
+                .any(|p| p.is_left_recursive())
+            {
+                self.split_left_recursion(&nonterm);
+            }
+        }
+        self.update_first_and_follow();
+    }
+
     fn alloc(&mut self, nonterm: usize) {
         self.prod_map.entry(nonterm).or_insert_with(|| vec![]);
         self.first.entry(nonterm).or_insert_with(HashSet::new);
         self.follow.entry(nonterm).or_insert_with(HashSet::new);
     }
 
-    pub fn first(&self, symbol: &str) -> &HashSet<Option<T>> {
-        let s = self.term_map[symbol];
-        &self.first[&s]
-    }
-
-    pub fn follow(&self, symbol: &str) -> &HashSet<Option<T>> {
-        let s = self.term_map[symbol];
-        &self.follow[&s]
-    }
-
-    fn calc_first(&self, symbols: &[Symbol<T>]) -> HashSet<Option<T>> {
+    fn string_first(&self, symbols: &[Symbol<T>]) -> HashSet<Option<T>> {
         let mut set = HashSet::new();
 
         let nullable = symbols.iter().all(|symbol| {
@@ -170,7 +216,7 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
     fn update_first_once(&mut self) -> bool {
         let mut updated = false;
         for p in self.prod_map.values().flatten() {
-            let incre = self.calc_first(&p.body);
+            let incre = self.string_first(&p.body);
             let set = self.first.entry(p.head).or_insert_with(HashSet::new);
             let old_len = set.len();
             set.extend(incre);
@@ -192,7 +238,7 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
             for i in 0..p.body.len() {
                 if let N(s) = p.body[i] {
                     let suffix = &p.body[i + 1..];
-                    let mut incre = self.calc_first(suffix);
+                    let mut incre = self.string_first(suffix);
                     if incre.remove(&None) {
                         incre.extend(self.follow[&p.head].iter().cloned());
                     }
@@ -207,20 +253,66 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
         updated
     }
 
-    pub fn update_first_and_follow(&mut self) {
+    fn update_first_and_follow(&mut self) {
         while self.update_first_once() {}
         while self.update_follow_once() {}
+    }
+
+    fn safe_pair(&self, alpha: &Production<T>, beta: &Production<T>) -> bool {
+        assert_eq!(alpha.head, beta.head);
+
+        let head = alpha.head;
+        let alpha_first = self.string_first(&alpha.body);
+        let beta_first = self.string_first(&beta.body);
+        let follow = self.follow_nonterm(head);
+
+        let disjoint_first = alpha_first.is_disjoint(&beta_first);
+        let alpha_overlapping_follow =
+            beta_first.contains(&None) && !alpha_first.is_disjoint(&follow);
+        let beta_overlapping_follow =
+            alpha_first.contains(&None) && !beta_first.is_disjoint(&follow);
+
+        disjoint_first && !alpha_overlapping_follow && !beta_overlapping_follow
+    }
+
+    pub fn is_ll1(&self) -> bool {
+        for ps in self.prod_map.values() {
+            for (i, p0) in ps.iter().enumerate() {
+                for p1 in &ps[i + 1..] {
+                    if !self.safe_pair(p0, p1) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        true
+    }
+
+    pub fn to_ll1(&self) -> ParseTable<T> {
+        assert!(self.is_ll1());
+
+        let mut tables = vec![HashMap::new(); self.nonterm_len()];
+
+        for p in self.prod_map.values().flatten() {
+            let first = self.string_first(&p.body);
+            for t in first.iter().filter_map(|o| o.clone()) {
+                tables[p.head].insert(Some(t), p.clone());
+            }
+            if first.contains(&None) {
+                for t in self.follow_nonterm(p.head).iter().cloned() {
+                    tables[p.head].insert(t, p.clone());
+                }
+            }
+        }
+
+        ParseTable::new(self.start, tables)
     }
 }
 
 impl<T: Debug> Debug for Grammar<T> {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        let rev_map = self
-            .term_map
-            .iter()
-            .map(|(k, v)| (*v, k.as_str()))
-            .collect();
-
+        let rev_map = self.rev_map();
         for p in self.prod_map.values().flatten() {
             writeln!(f, "{}", p.to_string(&rev_map))?;
         }
@@ -230,51 +322,128 @@ impl<T: Debug> Debug for Grammar<T> {
 }
 
 #[cfg(test)]
-fn constr_set(tokens: &[&str]) -> HashSet<Option<String>> {
-    tokens
-        .iter()
-        .map(|token| {
-            if *token == "ε" || *token == "$" {
-                None
-            } else {
-                Some(token.to_string())
-            }
-        })
-        .collect()
-}
+mod test {
+    use super::*;
 
-#[test]
-fn first_follow_test() {
-    let mut grammar = Grammar::parse(
-        "E",
-        &[
-            "E -> T E'",
-            "E' -> + T E'",
-            "E' -> ε",
-            "T -> F T'",
-            "T' -> * F T'",
-            "T' -> ε",
-            "F -> ( E )",
-            "F -> id",
-        ],
-    );
-    grammar.update_first_and_follow();
+    fn constr_set(tokens: &[&str]) -> HashSet<Option<String>> {
+        tokens
+            .iter()
+            .map(|token| {
+                if *token == "ε" || *token == "$" {
+                    None
+                } else {
+                    Some(token.to_string())
+                }
+            })
+            .collect()
+    }
 
-    let e_first = constr_set(&["(", "id"]);
-    assert_eq!(grammar.first("E"), &e_first);
-    assert_eq!(grammar.first("T"), &e_first);
-    assert_eq!(grammar.first("F"), &e_first);
+    #[test]
+    fn first_follow_test() {
+        let grammar = Grammar::parse(
+            "E",
+            &[
+                "E -> T E'",
+                "E' -> + T E'",
+                "E' -> ε",
+                "T -> F T'",
+                "T' -> * F T'",
+                "T' -> ε",
+                "F -> ( E )",
+                "F -> id",
+            ],
+        );
 
-    assert_eq!(grammar.first("E'"), &constr_set(&["+", "ε"]));
-    assert_eq!(grammar.first("T'"), &constr_set(&["*", "ε"]));
+        let e_first = constr_set(&["(", "id"]);
+        assert_eq!(grammar.first("E"), &e_first);
+        assert_eq!(grammar.first("T"), &e_first);
+        assert_eq!(grammar.first("F"), &e_first);
 
-    let e_follow = constr_set(&[")", "$"]);
-    assert_eq!(grammar.follow("E"), &e_follow);
-    assert_eq!(grammar.follow("E'"), &e_follow);
+        assert_eq!(grammar.first("E'"), &constr_set(&["+", "ε"]));
+        assert_eq!(grammar.first("T'"), &constr_set(&["*", "ε"]));
 
-    let t_follow = constr_set(&["+", ")", "$"]);
-    assert_eq!(grammar.follow("T"), &t_follow);
-    assert_eq!(grammar.follow("T'"), &t_follow);
+        let e_follow = constr_set(&[")", "$"]);
+        assert_eq!(grammar.follow("E"), &e_follow);
+        assert_eq!(grammar.follow("E'"), &e_follow);
 
-    assert_eq!(grammar.follow("F"), &constr_set(&["+", "*", ")", "$"]));
+        let t_follow = constr_set(&["+", ")", "$"]);
+        assert_eq!(grammar.follow("T"), &t_follow);
+        assert_eq!(grammar.follow("T'"), &t_follow);
+
+        assert_eq!(grammar.follow("F"), &constr_set(&["+", "*", ")", "$"]));
+    }
+
+    #[test]
+    fn left_recursion_test() {
+        let mut grammar = Grammar::parse(
+            "bexpr",
+            &[
+                "bexpr -> bexpr or bterm",
+                "bexpr -> bterm",
+                "bterm -> bterm and bfactor",
+                "bterm -> bfactor",
+                "bfactor -> not bfactor",
+                "bfactor -> ( bexpr )",
+                "bfactor -> true",
+                "bfactor -> false",
+            ],
+        );
+
+        grammar.eliminate_immediate_left_recursions();
+
+        assert_eq!(grammar.first("bexpr'"), &constr_set(&["or", "ε"]));
+        assert_eq!(grammar.first("bterm'"), &constr_set(&["and", "ε"]));
+    }
+
+    #[test]
+    fn ll1_test() {
+        let grammar = Grammar::parse(
+            "stmt",
+            &[
+                "stmt -> if ( expr ) stmt else stmt",
+                "stmt -> while ( expr ) stmt",
+                "stmt -> { stmt_list }",
+            ],
+        );
+
+        assert!(grammar.is_ll1());
+
+        let grammar = Grammar::parse(
+            "S",
+            &[
+                "S -> i E t S S'",
+                "S -> a",
+                "S' -> e S",
+                "S' -> ε",
+                "E -> b",
+            ],
+        );
+
+        assert!(!grammar.is_ll1());
+    }
+
+    #[test]
+    fn parse_test() {
+        let grammar = Grammar::parse(
+            "E",
+            &[
+                "E -> T E'",
+                "E' -> + T E'",
+                "E' -> ε",
+                "T -> F T'",
+                "T' -> * F T'",
+                "T' -> ε",
+                "F -> ( E )",
+                "F -> id",
+            ],
+        );
+        let table = grammar.to_ll1();
+        let input: Vec<String> = "id + id * id"
+            .split_whitespace()
+            .map(|s| s.to_owned())
+            .collect();
+
+        let ps = table.parse(&input).unwrap();
+        assert_eq!(ps.len(), 11);
+    }
 }
