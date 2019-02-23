@@ -1,3 +1,4 @@
+pub mod backtrack;
 mod parse_table;
 
 use crate::parse_table::ParseTable;
@@ -11,8 +12,8 @@ const START: usize = 0;
 
 pub struct Grammar<T> {
     start: usize,
-    prod_map: HashMap<usize, Vec<Production<T>>>,
-    term_map: HashMap<String, usize>,
+    pub prod_map: HashMap<usize, Vec<Production<T>>>,
+    pub term_map: HashMap<String, usize>,
     first: HashMap<usize, HashSet<Option<T>>>,
     follow: HashMap<usize, HashSet<Option<T>>>,
 }
@@ -33,10 +34,10 @@ impl<T> Grammar<T> {
         }
     }
 
-    fn rev_map(&self) -> HashMap<usize, &str> {
+    pub fn rev_map(&self) -> HashMap<usize, String> {
         self.term_map
             .iter()
-            .map(|(k, v)| (*v, k.as_str()))
+            .map(|(k, v)| (*v, k.to_owned()))
             .collect()
     }
 
@@ -131,8 +132,8 @@ impl Grammar<String> {
 impl<T: Clone + Eq + Hash> Grammar<T> {
     fn split_left_recursion(&mut self, nonterm: &str) {
         let orig = self.term_map[nonterm];
-        let productions = self.prod_map.remove(&orig).unwrap_or_else(|| vec![]);
         let dash = self.nonterm_len();
+        let productions = self.prod_map.remove(&orig).unwrap_or_else(|| vec![]);
 
         let mut orig_prod = vec![];
         let mut dash_prod = vec![];
@@ -180,7 +181,32 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
         self.follow.entry(nonterm).or_insert_with(HashSet::new);
     }
 
-    fn string_first(&self, symbols: &[Symbol<T>]) -> HashSet<Option<T>> {
+    pub fn eliminate_left_recursions(&mut self) {
+        let rev_map = self.rev_map();
+        for i in 0..self.nonterm_len() {
+            let orig_prods = self.prod_map.remove(&i).unwrap();
+            let mut new_prods: Vec<Production<T>> = vec![];
+
+            for pi in orig_prods {
+                match pi.body.first() {
+                    Some(N(j)) if *j < i => {
+                        for pj in &self.prod_map[j] {
+                            let mut body = pj.body.clone();
+                            body.extend(pi.body.iter().skip(1).cloned());
+                            new_prods.push(Production { head: i, body });
+                        }
+                    }
+                    _ => new_prods.push(pi),
+                }
+            }
+            self.prod_map.insert(i, new_prods);
+            self.split_left_recursion(&rev_map[&i]);
+        }
+
+        self.update_first_and_follow();
+    }
+
+    pub fn string_first(&self, symbols: &[Symbol<T>]) -> HashSet<Option<T>> {
         let mut set = HashSet::new();
 
         let nullable = symbols.iter().all(|symbol| {

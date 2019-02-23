@@ -2002,3 +2002,160 @@ M   -> aMbS | c
 a sentence aacbacbc can be parsed as:
     S => M => aMbS => aaMbSbc => aacbaSbc => aacbaMbc => aacbacbc, or
     S => aS => aaMbS => aacbaMbS => aacbacbM => aacbacbc
+
+4.4.1
+a.  S''' -> ε
+    S -> "0" S' S''
+    S' -> "0" S' "1" S'''
+    S' -> "1" S'''
+    S'' -> ε
+    M[S, "0"]: S -> "0" S' S''
+    M[S', "1"]: S' -> "1" S'''
+    M[S', "0"]: S' -> "0" S' "1" S'''
+    M[S'', $]: S'' -> ε
+    M[S''', $]: S''' -> ε
+    M[S''', "1"]: S''' -> ε
+b.  M[S, "a"]: S -> "a"
+    M[S, "*"]: S -> "*" S S
+    M[S, "+"]: S -> "+" S S
+c.  S' -> ε
+    S' -> "(" S ")" S S'
+    S -> S'
+    not LL(1)
+    M[S, (]: S -> S'
+    M[S, )]: S -> S'
+    M[S, $]: S -> S'
+    M[S', (]: S' -> ( S ) S S', S' -> ε
+    M[S', )]: S' -> ε
+    M[S', $]: S' -> ε
+d.  S -> "(" S ")" S'
+    S -> "a" S'
+    S' -> ε
+    S' -> "+" S S'
+    S' -> S S'
+    S' -> "*" S'
+    not LL(1)
+    M[S, (]: S -> ( S ) S'
+    M[S, a]: S -> a S'
+    M[S', (]: S' -> S S', S' -> ε
+    M[S', )]: S' -> ε
+    M[S', +]: S' -> + S S', S' -> ε
+    M[S', *]: S' -> * S', S' -> ε
+    M[S', a]: S' -> S' -> S S', S' -> ε
+    M[S', $]: S' -> ε
+e.  S -> "(" L ")"
+    S -> "a"
+    L -> S L'
+    L' -> ε
+    L' -> "," S L'
+    Not LL(1)
+    M[S, (]: S -> ( L )
+    M[S, a]: S -> a
+    M[L, (]: L -> S L'
+    M[L, a]: L -> S L'
+    M[L', )]: L' -> ε
+    M[L', ,]: L' -> , S L', L' -> ε
+f.  bterm -> bfactor bterm'
+    bexpr -> bterm bexpr'
+    bterm' -> ε
+    bterm' -> "and" bfactor bterm'
+    bfactor -> "not" bfactor
+    bfactor -> "(" bexpr ")"
+    bfactor -> "true"
+    bfactor -> "false"
+    bexpr' -> ε
+    bexpr' -> "or" bterm bexpr'
+    Not LL(1)
+    M[bexpr, not]: bexpr -> bterm bexpr'
+    M[bexpr, true]: bexpr -> bterm bexpr'
+    M[bexpr, false]: bexpr -> bterm bexpr'
+    M[bexpr, (]: bexpr -> bterm bexpr'
+    M[bexpr', or]: bexpr' -> or bterm bexpr', bexpr' -> ε
+    M[bexpr', )]: bexpr' -> ε
+    M[bterm, (]: bterm -> bfactor bterm'
+    M[bterm, not]: bterm -> bfactor bterm'
+    M[bterm, true]: bterm -> bfactor bterm'
+    M[bterm, false]: bterm -> bfactor bterm'
+    M[bterm', and]: bterm' -> and bfactor bterm', bterm' -> ε
+    M[bterm', )]: bterm' -> ε
+    M[bterm', and]: bterm' -> ε
+    M[bterm', or]: bterm' -> ε
+    M[bterm', $]: bterm' -> ε
+    M[bfactor, (]: bfactor -> ( bexpr )
+    M[bfactor, not]: bfactor -> not bfactor
+    M[bfactor, true]: bfactor -> true
+    M[bfactor, false]: bfactor -> false
+
+4.4.2
+left factoring:
+    S   -> S S OP | a
+    OP  -> + | *
+eliminate left recursions:
+    S   -> a S'
+    S'  -> S OP S' | ε
+    OP  -> + | *
+replace S with a S':
+    S   -> a S'
+    S'  -> a S' OP S' | ε
+    OP  -> + | *
+M[S, "a"]: S -> "a" S'
+M[S', "a"]: S' -> "a" S' OP S'
+M[S', "+"]: S' -> ε
+M[S', "*"]: S' -> ε
+M[S', $]: S' -> ε
+M[OP, "+"]: OP -> "+"
+M[OP, "*"]: OP -> "*"
+
+4.4.3
+first of S: {"a"}
+follow of S: {"+", "$", "a", "-"}
+
+4.4.4
+a.  first of S: {"0"}
+    follow of S: {"1", "$"}
+b.  first of S: {"*", "a", "+"}
+    follow of S: {"+", "*", "a", "$"}
+c.  first of S: {"ε", "("}
+    follow of S: {")", "(", "$"}
+d.  first of S: {"a", "("}
+    follow of S: {"(", "a", ")", "+", "*", "$"}
+e.  first of S: {"a", "("}
+    follow of S: {")", ",", "$"}
+    first of L: {"a", "("}
+    follow of L: {")", ","}
+f.  first of bfactor: {"true", "(", "not", "false"}
+    follow of bfactor: {"$", ")", "and", "or"}
+    first of bexpr: {"true", "false", "(", "not"}
+    follow of bexpr: {")", "or", "$"}
+    first of bterm: {"(", "true", "false", "not"}
+    follow of bterm: {")", "or", "and", "$"}
+
+4.4.5
+a.  ./Dragon_Book/chapter_4/grammars/src/backtrack.rs
+    for the input aaaaaa:
+    S => aSa => a(aSa)a => aa(aSa)aa => aaa(aSa)aaa => aaaa(aSa)aaaa => aaaaa(aSa)aaaaa => aaaaaa|(aSa)aaaaaa (fail)
+                                                                                        => aaaaaa|(aa)aaaaaa (fail)
+                                                                     => aaaaa(a|a)aaaaa (fail consuming second a)
+                                                    => aaaa(aa)|aaaa (succeed)
+                                                    => aaa(aaa|a)aaa (fail consuming second a)
+                                     => aaa(aa)a|aa (succeed)
+                                     => aa(aaaa)|aa (succeed)
+                                     => a(aaaaa|a)a (fail, backtrack to aSa -> aaaa)
+             => a(aa)a (succeed)
+             => (aaaa) (succeed, terminated)
+b.  let i denote the index of the "a" right after the opening parenthesis (1 based)
+    on the first failure, i = len(s) + 1
+    after other two immediate failures, i = len(s) - 1
+    from now on,
+        if i > len(s) / 2, the parser will eventually fail and move i to a new position i' where
+            i - i' = len(s) + 1 - (i + 1)
+                i' = 2i - len(s), or
+                i  = (i' + len(s)) / 2
+        if i <= len(s) / 2, parse succeeds with the last len(s) - 2i characters discarded
+    the string may only be recognized as a whole if at some moment i = len(s) / 2
+    work backwards from i' to i, the value of i an iteration before i = len(s) / 2 would have to be 3/4 len(s)
+    the series of values of i is len(s)/2 -> 3len(s)/4 -> 7len(s)/8 -> ... -> len(s) - 1
+    which means for some integer k, 
+        len(s) - 1 = (2^k - 1)len(s) / 2^k
+        1 = len(s) / 2^k
+        len(s) = 2^k

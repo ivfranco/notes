@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Debug, Formatter, Write};
 use std::hash::Hash;
 
 #[derive(Clone, Debug, Hash, PartialEq)]
@@ -10,7 +10,7 @@ pub enum Symbol<T> {
 use self::Symbol::*;
 
 impl<T: Debug> Symbol<T> {
-    pub fn to_string(&self, rev_map: &HashMap<usize, &str>) -> String {
+    pub fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
         match self {
             N(s) => rev_map[s].to_owned(),
             T(t) => format!("{:?}", t),
@@ -25,7 +25,7 @@ pub struct Production<T> {
 }
 
 impl<T: Debug> Production<T> {
-    pub fn to_string(&self, rev_map: &HashMap<usize, &str>) -> String {
+    pub fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
         let mut symbols = self
             .body
             .iter()
@@ -98,6 +98,26 @@ pub struct ParseTable<T> {
 impl<T> ParseTable<T> {
     pub fn new(start: usize, tables: Tables<T>) -> Self {
         ParseTable { start, tables }
+    }
+}
+
+impl<T: Eq + Hash + Debug> ParseTable<T> {
+    pub fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
+        let mut res = String::new();
+        for (n, map) in self.tables.iter().enumerate() {
+            let nonterm = &rev_map[&n];
+            for (opt, p) in map.iter() {
+                let term = if let Some(t) = opt {
+                    format!("{:?}", t)
+                } else {
+                    "$".to_owned()
+                };
+
+                writeln!(res, "M[{}, {}]: {}", nonterm, term, p.to_string(rev_map)).unwrap();
+            }
+        }
+
+        res
     }
 }
 
