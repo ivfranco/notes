@@ -2,12 +2,21 @@ use std::collections::HashMap;
 use std::fmt::{self, Debug, Formatter, Write};
 use std::hash::Hash;
 
-#[derive(Clone, Debug, Hash, PartialEq)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Symbol<T> {
     N(usize),
     T(T),
 }
 use self::Symbol::*;
+
+impl<T> Symbol<T> {
+    pub fn as_token(&self) -> Option<&T> {
+        match self {
+            N(..) => None,
+            T(t) => Some(t),
+        }
+    }
+}
 
 impl<T: Debug> Symbol<T> {
     pub fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
@@ -18,7 +27,7 @@ impl<T: Debug> Symbol<T> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Production<T> {
     pub head: usize,
     pub body: Vec<Symbol<T>>,
@@ -156,4 +165,31 @@ impl<T: Debug + Clone + Eq + Hash> ParseTable<T> {
 
         Ok(output)
     }
+}
+
+#[test]
+fn parse_test() {
+    use crate::Grammar;
+
+    let grammar = Grammar::parse(
+        "E",
+        &[
+            "E -> T E'",
+            "E' -> + T E'",
+            "E' -> ε",
+            "T -> F T'",
+            "T' -> * F T'",
+            "T' -> ε",
+            "F -> ( E )",
+            "F -> id",
+        ],
+    );
+    let table = grammar.to_ll1();
+    let input: Vec<String> = "id + id * id"
+        .split_whitespace()
+        .map(|s| s.to_owned())
+        .collect();
+
+    let ps = table.parse(&input).unwrap();
+    assert_eq!(ps.len(), 11);
 }

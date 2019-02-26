@@ -1,9 +1,11 @@
 pub mod backtrack;
 mod parse_table;
+mod slr;
 
 use crate::parse_table::ParseTable;
 use crate::parse_table::Production;
 use crate::parse_table::Symbol::{self, *};
+use crate::slr::{Canonical, Token};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
@@ -130,6 +132,37 @@ impl Grammar<String> {
 }
 
 impl<T: Clone + Eq + Hash> Grammar<T> {
+    fn augment(&mut self) {
+        let rev_map = self.rev_map();
+        let start_symbol = rev_map[&self.start].as_str();
+        let new_start_symbol = self.new_dash_term(&start_symbol);
+        let new_start = self.nonterm_len();
+
+        let production = Production {
+            head: new_start,
+            body: vec![N(self.start)],
+        };
+
+        self.alloc(new_start);
+        self.prod_map.insert(new_start, vec![production]);
+        self.term_map.insert(new_start_symbol, new_start);
+        self.start = new_start;
+        self.update_first_and_follow();
+    }
+
+    fn alphabet(&self) -> HashSet<Symbol<T>> {
+        let mut alphabet: HashSet<Symbol<T>> = self
+            .prod_map
+            .values()
+            .flatten()
+            .flat_map(|p| &p.body)
+            .cloned()
+            .collect();
+
+        alphabet.insert(N(self.start));
+        alphabet
+    }
+
     fn split_left_recursion(&mut self, nonterm: &str) {
         let orig = self.term_map[nonterm];
         let dash = self.nonterm_len();
@@ -266,7 +299,13 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
                     let suffix = &p.body[i + 1..];
                     let mut incre = self.string_first(suffix);
                     if incre.remove(&None) {
-                        incre.extend(self.follow[&p.head].iter().cloned());
+                        incre.extend(
+                            self.follow
+                                .entry(p.head)
+                                .or_insert_with(HashSet::new)
+                                .iter()
+                                .cloned(),
+                        );
                     }
                     let set = self.follow.entry(s).or_insert_with(HashSet::new);
                     let old_len = set.len();
@@ -279,7 +318,17 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
         updated
     }
 
+    fn reset_first_and_follow(&mut self) {
+        for set in self.first.values_mut() {
+            set.clear();
+        }
+        for set in self.follow.values_mut() {
+            set.clear();
+        }
+    }
+
     fn update_first_and_follow(&mut self) {
+        self.reset_first_and_follow();
         while self.update_first_once() {}
         while self.update_follow_once() {}
     }
@@ -333,6 +382,13 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
         }
 
         ParseTable::new(self.start, tables)
+    }
+}
+
+impl<T: Token> Grammar<T> {
+    pub fn canonical(&mut self) -> Canonical<T> {
+        self.augment();
+        Canonical::new(self)
     }
 }
 
@@ -446,30 +502,5 @@ mod test {
         );
 
         assert!(!grammar.is_ll1());
-    }
-
-    #[test]
-    fn parse_test() {
-        let grammar = Grammar::parse(
-            "E",
-            &[
-                "E -> T E'",
-                "E' -> + T E'",
-                "E' -> ε",
-                "T -> F T'",
-                "T' -> * F T'",
-                "T' -> ε",
-                "F -> ( E )",
-                "F -> id",
-            ],
-        );
-        let table = grammar.to_ll1();
-        let input: Vec<String> = "id + id * id"
-            .split_whitespace()
-            .map(|s| s.to_owned())
-            .collect();
-
-        let ps = table.parse(&input).unwrap();
-        assert_eq!(ps.len(), 11);
     }
 }
