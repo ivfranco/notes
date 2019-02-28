@@ -3,8 +3,8 @@ use crate::parse_table::{
     Symbol::{self, *},
 };
 use crate::Grammar;
-use std::collections::{BTreeMap, BTreeSet};
-use std::fmt::Debug;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::fmt::{self, Debug, Formatter};
 use std::hash::Hash;
 
 type Nonterm = usize;
@@ -54,6 +54,28 @@ impl<'a, T> Item<'a, T> {
     }
 }
 
+impl<'a, T: Debug> Item<'a, T> {
+    fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
+        let mut symbols: Vec<String> = self
+            .production
+            .body
+            .iter()
+            .map(|symbol| symbol.to_string(rev_map))
+            .collect();
+        if symbols.is_empty() {
+            symbols.push("ε".to_owned());
+        }
+
+        symbols.insert(self.dot, ".".to_owned());
+
+        format!(
+            "{} -> {}",
+            N::<T>(self.production.head).to_string(rev_map),
+            symbols.join(" ")
+        )
+    }
+}
+
 #[derive(Clone)]
 struct ItemSet<'a, T> {
     grammar: &'a Grammar<T>,
@@ -89,10 +111,6 @@ impl<'a, T: Token> ItemSet<'a, T> {
 
     fn is_empty(&self) -> bool {
         self.items.is_empty()
-    }
-
-    fn contains(&self, item: &Item<T>) -> bool {
-        self.items.contains(item)
     }
 
     fn closure(&self) -> Self {
@@ -142,6 +160,16 @@ impl<'a, T: Token> ItemSet<'a, T> {
     }
 }
 
+impl<'a, T: Debug> Debug for ItemSet<'a, T> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        let rev_map = self.grammar.rev_map();
+        for item in &self.items {
+            writeln!(f, "{}", item.to_string(&rev_map))?;
+        }
+        Ok(())
+    }
+}
+
 fn items<'a, T: Token>(grammar: &'a Grammar<T>) -> BTreeMap<ItemSet<'a, T>, State> {
     let alphabet = grammar.alphabet();
     let mut set_map = BTreeMap::new();
@@ -188,16 +216,8 @@ impl<'a, T: Token> Canonical<'a, T> {
     pub fn slr(&self) -> SLRTable<T> {
         let mut tables = vec![Table::new(); self.size()];
         let mut goto = BTreeMap::new();
-        let finish = Item::new_start(self.grammar).increment();
 
         for (set, &i) in &self.set_map {
-            if set.contains(&finish) {
-                tables[i]
-                    .entry(None)
-                    .or_insert_with(Vec::new)
-                    .push(Action::Accept);
-            }
-
             for n in 0..self.grammar.nonterm_len() {
                 let dest = set.goto(&N(n));
                 if let Some(j) = self.set_map.get(&dest) {
@@ -218,7 +238,13 @@ impl<'a, T: Token> Canonical<'a, T> {
                             .or_insert_with(Vec::new)
                             .push(Action::Shift(j));
                     }
-                    None if item.head() != self.grammar.start => {
+                    None if item.head() == self.grammar.start => {
+                        tables[i]
+                            .entry(None)
+                            .or_insert_with(Vec::new)
+                            .push(Action::Accept);
+                    }
+                    None => {
                         for t in self.grammar.follow_nonterm(item.head()) {
                             tables[i]
                                 .entry(t.as_ref())
@@ -239,12 +265,31 @@ impl<'a, T: Token> Canonical<'a, T> {
     }
 }
 
-#[derive(Clone)]
+impl<'a, T: Debug> Debug for Canonical<'a, T> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        for (set, i) in &self.set_map {
+            writeln!(f, "Item set {}:", i)?;
+            write!(f, "{:?}", set)?;
+        }
+        Ok(())
+    }
+}
+
+#[derive(Clone, Debug)]
 enum Action<'a, T> {
     Shift(State),
     Reduce(&'a Production<T>),
     Accept,
     Error,
+}
+
+impl<'a, T: Debug> Action<'a, T> {
+    fn to_string(&self, rev_map: &HashMap<usize, String>) -> String {
+        match self {
+            Action::Reduce(p) => format!("Reduce({})", p.to_string(rev_map)),
+            _ => format!("{:?}", self),
+        }
+    }
 }
 
 type Table<'a, T> = BTreeMap<Option<&'a T>, Vec<Action<'a, T>>>;
@@ -256,7 +301,7 @@ pub struct SLRTable<'a, T> {
 }
 
 impl<'a, T> SLRTable<'a, T> {
-    pub fn is_slr1(&self) -> bool {
+    pub fn is_slr(&self) -> bool {
         self.tables
             .iter()
             .all(|table| table.values().all(|actions| actions.len() <= 1))
@@ -264,11 +309,11 @@ impl<'a, T> SLRTable<'a, T> {
 }
 
 impl<'a, T: Token> SLRTable<'a, T> {
-    fn query(&'a self, state: State, token: &Option<&'a T>) -> &'a Action<'a, T> {
+    fn query(&'a self, state: State, token: Option<&'a T>) -> &'a Action<'a, T> {
         self.tables
             .get(state)
             .expect("Error: Out of bound state")
-            .get(token)
+            .get(&token)
             .and_then(|v| v.first())
             .unwrap_or(&Action::Error)
     }
@@ -280,7 +325,7 @@ impl<'a, T: Token> SLRTable<'a, T> {
             .expect("Error: Undefined GOTO entry")
     }
 
-    fn parse(&self, input: &[T]) -> bool {
+    pub fn parse(&self, input: &[T]) -> bool {
         let mut stack = vec![START];
         let mut i = 0;
 
@@ -289,7 +334,7 @@ impl<'a, T: Token> SLRTable<'a, T> {
                 .last()
                 .expect("Error: Stack exhaused during SLR parsing");
 
-            match self.query(s, &input.get(i)) {
+            match self.query(s, input.get(i)) {
                 Action::Shift(t) => {
                     stack.push(*t);
                     println!("Shifted terminal: {:?}", input[i]);
@@ -311,6 +356,44 @@ impl<'a, T: Token> SLRTable<'a, T> {
             }
         }
     }
+}
+
+impl<'a, T: Debug> Debug for SLRTable<'a, T> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{:?}", self.canonical)?;
+
+        let rev_map = self.canonical.grammar.rev_map();
+
+        for (state, table) in self.tables.iter().enumerate() {
+            for (nonterm, actions) in table {
+                let symbol = nonterm.map_or("$".to_owned(), |n| format!("{:?}", n));
+                writeln!(f, "ACTION[{}, {}]:", state, symbol)?;
+
+                if actions.len() > 1 {
+                    writeln!(f, "Warning: conflicts")?;
+                }
+
+                for action in actions {
+                    writeln!(f, "    {}", action.to_string(&rev_map))?;
+                }
+            }
+        }
+
+        for ((state, nonterm), dest) in &self.goto {
+            writeln!(
+                f,
+                "GOTO({}, {}) = {}",
+                state,
+                N::<T>(*nonterm).to_string(&rev_map),
+                dest
+            )?;
+        }
+        Ok(())
+    }
+}
+
+pub fn tokenize(input: &str) -> Vec<String> {
+    input.split_whitespace().map(|s| s.to_owned()).collect()
 }
 
 #[test]
@@ -346,11 +429,16 @@ fn slr_parse_test() {
     );
     let canonical = grammar.canonical();
     let slr = canonical.slr();
-    assert!(slr.is_slr1());
+    assert!(slr.is_slr());
 
-    let input: Vec<String> = "id * id + id"
+    let accepted_input: Vec<String> = "id * id + id"
         .split_whitespace()
         .map(|s| s.to_owned())
         .collect();
-    assert!(slr.parse(&input));
+    let rejected_input: Vec<String> = "id * * id + id"
+        .split_whitespace()
+        .map(|s| s.to_owned())
+        .collect();
+    assert!(slr.parse(&accepted_input));
+    assert!(!slr.parse(&rejected_input));
 }

@@ -2198,3 +2198,169 @@ b.  $               aaa*a++$
     $SS             +$      
     $SS+            $           reduce S -> SS+
     $S              $
+
+4.6.1
+let vp be a function from set of right sentential forms to set of corresponding viable prefixes
+trivially vp(A ∪ B) = vp(A) ∪ vp(B)
+a.  inductively, let Pn be the set of right-most sentential forms with at most n steps of derivation
+        P0 = {S}
+        P1 = {S, 01, 0S1} 
+    let Tn = {0^k1^k | k ∈ {1 .. n}}, Sn = {0^kS1^k | k ∈ {1 .. n}}
+    P0 = T0 ∪ S0 ∪ {S}
+    if Pn = Tn ∪ Sn ∪ {S},
+        Pn+1    = Pn ∪ {01, 0S1, 0^n+11^n+1, 0^n+1S1^n+1}
+                = Tn+1 ∪ Sn+1 ∪ {S}
+        vp(Pn)  = vp(Tn) ∪ vp(Sn) ∪ vp({S})
+                = 0{,n}1? ∪ 0{,n}(S1?)? ∪ S?
+                = 0{,n}S?1?
+    as n -> ∞, vp(Pn) = 0*S?1?
+b.  induct directly on set of viable prefixes with the following lemma:
+    if p is a viable prefix of a right sentential form s with n+1 steps of derivation
+    there must be a viable prefix p' of a right sentential form s' with n steps of derivation that
+    p is a prefix of p' after expanding the rightmost nonterminal symbol in p' by some production of the grammar
+        let s' = αNβ, s = αγ1γ2β, p = αγ1, s' =>rm s
+        p' = αN must be a viable prefix otherwise s'' => s' cannot be right-most derivation:
+            either s'' => s' expands a nontermial right to N
+            or s'' => s' introduces N, which means N is in the middle of a handle
+        and p' => pγ2
+    let Vn be the set of viable prefixes of right sentential forms with at most n steps of derivation
+    V0 = {ε, S}
+    V1 = {ε, S, SS+, SS*, a}
+    if Vn = S{2,n+1}(+|*)? ∪ {a} ∪ S{1,n}a?
+        Vn+1    = Vn ∪ S{3,n+2}(+|*)? ∪ S{2,n}a ∪ S{2,n+1}{+|*}? ∪ S{0,n-1}a?
+                = S{2,n+2}(+|*)? ∪ {a} ∪ S{1,n}a?
+                = S{2,n+2}(+|*)? ∪ S{0,n}a?
+c.  V0 = {ε, S}
+    V1 = {ε, S, S(, S(S, S(S))}
+    let Sn = S(\(S)^n\)
+    if Vn = ∪ prefix(Sn),
+        expand right-most S -> ε gives no new viable prefixes
+        expand right-most S -> S(S) derives Sn+1 from a prefix of Sn, each prefix of Sn+1 is a viable prefix
+        Vn+1 = ∪ prefix(Sn+1)
+
+4.6.2
+./Dragon_Book/chapter_4/grammars
+Item set 3:
+S -> . S S "*"
+S -> S . S "*"
+S -> S S . "*"
+S -> . S S "+"
+S -> S . S "+"
+S -> S S . "+"
+S -> . "a"
+Item set 2:
+S -> . S S "*"
+S -> S . S "*"
+S -> . S S "+"
+S -> S . S "+"
+S -> . "a"
+S' -> S .
+Item set 0:
+S -> . S S "*"
+S -> . S S "+"
+S -> . "a"
+S' -> . S
+Item set 5:
+S -> S S "*" .
+Item set 4:
+S -> S S "+" .
+Item set 1:
+S -> "a" .
+ACTION[0, "a"]:
+    Shift(1)
+ACTION[1, $]:
+    Reduce(S -> "a")
+ACTION[1, "*"]:
+    Reduce(S -> "a")
+ACTION[1, "+"]:
+    Reduce(S -> "a")
+ACTION[1, "a"]:
+    Reduce(S -> "a")
+ACTION[2, $]:
+    Accept
+ACTION[2, "a"]:
+    Shift(1)
+ACTION[3, "*"]:
+    Shift(5)
+ACTION[3, "+"]:
+    Shift(4)
+ACTION[3, "a"]:
+    Shift(1)
+ACTION[4, $]:
+    Reduce(S -> S S "+")
+ACTION[4, "*"]:
+    Reduce(S -> S S "+")
+ACTION[4, "+"]:
+    Reduce(S -> S S "+")
+ACTION[4, "a"]:
+    Reduce(S -> S S "+")
+ACTION[5, $]:
+    Reduce(S -> S S "*")
+ACTION[5, "*"]:
+    Reduce(S -> S S "*")
+ACTION[5, "+"]:
+    Reduce(S -> S S "*")
+ACTION[5, "a"]:
+    Reduce(S -> S S "*")
+GOTO(0, S) = 2
+GOTO(2, S) = 3
+GOTO(3, S) = 3
+Is SLR: true
+
+4.6.3
+Shifted terminal: "a"
+Reduced production: S -> "a"
+Shifted terminal: "a"
+Reduced production: S -> "a"
+Shifted terminal: "*"
+Reduced production: S -> S S "*"
+Shifted terminal: "a"
+Reduced production: S -> "a"
+Shifted terminal: "+"
+Reduced production: S -> S S "+"
+
+4.6.4
+//  skipped since it's not only long and tedious but also fully automated by:
+//  ./Dragon_Book/chapter_4/grammars/src/main.rs#report_grammar
+
+4.6.5
+./Dragon_Book/chapter_4/grammars
+Item set 0:
+S -> . A "a" A "b"
+S -> . B "b" B "a"
+A -> . ε
+B -> . ε
+S' -> . S
+ACTION[0, "a"]:
+    Reduce(A -> ε)
+    Reduce(B -> ε)
+ACTION[0, "b"]:
+    Reduce(A -> ε)
+    Reduce(B -> ε)
+
+4.6.6
+./Dragon_Book/chapter_4/grammars
+S -> S A conflicts with S -> A
+
+4.6.7
+a.  n production of form S -> Aibi 
+    2(n-1) production of form Ai -> ajAi | aj with head Ai
+    n different Ai heads, 2n(n-1) + n = 2n^2 - 2n + n = 2n^2 - n productions in total
+b.  s = CLOSURE({S' -> . S}) contains every production in the grammar
+    GOTO(s, Ai) = CLOSURE({S -> Ai . bi}) = {S -> Ai . bi}
+    GOTO(s, aj) = CLOSURE({Ai -> aj . Ai | aj . | i != j})
+                = {Ai -> aj . | i != j}
+                ∪ {Ai -> aj . Ai | i != j}
+                ∪ {Ai -> . ak | i != j, i != k}
+                ∪ {Ai -> . ak Ai | i != j, i != k}
+                = Cj
+    GOTO(Cj, Ai)    = CLOSURE({Ai -> aj Ai .}) if i != j
+                    = {Ai -> aj Ai .}
+    GOTO(Cj, ak)    = {Ai -> ak . | i != j, k != i}
+                    ∪ {Ai -> ak . Ai | i != j, k != i}
+                    ∪ {Ai -> . ak | i != j, i != k}
+                    ∪ {Ai -> . ak Ai | i != j, i != k}
+    each S -> Ai . bi is a singleton set
+    each S -> Ai bi . is a singleton set
+    each Ai -> aj Ai . is a singleton set
+

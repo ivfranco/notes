@@ -1,6 +1,6 @@
 pub mod backtrack;
-mod parse_table;
-mod slr;
+pub mod parse_table;
+pub mod slr;
 
 use crate::parse_table::ParseTable;
 use crate::parse_table::Production;
@@ -131,7 +131,7 @@ impl Grammar<String> {
     }
 }
 
-impl<T: Clone + Eq + Hash> Grammar<T> {
+impl<T: Clone + Debug + Eq + Hash> Grammar<T> {
     fn augment(&mut self) {
         let rev_map = self.rev_map();
         let start_symbol = rev_map[&self.start].as_str();
@@ -351,10 +351,17 @@ impl<T: Clone + Eq + Hash> Grammar<T> {
     }
 
     pub fn is_ll1(&self) -> bool {
+        let rev_map = self.rev_map();
+
         for ps in self.prod_map.values() {
             for (i, p0) in ps.iter().enumerate() {
                 for p1 in &ps[i + 1..] {
                     if !self.safe_pair(p0, p1) {
+                        println!(
+                            "{} conflicts with {}",
+                            p0.to_string(&rev_map),
+                            p1.to_string(&rev_map)
+                        );
                         return false;
                     }
                 }

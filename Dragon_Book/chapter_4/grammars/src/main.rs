@@ -1,3 +1,4 @@
+use grammars::slr::tokenize;
 use grammars::Grammar;
 use std::collections::HashSet;
 
@@ -6,6 +7,9 @@ fn main() {
     exercise_4_4_2();
     exercise_4_4_3();
     exercise_4_4_4();
+    exercise_4_6_2();
+    exercise_4_6_5();
+    exercise_4_6_6();
 }
 
 fn print_parse_table(grammar: Grammar<String>) {
@@ -150,4 +154,47 @@ fn exercise_4_4_4() {
         ],
     );
     print_first_and_follow(&grammar);
+}
+
+#[allow(dead_code)]
+fn report_grammar(mut grammar: Grammar<String>) {
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+
+    println!("{:?}", slr);
+    println!("Is SLR: {}", slr.is_slr());
+}
+
+fn exercise_4_6_2() {
+    println!("Exercise 4.6.2:");
+    let mut grammar = Grammar::parse("S", &["S -> S S +", "S -> S S *", "S -> a"]);
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+
+    println!("{:?}", slr);
+    println!("Is SLR: {}", slr.is_slr());
+
+    println!("Exercise 4.6.3:");
+    slr.parse(&tokenize("a a * a +"));
+}
+
+fn exercise_4_6_5() {
+    println!("Exercise 4.6.5:");
+    let mut grammar = Grammar::parse("S", &["S -> A a A b", "S -> B b B a", "A -> ε", "B -> ε"]);
+
+    assert!(grammar.is_ll1());
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+    assert!(!slr.is_slr());
+    println!("{:?}", slr);
+}
+
+fn exercise_4_6_6() {
+    println!("Exercise 4.6.6:");
+    let mut grammar = Grammar::parse("S", &["S -> S A", "S -> A", "A -> a"]);
+
+    assert!(!grammar.is_ll1());
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+    assert!(slr.is_slr());
 }
