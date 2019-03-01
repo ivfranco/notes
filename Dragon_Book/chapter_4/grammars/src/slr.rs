@@ -235,21 +235,21 @@ impl<'a, T: Token> Canonical<'a, T> {
                             .expect("Error: Canonical Set is not closed");
                         tables[i]
                             .entry(t.as_token())
-                            .or_insert_with(Vec::new)
-                            .push(Action::Shift(j));
+                            .or_insert_with(BTreeSet::new)
+                            .insert(Action::Shift(j));
                     }
                     None if item.head() == self.grammar.start => {
                         tables[i]
                             .entry(None)
-                            .or_insert_with(Vec::new)
-                            .push(Action::Accept);
+                            .or_insert_with(BTreeSet::new)
+                            .insert(Action::Accept);
                     }
                     None => {
                         for t in self.grammar.follow_nonterm(item.head()) {
                             tables[i]
                                 .entry(t.as_ref())
-                                .or_insert_with(Vec::new)
-                                .push(Action::Reduce(item.production));
+                                .or_insert_with(BTreeSet::new)
+                                .insert(Action::Reduce(item.production));
                         }
                     }
                     _ => (),
@@ -275,7 +275,7 @@ impl<'a, T: Debug> Debug for Canonical<'a, T> {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Action<'a, T> {
     Shift(State),
     Reduce(&'a Production<T>),
@@ -292,7 +292,7 @@ impl<'a, T: Debug> Action<'a, T> {
     }
 }
 
-type Table<'a, T> = BTreeMap<Option<&'a T>, Vec<Action<'a, T>>>;
+type Table<'a, T> = BTreeMap<Option<&'a T>, BTreeSet<Action<'a, T>>>;
 
 pub struct SLRTable<'a, T> {
     canonical: &'a Canonical<'a, T>,
@@ -314,7 +314,7 @@ impl<'a, T: Token> SLRTable<'a, T> {
             .get(state)
             .expect("Error: Out of bound state")
             .get(&token)
-            .and_then(|v| v.first())
+            .and_then(|v| v.iter().next())
             .unwrap_or(&Action::Error)
     }
 
@@ -337,7 +337,7 @@ impl<'a, T: Token> SLRTable<'a, T> {
             match self.query(s, input.get(i)) {
                 Action::Shift(t) => {
                     stack.push(*t);
-                    println!("Shifted terminal: {:?}", input[i]);
+                    print!("Shifted terminal {:?}", input[i]);
                     i += 1;
                 }
                 Action::Reduce(p) => {
@@ -346,7 +346,7 @@ impl<'a, T: Token> SLRTable<'a, T> {
                         .last()
                         .expect("Error: Stack exhaused during SLR parsing");
                     stack.push(self.goto(t, p.head));
-                    println!(
+                    print!(
                         "Reduced production: {}",
                         p.to_string(&self.canonical.grammar.rev_map())
                     );
@@ -354,6 +354,8 @@ impl<'a, T: Token> SLRTable<'a, T> {
                 Action::Accept => return true,
                 Action::Error => return false,
             }
+
+            println!(", current stack: {:?}", stack);
         }
     }
 }

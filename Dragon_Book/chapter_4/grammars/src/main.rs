@@ -10,6 +10,8 @@ fn main() {
     exercise_4_6_2();
     exercise_4_6_5();
     exercise_4_6_6();
+    exercise_4_6_7();
+    exercise_4_6_9();
 }
 
 fn print_parse_table(grammar: Grammar<String>) {
@@ -175,7 +177,7 @@ fn exercise_4_6_2() {
     println!("Is SLR: {}", slr.is_slr());
 
     println!("Exercise 4.6.3:");
-    slr.parse(&tokenize("a a * a +"));
+    assert!(slr.parse(&tokenize("a a * a +")));
 }
 
 fn exercise_4_6_5() {
@@ -197,4 +199,38 @@ fn exercise_4_6_6() {
     let canonical = grammar.canonical();
     let slr = canonical.slr();
     assert!(slr.is_slr());
+}
+
+fn exercise_4_6_7() {
+    println!("Exercise 4.6.7:");
+    let mut grammar = Grammar::parse(
+        "S",
+        &[
+            "S -> A1 b1",
+            "S -> A2 b2",
+            "A1 -> a2 A1",
+            "A1 -> a2",
+            "A2 -> a1 A2",
+            "A2 -> a1",
+        ],
+    );
+
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+    println!("{:?}", slr);
+}
+
+fn exercise_4_6_9() {
+    println!("Exercise 4.6.9:");
+
+    let mut grammar = Grammar::parse("S", &["S -> A S", "S -> b", "A -> S A", "A -> a"]);
+
+    let canonical = grammar.canonical();
+    let slr = canonical.slr();
+    println!("{:?}", slr);
+    if slr.parse(&tokenize("a b a b")) {
+        println!("parse succeed");
+    } else {
+        println!("parse failed");
+    }
 }
