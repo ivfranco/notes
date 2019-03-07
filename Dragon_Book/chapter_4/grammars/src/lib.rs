@@ -1,7 +1,9 @@
 pub mod backtrack;
+pub mod lr;
 pub mod parse_table;
 pub mod slr;
 
+use crate::lr::CanonicalLR;
 use crate::parse_table::ParseTable;
 use crate::parse_table::Production;
 use crate::parse_table::Symbol::{self, *};
@@ -396,6 +398,11 @@ impl<T: Token> Grammar<T> {
     pub fn canonical(&mut self) -> Canonical<T> {
         self.augment();
         Canonical::new(self)
+    }
+
+    pub fn canonical_lr(&mut self) -> CanonicalLR<T> {
+        self.augment();
+        CanonicalLR::new(self)
     }
 }
 

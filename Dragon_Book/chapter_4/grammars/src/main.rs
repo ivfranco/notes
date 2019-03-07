@@ -12,6 +12,7 @@ fn main() {
     exercise_4_6_6();
     exercise_4_6_7();
     exercise_4_6_9();
+    exercise_4_7_1();
 }
 
 fn print_parse_table(grammar: Grammar<String>) {
@@ -233,4 +234,12 @@ fn exercise_4_6_9() {
     } else {
         println!("parse failed");
     }
+}
+
+fn exercise_4_7_1() {
+    println!("Exercise 4.7.1:");
+
+    let mut grammar = Grammar::parse("S", &["S -> S S +", "S -> S S *", "S -> a"]);
+
+    println!("{:?}", grammar.canonical_lr());
 }
