@@ -1,0 +1,11 @@
+#[LALR] grammar;
+
+pub S: Vec<char> = {
+    "(" <l:L> ")" => l,
+    <a:r"[a-zA-Z]"> => vec![a.chars().next().unwrap()],
+}
+
+pub L: Vec<char> = {
+    <l:L> "," <s:S> => l.into_iter().chain(s).collect::<Vec<_>>(),
+    <s:S> => s,
+}

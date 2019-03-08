@@ -13,6 +13,7 @@ fn main() {
     exercise_4_6_7();
     exercise_4_6_9();
     exercise_4_7_1();
+    exercise_4_8_1();
 }
 
 fn print_parse_table(grammar: Grammar<String>) {
@@ -242,4 +243,39 @@ fn exercise_4_7_1() {
     let mut grammar = Grammar::parse("S", &["S -> S S +", "S -> S S *", "S -> a"]);
 
     println!("{:?}", grammar.canonical_lr());
+}
+
+fn exercise_4_8_1() {
+    println!("Exercise 4.8.1:");
+
+    println!("ambiguous:");
+    for i in 2..10 {
+        let mut rules = vec![];
+        for j in 0..i {
+            rules.push(format!("E -> E +{} E", j));
+        }
+        rules.push("E -> ( E )".to_owned());
+        rules.push("E -> id".to_owned());
+
+        let mut grammar =
+            Grammar::parse("E", &rules.iter().map(|s| s.as_str()).collect::<Vec<_>>());
+        let canonical = grammar.canonical();
+        println!("{}, {}", i, canonical.size());
+    }
+
+    println!("unambiguous:");
+    for i in 2..10 {
+        let mut rules = vec![];
+        for j in 0..i {
+            rules.push(format!("E{} -> E{} +{} E{}", j, j, j, j + 1));
+            rules.push(format!("E{} -> E{}", j, j + 1));
+        }
+        rules.push(format!("E{} -> ( E0 )", i));
+        rules.push(format!("E{} -> id", i));
+
+        let mut grammar =
+            Grammar::parse("E0", &rules.iter().map(|s| s.as_str()).collect::<Vec<_>>());
+        let canonical = grammar.canonical();
+        println!("{}, {}", i, canonical.size());
+    }
 }

@@ -2602,3 +2602,30 @@ b.  set 8 and 5 can be merged
 
 4.7.2 - 4.7.5
 skipped
+
+4.8.1
+a.  2n + 6
+b.  for each reduce / shift conflict (i.e. a set with an item [A -> E θi E .]), let the next symbol be θj
+        if i >= j, reduce with production A -> E θi E
+        if i < j, shift the terminal symbol
+c.  skipped
+d.  3n + 6, no conflicts
+e.  the ambiguous grammar have fewer sets
+
+4.8.2
+skipped
+the whole talk about error handling in this chapter feels arbitrary
+
+//  LALRPOP is a LR(1) parser generator of Rust
+4.9.1
+./Dragon_Book/chapter_4/generated/src/bexpr.lalrpop
+
+4.9.2
+./Dragon_Book/chapter_4/generated/src/lists.lalrpop
+
+4.9.3
+the grammar is not LR(1), hence cannot be solved by yacc which generates LALR(1) parsers
+https://stackoverflow.com/questions/28150012/
+it can only be solved with an extension which can recognize all context free languages (e.g. %glr-parser in bison)
+
+4.9.4

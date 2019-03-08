@@ -1,0 +1,18 @@
+#[LALR] grammar;
+
+pub BExpr: bool = {
+    <e:BExpr> "or" <t:BTerm> => e || t,
+    <t: BTerm> => t,
+}
+
+BTerm: bool = {
+    <t:BTerm> "and" <f:BFactor> => t && f,
+    <f:BFactor> => f,
+}
+
+BFactor: bool = {
+    "not" <f:BFactor> => !f,
+    "(" <e:BExpr> ")" => e,
+    "true" => true,
+    "false" => false,
+}
