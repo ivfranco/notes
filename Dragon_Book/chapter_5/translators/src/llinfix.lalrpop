@@ -1,0 +1,33 @@
+use crate::llcalculator::{ExprNode, ExprdNode, TermNode, TermdNode, FactorNode};
+
+#[LALR] grammar;
+
+pub L:ExprNode = {
+    <e:E> "n" => e,
+}
+
+E: ExprNode = {
+    <t:T> <e:Ed> => ExprNode::new(t, e),
+}
+
+Ed: ExprdNode = {
+    "+" <t:T> <e:Ed> => ExprdNode::cons(t, e),
+    () => ExprdNode::empty(),
+}
+
+T: TermNode = {
+    <f:F> <t:Td> => TermNode::new(f, t),
+}
+
+Td: TermdNode = {
+    "*" <f:F> <t:Td> => TermdNode::cons(f, t),
+    () => TermdNode::empty(),
+}
+
+F: FactorNode = {
+    "(" <e:E> ")" => FactorNode::paren(e),
+    <s:r"[0-9]+"> => {
+        let lit = s.parse().unwrap();
+        FactorNode::lit(lit)
+    }
+}

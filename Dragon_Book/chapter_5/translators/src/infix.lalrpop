@@ -1,0 +1,26 @@
+use crate::calculator::Node;
+use std::str::FromStr;
+
+#[LALR] grammar;
+
+pub L: Node = {
+    <e:E> "n" => e,
+}
+
+E: Node = {
+    <e:E> "+" <t:T> => e.add(t),
+    <t:T> => t,
+}
+
+T: Node = {
+    <t:T> "*" <f:F> => t.mul(f),
+    <f:F> => f,
+}
+
+F: Node = {
+    "(" <e:E> ")" => e,
+    <s:r"[0-9]+"> => {
+        let lit = i32::from_str(s).unwrap();
+        Node::new(lit)
+    }
+}
