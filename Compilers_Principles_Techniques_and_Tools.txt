@@ -2748,3 +2748,70 @@ c.  E.val = 118
                             E'.inh = 118, E.syn = 118
             T'.inh = 118, T'.syn = 118
         E'.inh = 118, E.syn = 118
+
+5.2.1
+[1 3 5] 6 7 8 9
+2 and 4 can be inserted at any place between the square brackets in order
+2 4 1 3 5 6 7 8 9
+2 1 4 3 5 6 7 8 9
+2 1 3 4 5 6 7 8 9
+2 1 3 5 4 6 7 8 9
+1 2 4 3 5 6 7 8 9
+1 2 3 4 5 6 7 8 9
+1 2 3 5 4 6 7 8 9
+1 3 2 4 5 6 7 8 9
+1 3 2 5 4 6 7 8 9
+1 3 5 2 4 6 7 8 9
+
+5.2.2
+./Dragon_Book/chapter_5/translators
+a.  D (with no attributes)
+        T.type = Int
+        L.inh = Int
+            L.inh = Int
+                L.inh = Int
+                    id.entry = a
+                id.entry = b
+            id.entry = c
+b.  D (with no attributes)
+        T.type = Float
+        L.inh = Float
+            L.inh = Float
+                L.inh = Float
+                    L.inh = Float
+                        id.entry = w
+                    id.entry = x
+                id.entry = y
+            id.entry = z
+
+5.2.3
+a.  not S-attributed, B has a inherit attribute B.i
+    L-attributed
+    can be computed in preorder like any other L-attributed SDD
+b.  not S-attributed due to D.i
+    L-attributed
+    can be computed in preorder like any other L-attributed SDD
+c.  S-attributed
+    L-attributed
+    can be computed in any bottom-up order like any other S-attributed SDD
+d.  contains a dependency cycle A.s -> Bi -> Di -> A.s
+    not S or L-attributed
+
+5.2.4
+./Dragon_Book/chapter_5/translators/src/decimal.lalrpop
+S -> L1 . L2        S.val = L1.nom + L2.nom / L2.denom
+S -> L              S.val = L.nom
+L -> L1 B           L.nom = L1.nom * 2 + B.lexval
+                    L.denom = L1.denom * 2
+L -> B              L.nom = B.lexval
+                    L.denom = 2
+B -> 0              B.lexval = 0
+B -> 1              B.lexval = 1
+
+5.2.5
+SDD in 5.2.4 is S-attributed
+
+5.2.6
+./Dragon_Book/chapter_3/simple-regex
+not exactly an SDD but close
+

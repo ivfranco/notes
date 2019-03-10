@@ -1,0 +1,21 @@
+use crate::types::{DeclNode, VarsNode, Ty};
+
+#[LALR] grammar;
+
+pub D: DeclNode = {
+    <ty:T> <vars:L> => DeclNode { ty, vars },
+}
+
+T: Ty = {
+    "int" => Ty::Int,
+    "float" => Ty::Float,
+}
+
+L: VarsNode = {
+    <l:L> "," <id:Id> => VarsNode::cons(l, id),
+    <id:Id> => VarsNode::id(id),
+}
+
+Id: String = {
+    <s:r"[a-zA-Z]\w*"> => s.to_owned(),
+}

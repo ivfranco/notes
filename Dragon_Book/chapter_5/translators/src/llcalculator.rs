@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fmt::{self, Debug, Formatter};
+use crate::utils::pad;
 
 lalrpop_mod!(pub llinfix);
 
@@ -220,10 +221,6 @@ impl FactorNode {
 enum Factor {
     Lit(i32),
     Paren(Box<ExprNode>),
-}
-
-fn pad(indent: usize, f: &mut Formatter) -> Result<(), fmt::Error> {
-    write!(f, "{:width$}", "", width = indent)
 }
 
 #[test]

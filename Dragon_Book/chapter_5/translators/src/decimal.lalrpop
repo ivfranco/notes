@@ -1,0 +1,25 @@
+#[LALR] grammar;
+
+pub S: f64 = {
+    <l:L> "." <f:L> => {
+        let (n, d) = f;
+        let frac = f64::from(n) / f64::from(d);
+        let whole = f64::from(l.0);
+
+        whole + frac
+    },
+    <l:L> => f64::from(l.0),
+}
+
+L: (u32, u32) = {
+    <b:B> => (b, 2),
+    <l:L> <b:B> => {
+        let (n, d) = l;
+        (n * 2 + b, d * 2) 
+    }
+}
+
+B: u32 = {
+    "0" => 0,
+    "1" => 1,
+}
