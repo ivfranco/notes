@@ -8,12 +8,12 @@ pub L: Node = {
 }
 
 E: Node = {
-    <e:E> "+" <t:T> => e.add(t),
+    <e:E> "+" <t:T> => e + t,
     <t:T> => t,
 }
 
 T: Node = {
-    <t:T> "*" <f:F> => t.mul(f),
+    <t:T> "*" <f:F> => t * f,
     <f:F> => f,
 }
 
@@ -21,6 +21,9 @@ F: Node = {
     "(" <e:E> ")" => e,
     <s:r"[0-9]+"> => {
         let lit = i32::from_str(s).unwrap();
-        Node::new(lit)
+        Node::lit(lit)
+    },
+    <s:r"[a-zA-Z]\w*"> => {
+        Node::id(s.to_owned())
     }
 }

@@ -2815,3 +2815,42 @@ SDD in 5.2.4 is S-attributed
 ./Dragon_Book/chapter_3/simple-regex
 not exactly an SDD but close
 
+5.3.1
+a.  E -> E1 + T     E.t = if E1.t == float || T.t == float { float } else { int }
+    E -> T          E.t = T.t
+    T -> num . num  T.t = float
+    T -> num        T.t = int
+b.  E -> E1 + T     E.e = E1.e || T.e || "+"
+    E -> T          E.e = T.e
+    T -> num1 . num2    T.e = num1 + intToFloat(num2) / BASE^len(num2)
+    T -> num        T.e = num
+
+5.3.2
+define a function paren(node) where
+    paren(node) = if node.add {
+        "(" || node.e || ")"
+    } else {
+        node.e
+    }
+E -> T + E1     E.e = T.e || "+" || E1.e
+E -> T          E.e = T.e
+                E.add = T.add
+T -> F * T1     T.e = paren(F.e) || "*" || paren(T1.e)
+                T.add = false
+T -> F          T.e = F.e
+                T.add = F.add
+F -> ( E )      F.e = E.e
+                F.add = E.add
+F -> id         F.e = id
+                F.add = false
+F -> num        F.e = num
+                F.add = false
+
+5.3.3
+E -> T + E1     E.d = new Node('+', T.d, E1.d)
+E -> T          E.d = T.d
+T -> F * T1     T.d = new Node('+', new Node('*', F, T1.d), new Node('*', F.d, T1))
+T -> F          T.d = F.d
+F -> ( E )      F.d = E.d
+F -> "x"        F.d = new Leaf(num, 1)
+F -> num        F.d = new Leaf(num, 0)
