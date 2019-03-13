@@ -2854,3 +2854,78 @@ T -> F          T.d = F.d
 F -> ( E )      F.d = E.d
 F -> "x"        F.d = new Leaf(num, 1)
 F -> num        F.d = new Leaf(num, 0)
+
+5.4.1
+by definition of GOTO function on on sets of canonical LR(1) items
+the kernel of a set may only contain items in the form of
+    (1) A -> αB . β for a single B, or
+    (2) S' -> . S, the start item only
+in case (1), the grammar symbol of the state is B
+in case (2), the grammar symbol of the state is S'
+
+5.4.2
+A   -> 0A'
+A'  -> {a}BA' | B{b}A' | ε
+B   -> 1B'
+B'  -> {c}AB' | A{d}B' | ε
+
+5.4.3
+inh is inherit, val is synthesis
+B   -> 1B'  {B'.inh = 1, B.val = B'.val}
+B'  -> 0B'1 {B'1.inh = B'.inh * 2, B'.val = B'1.val}
+B'  -> 1B'1 {B'1.inh = B'.inh * 2 + 1, B'.val = B'1.val}
+B'  -> ε    {B'.val = B'.inh}
+
+5.4.4
+a.  S -> if ( C ) S1 else S2    S1.next = S.next;
+                                S2.next = S.next;
+                                L1 = new Label();
+                                L2 = new Label():
+                                C.true = L1;
+                                C.false = L2;
+                                S.code = C.code || "label" || L1 || S1.code || "label" || L2 || S2.code
+b.  S -> do S1 while ( C )      L1 = new Label();
+                                L2 = new Label();
+                                C.true = L1;
+                                C.false = S.next;
+                                S1.next = L2;
+                                S.code = "label" || L1 || S1.code || "label" || L2 || C.code
+c.  S -> '{' L '}'              L.next = S.next
+                                S.code = L.code
+    L -> L1 S                   La = new Label();
+                                S.next = L.next; 
+                                L1.next = La;
+                                L.code = L1.code || "label" || L1 || S.code
+    L -> ε                      L.code = "goto" || L.next
+
+5.4.5
+a.  S ->    if (                { L1 = new Label(); L2 = new Label(); C.true = L1; C.false = L2; }
+            C)                  { S1.next = S.next; }
+            S1 else             { S2.next = S.next; }
+            S2                  { S.code = C.code || "label" || L1 || S1.code || "label" || L2 || S2.code; }
+b.  S ->    do                  { L1 = new Label(); L2 = new Label(); S1.next = L2; }
+            S1 while            { C.true = L1; C.false = S.next; }
+            ( C )               { S.code = "label" || L1 || S1.code || "label" || L2 || C.code; }
+c.  S ->    '{' L '}'           { L.next = S.next; S.code = L.code; }
+    L ->                        { La = new Label(); L1.next = La; }
+            L1                  { S.next = L.next; }
+            S                   { L.code = L1.code || "label" || L1 || S.code; }
+    L ->    ε                   { L.code = "goto" || L.next; }
+
+5.4.6
+S -> B                          S.le = B.le
+B -> B1 B2                      B.le = B1.le + B2.le
+B -> B1 sub B2                  B.le = B1.le + B2.le
+B -> ( B1 )                     B.le = B1.le
+B -> text                       B.le = getLe(B.ps, text.lexval)
+SDT omitted since synthesis attributes can always be computed at the end of the production
+
+5.4.7
+B -> B1 sup B2                  B1.ps = B.ps
+                                B2.ps = 0.7 * B.ps
+                                B.ht = max(B1.ht, B2.ht + 0.6 * B1.ps)
+                                B.dp = max(B1.dp, B2.dp - 0.6 * B1.ps)
+B ->                            { B1.ps = B.ps; }
+    B1 sup                      { B2.ps = 0.7 * B.ps; }
+    B2                          { B.ht = max(B1.ht, B2.ht + 0.6 * B1.ps); }
+                                { B.dp = max(B1.dp, B2.dp - 0.6 * B1.ps); }
