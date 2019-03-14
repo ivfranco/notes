@@ -2929,3 +2929,186 @@ B ->                            { B1.ps = B.ps; }
     B1 sup                      { B2.ps = 0.7 * B.ps; }
     B2                          { B.ht = max(B1.ht, B2.ht + 0.6 * B1.ps); }
                                 { B.dp = max(B1.dp, B2.dp - 0.6 * B1.ps); }
+
+5.5.1
+//  only Rust-flavored pseudocode as production of nonterminal C and S are not given in full details
+//  assumes consume, Label::new, current_input, print and C being functions with access to some global states
+//  consume(s: &str) removes a terminal string prefix s from the input 
+//  or throws error if s is not a prefix of the input stream
+a.  fn S(next: Label) -> Code {
+        consume("if");
+        consume("(");
+        let l1 = Label::new();
+        let l2 = Label::new();
+        let c_code = C(l1, l2);
+        consume(")");
+        let s1_code = S(next);
+        consume("else");
+        let s2_code = S(next);
+        c_code || "label" || l1 || s1_code || "label" || l2 || s2_code
+    }
+b.  fn S(next: Label) -> Code {
+        consume("do");
+        let l1 = Label::new();
+        let l2 = Label::new();
+        let s1_code = S(next);
+        let c_code = C(l1, next);
+        "label" || l1 || s1_code || "label" || l2 || c_code
+    }
+c.  //  assume that S has other productions which produces statements
+    //  eliminate left recursion:
+    //      L   -> SL | ε
+    fn S(next: Label) -> Code {
+        match current_input() {
+            "{" => {
+                consume("{");
+                let l_code = L(next);
+                consume("}");
+                l_code
+            },
+            _ => { /* handling other productions */ },
+        }
+    }
+    fn L(next: Label) -> Code {
+        match current_input() {
+            _ /* if the next terminal is in FIRST(S) */ => {
+                let l1 = Label::new();
+                let s_code = S(l1);
+                let l_code = L(next);
+                s_code || "label" || l1 || l_code
+            },
+            _ => {
+                "goto" || next
+            }
+        }
+    }
+
+5.5.2
+a.  fn S(next: Label) {
+        consume("if");
+        consume("(");
+        let l1 = Label::new();
+        let l2 = Label::new();
+        C(l1, l2);
+        print("label" || l1);
+        consume(")");
+        S(next);
+        consume("else");
+        print("label" || l2);
+        S(next);
+    }
+b.  fn S(next: Label) {
+        consume("do");
+        let l1 = Label::new();
+        let l2 = Label::new();
+        print("label" || l1);
+        S(l2);
+        print("label" || l2);
+        C(l1, next);
+    }
+c.  //  assume that S has other productions which produces statements
+    //  eliminate left recursion:
+    //      L   -> SL | ε
+    fn S(next: Label) {
+        match current_input() {
+            "{" => {
+                consume("{");
+                L(next);
+                consume("}");
+            },
+            _ => { /* handling other productions */ },
+        }
+    }
+    fn L(next: Label) {
+        match current_input() {
+            _ /* if the next terminal is in FIRST(S) */ => {
+                let l1 = Label::new();
+                S(l1);
+                print("label" || l1);
+                L(next);
+            },
+            _ => {
+                print("goto" || next);
+            }
+        }
+    }
+
+5.5.3 - 5.5.5
+//  routine, skipped
+
+5.5.6
+//  apply left factoring and left recursion elimination
+//      S   -> L R
+//      R   -> . L | ε
+//      L   -> BL'
+//      L'  -> BL' | ε
+//      B   -> 0 | 1
+fn S() -> f64 {
+    let (val, _) = L();
+    if let Some((nom, denom)) = R() {
+        f64::from(val) + f64::from(nom) / f64::from(denom)
+    } else {
+        f64::from(val)
+    }
+}
+fn R() -> Option<(u32, u32)> {
+    if current_input() == "." {
+        consume(".");
+        Some(L())
+    } else {
+        None
+    }
+}
+fn L() -> (u32, u32) {
+    L'(B(), 2)
+}
+fn L'(nom: u32, denom: u32) -> (u32, u32) {
+    match current_input() {
+        "0" | "1" => L'(nom * 2 + B(), denom * 2),
+        _ => (nom, denom),
+    }
+}
+fn B() -> u32 {
+    match current_input() {
+        "0" => {
+            consume("0");
+            0
+        },
+        "1" => {
+            consume("1");
+            1
+        },
+        _ => panic!(),
+    }
+}
+on-the-fly generation makes no difference as return types have fixed size
+
+6.1.1
+top node: 6
+0: x
+1: y
+2: Add(0, 1)
+3: Sub(0, 1)
+4: Mul(2, 3)
+5: Sub(2, 4)
+6: Add(5, 4)
+
+6.1.2
+a.  top node: 3
+    0: a
+    1: b
+    2: Add(0, 1)
+    3: Add(2, 2)
+b.  top node: 4
+    0: a
+    1: b
+    2: Add(0, 1)
+    3: Add(2, 0)
+    4: Add(3, 1)
+c.  top node: 5
+    0: a
+    1: Add(0, 0)
+    2: Add(1, 0)
+    3: Add(2, 0)
+    4: Add(2, 3)
+    5: Add(1, 4)

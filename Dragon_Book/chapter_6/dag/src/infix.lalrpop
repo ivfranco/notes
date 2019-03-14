@@ -1,0 +1,20 @@
+use crate::symbolic::{Op, Expr};
+use std::rc::Rc;
+
+grammar;
+
+pub E: Rc<Expr> = {
+    <e:E> "+" <t:T> => Expr::bin(Op::Add, e, t),
+    <e:E> "-" <t:T> => Expr::bin(Op::Sub, e, t),
+    <t:T> => t,
+}
+
+T: Rc<Expr> = {
+    <t:T> "*" <f:F> => Expr::bin(Op::Mul, t, f),
+    <f:F> => f,
+}
+
+F: Rc<Expr> = {
+    "(" <e:E> ")" => e,
+    <s:r"[a-zA-Z]\w*"> => Expr::var(s.to_owned()),
+}
