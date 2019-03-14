@@ -1,14 +1,12 @@
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{self, Debug, Formatter};
 use std::rc::Rc;
 
-type ExprMap = HashMap<Rc<Expr>, usize>;
-
 // would be unnecessary if the syntax of LALRPOP is more flexible
 thread_local! {
-    pub static EXPRS: RefCell<ExprMap> = RefCell::new(HashMap::new());
+    static EXPRS: RefCell<HashSet<Rc<Expr>>> = RefCell::new(HashSet::new());
 }
 
 lalrpop_mod!(pub infix);
@@ -29,12 +27,15 @@ pub enum Expr {
 impl Expr {
     fn dedup(self) -> Rc<Self> {
         let expr = Rc::new(self);
-        EXPRS.with(|exprs| {
+        EXPRS.with(move |exprs| {
             let mut borrowed = exprs.borrow_mut();
-            let len = borrowed.len();
-            borrowed.entry(expr.clone()).or_insert(len);
-        });
-        expr
+            if let Some(v) = borrowed.get(&expr) {
+                v.clone()
+            } else {
+                borrowed.insert(expr.clone());
+                expr
+            }
+        })
     }
 
     pub fn bin(op: Op, lhs: Rc<Expr>, rhs: Rc<Expr>) -> Rc<Self> {
@@ -58,6 +59,8 @@ impl Expr {
     }
 }
 
+type ExprMap = HashMap<Rc<Expr>, usize>;
+
 pub struct DAG {
     top: Rc<Expr>,
     map: ExprMap,
@@ -69,7 +72,12 @@ impl DAG {
             exprs.borrow_mut().clear();
         });
         let top = infix::EParser::new().parse(s)?;
-        let map = EXPRS.with(|exprs| exprs.replace(HashMap::new()));
+        let map = EXPRS
+            .with(|exprs| exprs.replace(HashSet::new()))
+            .into_iter()
+            .zip(0..)
+            .collect();
+
         Ok(DAG { top, map })
     }
 
