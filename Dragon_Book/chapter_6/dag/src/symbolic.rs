@@ -12,15 +12,21 @@ thread_local! {
 lalrpop_mod!(pub infix);
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub enum Op {
+pub enum BinOp {
     Add,
     Sub,
     Mul,
 }
 
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum UnOp {
+    Neg,
+}
+
 #[derive(PartialEq, Eq, Hash)]
 pub enum Expr {
-    Bin(Op, Rc<Expr>, Rc<Expr>),
+    Bin(BinOp, Rc<Expr>, Rc<Expr>),
+    Un(UnOp, Rc<Expr>),
     Var(String),
 }
 
@@ -38,8 +44,12 @@ impl Expr {
         })
     }
 
-    pub fn bin(op: Op, lhs: Rc<Expr>, rhs: Rc<Expr>) -> Rc<Self> {
+    pub fn bin(op: BinOp, lhs: Rc<Expr>, rhs: Rc<Expr>) -> Rc<Self> {
         Expr::Bin(op, lhs, rhs).dedup()
+    }
+
+    pub fn un(op: UnOp, inner: Rc<Expr>) -> Rc<Self> {
+        Expr::Un(op, inner).dedup()
     }
 
     pub fn var(s: String) -> Rc<Self> {
@@ -53,6 +63,10 @@ impl Expr {
                 let lhs_id = map[lhs];
                 let rhs_id = map[rhs];
                 writeln!(f, "{}: {:?}({}, {})", id, op, lhs_id, rhs_id)
+            }
+            Expr::Un(op, inner) => {
+                let inner_id = map[inner];
+                writeln!(f, "{}: {:?}({})", id, op, inner_id)
             }
             Expr::Var(var) => writeln!(f, "{}: {}", id, var),
         }

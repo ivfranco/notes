@@ -1,20 +1,21 @@
-use crate::symbolic::{Op, Expr};
+use crate::symbolic::{BinOp, UnOp, Expr};
 use std::rc::Rc;
 
-grammar;
+#[LALR] grammar;
 
 pub E: Rc<Expr> = {
-    <e:E> "+" <t:T> => Expr::bin(Op::Add, e, t),
-    <e:E> "-" <t:T> => Expr::bin(Op::Sub, e, t),
+    <e:E> "+" <t:T> => Expr::bin(BinOp::Add, e, t),
+    <e:E> "-" <t:T> => Expr::bin(BinOp::Sub, e, t),
     <t:T> => t,
 }
 
 T: Rc<Expr> = {
-    <t:T> "*" <f:F> => Expr::bin(Op::Mul, t, f),
+    <t:T> "*" <f:F> => Expr::bin(BinOp::Mul, t, f),
     <f:F> => f,
 }
 
 F: Rc<Expr> = {
+    "-" <f:F> => Expr::un(UnOp::Neg, f),
     "(" <e:E> ")" => e,
     <s:r"[a-zA-Z]\w*"> => Expr::var(s.to_owned()),
 }
