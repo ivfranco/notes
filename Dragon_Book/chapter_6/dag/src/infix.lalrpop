@@ -1,7 +1,20 @@
-use crate::symbolic::{BinOp, UnOp, Expr};
+use crate::symbolic::{BinOp, UnOp, Expr, Stmt, Stmts, Access, LValue};
 use std::rc::Rc;
 
 #[LALR] grammar;
+
+pub P: Stmts = {
+    <stmts:S*> => Stmts::new(stmts),
+}
+
+S: Stmt = {
+    <lvalue:LV> "=" <rvalue:E> ";" => Stmt { lvalue, rvalue },
+}
+
+LV: LValue = {
+    <id:Id> => LValue::Var(id),
+    <l:L> => LValue::Access(l),
+}
 
 pub E: Rc<Expr> = {
     <e:E> "+" <t:T> => Expr::bin(BinOp::Add, e, t),
@@ -16,6 +29,24 @@ T: Rc<Expr> = {
 
 F: Rc<Expr> = {
     "-" <f:F> => Expr::un(UnOp::Neg, f),
+    "+" <f:F> => Expr::un(UnOp::Pos, f),
+    <l:L> => Expr::access(l),
     "(" <e:E> ")" => e,
-    <s:r"[a-zA-Z]\w*"> => Expr::var(s.to_owned()),
+    <id:Id> => Expr::var(id),
+}
+
+L: Access = {
+    <var:Id> <dims:Dim+> => Access { var, dims },
+}
+
+Dim: Rc<Expr> = {
+    "[" <e:E> "]" => e,
+}
+
+Num: usize = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}
+
+Id: String = {
+    <s:r"[a-zA-Z]\w*"> => s.to_owned(),
 }

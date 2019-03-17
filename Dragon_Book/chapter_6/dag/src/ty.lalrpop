@@ -2,19 +2,8 @@ use crate::env::{Env, Ty};
 
 #[LALR] grammar;
 
-SepBy<T, S>: Vec<T> = {
-    <v:(<T> S)*> <e:T?> => match e {
-        None => v,
-        Some(e) => {
-            let mut v = v;
-            v.push(e);
-            v
-        }
-    }
-}
-
 pub P: Env = {
-    <decls:SepBy<D, ";">> => Env::new(decls),
+    <decls:(<D> ";")*> => Env::new(decls),
 }
 
 pub D: (Ty, String) = {

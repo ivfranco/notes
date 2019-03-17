@@ -1,11 +1,13 @@
 use dag::env::Env;
 use dag::symbolic;
+use dag::symbolic::three_addr::ProcBuilder;
 
 fn main() {
     exercise_6_1_1();
     exercise_6_1_2();
     exercise_6_2_1();
     exercise_6_3_1();
+    exercise_6_4_3();
 }
 
 fn exercise_6_1_1() {
@@ -42,4 +44,18 @@ record { float x; float y; } p;
 record { int tag; float x; float y; } q;";
 
     println!("{:?}", Env::parse(decls).unwrap());
+}
+
+fn exercise_6_4_3() {
+    println!("Exercise 6.4.3:");
+
+    println!("{:#?}", ProcBuilder::parse("x = a[i] + b[j];").unwrap());
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("x = a[i][j] + b[i][j];").unwrap()
+    );
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("x = a[b[i][j]][c[k]];").unwrap()
+    );
 }
