@@ -3269,3 +3269,39 @@ c.  t0 = i * b.dim0,
     t8 = t5 * a.base.width,
     t9 = a [t8],
     x = t9
+
+6.4.4
+L   -> H ]      { L.addr = H.addr; }
+H   -> id [ E   { // same to translation rules of L -> id [ E ] in Fig 6.22 }
+    -> H , E    { // same to translation rules of L -> L [ E ] in Fig 6.22 }
+
+6.4.5
+A[i][j]:
+a.  base + ((i - l1) * (h2 - l2 + 1) + j - l2) * w
+b.  base + ((j - l2) * (h1 - l1 + 1) + i - l1) * w
+let 
+    ni =  hi - l1 + 1
+    di = ith index
+    ij = dj - lj
+c.  same to formula 6.6
+d.  base + ((... ((ik * nk-1 + ik-1) * nk-2 + ik-2) ...) * n1 + i1) * w
+
+6.4.6
+a.  256
+b.  748
+c.  224
+
+6.4.7
+a.  172
+b.  316
+c.  648
+
+6.4.8
+a.  672
+b.  112
+c.  896
+
+6.4.9
+a.  144
+b.  384
+c.  760

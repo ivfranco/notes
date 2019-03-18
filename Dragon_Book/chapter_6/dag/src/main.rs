@@ -1,6 +1,7 @@
 use dag::env::Env;
 use dag::symbolic;
 use dag::symbolic::three_addr::ProcBuilder;
+use dag::utils::Array;
 
 fn main() {
     exercise_6_1_1();
@@ -8,6 +9,10 @@ fn main() {
     exercise_6_2_1();
     exercise_6_3_1();
     exercise_6_4_3();
+    exercise_6_4_6();
+    exercise_6_4_7();
+    exercise_6_4_8();
+    exercise_6_4_9();
 }
 
 fn exercise_6_1_1() {
@@ -58,4 +63,40 @@ fn exercise_6_4_3() {
         "{:#?}",
         ProcBuilder::parse("x = a[b[i][j]][c[k]];").unwrap()
     );
+}
+
+fn exercise_6_4_6() {
+    println!("Exercise 6.4.6:");
+
+    let arr = Array::new(0, 4, &[(1, 10), (1, 20)]);
+    println!("{}", arr.row_major(&[4, 5]));
+    println!("{}", arr.row_major(&[10, 8]));
+    println!("{}", arr.row_major(&[3, 17]));
+}
+
+fn exercise_6_4_7() {
+    println!("Exercise 6.4.7:");
+
+    let arr = Array::new(0, 4, &[(1, 10), (1, 20)]);
+    println!("{}", arr.col_major(&[4, 5]));
+    println!("{}", arr.col_major(&[10, 8]));
+    println!("{}", arr.col_major(&[3, 17]));
+}
+
+fn exercise_6_4_8() {
+    println!("Exercise 6.4.8:");
+
+    let arr = Array::new(0, 8, &[(1, 4), (0, 4), (5, 10)]);
+    println!("{}", arr.row_major(&[3, 4, 5]));
+    println!("{}", arr.row_major(&[1, 2, 7]));
+    println!("{}", arr.row_major(&[4, 3, 9]));
+}
+
+fn exercise_6_4_9() {
+    println!("Exercise 6.4.9:");
+
+    let arr = Array::new(0, 8, &[(1, 4), (0, 4), (5, 10)]);
+    println!("{}", arr.col_major(&[3, 4, 5]));
+    println!("{}", arr.col_major(&[1, 2, 7]));
+    println!("{}", arr.col_major(&[4, 3, 9]));
 }
