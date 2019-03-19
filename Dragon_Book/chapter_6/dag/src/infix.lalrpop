@@ -1,4 +1,4 @@
-use crate::symbolic::{BinOp, UnOp, Expr, Stmt, Stmts, Access, LValue};
+use crate::symbolic::{BinOp, UnOp, Expr, Stmt, Stmts, Access, LValue, Assign, Boolean, RelOp};
 use std::rc::Rc;
 
 #[LALR] grammar;
@@ -8,7 +8,11 @@ pub P: Stmts = {
 }
 
 S: Stmt = {
-    <lvalue:LV> "=" <rvalue:E> ";" => Stmt { lvalue, rvalue },
+    <a:A> => Stmt::Assign(a),
+}
+
+A: Assign = {
+    <lvalue:LV> "=" <rvalue:E> ";" => Assign { lvalue, rvalue },
 }
 
 LV: LValue = {
@@ -49,4 +53,22 @@ Num: usize = {
 
 Id: String = {
     <s:r"[a-zA-Z]\w*"> => s.to_owned(),
+}
+
+B: Boolean = {
+    <l:B> "||" <r:B> => Boolean::Or(Box::new(l), Box::new(r)),
+    <l:B> "&&" <r:B> => Boolean::And(Box::new(l), Box::new(r)),
+    "!" <b:B> => Boolean::Not(Box::new(b)),
+    <l:E> <op:Rel> <r:E> => Boolean::Rel(op, l, r),
+    "true" => Boolean::True,
+    "false" => Boolean::False,
+}
+
+Rel: RelOp = {
+    "==" => RelOp::Eq,
+    "!=" => RelOp::Ne,
+    ">" => RelOp::Gt,
+    ">=" => RelOp::Ge,
+    "<" => RelOp::Lt,
+    "<=" => RelOp::Le,
 }

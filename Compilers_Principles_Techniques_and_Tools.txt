@@ -3305,3 +3305,31 @@ c.  896
 a.  144
 b.  384
 c.  760
+
+6.5.1
+a.  t0  = (short) c
+    t1  = s + t0
+    x   = (float) t1
+b.  t0  = (short) c
+    t1  = s + t0
+    x   = (int) t1
+c.  t0  = (short) c
+    t1  = s + t0
+    t2  = (short) d
+    t3  = t + d 
+    t4  = t1 * t3
+    x   = (float) t4
+
+6.5.2
+E   -> E1 ( E2 )    { // bottom-up
+                      E.type = {t | s ∈ E2.type, s -> t ∈ E1.type}; 
+                      // top-down
+                      if E.unique == NULL {
+                        E1.unique = u -> r in { s -> t | t == r, s ∈ E2.type, s -> t ∈ E1.type };
+                        E.unique = r;
+                        E2.unique = u;
+                      } else {
+                        E1.unique = u -> r in { s -> t | t == E.unique, s ∈ E2.type, s -> t ∈ E1.type };
+                        E2.unique = u;
+                      } 
+                    }
