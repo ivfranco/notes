@@ -7,8 +7,11 @@ pub P: Stmts = {
     <stmts:S*> => Stmts::new(stmts),
 }
 
-S: Stmt = {
-    <a:A> => Stmt::Assign(a),
+S: Rc<Stmt> = {
+    <a:A> => Stmt::assign(a),
+    "if" "(" <b:BOr> ")" "{" <s:S> "}" => Stmt::if_only(b, s),
+    "if" "(" <b:BOr> ")" "{" <t:S> "}" "else" "{" <f:S> "}" => Stmt::if_else(b, t, f),
+    "while" "(" <b:BOr> ")" <s:S> => Stmt::while_clause(b, s),
 }
 
 A: Assign = {
@@ -37,6 +40,7 @@ F: Rc<Expr> = {
     <l:L> => Expr::access(l),
     "(" <e:E> ")" => e,
     <id:Id> => Expr::var(id),
+    <n:Num> => Expr::lit(n),
 }
 
 L: Access = {
@@ -55,13 +59,21 @@ Id: String = {
     <s:r"[a-zA-Z]\w*"> => s.to_owned(),
 }
 
-B: Boolean = {
-    <l:B> "||" <r:B> => Boolean::Or(Box::new(l), Box::new(r)),
-    <l:B> "&&" <r:B> => Boolean::And(Box::new(l), Box::new(r)),
-    "!" <b:B> => Boolean::Not(Box::new(b)),
-    <l:E> <op:Rel> <r:E> => Boolean::Rel(op, l, r),
-    "true" => Boolean::True,
-    "false" => Boolean::False,
+BOr: Rc<Boolean> = {
+    <l:BOr> "||" <r:BAnd> => Boolean::or(l, r),
+    <b:BAnd> => b,
+}
+
+BAnd: Rc<Boolean> = {
+    <l:BAnd> "&&" <r:BFactor> => Boolean::and(l, r),
+    <f:BFactor> => f, 
+}
+
+BFactor: Rc<Boolean> = {
+    "!" <b:BFactor> => Boolean::not(b),
+    <l:E> <op:Rel> <r:E> => Boolean::rel(op, l, r),
+    "true" => Boolean::t(),
+    "false" => Boolean::f(),
 }
 
 Rel: RelOp = {

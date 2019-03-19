@@ -1,6 +1,6 @@
+use self::global::{NodeMap, NodeSet};
 use self::three_addr::{Instr, Label, ProcBuilder, RValue, Var};
 use std::cell::RefCell;
-use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{self, Debug, Formatter};
 use std::rc::Rc;
@@ -8,11 +8,12 @@ use std::rc::Rc;
 pub(crate) mod global {
     use super::{Boolean, Expr, Stmt};
     use std::collections::{HashMap, HashSet};
+    use std::fmt::{self, Debug, Formatter};
     use std::hash::Hash;
     use std::rc::Rc;
 
     #[derive(Default)]
-    struct NodeSet {
+    pub struct NodeSet {
         exprs: HashSet<Rc<Expr>>,
         bools: HashSet<Rc<Boolean>>,
         stmts: HashSet<Rc<Stmt>>,
@@ -32,7 +33,17 @@ pub(crate) mod global {
     }
 
     impl NodeSet {
-        pub fn dedeup_expr(&mut self, expr: Expr) -> Rc<Expr> {
+        pub fn new() -> Self {
+            NodeSet::default()
+        }
+
+        pub fn clear(&mut self) {
+            self.exprs.clear();
+            self.bools.clear();
+            self.stmts.clear();
+        }
+
+        pub fn dedup_expr(&mut self, expr: Expr) -> Rc<Expr> {
             dedup(&mut self.exprs, expr)
         }
 
@@ -44,30 +55,75 @@ pub(crate) mod global {
             dedup(&mut self.stmts, stmt)
         }
 
-        pub fn enumerate(&self) -> NodeMap {
-            unimplemented!()
+        pub fn enumerate(self) -> NodeMap {
+            let exprs: HashMap<_, _> = self.exprs.into_iter().zip(0..).collect();
+
+            let bools: HashMap<_, _> = self.bools.into_iter().zip(exprs.len()..).collect();
+
+            let stmts: HashMap<_, _> = self
+                .stmts
+                .into_iter()
+                .zip(exprs.len() + bools.len()..)
+                .collect();
+
+            NodeMap {
+                exprs,
+                bools,
+                stmts,
+            }
         }
     }
 
-    #[derive(PartialEq, Eq, Hash)]
-    enum Node {
-        Expr(Rc<Expr>),
-        Bool(Rc<Boolean>),
-        Stmt(Rc<Stmt>),
+    pub struct NodeMap {
+        exprs: HashMap<Rc<Expr>, usize>,
+        bools: HashMap<Rc<Boolean>, usize>,
+        stmts: HashMap<Rc<Stmt>, usize>,
     }
 
-    pub struct NodeMap {
-        nodes: HashMap<Node, usize>,
+    impl NodeMap {
+        pub fn size(&self) -> usize {
+            self.exprs.len() + self.bools.len() + self.stmts.len()
+        }
+
+        pub fn query_expr(&self, expr: &Expr) -> usize {
+            self.exprs[expr]
+        }
+
+        pub fn query_bool(&self, boolean: &Boolean) -> usize {
+            self.bools[boolean]
+        }
+
+        pub fn query_stmt(&self, stmt: &Stmt) -> usize {
+            self.stmts[stmt]
+        }
+    }
+
+    impl Debug for NodeMap {
+        fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+            for expr in self.exprs.keys() {
+                expr.format(self, f)?;
+            }
+
+            for boolean in self.bools.keys() {
+                boolean.format(self, f)?;
+            }
+
+            for stmt in self.stmts.keys() {
+                stmt.format(self, f)?;
+            }
+
+            Ok(())
+        }
     }
 }
 
 // would be unnecessary if the syntax of LALRPOP is more flexible
 thread_local! {
-    static EXPRS: RefCell<HashSet<Rc<Expr>>> = RefCell::new(HashSet::new());
+    static NODES: RefCell<NodeSet> = RefCell::new(NodeSet::new());
 }
 
-fn exprs_init() {
-    EXPRS.with(|exprs| exprs.borrow_mut().clear());
+fn nodes_init() {
+    NODES.with(|exprs| exprs.borrow_mut().clear());
 }
 
 lalrpop_mod!(pub infix);
@@ -122,23 +178,15 @@ impl UnOp {
 pub enum Expr {
     Bin(BinOp, Rc<Expr>, Rc<Expr>),
     Un(UnOp, Rc<Expr>),
-    Bool(Boolean),
+    Bool(Rc<Boolean>),
     Access(Access),
     Var(String),
+    Lit(usize),
 }
 
 impl Expr {
     fn dedup(self) -> Rc<Self> {
-        let expr = Rc::new(self);
-        EXPRS.with(move |exprs| {
-            let mut borrowed = exprs.borrow_mut();
-            if let Some(v) = borrowed.get(&expr) {
-                v.clone()
-            } else {
-                borrowed.insert(expr.clone());
-                expr
-            }
-        })
+        NODES.with(|nodes| nodes.borrow_mut().dedup_expr(self))
     }
 
     pub fn bin(op: BinOp, lhs: Rc<Expr>, rhs: Rc<Expr>) -> Rc<Self> {
@@ -157,27 +205,36 @@ impl Expr {
         Expr::Var(s).dedup()
     }
 
+    pub fn lit(n: usize) -> Rc<Self> {
+        Expr::Lit(n).dedup()
+    }
+
+    pub fn bool(boolean: Rc<Boolean>) -> Rc<Self> {
+        Expr::Bool(boolean).dedup()
+    }
+
     pub fn parse<'a>(s: &'a str) -> Result<Rc<Self>, Box<Error + 'a>> {
-        exprs_init();
+        nodes_init();
         infix::EParser::new().parse(s).map_err(Box::from)
     }
 
-    fn format(&self, map: &ExprMap, f: &mut Formatter) -> Result<(), fmt::Error> {
-        let id = map[self];
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        let id = map.query_expr(self);
         write!(f, "{}: ", id)?;
         match self {
             Expr::Bin(op, lhs, rhs) => {
-                let lhs_id = map[lhs];
-                let rhs_id = map[rhs];
-                writeln!(f, "{:?}({}, {})", op, lhs_id, rhs_id)
+                let lhs_id = map.query_expr(lhs);
+                let rhs_id = map.query_expr(rhs);
+                write!(f, "{:?}({}, {})", op, lhs_id, rhs_id)
             }
             Expr::Un(op, inner) => {
-                let inner_id = map[inner];
-                writeln!(f, "{:?}({})", op, inner_id)
+                let inner_id = map.query_expr(inner);
+                write!(f, "{:?}({})", op, inner_id)
             }
-            Expr::Bool(_boolean) => unimplemented!(),
-            Expr::Access(access) => writeln!(f, "{:?}", access),
-            Expr::Var(var) => writeln!(f, "{}", var),
+            Expr::Bool(boolean) => boolean.format(map, f),
+            Expr::Access(access) => write!(f, "{:?}", access),
+            Expr::Var(var) => write!(f, "{}", var),
+            Expr::Lit(lit) => write!(f, "{}", lit),
         }
     }
 
@@ -201,43 +258,35 @@ impl Expr {
             Expr::Bool(boolean) => boolean.rwalk(builder),
             Expr::Access(access) => access.rwalk(builder),
             Expr::Var(var) => var.clone().into(),
+            Expr::Lit(lit) => RValue::Lit(*lit),
         }
     }
 }
 
-type ExprMap = HashMap<Rc<Expr>, usize>;
-
 pub struct DAG {
     top: Rc<Expr>,
-    map: ExprMap,
+    map: NodeMap,
 }
 
 impl DAG {
     pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         let top = Expr::parse(s)?;
-        let map = EXPRS
-            .with(|exprs| exprs.replace(HashSet::new()))
-            .into_iter()
-            .zip(0..)
-            .collect();
+        let map = NODES
+            .with(|nodes| nodes.replace(NodeSet::new()))
+            .enumerate();
 
         Ok(DAG { top, map })
     }
 
     pub fn size(&self) -> usize {
-        self.map.len()
+        self.map.size()
     }
 }
 
 impl Debug for DAG {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        writeln!(f, "top node: {}", self.map[&self.top])?;
-        let mut pairs: Vec<_> = self.map.iter().collect();
-        pairs.sort_by_key(|(_, v)| *v);
-        for (expr, _) in pairs {
-            expr.format(&self.map, f)?;
-        }
-        Ok(())
+        writeln!(f, "top node: {}", self.map.query_expr(&*self.top))?;
+        self.map.fmt(f)
     }
 }
 
@@ -285,6 +334,14 @@ impl Access {
         builder.push(instr);
         t.into()
     }
+
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{}", self.var)?;
+        for dim in &self.dims {
+            write!(f, "[{}]", map.query_expr(dim))?;
+        }
+        Ok(())
+    }
 }
 
 impl Debug for Access {
@@ -323,15 +380,43 @@ impl RelOp {
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Boolean {
-    And(Box<Boolean>, Box<Boolean>),
-    Or(Box<Boolean>, Box<Boolean>),
-    Not(Box<Boolean>),
+    And(Rc<Boolean>, Rc<Boolean>),
+    Or(Rc<Boolean>, Rc<Boolean>),
+    Not(Rc<Boolean>),
     Rel(RelOp, Rc<Expr>, Rc<Expr>),
     True,
     False,
 }
 
 impl Boolean {
+    fn dedup(self) -> Rc<Self> {
+        NODES.with(|nodes| nodes.borrow_mut().dedup_bool(self))
+    }
+
+    pub fn and(lhs: Rc<Self>, rhs: Rc<Self>) -> Rc<Self> {
+        Boolean::And(lhs, rhs).dedup()
+    }
+
+    pub fn or(lhs: Rc<Self>, rhs: Rc<Self>) -> Rc<Self> {
+        Boolean::Or(lhs, rhs).dedup()
+    }
+
+    pub fn not(inner: Rc<Self>) -> Rc<Self> {
+        Boolean::Not(inner).dedup()
+    }
+
+    pub fn rel(op: RelOp, lhs: Rc<Expr>, rhs: Rc<Expr>) -> Rc<Self> {
+        Boolean::Rel(op, lhs, rhs).dedup()
+    }
+
+    pub fn t() -> Rc<Self> {
+        Boolean::True.dedup()
+    }
+
+    pub fn f() -> Rc<Self> {
+        Boolean::False.dedup()
+    }
+
     fn rwalk(&self, builder: &mut ProcBuilder) -> RValue {
         use self::Boolean::*;
         match self {
@@ -422,17 +507,64 @@ impl Boolean {
             False => builder.push_goto(f),
         }
     }
+
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        use self::Boolean::*;
+        match self {
+            And(lhs, rhs) => {
+                let l = map.query_bool(lhs);
+                let r = map.query_bool(rhs);
+                write!(f, "And({}, {})", l, r)
+            }
+            Or(lhs, rhs) => {
+                let l = map.query_bool(lhs);
+                let r = map.query_bool(rhs);
+                write!(f, "Or({}, {})", l, r)
+            }
+            Not(inner) => {
+                let inn = map.query_bool(inner);
+                write!(f, "Not({})", inn)
+            }
+            Rel(op, lhs, rhs) => {
+                let l = map.query_expr(lhs);
+                let r = map.query_expr(rhs);
+                write!(f, "Rel({}, {}, {})", op.symbol(), l, r)
+            }
+            True => write!(f, "true"),
+            False => write!(f, "false"),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Stmt {
     Assign(Assign),
-    If(Boolean, Box<Stmt>),
-    IfElse(Boolean, Box<Stmt>, Box<Stmt>),
-    While(Boolean, Box<Stmt>),
+    If(Rc<Boolean>, Rc<Stmt>),
+    IfElse(Rc<Boolean>, Rc<Stmt>, Rc<Stmt>),
+    While(Rc<Boolean>, Rc<Stmt>),
 }
 
 impl Stmt {
+    fn dedup(self) -> Rc<Self> {
+        NODES.with(|nodes| nodes.borrow_mut().dedup_stmt(self))
+    }
+
+    pub fn assign(assign: Assign) -> Rc<Self> {
+        Stmt::Assign(assign).dedup()
+    }
+
+    pub fn if_only(cond: Rc<Boolean>, body: Rc<Self>) -> Rc<Self> {
+        Stmt::If(cond, body).dedup()
+    }
+
+    pub fn if_else(cond: Rc<Boolean>, t_clause: Rc<Self>, f_clause: Rc<Self>) -> Rc<Self> {
+        Stmt::IfElse(cond, t_clause, f_clause).dedup()
+    }
+
+    pub fn while_clause(cond: Rc<Boolean>, body: Rc<Self>) -> Rc<Self> {
+        Stmt::While(cond, body).dedup()
+    }
+
     fn walk(&self, next: Option<Label>, builder: &mut ProcBuilder) {
         match self {
             Stmt::Assign(assign) => {
@@ -475,12 +607,43 @@ impl Stmt {
             }
         }
     }
+
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            Stmt::Assign(assign) => assign.format(map, f),
+            Stmt::If(cond, body) => {
+                let c_id = map.query_bool(cond);
+                let b_id = map.query_stmt(body);
+                write!(f, "If({}, {})", c_id, b_id)
+            }
+            Stmt::IfElse(cond, t_clause, f_clause) => {
+                let c_id = map.query_bool(cond);
+                let t_id = map.query_stmt(t_clause);
+                let f_id = map.query_stmt(f_clause);
+                write!(f, "IfElse({}, {}, {})", c_id, t_id, f_id)
+            }
+            Stmt::While(cond, body) => {
+                let c_id = map.query_bool(cond);
+                let b_id = map.query_stmt(body);
+                write!(f, "While({}, {})", c_id, b_id)
+            }
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum LValue {
     Var(Var),
     Access(Access),
+}
+
+impl LValue {
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            LValue::Var(var) => write!(f, "{}", var),
+            LValue::Access(access) => access.format(map, f),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Hash)]
@@ -509,10 +672,18 @@ impl Assign {
             }
         }
     }
+
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "Assign(")?;
+        self.lvalue.format(map, f)?;
+        write!(f, ", ")?;
+        self.rvalue.format(map, f)?;
+        write!(f, ")")
+    }
 }
 
 pub struct Stmts {
-    stmts: Vec<Stmt>,
+    stmts: Vec<Rc<Stmt>>,
 }
 
 impl Stmts {
@@ -524,12 +695,12 @@ impl Stmts {
 }
 
 impl Stmts {
-    pub fn new(stmts: Vec<Stmt>) -> Self {
+    pub fn new(stmts: Vec<Rc<Stmt>>) -> Self {
         Stmts { stmts }
     }
 
     pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
-        exprs_init();
+        nodes_init();
         infix::PParser::new().parse(s).map_err(Box::from)
     }
 }
@@ -734,5 +905,20 @@ fn build_test() {
     let expr = Expr::parse("c + a[i][j]").unwrap();
     let instrs = ProcBuilder::build(&*expr);
     // println!("{:#?}", instrs);
+    assert_eq!(instrs.len(), 5);
+}
+
+#[test]
+fn stmt_test() {
+    let stmts = Stmts::parse("if( x < 100 || x > 200 && x != y ) { x = 0; }").unwrap();
+    let instrs = ProcBuilder::build(&stmts);
+    // println!("{:#?}", instrs);
+    // [
+    //     IfTrue x < 100 goto L1,
+    //     IfFalse x > 200 goto L0,
+    //     IfFalse x != y goto L0,
+    //     L1: x = 0,
+    //     L0: Noop
+    // ]
     assert_eq!(instrs.len(), 5);
 }
