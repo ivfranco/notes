@@ -13,6 +13,7 @@ fn main() {
     exercise_6_4_7();
     exercise_6_4_8();
     exercise_6_4_9();
+    exercise_6_6_4();
 }
 
 fn exercise_6_1_1() {
@@ -99,4 +100,21 @@ fn exercise_6_4_9() {
     println!("{}", arr.col_major(&[3, 4, 5]));
     println!("{}", arr.col_major(&[1, 2, 7]));
     println!("{}", arr.col_major(&[4, 3, 9]));
+}
+
+fn exercise_6_6_4() {
+    println!("Exercise 6.6.4");
+
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("if (a==b && c==d || e==f) { x = 1; }").unwrap()
+    );
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("if (a==b || c==d || e==f) { x = 1; }").unwrap()
+    );
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("if (a==b && c==d && e==f) { x = 1; }").unwrap()
+    );
 }

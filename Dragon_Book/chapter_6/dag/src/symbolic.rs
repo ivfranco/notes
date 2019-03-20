@@ -102,14 +102,17 @@ pub(crate) mod global {
         fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
             for expr in self.exprs.keys() {
                 expr.format(self, f)?;
+                writeln!(f, "")?;
             }
 
             for boolean in self.bools.keys() {
                 boolean.format(self, f)?;
+                writeln!(f, "")?;
             }
 
             for stmt in self.stmts.keys() {
                 stmt.format(self, f)?;
+                writeln!(f, "")?;
             }
 
             Ok(())
@@ -509,6 +512,9 @@ impl Boolean {
     }
 
     fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        let id = map.query_bool(self);
+        write!(f, "{}: ", id)?;
+
         use self::Boolean::*;
         match self {
             And(lhs, rhs) => {
@@ -609,6 +615,8 @@ impl Stmt {
     }
 
     fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        let id = map.query_stmt(self);
+        write!(f, "{}: ", id)?;
         match self {
             Stmt::Assign(assign) => assign.format(map, f),
             Stmt::If(cond, body) => {

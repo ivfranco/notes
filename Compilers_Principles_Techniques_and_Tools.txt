@@ -3333,3 +3333,185 @@ E   -> E1 ( E2 )    { // bottom-up
                         E2.unique = u;
                       } 
                     }
+
+6.6.1
+a.  S -> repeat S1 while ( B )  { loop = new Label();
+                                  gen("label" || loop);
+                                  S1.next = fall;
+                                  // gen S.code
+                                  B.true = loop;
+                                  B.false = S.next;
+                                  // gen B.code }
+b.  S -> for ( S1; B; S2 ) S3   { S1.next = fall;
+                                  // gen S1.code
+                                  loop = new Label();
+                                  end = S.next || new Label();
+                                  gen("label" || loop);
+                                  B.true = fall;
+                                  B.false = end;
+                                  // gen B.code
+                                  S2.next = fall;
+                                  // gen S2.code
+                                  S3.next = loop;
+                                  // gen S3.code
+                                  if S.next != fall {
+                                      gen("label" || end);
+                                  }}
+
+6.6.2
+B { true = fall, false = S.next || end }
+loop:
+S1 { next = fall }
+B { true = loop, false = S.next }
+end:
+S -> while ( B ) S1     { loop = new Label();
+                          end = new Label();
+                          B.true = fall;
+                          B.false = S.next || end;
+                          // gen B.code
+                          gen("label" || loop);
+                          S1.next = fall;
+                          // gen S1.code
+                          B.true = loop;
+                          B.false = S.next;
+                          // gen B.code
+                          if S.next != fall {
+                              gen("label" || end);
+                          }}
+
+6.6.3
+B1 { true = T1, false = F1 }
+T1:
+t1 = 1;
+goto E1;
+T2:
+t1 = 0;
+E1:
+B2 { true = }
+B -> B1 ^ B2        { T1 = new Label();
+                      F1 = new Label();
+                      E1 = new Label();
+                      B1.true = T1;
+                      B1.false = F1;
+                      // gen B1.code
+                      t1 = new Temp();
+                      gen("label" T1);
+                      gen(t1 "=" 1);
+                      gen("goto" E1);
+                      gen("label" F1);
+                      gen(t1 "=" 0);
+                      gen("label" E1);
+                      T2 = new Label();
+                      F2 = new Label();
+                      E2 = new Label();
+                      B2.true = T2;
+                      B2.false = F2;
+                      // gen B2.code
+                      t2 = new Temp();
+                      gen("label" T2);
+                      gen(t2 "=" 1);
+                      gen("goto" E2);
+                      gen("label" F2);
+                      gen(t2 "=" 0);
+                      gen("label" E2);
+                      gen("IfTrue" t1 "==" t2 B.false);
+                      gen("Goto" B.true); }
+
+6.6.4
+//  errata:
+//      http://infolab.stanford.edu/~ullman/dragon/errata.html
+//      "x == 1;" => "x = 1;" 
+//  adjusted the grammar so || has lower precedence than &&, like in most of the languages
+./Dragon_Book/chapter_6/dag
+a.  IfFalse a == b goto L2,
+    IfTrue c == d goto L1,
+    L2: IfFalse e == f goto L0,
+    L1: x = 1,
+    L0: Noop
+b.  IfTrue a == b goto L1,
+    IfTrue c == d goto L1,
+    IfFalse e == f goto L0,
+    L1: x = 1,
+    L0: Noop
+c.  IfFalse a == b goto L0,
+    IfFalse c == d goto L0,
+    IfFalse e == f goto L0,
+    x = 1,
+    L0: Noop
+
+6.6.5
+//  routine, skipped
+
+6.6.6
+//  if l1 == fall, l1 || l2 == l2
+P -> S                      { S.next = fall;
+                              // gen S.code }
+S -> assign                 { // gen assign.code }
+S -> if ( B ) S1            { end = S.next || new Label();
+                              B.true = fall; 
+                              B.false = end;
+                              // gen B.code
+                              S1.next = S.next;
+                              // gen S1.code
+                              if S.next == fall {
+                                  gen("label" end);
+                              }}
+S -> if ( B ) S1 else S2    { end = S.next || new Label();
+                              f = new Label();
+                              B.true = fall;
+                              B.false = f;
+                              // gen B.code
+                              S1.next = end;
+                              // gen S1.code
+                              gen("label" f);
+                              S2.next = S.next;
+                              // gen S2.code
+                              if S.next == fall {
+                                  gen("label" end);
+                              }}
+S -> while ( B ) S1         { loop = new Label();
+                              end = S.next || new Label();
+                              gen("label" loop);
+                              B.true = fall;
+                              B.false = end;
+                              // gen B.code
+                              S1.next = S.next;
+                              // gen S1.code
+                              if S.next == fall {
+                                  gen("label" end);
+                              }}
+S -> S1 S2                  { S1.next = fall; 
+                              // gen S1.code}
+                              S2.next = S.next;
+                              // gen S2.code }
+B -> B1 && B2               { f = B.false || new Label();
+                              B1.true = fall;
+                              B1.false = f;
+                              // gen B1.code
+                              B2.true = B.true;
+                              B2.false = B.false;
+                              if B.false == fall {
+                                  gen("label" f);
+                              }}
+B -> ! B1                   { // no change }
+B -> true                   { if B.true != fall { gen("goto" B.true); }}
+B -> false                  { if B.false != fall { gen("goto" B.false); }}
+
+6.6.7
+6.6.6 is already such a rule 
+verified by test ./Dragon_Book/chapter_6/dag/src/symbolic.rs#stmt_test
+
+6.6.8
+B -> E1 rel E2              { // gen E1.code, E2.code
+                              switch (B.true, B.false)
+                              case (fall, fall):
+                                // noop
+                              case (t, fall);
+                                gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
+                              case (fall, f):
+                                gen("IfFalse" E1.addr rel.op E2.addr "goto" f);
+                                // or gen("if" E1.addr rel.op.rev() E2.addr "goto" f)
+                                // if the intermediate code has no IfFalse instruction
+                              case (t, f):
+                                gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
+                                gen("goto" f); }
