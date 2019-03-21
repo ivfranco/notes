@@ -1,0 +1,75 @@
+use crate::three_addr::{RelOp, BinOp};
+use crate::{Stmt, Expr, Boolean};
+use crate::next_instr;
+
+grammar;
+
+pub L: Stmt = {
+    <S>,
+    <l:L> <dest:M> <s:S> => l.append(dest, s),
+}
+
+// brackets `{ }` must be explicit to solve the dangling else conflict
+S: Stmt = {
+    "if" "(" <BOr> ")" <M> "{" <L> "}" => Stmt::if_only(<>),
+    "if" "(" <BOr> ")" <M> "{" <L> "}" <N> "else" <M> "{" <L> "}" => Stmt::if_else(<>),
+    "while" <M> "(" <BOr> ")" <M> "{" <L> "}" => Stmt::while_clause(<>),
+    <Id> "=" <E> ";" => Stmt::assign(<>),
+    "{" <L> "}",
+}
+
+pub BOr: Boolean = {
+    <lhs:BOr> "||" <label:M> <rhs:BAnd> => lhs.or(label, rhs),
+    <BAnd>,
+}
+
+BAnd: Boolean = {
+    <lhs:BAnd> "&&" <label:M> <rhs:BFactor> => lhs.and(label, rhs),
+    <BFactor>,
+}
+
+BFactor: Boolean = {
+    "(" <BOr> ")",
+    "!" <b:BFactor> => b.not(),
+    <lhs:E> <op:Rel> <rhs:E> => Boolean::rel(lhs, op, rhs),
+    "true" => Boolean::t(),
+    "false" => Boolean::f(),
+}
+
+// one possible way to eliminate this marker nonterminal is to store start position
+// of each code block explicitly as a synthesis attribute in Boolean structure
+M: usize = {
+    () => next_instr(),
+}
+
+N: Stmt = {
+    () => Stmt::goto(),
+}
+
+E: Expr = {
+    <e:E> "+" <f:F> => Expr::bin(e, BinOp::Add, f),
+    <F>,
+}
+
+F: Expr = {
+    "(" <E> ")",
+    <n:Num> => Expr::lit(n),
+    <id:Id> => Expr::var(id),
+}
+
+Num: usize = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}
+
+Id: String = {
+    <s:r"[a-zA-Z]\w*"> => s.to_owned(),
+}
+
+Rel: RelOp = {
+    "==" => RelOp::Eq,
+    "!=" => RelOp::Ne,
+    ">" => RelOp::Gt,
+    ">=" => RelOp::Ge,
+    "<" => RelOp::Lt,
+    "<=" => RelOp::Le,
+}
