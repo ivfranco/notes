@@ -3490,16 +3490,18 @@ B -> E1 rel E2              { switch (B.true, B.false)
                               case (fall, fall):
                                 // noop
                               case (t, fall);
-                                gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
+                                test = gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
                               case (fall, f):
-                                gen("IfFalse" E1.addr rel.op E2.addr "goto" f);
+                                test = gen("IfFalse" E1.addr rel.op E2.addr "goto" f);
                                 // or gen("if" E1.addr rel.op.rev() E2.addr "goto" f)
                                 // if the intermediate code has no IfFalse instruction
                               case (t, f):
-                                gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
-                                gen("goto" f); }
+                                test = gen("IfTrue" E1.addr rel.op E2.addr "goto" t);
+                                    || gen("goto" f); 
+                              B.code = E1.code || E2.code || test; }
 
 6.7.1
+./Dragon_Book/chapter_6/backpatch
 a.  a==b && (c==d || e==f)
     a == b:             truelist = [100], falselist = [101]
     c == d:             truelist = [102], falselist = [103]
@@ -3536,3 +3538,140 @@ c.  (a==b && c==d) && e==f
     103: goto _
     104: if e == f goto _
     105: goto _
+
+6.7.2
+//  E should be replaced by B in the figure?
+a.  i1 
+b.  i7
+c.  i7
+d.  i3
+e.  i3
+
+6.7.3
+a.  S4.next = B3.false
+b.  S5.next = merge(B4.false, S2.next)
+c.  S6.next = S3.next
+d.  S7.next = merge(S4.next, S6.next, N.next)
+e.  B1.false
+
+6.8.1
+S   -> switch ( E ) CL default S1   { t = E.rvalue;
+                                      test = new Label();
+                                      default = new Label();
+                                      CL.next = S.next;
+                                      S1.next = S.next;
+                                      test_code = CL.pairs.map((v, l) => gen("case" t v l)).reduce(||);
+                                      test_code = gen("label" test) || test_code || gen("goto" default);
+                                      S.code = E.code
+                                          || gen("goto" test)
+                                          || CL.code
+                                          || gen("label" default)
+                                          || S1.code
+                                          || gen("goto" S.next)
+                                          || test_code: }
+CL  -> CL1 C                        { CL1.next = C.next = CL.next;
+                                      CL.code = CL1.code || C.code;
+                                      CL.pairs = merge(CL1.pairs, { C.pair }); }
+CL  -> C                            { C.next = CL.next;
+                                      CL.code = C.code; 
+                                      CL.pairs = { C.pair }; }
+C   -> case V: S                    { S.next = C.next;
+                                      into = new Label();
+                                      C.code = gen("label" into) || S.code || gen("goto" C.next);
+                                      C.pair = (V.lexval, into); }
+
+7.2.1
+a.  q(0,9)
+        p(0,9)
+        q(0,8)
+            p(0,8)
+            q(0,0)
+            q(1,8)
+                p(1,8)
+                q(1,7)
+                    p(1,7)
+                    q(1,1)
+                    q(2,7)
+                        p(2,7)
+                        q(2,6)
+                            p(2,6)
+                            q(2,2)
+                            q(3,6)
+                                p(3,6)
+                                q(3,5)
+                                    p(3,5)
+                                    q(3,3)
+                                    q(4,5)
+                                q(6,6)
+                        q(7,7)
+                q(8,8)
+        q(9,9)
+b.  9
+
+7.2.2
+a.  q(0,9)
+        p(0,9)
+        q(0,0)
+        q(1,9)
+            p(1,9)
+            q(1,2)
+            q(3,9)
+                p(3,9)
+                q(3,6)
+                    p(3,6)
+                    q(3,4)
+                    q(5,6)
+                q(7,9)
+                    p(7,9)
+                    q(7,7)
+                    q(8,9)
+b.  5
+
+7.2.3
+a.  f(5)
+        f(4)
+            f(3)
+                f(2)
+                    f(1)
+                    f(0)
+                f(1)
+            f(2)
+                f(1)
+                f(0)
+        f(3)
+            f(2)
+                f(1)
+                f(0)
+            f(1)
+b.  from bottom to above:
+    record of f(5) (input n, space of returns s and t, saved machine status)
+    record of f(4) (same as above)
+    record of f(3) (same as above)
+    record of f(2) (same as above)
+    record of f(1) (same as above without saved machine status)
+c.  record of f(5) (input n, space of returns s and t, saved machine status)
+    record of f(3) (same as above)
+    record of f(1) (same as above without saved machine status)
+
+7.2.4
+in style of figure 7.6
+0:  y
+1:  g(y)
+2:  j and return value from f
+3:  x (= j + 1)
+4:  f(x)
+5:  i
+a.  g(y) creates 0 - 3
+    f(x) creates 4 - 5
+b.  the caller of g(y) writes y
+    g(y) writes x and j
+    f(x) writes i and the return value on 3
+c.  0 - 2: g(y)
+    3 - 5: f(x)
+
+7.2.5
+12
+
+7.2.6
+21
+
