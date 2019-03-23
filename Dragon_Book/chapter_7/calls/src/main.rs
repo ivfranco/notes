@@ -1,10 +1,11 @@
-use calls::fibonacci::fibonacci;
+use calls::fibonacci::{fib0, fibonacci};
 use calls::quicksort::quicksort;
 
 fn main() {
     exercise_7_2_1();
     exercise_7_2_2();
     exercise_7_2_3();
+    exercise_7_3_1();
 }
 
 fn exercise_7_2_1() {
@@ -27,4 +28,10 @@ fn exercise_7_2_3() {
     println!("Exercise 7.2.2:");
 
     println!("{:?}", fibonacci(5).1);
+}
+
+fn exercise_7_3_1() {
+    println!("Exercise 7.3.1:");
+
+    println!("{:?}", fib0(4).1);
 }

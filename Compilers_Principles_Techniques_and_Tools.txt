@@ -3581,6 +3581,7 @@ C   -> case V: S                    { S.next = C.next;
                                       C.pair = (V.lexval, into); }
 
 7.2.1
+./Dragon_Book/chapter_7/calls
 a.  q(0,9)
         p(0,9)
         q(0,8)
@@ -3609,6 +3610,7 @@ a.  q(0,9)
 b.  9
 
 7.2.2
+./Dragon_Book/chapter_7/calls
 a.  q(0,9)
         p(0,9)
         q(0,0)
@@ -3628,6 +3630,7 @@ a.  q(0,9)
 b.  5
 
 7.2.3
+./Dragon_Book/chapter_7/calls
 a.  f(5)
         f(4)
             f(3)
@@ -3675,3 +3678,64 @@ c.  0 - 2: g(y)
 7.2.6
 21
 
+7.3.1
+./Dragon_Book/chapter_7/calls
+fib0(4)
+    fib1(4)
+        fib2(4)
+            fib1(3)
+                fib0(2)
+                    fib1(2)
+                        fib0(1)
+                        fib0(0)
+                fib0(1)
+            fib1(2)
+                fib0(1)
+                fib0(0)
+ :  fib0(4)
+0:  access label: main
+ :  fib1(4)
+1:  access label: 0
+ :  fib2(4)
+2:  access label: 1
+ :  fib1(3)
+3:  access label: 0
+ :  fib0(2)
+4:  access label: main
+ :  fib1(2)
+5:  access label: 4
+ :  fib0(1)
+6:  access label: main
+
+7.3.2
+ :  fib0(4)
+0:  saved d[2]: null
+ :  fib1(4)
+1:  saved d[3]: null
+ :  fib2(4)
+2:  saved d[4]: null
+ :  fib1(3)
+3:  saved d[3]: 1
+ :  fib0(2)
+4:  saved d[2]: 0
+ :  fib1(2)
+5:  saved d[3]: 1
+ :  fib0(1)
+6:  saved d[2]: 4
+d[1] = main
+d[2] = 6
+d[3] = 5
+d[4] = 2
+
+7.4.1
+//  with no coalescing
+./Dragon_Book/chapter_7/free_space
+a.  range: [80, 93], size: 14
+    range: [110, 169], size: 60
+    range: [170, 219], size: 50
+    range: [290, 309], size: 20
+    range: [310, 349], size: 40
+b.  range: [0, 79], size: 80
+    range: [80, 109], size: 30
+    range: [110, 169], size: 60
+    range: [310, 317], size: 8
