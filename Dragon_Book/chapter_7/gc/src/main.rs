@@ -2,6 +2,7 @@ use gc::GC;
 
 fn main() {
     exercise_7_6_1();
+    exercise_7_7_1();
 }
 
 fn graph_one() -> GC {
@@ -92,6 +93,18 @@ fn exercise_7_6_1() {
 
     let mut instance = gc_two.clone();
     instance.remove(instance.node("B"));
+    instance.mark_and_sweep(0);
+    println!("{:?}", instance);
+}
+
+fn exercise_7_7_1() {
+    println!("Exercise 7.7.1:");
+
+    let mut instance = graph_two();
+    instance.deref(instance.node("A"), instance.node("D"));
+    instance.refer(instance.node("A"), instance.node("H"));
+    instance.deref(instance.node("B"), instance.node("C"));
+    instance.refer(instance.node("B"), instance.node("I"));
     instance.mark_and_sweep(0);
     println!("{:?}", instance);
 }

@@ -3791,6 +3791,7 @@ Y: 0
 //  mark phase in Algorithm 7.12 is simply DFS
 //  the steps of a run of DFS depends on how it enumerates neighbours of a vertex
 //  which is not specified in the algorithm, hence only results are given here
+./Dragon_Book/chapter_7/gc
 a.  name: A, offset: 0, size: 100
     name: B, Recycled
     name: C, offset: 100, size: 100
@@ -3849,3 +3850,40 @@ see 7.6.1
 the result of 7.6.1 but:
     the offsets starts from 10000 instead of 0
     BFS instead of DFS
+
+7.7.1
+Write barrier: put o to Unscanned if o1.o is overwritten and o1 is Scanned
+i   A: Unscanned => Scanned
+    D, E: Unreached => Unscanned
+ii  write barrier
+    H: Unreached => Unscanned
+iii B: Unscanned => Scanned
+    C, E: Unreached => Unscanned
+iv  D: Unscanned => Scanned
+    G, H: Unreached => Unscanned
+v   write barrier
+    I: Unreached => Unscanned
+{C, D, F, G} are gabages, Free is empty
+
+7.7.2
+i   A: Unscanned => Scanned
+    D, E: Unreached => Unscanned
+ii  Nothing
+iii B: Unscanned => Scanned
+    E, I: Unreached => Unscanned
+iv  D: Unscanned => Scanned
+    G, H: Unreached => Unscanned
+v   write barrier
+    H: Unreached => Unscanned
+{C, D, F, G} are gabages, Free = {C}
+
+7.7.3
+23, 32, 25 (new car) or 34 (new car)
+
+7.7.4
+a.  22, 31, 25 (new car) or 34 (new car)
+b.  any car 11 to 13 (new car), preferably 11
+
+7.7.5
+reference to o1 is moved to base set
+o1 is moved to train 2 or 3 
