@@ -120,9 +120,7 @@ impl Instr {
         match self {
             Instr::If(_, _, _, label) => Some(label),
             Instr::Goto(label) => Some(label),
-            Instr::Bin(..) => None,
-            Instr::Copy(..) => None,
-            Instr::Noop => None,
+            _ => None,
         }
     }
 
@@ -137,9 +135,7 @@ impl Instr {
         match self {
             Instr::If(_, _, _, label) => Some(label),
             Instr::Goto(label) => Some(label),
-            Instr::Bin(..) => None,
-            Instr::Copy(..) => None,
-            Instr::Noop => None,
+            _ => None,
         }
     }
 

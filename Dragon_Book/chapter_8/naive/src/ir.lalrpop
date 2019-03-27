@@ -1,0 +1,66 @@
+use crate::three_addr::{BinOp, RValue, IR, RelOp, Line, Label, Program};
+
+grammar;
+
+SepBy<T,S>: Vec<T> = {
+    <v:(<T> S)*> <t:T?> => match t {
+        Some(t) => {
+            let mut v = v;
+            v.push(t);
+            v
+        },
+        None => vec![],
+    }
+}
+
+pub Prog: Program = {
+    <lines:Line*> => Program { lines },
+}
+
+pub Line: Line = {
+    <labels:LS> <ir:IR> ";" => Line::new(labels, ir),
+}
+
+pub IR: IR = {
+    <dst:Id> "=" <array:Id> <idx:RV> => IR::ArrayAccess(dst, array, idx),
+    <array:Id> <idx:RV> "=" <source:RV> => IR::ArrayAssign(array, idx, source),
+    <dst:Id> "=" "*" <src:Id> => IR::RefAccess(dst, src),
+    "*" <dst:Id> "=" <src:Id> => IR::RefAssign(dst, src),
+    <dst:Id> "=" <lhs:RV> <op:BO> <rhs:RV> => IR::Op(dst, lhs, op, rhs),
+    <dst:Id> "=" <src:RV> => IR::Copy(dst, src),
+    "goto" <l:L> => IR::Goto(l),
+    "if" <lhs:RV> <op:RO> <rhs:RV> "goto" <l:L> => IR::If(lhs, op, rhs, l),
+    () => IR::Noop,
+}
+
+LS: Vec<String> = {
+    <labels:SepBy<L, ",">> ":" => labels,
+    () => vec![],
+}
+
+L: Label = {
+    <s:r"L\d+"> => s.to_owned(),
+}
+
+BO: BinOp = {
+    "+" => BinOp::Add,
+    "*" => BinOp::Mul,
+}
+
+RO: RelOp = {
+    "<" => RelOp::Lt,
+    ">" => RelOp::Gt,
+}
+
+RV: RValue = {
+    <var:Id> => RValue::Var(var),
+    <lit:Int> => RValue::Lit(lit),
+}
+
+Id: String = {
+    <s:r"[a-z]"> => s.to_owned(),
+}
+
+Int: usize = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}

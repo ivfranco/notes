@@ -3887,3 +3887,10 @@ b.  any car 11 to 13 (new car), preferably 11
 7.7.5
 reference to o1 is moved to base set
 o1 is moved to train 2 or 3 
+
+7.8.1
+declare a global variable i, initialized to 0
+register a signal handler for SIGSEGV that increments i
+the main "loop" dereference i, if the signal handler is not triggered output i
+if there is a chunk, it will eventually be found
+the the global loop variable i is certainly allocated somewhere in memory

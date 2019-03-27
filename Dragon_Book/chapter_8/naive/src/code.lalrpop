@@ -1,0 +1,46 @@
+use crate::machine_code::{Op, RValue, Addr, Idx, Code, Reg, Cond};
+
+grammar;
+
+pub Code: Code = {
+    "LD" <dst:R> "," <addr:Addr> => Code::Ld(dst, addr),
+    "ST" <addr:Addr> "," <src:R> => Code::St(addr, src),
+    <op:Op> <dst:R> "," <lhs:R> "," <rhs:R> => Code::Op(op, dst, lhs, rhs),
+    "BR" <l:Id> => Code::Br(l),
+    "B" <c:C> <addr:Addr> "," <l:Id> => Code::Cbr(c, addr, l),
+
+}
+
+C: Cond = {
+    "LTZ" => Cond::Ltz,
+}
+
+Addr: Addr = {
+    <id:Id> => Addr::LValue(id),
+    <idx:Idx> "(" <r:R> ")" => Addr::Indexed(idx, r),
+    "*" <idx:Int> "(" <r:R> ")" => Addr::Deref(idx, r),
+    "*" <r:R> => Addr::Deref(0, r),
+    "#" <lit:Int> => Addr::Imm(lit),
+}
+
+Idx: Idx = {
+    <var:Id> => Idx::Var(var),
+    <lit:Int> => Idx::Lit(lit),
+}
+
+Id: String = {
+    <s:r"[a-zA-Z]\w*]"> => s.to_owned(),
+}
+
+Int: usize = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}
+
+R: Reg = "R" <Int>;
+
+Op: Op = {
+    "ADD" => Op::Add,
+    "SUB" => Op::Sub,
+    "MUL" => Op::Mul,
+    "DIV" => Op::Div,
+}
