@@ -1,3 +1,5 @@
+use crate::builder::Builder;
+pub use crate::machine_code::{BinOp, Binary};
 use std::error::Error;
 use std::fmt::{self, Debug, Formatter};
 
@@ -16,20 +18,6 @@ impl Debug for RValue {
         match self {
             RValue::Lit(lit) => write!(f, "{}", lit),
             RValue::Var(var) => write!(f, "{}", var),
-        }
-    }
-}
-
-pub enum BinOp {
-    Add,
-    Mul,
-}
-
-impl BinOp {
-    fn symbol(&self) -> &'static str {
-        match self {
-            BinOp::Add => "+",
-            BinOp::Mul => "*",
         }
     }
 }
@@ -61,7 +49,7 @@ pub enum IR {
 }
 
 impl IR {
-    fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
+    pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         ir::IRParser::new().parse(s).map_err(Box::from)
     }
 }
@@ -105,7 +93,7 @@ impl Debug for Line {
             let prefix = self
                 .labels
                 .iter()
-                .map(|label| format!("{}", label))
+                .map(|label| label.as_str())
                 .collect::<Vec<_>>()
                 .join(", ");
 
@@ -118,6 +106,18 @@ pub struct Program {
     lines: Vec<Line>,
 }
 
+impl Program {
+    pub fn build(&self) -> Binary {
+        let mut builder = Builder::new();
+
+        for ir in self.lines.iter().map(|line| &line.ir) {
+            builder.gen(ir);
+        }
+
+        builder.seal()
+    }
+}
+
 impl Debug for Program {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         for line in &self.lines {
@@ -128,7 +128,7 @@ impl Debug for Program {
 }
 
 impl Program {
-    fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
+    pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         ir::ProgParser::new().parse(s).map_err(Box::from)
     }
 }
@@ -143,5 +143,7 @@ i = i + 1;
 goto L1;
 L2:;";
 
-    println!("{:?}", Program::parse(program).unwrap());
+    let p = Program::parse(program).unwrap();
+    // println("{:?}", p);
+    assert_eq!(p.lines.len(), 7);
 }

@@ -1,23 +1,28 @@
-use crate::machine_code::{Op, RValue, Addr, Idx, Code, Reg, Cond};
+use crate::machine_code::{BinOp, Addr, Idx, Code, Reg, Cond, Binary, Word};
 
-grammar;
+#[LALR] grammar;
+
+pub Bin: Binary = {
+    <codes:Code*> => Binary { codes },
+}
 
 pub Code: Code = {
     "LD" <dst:R> "," <addr:Addr> => Code::Ld(dst, addr),
-    "ST" <addr:Addr> "," <src:R> => Code::St(addr, src),
-    <op:Op> <dst:R> "," <lhs:R> "," <rhs:R> => Code::Op(op, dst, lhs, rhs),
-    "BR" <l:Id> => Code::Br(l),
-    "B" <c:C> <addr:Addr> "," <l:Id> => Code::Cbr(c, addr, l),
+    "ST" <addr:Addr> "," <src:W> => Code::St(addr, src),
+    <op:Op> <dst:R> "," <lhs:W> "," <rhs:W> => Code::Op(op, dst, lhs, rhs),
+    "BR" <l:L> => Code::Br(l),
+    <c:C> <addr:Addr> "," <l:L> => Code::Cbr(c, addr, l),
 
 }
 
 C: Cond = {
-    "LTZ" => Cond::Ltz,
+    "BLTZ" => Cond::Ltz,
 }
 
 Addr: Addr = {
     <id:Id> => Addr::LValue(id),
     <idx:Idx> "(" <r:R> ")" => Addr::Indexed(idx, r),
+    <r:R> => Addr::Indexed(Idx::Lit(0), r),
     "*" <idx:Int> "(" <r:R> ")" => Addr::Deref(idx, r),
     "*" <r:R> => Addr::Deref(0, r),
     "#" <lit:Int> => Addr::Imm(lit),
@@ -28,19 +33,30 @@ Idx: Idx = {
     <lit:Int> => Idx::Lit(lit),
 }
 
+W: Word = {
+    <r:R> => Word::Reg(r),
+    <l:Int> => Word::Lit(l),
+}
+
+L: String = {
+    <s:r"L\d+"> => s.to_owned(),
+}
+
 Id: String = {
-    <s:r"[a-zA-Z]\w*]"> => s.to_owned(),
+    <s:r"[a-zA-Z]"> => s.to_owned(),
 }
 
 Int: usize = {
     <s:r"\d+"> => s.parse().unwrap(),
 }
 
-R: Reg = "R" <Int>;
+R: Reg = {
+    <s:r"R\d+"> => (&s[1..]).parse().unwrap(),
+}
 
-Op: Op = {
-    "ADD" => Op::Add,
-    "SUB" => Op::Sub,
-    "MUL" => Op::Mul,
-    "DIV" => Op::Div,
+Op: BinOp = {
+    "ADD" => BinOp::Add,
+    "SUB" => BinOp::Sub,
+    "MUL" => BinOp::Mul,
+    "DIV" => BinOp::Div,
 }

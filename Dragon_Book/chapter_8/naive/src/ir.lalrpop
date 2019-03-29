@@ -1,6 +1,6 @@
 use crate::three_addr::{BinOp, RValue, IR, RelOp, Line, Label, Program};
 
-grammar;
+#[LALR] grammar;
 
 SepBy<T,S>: Vec<T> = {
     <v:(<T> S)*> <t:T?> => match t {
@@ -22,8 +22,8 @@ pub Line: Line = {
 }
 
 pub IR: IR = {
-    <dst:Id> "=" <array:Id> <idx:RV> => IR::ArrayAccess(dst, array, idx),
-    <array:Id> <idx:RV> "=" <source:RV> => IR::ArrayAssign(array, idx, source),
+    <dst:Id> "=" <array:Id> "[" <idx:RV> "]" => IR::ArrayAccess(dst, array, idx),
+    <array:Id> "[" <idx:RV> "]" "=" <source:RV> => IR::ArrayAssign(array, idx, source),
     <dst:Id> "=" "*" <src:Id> => IR::RefAccess(dst, src),
     "*" <dst:Id> "=" <src:Id> => IR::RefAssign(dst, src),
     <dst:Id> "=" <lhs:RV> <op:BO> <rhs:RV> => IR::Op(dst, lhs, op, rhs),

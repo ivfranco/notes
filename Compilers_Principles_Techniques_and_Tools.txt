@@ -3893,4 +3893,104 @@ declare a global variable i, initialized to 0
 register a signal handler for SIGSEGV that increments i
 the main "loop" dereference i, if the signal handler is not triggered output i
 if there is a chunk, it will eventually be found
-the the global loop variable i is certainly allocated somewhere in memory
+the global loop variable i is certainly allocated somewhere in memory
+
+8.2.1
+./Dragon_Book/chapter_8/naive
+a.  ST x, 1
+b.  LD R0, a
+    ST x, R0
+c.  LD R0, a
+    ADD R1, R0, 1
+    ST x, R1
+d.  LD R0, a
+    LD R1, b
+    ADD R2, R0, R1
+    ST x, R2
+e.  LD R0, b
+    LD R1, c
+    MUL R2, R0, R1
+    ST x, R2
+    LD R3, a
+    ADD R4, R3, R2
+    ST y, R4
+
+8.2.2
+./Dragon_Book/chapter_8/naive
+a.  LD R0, i
+    MUL R1, R0, 4
+    LD R2, a(R1)
+    ST x, R2
+    LD R3, j
+    MUL R4, R3, 4
+    LD R5, b(R4)
+    ST y, R5
+    MUL R6, R0, 4
+    ST a(R6), R5
+    MUL R7, R3, 4
+    ST b(R7), R2
+b.  LD R0, i
+    MUL R1, R0, 4
+    LD R2, a(R1)
+    ST x, R2
+    MUL R3, R0, 4
+    LD R4, b(R3)
+    ST y, R4
+    MUL R5, R2, R4
+    ST z, R5
+c.  LD R0, i
+    MUL R1, R0, 4
+    LD R2, a(R1)
+    ST x, R2
+    MUL R3, R2, 4
+    LD R4, b(R3)
+    ST y, R4
+    MUL R5, R0, 4
+    ST a(R5), R4
+
+8.2.3
+./Dragon_Book/chapter_8/naive
+LD R0, q
+LD R1, *0(R0)
+ST y, R1
+ADD R2, R0, 4
+ST q, R2
+LD R3, p
+ST *0(R3), R1
+ADD R4, R3, 4
+ST p, R4
+
+8.2.4
+./Dragon_Book/chapter_8/naive
+LD R0, x
+LD R1, y
+SUB R2, R0, R1
+BLTZ 0(R2), L1
+ST z, 0
+BR L2
+L1: ST z, 1
+
+8.2.5
+./Dragon_Book/chapter_8/naive
+ST s, 0
+ST i, 0
+L1: LD R0, i
+LD R1, n
+SUB R2, R1, R0
+BLTZ R2, L2
+LD R3, s
+ADD R4, R3, R0
+ST s, R4
+ADD R5, R0, 1
+ST i, R5
+BR L1
+L2:
+
+8.2.6
+./Dragon_Book/chapter_8/naive
+a.  7
+b.  7
+c.  7
+d.  6
+e.  6
+f.  7
