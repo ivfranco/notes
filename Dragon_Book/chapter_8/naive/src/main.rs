@@ -8,6 +8,8 @@ fn main() {
     exercise_8_2_4();
     exercise_8_2_5();
     exercise_8_2_6();
+    exercise_8_3_2();
+    exercise_8_3_3();
 }
 
 fn exercise_8_2_1() {
@@ -187,5 +189,62 @@ BLTZ *R3, L0
         )
         .unwrap()
         .cost()
+    );
+}
+
+fn exercise_8_3_2() {
+    println!("Exercise 8.3.2:");
+
+    println!("{}", Program::parse("x = 1;").unwrap().build());
+    println!("{}", Program::parse("x = a;").unwrap().build());
+    println!("{}", Program::parse("x = a + 1;").unwrap().build());
+    println!("{}", Program::parse("x = a + b;").unwrap().build());
+    println!(
+        "{}",
+        Program::parse("x = b * c; y = a + x;").unwrap().build()
+    );
+}
+
+fn exercise_8_3_3() {
+    println!("Exercise 8.3.3:");
+
+    println!(
+        "{}",
+        Program::parse(
+            "
+x = a[i];
+y = b[j];
+a[i] = y;
+b[j] = x;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+
+    println!(
+        "{}",
+        Program::parse(
+            "
+x = a[i];
+y = b[i];
+z = x * y;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+
+    println!(
+        "{}",
+        Program::parse(
+            "
+x = a[i];
+y = b[x];
+a[i] = y;
+    "
+        )
+        .unwrap()
+        .build()
     );
 }

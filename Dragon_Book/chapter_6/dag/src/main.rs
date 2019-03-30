@@ -14,6 +14,8 @@ fn main() {
     exercise_6_4_8();
     exercise_6_4_9();
     exercise_6_6_4();
+    exercise_8_4_1();
+    exercise_8_4_2();
 }
 
 fn exercise_6_1_1() {
@@ -116,5 +118,56 @@ fn exercise_6_6_4() {
     println!(
         "{:#?}",
         ProcBuilder::parse("if (a==b && c==d && e==f) { x = 1; }").unwrap()
+    );
+}
+
+fn exercise_8_4_1() {
+    println!("Exercise 8.4.1:");
+
+    println!(
+        "{:#?}",
+        ProcBuilder::parse(
+            "
+for (i=0; i<n; i++) {
+    for (j=0; j<n; j++) {
+        c[i][j] = 0.0;
+    }
+}
+for (i=0; i<n; i++) {
+    for (j=0; j<n; j++) {
+        for (k=0; k<n; k++) {
+            c[i][j] = c[i][j] + a[i][k]*b[k][j];
+        }
+    }
+}
+    "
+        )
+        .unwrap()
+    );
+}
+
+fn exercise_8_4_2() {
+    println!("Exercise 8.4.2:");
+
+    println!(
+        "{:#?}",
+        ProcBuilder::parse(
+            "
+for (i=2; i<=n; i++) {
+    a[i] = TRUE;
+}
+count = 0;
+s = 0;
+for (i=2; i<=s; i++) {
+    if (a[i] == FALSE) {
+        count++;
+        for (j=2*i; j<=n; j = j+i) {
+            a[j] = FALSE;
+        }
+    }
+}
+    "
+        )
+        .unwrap()
     );
 }

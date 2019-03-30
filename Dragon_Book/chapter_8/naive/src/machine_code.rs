@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::fmt::{self, Debug, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 lalrpop_mod!(pub code);
 
@@ -32,7 +32,7 @@ impl Debug for Word {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
             Word::Reg(r) => write!(f, "R{}", r),
-            Word::Lit(l) => write!(f, "{}", l),
+            Word::Lit(l) => write!(f, "#{}", l),
         }
     }
 }
@@ -57,6 +57,13 @@ impl Addr {
         match self {
             Reg(..) => 0,
             _ => 1,
+        }
+    }
+
+    fn format_sp(&self) -> String {
+        match self {
+            Addr::LValue(v) => format!("SP + {}.rel_addr", v),
+            _ => format!("{:?}", self),
         }
     }
 }
@@ -140,6 +147,17 @@ impl Code {
             _ => 1,
         }
     }
+
+    fn format_sp(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        use self::Code::*;
+
+        match self {
+            Ld(r, a) => write!(f, "LD R{}, {}", r, a.format_sp()),
+            St(a, w) => write!(f, "ST {}, {:?}", a.format_sp(), w),
+            Cbr(c, addr, l) => write!(f, "B{} {}, {}", c.tag(), addr.format_sp(), l),
+            _ => Debug::fmt(self, f),
+        }
+    }
 }
 
 impl Debug for Code {
@@ -174,6 +192,16 @@ impl Debug for Binary {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         for code in &self.codes {
             writeln!(f, "{:?}", code)?;
+        }
+        Ok(())
+    }
+}
+
+impl Display for Binary {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        for code in &self.codes {
+            code.format_sp(f)?;
+            writeln!(f, "")?;
         }
         Ok(())
     }

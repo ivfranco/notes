@@ -185,6 +185,7 @@ pub enum Expr {
     Access(Access),
     Var(String),
     Lit(usize),
+    Float(u64),
 }
 
 impl Expr {
@@ -210,6 +211,10 @@ impl Expr {
 
     pub fn lit(n: usize) -> Rc<Self> {
         Expr::Lit(n).dedup()
+    }
+
+    pub fn float(f: f64) -> Rc<Self> {
+        Expr::Float(f.to_bits()).dedup()
     }
 
     pub fn bool(boolean: Rc<Boolean>) -> Rc<Self> {
@@ -238,6 +243,7 @@ impl Expr {
             Expr::Access(access) => write!(f, "{:?}", access),
             Expr::Var(var) => write!(f, "{}", var),
             Expr::Lit(lit) => write!(f, "{}", lit),
+            Expr::Float(i) => write!(f, "{}", f64::from_bits(*i)),
         }
     }
 
@@ -262,6 +268,16 @@ impl Expr {
             Expr::Access(access) => access.rwalk(builder),
             Expr::Var(var) => var.clone().into(),
             Expr::Lit(lit) => RValue::Lit(*lit),
+            Expr::Float(f) => RValue::Float(*f),
+        }
+    }
+}
+
+impl From<LValue> for Expr {
+    fn from(lvalue: LValue) -> Self {
+        match lvalue {
+            LValue::Var(var) => Expr::Var(var),
+            LValue::Access(access) => Expr::Access(access),
         }
     }
 }
@@ -545,9 +561,10 @@ impl Boolean {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Stmt {
     Assign(Assign),
-    If(Rc<Boolean>, Rc<Stmt>),
-    IfElse(Rc<Boolean>, Rc<Stmt>, Rc<Stmt>),
-    While(Rc<Boolean>, Rc<Stmt>),
+    If(Rc<Boolean>, Stmts),
+    IfElse(Rc<Boolean>, Stmts, Stmts),
+    While(Rc<Boolean>, Stmts),
+    For(Rc<Stmt>, Rc<Boolean>, Rc<Stmt>, Stmts),
 }
 
 impl Stmt {
@@ -559,16 +576,22 @@ impl Stmt {
         Stmt::Assign(assign).dedup()
     }
 
-    pub fn if_only(cond: Rc<Boolean>, body: Rc<Self>) -> Rc<Self> {
+    pub fn if_only(cond: Rc<Boolean>, body: Stmts) -> Rc<Self> {
         Stmt::If(cond, body).dedup()
     }
 
-    pub fn if_else(cond: Rc<Boolean>, t_clause: Rc<Self>, f_clause: Rc<Self>) -> Rc<Self> {
+    pub fn if_else(cond: Rc<Boolean>, t_clause: Stmts, f_clause: Stmts) -> Rc<Self> {
         Stmt::IfElse(cond, t_clause, f_clause).dedup()
     }
 
-    pub fn while_clause(cond: Rc<Boolean>, body: Rc<Self>) -> Rc<Self> {
+    pub fn while_clause(cond: Rc<Boolean>, body: Stmts) -> Rc<Self> {
         Stmt::While(cond, body).dedup()
+    }
+
+    pub fn for_clause(init: Assign, cond: Rc<Boolean>, last: Assign, body: Stmts) -> Rc<Self> {
+        let init = Stmt::assign(init);
+        let last = Stmt::assign(last);
+        Stmt::For(init, cond, last, body).dedup()
     }
 
     fn walk(&self, next: Option<Label>, builder: &mut ProcBuilder) {
@@ -611,6 +634,19 @@ impl Stmt {
                     builder.attach_label(end);
                 }
             }
+            Stmt::For(init, cond, last, body) => {
+                let top = builder.new_label();
+                let end = next.unwrap_or_else(|| builder.new_label());
+
+                init.walk(None, builder);
+                builder.attach_label(top);
+                cond.jwalk(None, Some(end), builder);
+                body.walk(None, builder);
+                last.walk(Some(top), builder);
+                if next.is_none() {
+                    builder.attach_label(end);
+                }
+            }
         }
     }
 
@@ -621,19 +657,26 @@ impl Stmt {
             Stmt::Assign(assign) => assign.format(map, f),
             Stmt::If(cond, body) => {
                 let c_id = map.query_bool(cond);
-                let b_id = map.query_stmt(body);
-                write!(f, "If({}, {})", c_id, b_id)
+                writeln!(f, "If({}, {{..}})", c_id)?;
+                body.format(map, f)
             }
             Stmt::IfElse(cond, t_clause, f_clause) => {
                 let c_id = map.query_bool(cond);
-                let t_id = map.query_stmt(t_clause);
-                let f_id = map.query_stmt(f_clause);
-                write!(f, "IfElse({}, {}, {})", c_id, t_id, f_id)
+                writeln!(f, "IfElse({}, {{..}}, {{..}})", c_id)?;
+                t_clause.format(map, f)?;
+                f_clause.format(map, f)
             }
             Stmt::While(cond, body) => {
                 let c_id = map.query_bool(cond);
-                let b_id = map.query_stmt(body);
-                write!(f, "While({}, {})", c_id, b_id)
+                writeln!(f, "While({}, {{..}})", c_id)?;
+                body.format(map, f)
+            }
+            Stmt::For(init, cond, last, body) => {
+                let i_id = map.query_stmt(init);
+                let c_id = map.query_bool(cond);
+                let l_id = map.query_stmt(last);
+                writeln!(f, "For({}, {}, {}, {{..}})", i_id, c_id, l_id)?;
+                body.format(map, f)
             }
         }
     }
@@ -670,12 +713,12 @@ impl Assign {
             }
             LValue::Access(access) => {
                 let (var, idx) = access.lwalk(builder);
-                let arr = if let RValue::Var(var) = rhs {
-                    var
-                } else {
-                    panic!("Error: Array evaluates to literals");
-                };
-                let instr = Instr::Assign(arr, idx, var);
+                // let arr = if let RValue::Var(var) = rhs {
+                //     var
+                // } else {
+                //     panic!("Error: Array evaluates to literals: {:?}", rhs);
+                // };
+                let instr = Instr::Assign(var, idx, rhs);
                 builder.push(instr);
             }
         }
@@ -690,14 +733,18 @@ impl Assign {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Stmts {
     stmts: Vec<Rc<Stmt>>,
 }
 
 impl Stmts {
-    pub fn walk(&self, builder: &mut ProcBuilder) {
+    pub fn walk(&self, next: Option<Label>, builder: &mut ProcBuilder) {
         for stmt in &self.stmts {
             stmt.walk(None, builder);
+            if let Some(label) = next {
+                builder.attach_label(label);
+            }
         }
     }
 }
@@ -710,6 +757,13 @@ impl Stmts {
     pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         nodes_init();
         infix::PParser::new().parse(s).map_err(Box::from)
+    }
+
+    fn format(&self, map: &NodeMap, f: &mut Formatter) -> Result<(), fmt::Error> {
+        for stmt in &self.stmts {
+            stmt.format(map, f)?;
+        }
+        Ok(())
     }
 }
 
@@ -727,6 +781,7 @@ pub mod three_addr {
     pub enum RValue {
         Var(Var),
         Lit(usize),
+        Float(u64),
         True,
         False,
     }
@@ -738,6 +793,7 @@ pub mod three_addr {
                 RValue::Lit(lit) => write!(f, "{}", lit),
                 RValue::True => write!(f, "true"),
                 RValue::False => write!(f, "false"),
+                RValue::Float(i) => write!(f, "{}", f64::from_bits(*i)),
             }
         }
     }
@@ -759,7 +815,7 @@ pub mod three_addr {
         Bin(BinOp, RValue, RValue, Var),
         Un(UnOp, RValue, Var),
         Access(Var, RValue, Var),
-        Assign(Var, RValue, Var),
+        Assign(Var, RValue, RValue),
         Copy(RValue, Var),
         IfTrue(RelOp, RValue, RValue, Label),
         IfFalse(RelOp, RValue, RValue, Label),
@@ -775,7 +831,7 @@ pub mod three_addr {
                 }
                 Instr::Un(op, inner, res) => write!(f, "{} = {} {:?}", res, op.symbol(), inner),
                 Instr::Access(inner, idx, res) => write!(f, "{} = {} [{:?}]", res, inner, idx),
-                Instr::Assign(arr, idx, rhs) => write!(f, "{} [{:?}] = {}", arr, idx, rhs),
+                Instr::Assign(arr, idx, rhs) => write!(f, "{} [{:?}] = {:?}", arr, idx, rhs),
                 Instr::Copy(source, res) => write!(f, "{} = {:?}", res, source),
                 Instr::IfTrue(op, lhs, rhs, label) => write!(
                     f,
@@ -826,7 +882,7 @@ pub mod three_addr {
 
     impl Walkable for Stmts {
         fn walk_into(&self, builder: &mut ProcBuilder) {
-            self.walk(builder);
+            self.walk(None, builder);
         }
     }
 
@@ -929,4 +985,74 @@ fn stmt_test() {
     //     L0: Noop
     // ]
     assert_eq!(instrs.len(), 5);
+}
+
+#[test]
+fn for_loop_test() {
+    let loops = "
+for (i=0; i<n; i++) {
+    for (j=0; j<n; j++) {
+        c[i][j] = 0.0;
+    }
+}
+for (i=0; i<n; i++) {
+    for (j=0; j<n; j++) {
+        for (k=0; k<n; k++) {
+            c[i][j] = c[i][j] + a[i][k]*b[k][j];
+        }
+    }
+}
+";
+
+    let stmts = Stmts::parse(loops).unwrap();
+    let _instrs = ProcBuilder::build(&stmts);
+    // println!("{:#?}", _instrs);
+    // i = 0,
+    // L0: IfFalse i < n goto L1,
+    // j = 0,
+    // L2: IfFalse j < n goto L3,
+    // t0 = i * c.dim0,
+    // t1 = t0 + j,
+    // t2 = t1 * c.base.width,
+    // c [t2] = 0,
+    // t3 = j + 1,
+    // j = t3,
+    // Goto L2,
+    // L3: t4 = i + 1,
+    // i = t4,
+    // Goto L0,
+    // L1: i = 0,
+    // L4: IfFalse i < n goto L5,
+    // j = 0,
+    // L6: IfFalse j < n goto L7,
+    // k = 0,
+    // L8: IfFalse k < n goto L9,
+    // t5 = i * c.dim0,
+    // t6 = t5 + j,
+    // t7 = t6 * c.base.width,
+    // t8 = c [t7],
+    // t9 = i * a.dim0,
+    // t10 = t9 + k,
+    // t11 = t10 * a.base.width,
+    // t12 = a [t11],
+    // t13 = k * b.dim0,
+    // t14 = t13 + j,
+    // t15 = t14 * b.base.width,
+    // t16 = b [t15],
+    // t17 = t12 * t16,
+    // t18 = t8 + t17,
+    // t19 = i * c.dim0,
+    // t20 = t19 + j,
+    // t21 = t20 * c.base.width,
+    // c [t21] = t18,
+    // t22 = k + 1,
+    // k = t22,
+    // Goto L8,
+    // L9: t23 = j + 1,
+    // j = t23,
+    // Goto L6,
+    // L7: t24 = i + 1,
+    // i = t24,
+    // Goto L4,
+    // L5: Noop
 }

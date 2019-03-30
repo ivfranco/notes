@@ -8,14 +8,20 @@ pub P: Stmts = {
 }
 
 S: Rc<Stmt> = {
-    <a:A> => Stmt::assign(a),
-    "if" "(" <b:BOr> ")" "{" <s:S> "}" => Stmt::if_only(b, s),
-    "if" "(" <b:BOr> ")" "{" <t:S> "}" "else" "{" <f:S> "}" => Stmt::if_else(b, t, f),
-    "while" "(" <b:BOr> ")" <s:S> => Stmt::while_clause(b, s),
+    <a:A> ";" => Stmt::assign(a),
+    "if" "(" <BOr> ")" "{" <P> "}" => Stmt::if_only(<>),
+    "if" "(" <BOr> ")" "{" <P> "}" "else" "{" <P> "}" => Stmt::if_else(<>),
+    "while" "(" <BOr> ")" "{" <P> "}" => Stmt::while_clause(<>),
+    "for" "(" <A> ";" <BOr> ";" <A> ")" "{" <P> "}" => Stmt::for_clause(<>),
 }
 
 A: Assign = {
-    <lvalue:LV> "=" <rvalue:E> ";" => Assign { lvalue, rvalue },
+    <lvalue:LV> "=" <rvalue:E> => Assign { lvalue, rvalue },
+    <lvalue:LV> "++" => {
+        let expr = Expr::from(lvalue.clone()).dedup();
+        let rvalue = Expr::bin(BinOp::Add, expr, Expr::lit(1));
+        Assign { lvalue, rvalue }
+    }
 }
 
 LV: LValue = {
@@ -41,6 +47,9 @@ F: Rc<Expr> = {
     "(" <e:E> ")" => e,
     <id:Id> => Expr::var(id),
     <n:Num> => Expr::lit(n),
+    <f:Float> => Expr::float(f),
+    "TRUE" => Expr::lit(1),
+    "FALSE" => Expr::lit(0),
 }
 
 L: Access = {
@@ -53,6 +62,10 @@ Dim: Rc<Expr> = {
 
 Num: usize = {
     <s:r"\d+"> => s.parse().unwrap(),
+}
+
+Float: f64 = {
+    <s:r"\d+\.\d+"> => s.parse::<f64>().unwrap(),
 }
 
 Id: String = {

@@ -3994,3 +3994,193 @@ c.  7
 d.  6
 e.  6
 f.  7
+
+8.3.1
+//  assume the current procedure is m
+ADD SP, SP, #msize
+ST 0(SP), #here + len(ST) + len(BR)
+BR p.code_area
+SUB SP, SP, #msize
+ADD SP, SP, #msize
+ST 0(SP), #here + len(ST) + len(BR)
+BR q.code_area
+SUB SP, SP, #msize
+BR *0(SP)
+ADD SP, SP, #msize
+ST 0(SP), #here + len(ST) + len(BR)
+BR r.code_area
+SUB SP, SP, #msize
+BR *0(SP)
+BR *0(SP)
+
+8.3.2
+./Dragon_Book/chapter_8/naive
+a.  ST SP + x.rel_addr, #1
+b.  LD R0, SP + a.rel_addr
+    ST SP + x.rel_addr, R0
+c.  LD R0, SP + a.rel_addr
+    ADD R1, R0, #1
+    ST SP + x.rel_addr, R1
+d.  LD R0, SP + a.rel_addr
+    LD R1, SP + b.rel_addr
+    ADD R2, R0, R1
+    ST SP + x.rel_addr, R2
+e.  LD R0, SP + b.rel_addr
+    LD R1, SP + c.rel_addr
+    MUL R2, R0, R1
+    ST SP + x.rel_addr, R2
+    LD R3, SP + a.rel_addr
+    ADD R4, R3, R2
+    ST SP + y.rel_addr, R4
+
+8.3.3
+./Dragon_Book/chapter_8/naive
+a.  LD R0, SP + i.rel_addr
+    MUL R1, R0, #4
+    LD R2, a(R1)
+    ST SP + x.rel_addr, R2
+    LD R3, SP + j.rel_addr
+    MUL R4, R3, #4
+    LD R5, b(R4)
+    ST SP + y.rel_addr, R5
+    MUL R6, R0, #4
+    ST a(R6), R5
+    MUL R7, R3, #4
+    ST b(R7), R2
+b.  LD R0, SP + i.rel_addr
+    MUL R1, R0, #4
+    LD R2, a(R1)
+    ST SP + x.rel_addr, R2
+    MUL R3, R0, #4
+    LD R4, b(R3)
+    ST SP + y.rel_addr, R4
+    MUL R5, R2, R4
+    ST SP + z.rel_addr, R5
+c.  LD R0, SP + i.rel_addr
+    MUL R1, R0, #4
+    LD R2, a(R1)
+    ST SP + x.rel_addr, R2
+    MUL R3, R2, #4
+    LD R4, b(R3)
+    ST SP + y.rel_addr, R4
+    MUL R5, R0, #4
+    ST a(R5), R4
+
+8.4.1
+./Dragon_Book/chapter_6/dag
+a.  1.  i = 0
+    2.  L0: IfFalse i < n goto L1
+    3.  j = 0
+    4.  L2: IfFalse j < n goto L3
+    5.  t0 = i * c.dim0
+        t1 = t0 + j
+        t2 = t1 * c.base.width
+        c [t2] = 0
+        t3 = j + 1
+        j = t3
+        Goto L2
+    6.  L3: t4 = i + 1
+        i = t4
+        Goto L0
+    7.  L1: i = 0
+    8.  L4: IfFalse i < n goto L5
+    9.  j = 0
+    10. L6: IfFalse j < n goto L7
+    11. k = 0
+    12. L8: IfFalse k < n goto L9
+    13. t5 = i * c.dim0
+        t6 = t5 + j
+        t7 = t6 * c.base.width
+        t8 = c [t7]
+        t9 = i * a.dim0
+        t10 = t9 + k
+        t11 = t10 * a.base.width
+        t12 = a [t11]
+        t13 = k * b.dim0
+        t14 = t13 + j
+        t15 = t14 * b.base.width
+        t16 = b [t15]
+        t17 = t12 * t16
+        t18 = t8 + t17
+        t19 = i * c.dim0
+        t20 = t19 + j
+        t21 = t20 * c.base.width
+        c [t21] = t18
+        t22 = k + 1
+        k = t22
+        Goto L8
+    14. L9: t23 = j + 1
+        j = t23
+        Goto L6
+    15. L7: t24 = i + 1
+        i = t24
+        Goto L4
+        L5: Noop
+b.  entry -> {1}
+    1 -> {2}
+    2 -> {3, 7}
+    3 -> {4}
+    4 -> {5, 6}
+    5 -> {4}
+    6 -> {2}
+    7 -> {8}
+    8 -> {9, exit}
+    9 -> {10}
+    10 -> {11, 15}
+    11 -> {12}
+    12 -> {13, 14}
+    13 -> {12}
+    14 -> {10}
+    15 -> {8}
+c.  {4, 5}
+    {2 - 6}
+    {12, 13}
+    {10 - 14}
+    {8 - 15}
+
+8.4.2
+//  assume TRUE = 0, FALSE = 1
+./Dragon_Book/chapter_6/dag
+a.  1.  i = 2
+    2.  L0: IfFalse i <= n goto L1
+    3.  t0 = i * a.base.width
+        a [t0] = 1
+        t1 = i + 1
+        i = t1
+        Goto L0
+    4.  L1: count = 0
+        param n
+        s = call sqrt
+        i = 2
+    5.  L2: IfFalse i <= s goto L3
+    6.  t2 = i * a.base.width
+        t3 = a [t2]
+        IfFalse t3 == 0 goto L4
+    7.  t4 = count + 1
+        count = t4
+        t5 = 2 * i
+        j = t5
+    8.  L5: IfFalse j <= n goto L6
+    9.  t6 = j * a.base.width
+        a [t6] = 0
+        t7 = j + i
+        j = t7
+        Goto L5
+    10. L6, L4: t8 = i + 1
+        i = t8
+        Goto L2
+        L3: Noop
+b.  entry -> {1}
+    1 -> {2}
+    2 -> {3, 4}
+    3 -> {2}
+    4 -> {5}
+    5 -> {6, exit}
+    6 -> {7, 10}
+    7 -> {8}
+    8 -> {9, 10}
+    9 -> {8}
+    10 -> {5}
+c.  {2, 3}
+    {8, 9}
+    {5 - 10}
