@@ -16,6 +16,7 @@ fn main() {
     exercise_6_6_4();
     exercise_8_4_1();
     exercise_8_4_2();
+    exercise_8_5_8();
 }
 
 fn exercise_6_1_1() {
@@ -167,6 +168,19 @@ for (i=2; i<=s; i++) {
     }
 }
     "
+        )
+        .unwrap()
+    );
+}
+
+fn exercise_8_5_8() {
+    println!("Exercise 8.5.8:");
+
+    println!(
+        "{:#?}",
+        ProcBuilder::parse(
+            "x = a + b + c + d + e + f;
+y = a + c + e;"
         )
         .unwrap()
     );

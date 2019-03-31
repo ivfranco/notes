@@ -4184,3 +4184,170 @@ b.  entry -> {1}
 c.  {2, 3}
     {8, 9}
     {5 - 10}
+
+8.5.1
+./Dragon_Book/chapter_8/basic_block
+Graph {
+    Ty: "Directed",
+    node_count: 6,
+    edge_count: 6,
+    edges: (2, 0), (2, 1), (4, 3), (4, 0), (5, 4), (5, 2),
+    node weights: {
+        0: b0,
+        1: c0,
+        2: *: ['d', 'b'],
+        3: a0,
+        4: +: ['e'],
+        5: -: ['a']
+    }
+}
+
+8.5.2
+a.  d = b * c
+    e = a + b
+    a = e - d
+b.  d = b * c
+    e = a + b
+    b = d
+    a = e - d
+
+8.5.3
+nodes:
+    0:  i0
+    1:  1
+    2:  -, [t5]
+    3:  88
+    4:  *, [t6]
+    5:  a0
+    6:  1.0
+    7:  []=
+    8:  +, [i]
+    9:  10
+    10: <=
+    11: goto
+edges: 
+    (2, 0), (2, 1), 
+    (4, 2), (4, 3), 
+    (7, 4), (7, 5), (7, 6), 
+    (8, 0), (8, 1), 
+    (10, 8), (10, 9)
+
+8.5.4
+nodes:
+    0:  10
+    1:  i0
+    2:  *, [t1]
+    3:  j0
+    4:  +, [t2]
+    5:  8
+    6:  *, [t3]
+    7:  88
+    8:  -, [t4]
+    9:  a0
+    10: 0.0
+    11: []=
+    12: 1
+    13: +, [j]
+    14: <=
+    15: goto
+edges:
+    (2, 0), (2, 1),
+    (4, 2), (4, 3),
+    (6, 4), (6, 5),
+    (8, 6), (8, 7),
+    (11, 8), (11, 9), (11, 10),
+    (13, 3), (13, 12),
+    (14, 0), (14, 13),
+
+8.5.5
+a.  for p: a[i] = b,
+    a.live = true, a.next_use = p
+    i.live = true, i.next_use = p
+    b.live = true, b.next_use = p
+b.  for p: a = b[i],
+    a.live = false, a.next_use = NULL
+    b.live = true, b.next_use = p
+    i.live = true, i.next_use = p
+c.  for p: a = *b,
+    //  b may point to a
+    for all variable v in the context,
+    v.live = true, v.next_use = p
+d.  for p: *a = b,
+    a.live = true, a.next_use = p
+    b.live = true, b.next_use = p
+    //  the liveness and next use of other variables are hard to tell
+
+8.5.6
+a.  nodes:
+        0:  a0
+        1:  i0
+        2:  b0
+        3:  []=
+        4:  p0
+        5:  c0
+        6:  *= (kills everything above)
+        7:  a1
+        8:  j0
+        9:  =[], [d]
+        10: p1
+        11: =*, [e]
+        12: *= (kills everything above)
+    edges:
+        (3, 0), (3, 1), (3, 2),
+        (6, 4), (6, 5),
+        (9, 7), (9, 8),
+        //  edges from 11 to all nodes 0 - 10,
+b.  nodes:
+        0:  a0
+        1:  i0
+        2:  b0
+        3:  []=
+        4:  p0
+        5:  c0
+        6:  *= (kills 2)
+        7:  j0
+        8:  =[], [d]
+        9:  =*, [e]
+        10: *= (kills 2 and 8)
+    edges:
+        (3, 0), (3, 1), (3, 2),
+        (6, 4), (6, 5),
+        (8, 0), (8, 7),
+        (9, 2), (9, 8),
+
+8.5.7
+a[i] and *p become definitions like any other l-values
+nodes:
+    0:  a0
+    1:  i0
+    2:  b0
+    3:  []=, [a[i]]
+    4:  p0
+    5:  c0
+    6:  *= (kills everything above), [*p, e]
+    7:  a1
+    8:  j0
+    9:  =[], [d]
+    10: p1
+    11: *= (kills everything above), [*p]
+edges:
+    (3, 0), (3, 1), (3, 2),
+    (6, 4), (6, 5),
+    (9, 7), (9, 8),
+    //  edges from 11 to all nodes 0 - 10,
+
+8.5.8
+a.  t0 = a + b
+    t1 = t0 + c
+    t2 = t1 + d
+    t3 = t2 + e
+    t4 = t3 + f
+    x = t4
+    t5 = a + c
+    t6 = t5 + e
+    y = t6
+b.  t0 = a + c
+    y = t0 + e
+    t1 = y + b
+    t2 = t1 + d
+    x = t2 + f
