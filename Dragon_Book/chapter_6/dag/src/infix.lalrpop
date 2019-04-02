@@ -37,6 +37,7 @@ pub E: Rc<Expr> = {
 
 T: Rc<Expr> = {
     <t:T> "*" <f:F> => Expr::bin(BinOp::Mul, t, f),
+    <t:T> "/" <f:F> => Expr::bin(BinOp::Div, t, f),
     <f:F> => f,
 }
 

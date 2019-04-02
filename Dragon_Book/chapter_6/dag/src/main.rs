@@ -17,6 +17,7 @@ fn main() {
     exercise_8_4_1();
     exercise_8_4_2();
     exercise_8_5_8();
+    exercise_8_6_1();
 }
 
 fn exercise_6_1_1() {
@@ -183,5 +184,21 @@ fn exercise_8_5_8() {
 y = a + c + e;"
         )
         .unwrap()
+    );
+}
+
+fn exercise_8_6_1() {
+    println!("Exercise 8.6.1:");
+
+    println!("{:#?}", ProcBuilder::parse("x = a + b*c;").unwrap());
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("x = a/(b+c) - d*(e+f);").unwrap()
+    );
+    println!("{:#?}", ProcBuilder::parse("x = a[i] + 1;").unwrap());
+    println!("{:#?}", ProcBuilder::parse("a[i] = b[c[i]];").unwrap());
+    println!(
+        "{:#?}",
+        ProcBuilder::parse("a[i][j] = b[i][k] + c[k][j];").unwrap()
     );
 }

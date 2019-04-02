@@ -136,6 +136,7 @@ pub enum BinOp {
     Add,
     Sub,
     Mul,
+    Div,
     And,
     Or,
     Rel(RelOp),
@@ -148,6 +149,7 @@ impl BinOp {
             BinOp::Sub => "-",
             BinOp::Mul => "*",
             BinOp::And => "&&",
+            BinOp::Div => "/",
             BinOp::Or => "||",
             BinOp::Rel(op) => op.symbol(),
         }

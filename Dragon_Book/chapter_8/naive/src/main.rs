@@ -10,6 +10,7 @@ fn main() {
     exercise_8_2_6();
     exercise_8_3_2();
     exercise_8_3_3();
+    exercise_8_6_3();
 }
 
 fn exercise_8_2_1() {
@@ -242,6 +243,103 @@ z = x * y;
 x = a[i];
 y = b[x];
 a[i] = y;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+}
+
+fn exercise_8_6_3() {
+    println!("Exercise 8.6.3:");
+
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t0 = b * c;
+t1 = a + t0;
+x = t1;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t0 = b + c;
+t1 = a / t0;
+t2 = e + f;
+t3 = d * t2;
+t4 = t1 - t3;
+x = t4;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t0 = i * 4;
+t1 = a [t0];
+t2 = t1 + 1;
+x = t2;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t0 = i * 4;
+t1 = c [t0];
+t2 = t1 * 4;
+t3 = b [t2];
+t4 = i * 4;
+a [t4] = t3;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t0 = i * b.dim0;
+t1 = t0 + k;
+t2 = t1 * 4;
+t3 = b [t2];
+t4 = k * c.dim0;
+t5 = t4 + j;
+t6 = t5 * 4;
+t7 = c [t6];
+t8 = t3 + t7;
+t9 = i * a.dim0;
+t10 = t9 + j;
+t11 = t10 * 4;
+a [t11] = t8;
+    "
+        )
+        .unwrap()
+        .build()
+    );
+    println!(
+        "{:?}",
+        Program::parse(
+            "
+t = *q;
+*p = t;
+q = q + 1;
+p = p + 1;
     "
         )
         .unwrap()

@@ -44,7 +44,9 @@ L: Label = {
 
 BO: BinOp = {
     "+" => BinOp::Add,
+    "-" => BinOp::Sub,
     "*" => BinOp::Mul,
+    "/" => BinOp::Div,
 }
 
 RO: RelOp = {
@@ -58,7 +60,7 @@ RV: RValue = {
 }
 
 Id: String = {
-    <s:r"[a-z]"> => s.to_owned(),
+    <s:r"[a-z][\w\.]*"> => s.to_owned(),
 }
 
 Int: usize = {

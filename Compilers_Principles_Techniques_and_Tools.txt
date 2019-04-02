@@ -4351,3 +4351,163 @@ b.  t0 = a + c
     t1 = y + b
     t2 = t1 + d
     x = t2 + f
+
+8.6.1
+./Dragon_Book/chapter_6/dag
+a.  t0 = b * c
+    t1 = a + t0
+    x = t1
+b.  t0 = b + c
+    t1 = a / t0
+    t2 = e + f
+    t3 = d * t2
+    t4 = t1 - t3
+    x = t4
+c.  t0 = i * 4
+    t1 = a [t0]
+    t2 = t1 + 1
+    x = t2
+d.  t0 = i * 4
+    t1 = c [t0]
+    t2 = t1 * 4
+    t3 = b [t2]
+    t4 = i * 4
+    a [t4] = t3
+e.  t0 = i * b.dim0
+    t1 = t0 + k
+    t2 = t1 * 4
+    t3 = b [t2]
+    t4 = k * c.dim0
+    t5 = t4 + j
+    t6 = t5 * 4
+    t7 = c [t6]
+    t8 = t3 + t7
+    t9 = i * a.dim0
+    t10 = t9 + j
+    t11 = t10 * 4
+    a [t11] = t8
+f.  t = *q
+    *p = t
+    q = q + 1
+    p = p + 1
+
+8.6.2
+d.  t0 = i * 4
+    t0 = pc + t0
+    t0 = *t0
+    t0 = t0 * 4
+    t0 = pb + t0
+    t0 = *t0
+    t1 = i * 4
+    t1 = pa + t1
+    *t1 = t0
+e.  t0 = i * b.dim0
+    t0 = t0 + k
+    t0 = t0 * 4
+    t0 = pb + t0
+    t0 = *t0
+    t1 = k * c.dim0
+    t1 = t1 + j
+    t1 = t1 * 4
+    t1 = pc + t1
+    t1 = *t1
+    t0 = t0 + t1
+    t1 = i * a.dim0
+    t1 = t1 + j
+    t1 = t1 * 4
+    t1 = pa + t1
+    *t1 = t0
+
+8.6.3
+a.  LD R0, b
+    LD R1, c
+    MUL R2, R0, R1
+    ST t0, R2
+    LD R3, a
+    ADD R4, R3, R2
+    ST t1, R4
+    ST x, R4
+b.  LD R0, b
+    LD R1, c
+    ADD R2, R0, R1
+    ST t0, R2
+    LD R3, a
+    DIV R4, R3, R2
+    ST t1, R4
+    LD R5, e
+    LD R6, f
+    ADD R7, R5, R6
+    ST t2, R7
+    LD R8, d
+    MUL R9, R8, R7
+    ST t3, R9
+    SUB R10, R4, R9
+    ST t4, R10
+    ST x, R10
+c.  LD R0, i
+    MUL R1, R0, #4
+    ST t0, R1
+    MUL R2, R1, #4
+    LD R3, a(R2)
+    ST t1, R3
+    ADD R4, R3, #1
+    ST t2, R4
+    ST x, R4
+d.  LD R0, i
+    MUL R1, R0, #4
+    ST t0, R1
+    MUL R2, R1, #4
+    LD R3, c(R2)
+    ST t1, R3
+    MUL R4, R3, #4
+    ST t2, R4
+    MUL R5, R4, #4
+    LD R6, b(R5)
+    ST t3, R6
+    MUL R7, R0, #4
+    ST t4, R7
+    MUL R8, R7, #4
+    ST a(R8), R6
+e.  LD R0, i
+    LD R1, b.dim0
+    MUL R2, R0, R1
+    ST t0, R2
+    LD R3, k
+    ADD R4, R2, R3
+    ST t1, R4
+    MUL R5, R4, #4
+    ST t2, R5
+    MUL R6, R5, #4
+    LD R7, b(R6)
+    ST t3, R7
+    LD R8, c.dim0
+    MUL R9, R3, R8
+    ST t4, R9
+    LD R10, j
+    ADD R11, R9, R10
+    ST t5, R11
+    MUL R12, R11, #4
+    ST t6, R12
+    MUL R13, R12, #4
+    LD R14, c(R13)
+    ST t7, R14
+    ADD R15, R7, R14
+    ST t8, R15
+    LD R16, a.dim0
+    MUL R17, R0, R16
+    ST t9, R17
+    ADD R18, R17, R10
+    ST t10, R18
+    MUL R19, R18, #4
+    ST t11, R19
+    MUL R20, R19, #4
+    ST a(R20), R15
+f.  LD R0, q
+    LD R1, *0(R0)
+    ST t, R1
+    LD R2, p
+    ST *0(R2), R1
+    ADD R3, R0, #1
+    ST q, R3
+    ADD R4, R2, #1
+    ST p, R4
