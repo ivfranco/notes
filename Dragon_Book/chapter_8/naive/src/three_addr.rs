@@ -5,12 +5,22 @@ use std::fmt::{self, Debug, Formatter};
 
 lalrpop_mod!(pub ir);
 
-type Var = String;
+pub type Var = String;
 pub type Label = String;
 
 pub enum RValue {
     Lit(usize),
     Var(Var),
+}
+
+impl RValue {
+    pub fn is(&self, var: &str) -> bool {
+        if let RValue::Var(v) = self {
+            v == var
+        } else {
+            false
+        }
+    }
 }
 
 impl Debug for RValue {
@@ -75,8 +85,8 @@ impl Debug for IR {
 }
 
 pub struct Line {
-    labels: Vec<Label>,
-    ir: IR,
+    pub labels: Vec<Label>,
+    pub ir: IR,
 }
 
 impl Line {
@@ -103,7 +113,7 @@ impl Debug for Line {
 }
 
 pub struct Program {
-    lines: Vec<Line>,
+    pub lines: Vec<Line>,
 }
 
 impl Program {

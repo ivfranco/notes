@@ -4511,3 +4511,47 @@ f.  LD R0, q
     ST q, R3
     ADD R4, R2, #1
     ST p, R4
+
+8.6.4
+a.  // assume only x lives on exit
+    LD R0, b
+    R0: {b}, a: {a}, b: {R0, b}, c: {c}
+    LD R1, c
+    R0: {b}, R1: {c}, a: {a}, b: {R0, b}, c: {R1, c}
+    MUL R2, R0, R1
+    R0: {b}, R1: {c}, R2: {t0} a: {a}, b: {R0, b}, c: {R1, c}, t0: {R2}
+    LD R0, a
+    R0: {a}, R1: {c}, R2: {t0} a: {R0, a}, b: {b}, c: {R1, c}, t0: {R2}
+    ADD R0, R0, R1
+    R0: {t1}, R1: {c}, R2: {t0} a: {a}, b: {b}, c: {R1, c}, t0: {R2}
+    ST x, R0
+    R0: {x, t1}, R1: {c}, R2: {t0} a: {a}, b: {b}, c: {R1, c}, t0: {R2}, x: {R0, x}
+b.  // assume only x lives on exit, omit all initial self reflections in address descriptors
+    LD R0, b
+    R0: {b}, b: {R0}
+    LD R1, c
+    R0: {b}, R1: {c}, b: {R0}, c: {R1}
+    ADD R2, R0, R1
+    R0: {b}, R1: {c}, R2: {t0} b: {R0}, c: {R1}, t0: {R2}
+    LD R0, a
+    R0: {a}, R1: {c}, R2: {a}, c: {R1}, a: {R0}, t0: {R2}
+    DIV R0, R0, R2
+    R0: {t1}, R1: {c}, R2: {a}, c: {R1}, t1: {R0}, t0: {R2}
+    LD R1, e
+    R0: {t1}, R1: {e}, R2: {a}, e: {R1}, t1: {R0}, t0: {R2}
+    LD R2, f
+    R0: {t1}, R1: {e}, R2: {f}, e: {R1}, t1: {R0}, f: {R2}
+    ADD R1, R1, R2
+    R0: {t1}, R1: {t2}, R2: {f}, t2: {R1}, t1: {R0}, f: {R2}
+    LD R2, d
+    R0: {t1}, R1: {t2}, R2: {d}, t2: {R1}, t1: {R0}, d: {R2}
+    MUL R1, R1, R2
+    R0: {t1}, R1: {t3}, R2: {d}, t3: {R1}, t1: {R0}, d: {R2}
+    SUB R0, R0, R1
+    R0: {t4}, R1: {t3}, R2: {d}, t3: {R1}, t4: {R0}, d: {R2}
+    ST x, R0
+    R0: {t4, x}, R1: {t3}, R2: {d}, t3: {R1}, t4: {R0}, d: {R2}, x: {x}
+//  the model introduced in this chapter doesn't work for arrays and pointers        
+
+8.6.5
+//  skipped
