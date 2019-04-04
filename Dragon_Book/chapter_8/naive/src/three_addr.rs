@@ -8,6 +8,7 @@ lalrpop_mod!(pub ir);
 pub type Var = String;
 pub type Label = String;
 
+#[derive(PartialEq)]
 pub enum RValue {
     Lit(usize),
     Var(Var),
@@ -61,6 +62,22 @@ pub enum IR {
 impl IR {
     pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         ir::IRParser::new().parse(s).map_err(Box::from)
+    }
+
+    fn jump_target(&self) -> Option<&Label> {
+        match self {
+            IR::Goto(label) => Some(label),
+            IR::If(_, _, _, label) => Some(label),
+            _ => None,
+        }
+    }
+
+    fn jump_target_mut(&mut self) -> Option<&mut Label> {
+        match self {
+            IR::Goto(label) => Some(label),
+            IR::If(_, _, _, label) => Some(label),
+            _ => None,
+        }
     }
 }
 
@@ -141,6 +158,53 @@ impl Program {
     pub fn parse<'a>(s: &'a str) -> Result<Self, Box<Error + 'a>> {
         ir::ProgParser::new().parse(s).map_err(Box::from)
     }
+
+    fn len(&self) -> usize {
+        self.lines.len()
+    }
+
+    fn find_label(&self, label: &str) -> Option<&IR> {
+        self.lines
+            .iter()
+            .find(|line| line.labels.iter().any(|l| l == label))
+            .map(|line| &line.ir)
+    }
+}
+
+#[allow(dead_code)]
+fn flow_of_control(mut program: Program) -> Program {
+    let mut i = 0;
+
+    while i < program.len() {
+        if let Some(j) = program.lines[i].ir.jump_target() {
+            let ir = program.find_label(j).unwrap();
+            if let IR::Goto(k) = ir {
+                *program.lines[i].ir.jump_target_mut().unwrap() = k.to_string();
+            }
+        }
+        i += 1;
+    }
+
+    program
+}
+
+#[allow(dead_code)]
+fn algebraic(program: Program) -> Program {
+    fn algebraic_noop(ir: &IR) -> bool {
+        match ir {
+            IR::Op(_, lhs, BinOp::Add, rhs) => lhs == &RValue::Lit(0) || rhs == &RValue::Lit(0),
+            IR::Op(_, lhs, BinOp::Mul, rhs) => lhs == &RValue::Lit(1) || rhs == &RValue::Lit(1),
+            _ => false,
+        }
+    }
+
+    let lines = program
+        .lines
+        .into_iter()
+        .filter(|line| !algebraic_noop(&line.ir))
+        .collect();
+
+    Program { lines }
 }
 
 #[test]
@@ -156,4 +220,33 @@ L2:;";
     let p = Program::parse(program).unwrap();
     // println("{:?}", p);
     assert_eq!(p.lines.len(), 7);
+}
+
+#[test]
+fn flow_of_control_test() {
+    let program = "
+goto L0;
+L0: goto L1;
+L1: if i > n goto L2;
+L2: goto L3;
+L3: ;
+    ";
+
+    let p = flow_of_control(Program::parse(program).unwrap());
+    // println!("{:?}", p);
+    assert_eq!(p.lines[0].ir.jump_target().unwrap(), "L1");
+    assert_eq!(p.lines[3].ir.jump_target().unwrap(), "L3");
+}
+
+#[test]
+fn algebraic_test() {
+    let program = "
+x = x + 0;
+x = x * 1;
+x = 2;
+    ";
+
+    let p = algebraic(Program::parse(program).unwrap());
+    // println!("{:?}", p);
+    assert_eq!(p.lines.len(), 1);
 }

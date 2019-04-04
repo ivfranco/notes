@@ -4419,6 +4419,7 @@ e.  t0 = i * b.dim0
     *t1 = t0
 
 8.6.3
+./Dragon_Book/chapter_8/naive
 a.  LD R0, b
     LD R1, c
     MUL R2, R0, R1
@@ -4554,4 +4555,39 @@ b.  // assume only x lives on exit, omit all initial self reflections in address
 //  the model introduced in this chapter doesn't work for arrays and pointers        
 
 8.6.5
-//  skipped
+//  result from a bottom-up register allocator introduced in Engnieering a Compiler by by Cooper and Torczon
+//  the algorithm in dragon book is unfortunately too difficult to implement / lacks too many details
+./Dragon_Book/chapter_8/naive
+a.  LD R0, b
+    LD R1, c
+    MUL R0, R0, R1
+    LD R1, a
+    ADD R0, R1, R0
+    ST x, R0
+b.  LD R0, b
+    LD R1, c
+    ADD R0, R0, R1
+    LD R1, a
+    DIV R0, R1, R0
+    LD R1, e
+    ST t1, R0
+    LD R0, f
+    ADD R0, R1, R0
+    LD R1, d
+    MUL R0, R1, R0
+    LD R1, t1
+    SUB R0, R1, R0
+    ST x, R0
+//  the model introduced in this chapter doesn't work for arrays and pointers        
+
+8.7.1
+./Dragon_Book/chatper_8/naive/src/machine_code.rs#redundent_store
+
+8.7.2
+//  the flow-of-control optimization in this chapter works on ir, not machine code
+./Dragon_Book/chatper_8/naive/src/three_addr.rs#flow_of_control
+
+8.7.3
+//  the algebraic optimizations in this chapter works on ir, not machine code
+./Dragon_Book/chatper_8/naive/src/three_addr.rs#algebraic
+

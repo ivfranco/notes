@@ -1,13 +1,12 @@
 //! An implementation of bottom-up register allocator introduced in Engnieering a Compiler by Cooper and Torczon
 //! imcomplete
 
-#![allow(dead_code)]
-use crate::machine_code::{Addr, BinOp, Binary, Code, Cond, Idx, Reg, Word};
-use crate::three_addr::{Program, RValue, RelOp, Var, IR};
+use crate::machine_code::{Addr, Binary, Code, Reg, Word};
+use crate::three_addr::{Program, RValue, Var, IR};
 use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum Next {
     Locked,
     Never,
@@ -36,6 +35,7 @@ impl Ord for Next {
     }
 }
 
+#[derive(Debug)]
 struct Allocator {
     size: usize,
     free: Vec<Option<Var>>,
@@ -53,30 +53,42 @@ impl Allocator {
         }
     }
 
-    fn ensure(&mut self, addr: &Var, codes: &mut Vec<Code>) -> Reg {
+    fn ensure(&mut self, addr: &str, codes: &mut Vec<Code>) -> Reg {
         if let Some(r) = self.ensured.get(addr) {
             *r
         } else {
             let r = self.allocate(addr, codes);
-            let code = Code::Ld(r, Addr::LValue(addr.clone()));
+            let code = Code::Ld(r, Addr::LValue(addr.to_string()));
             codes.push(code);
             r
         }
     }
 
-    fn allocate(&mut self, addr: &Var, codes: &mut Vec<Code>) -> Reg {
+    fn store(&mut self, addr: &str, codes: &mut Vec<Code>) {
+        if let Some(r) = self.ensured.get(addr).cloned() {
+            let st = Code::St(Addr::LValue(addr.to_string()), Word::Reg(r));
+            codes.push(st);
+            self.ensured.remove(addr);
+            self.free[r] = None;
+        }
+    }
+
+    fn allocate(&mut self, addr: &str, codes: &mut Vec<Code>) -> Reg {
         let r = if let Some(r) = self.free_reg() {
             r
         } else {
             let r = self.furthest_reg();
             let orig = self.free[r].take().unwrap();
-            let code = Code::St(Addr::LValue(orig), Word::Reg(r));
-            codes.push(code);
+            self.ensured.remove(&orig);
+            if self.next[r] != Next::Never {
+                let code = Code::St(Addr::LValue(orig), Word::Reg(r));
+                codes.push(code);
+            }
             r
         };
 
-        self.ensured.insert(addr.clone(), r);
-        self.free[r] = Some(addr.clone());
+        self.ensured.insert(addr.to_string(), r);
+        self.free[r] = Some(addr.to_string());
 
         r
     }
@@ -103,7 +115,7 @@ impl Allocator {
     }
 }
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 struct UseMap {
     uses: HashMap<Var, Vec<usize>>,
     on_exit: HashSet<Var>,
@@ -121,21 +133,20 @@ impl UseMap {
 
     fn update(&mut self, i: usize, ir: &IR) {
         match ir {
-            IR::Op(dst, lhs, _, rhs) => {
+            IR::Op(_, lhs, _, rhs) => {
                 self.push_rvalue(i, lhs);
                 self.push_rvalue(i, rhs);
             }
-            IR::Copy(dst, src) => {
-                self.push_var(i, dst);
+            IR::Copy(_, src) => {
                 self.push_rvalue(i, src);
             }
             _ => unimplemented!(),
         }
     }
 
-    fn push_var(&mut self, i: usize, var: &Var) {
+    fn push_var(&mut self, i: usize, var: &str) {
         self.uses
-            .entry(var.clone())
+            .entry(var.to_string())
             .or_insert_with(Vec::new)
             .push(i);
     }
@@ -146,7 +157,7 @@ impl UseMap {
         }
     }
 
-    fn next_use(&self, start: usize, var: &Var) -> Next {
+    fn next_use(&self, start: usize, var: &str) -> Next {
         if let Some(i) = self.uses[var].iter().find(|i| **i > start) {
             Next::Pos(*i)
         } else if self.on_exit.contains(var) {
@@ -157,7 +168,7 @@ impl UseMap {
     }
 }
 
-struct Builder {
+pub struct Builder {
     codes: Vec<Code>,
     use_map: UseMap,
     allocator: Allocator,
@@ -172,8 +183,10 @@ impl Builder {
         }
     }
 
-    fn load(&mut self, addr: &Var) -> Reg {
-        self.allocator.ensure(addr, &mut self.codes)
+    fn load(&mut self, addr: &str) -> Reg {
+        let r = self.allocator.ensure(addr, &mut self.codes);
+        self.lock(r);
+        r
     }
 
     fn load_rvalue(&mut self, rvalue: &RValue) -> Word {
@@ -183,25 +196,34 @@ impl Builder {
         }
     }
 
-    fn update_next(&mut self, i: usize, r: Reg, addr: &Var) {
+    fn update_next(&mut self, i: usize, r: Reg, addr: &str) {
         let next = self.use_map.next_use(i, addr);
         self.allocator.next[r] = next;
     }
 
-    fn cleanup(&mut self, i: usize, r: Reg, addr: &Var) {
+    fn cleanup(&mut self, i: usize, r: Reg, addr: &str) {
         if let Next::Never = self.use_map.next_use(i, addr) {
             self.allocator.free(r);
-        } else {
-            self.update_next(i, r, addr);
+        }
+        self.update_next(i, r, addr);
+    }
+
+    fn cleanup_rvalue(&mut self, i: usize, w: Word, rvalue: &RValue) {
+        if let (Word::Reg(r), RValue::Var(v)) = (w, rvalue) {
+            self.cleanup(i, r, v);
         }
     }
 
-    fn new_reg(&mut self, var: &Var) -> Reg {
+    fn lock(&mut self, r: Reg) {
+        self.allocator.next[r] = Next::Locked;
+    }
+
+    fn new_reg(&mut self, var: &str) -> Reg {
         self.allocator.allocate(var, &mut self.codes)
     }
 
-    fn store(&mut self, dst: &Var, w: Word) {
-        let code = Code::St(Addr::LValue(dst.clone()), w);
+    fn store(&mut self, dst: &str, w: Word) {
+        let code = Code::St(Addr::LValue(dst.to_string()), w);
         self.codes.push(code);
     }
 
@@ -213,24 +235,68 @@ impl Builder {
                 let l = self.load_rvalue(lhs);
                 let r = self.load_rvalue(rhs);
 
-                if let (Word::Reg(r), RValue::Var(v)) = (l, lhs) {
-                    self.cleanup(i, r, v);
-                }
-                if let (Word::Reg(r), RValue::Var(v)) = (r, rhs) {
-                    self.cleanup(i, r, v);
-                }
+                self.cleanup_rvalue(i, l, lhs);
+                self.cleanup_rvalue(i, r, rhs);
 
                 let res = self.new_reg(dst);
                 self.codes.push(Code::Op(*op, res, l, r));
                 self.update_next(i, res, dst);
             }
             Copy(dst, src) => {
-                let d = Addr::LValue(dst.to_owned());
-
-                let s = self.load_rvalue(src);
-                self.store(dst, s);
+                let w = self.load_rvalue(src);
+                self.store(dst, w);
+                self.cleanup_rvalue(i, w, src);
             }
             _ => unimplemented!(),
         }
     }
+
+    fn seal(mut self) -> Binary {
+        for v in &self.use_map.on_exit {
+            self.allocator.store(v, &mut self.codes);
+        }
+
+        Binary { codes: self.codes }
+    }
+
+    pub fn build(program: Program, on_exit: &[&str], regs: usize) -> Binary {
+        let mut builder = Builder::new(&program, on_exit, regs);
+
+        for (i, ir) in program.lines.iter().map(|line| &line.ir).enumerate() {
+            builder.gen(i, ir);
+        }
+
+        builder.seal()
+    }
+}
+
+#[test]
+fn build_test() {
+    let program = "
+t0 = b + c;
+t1 = a / t0;
+t2 = e + f;
+t3 = d * t2;
+t4 = t1 - t3;
+x = t4;
+    ";
+
+    let p = Program::parse(program).unwrap();
+    let bin = Builder::build(p, &["x"], 2);
+    // println!("{:?}", bin);
+    // LD R0, b
+    // LD R1, c
+    // ADD R0, R0, R1
+    // LD R1, a
+    // DIV R0, R1, R0
+    // LD R1, e
+    // ST t1, R0
+    // LD R0, f
+    // ADD R0, R1, R0
+    // LD R1, d
+    // MUL R0, R1, R0
+    // LD R1, t1
+    // SUB R0, R1, R0
+    // ST x, R0
+    assert_eq!(bin.codes.len(), 14);
 }

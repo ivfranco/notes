@@ -1,3 +1,4 @@
+use naive::bottom_up;
 use naive::machine_code::Binary;
 use naive::three_addr::Program;
 
@@ -11,6 +12,8 @@ fn main() {
     exercise_8_3_2();
     exercise_8_3_3();
     exercise_8_6_3();
+    exercise_8_6_4();
+    exercise_8_6_5();
 }
 
 fn exercise_8_2_1() {
@@ -250,37 +253,27 @@ a[i] = y;
     );
 }
 
-fn exercise_8_6_3() {
-    println!("Exercise 8.6.3:");
-
-    println!(
-        "{:?}",
-        Program::parse(
-            "
+const PROGRAM_ONE: &str = "
 t0 = b * c;
 t1 = a + t0;
 x = t1;
-    "
-        )
-        .unwrap()
-        .build()
-    );
+";
 
-    println!(
-        "{:?}",
-        Program::parse(
-            "
+const PROGRAM_TWO: &str = "
 t0 = b + c;
 t1 = a / t0;
 t2 = e + f;
 t3 = d * t2;
 t4 = t1 - t3;
 x = t4;
-    "
-        )
-        .unwrap()
-        .build()
-    );
+";
+
+fn exercise_8_6_3() {
+    println!("Exercise 8.6.3:");
+
+    println!("{:?}", Program::parse(PROGRAM_ONE).unwrap().build());
+
+    println!("{:?}", Program::parse(PROGRAM_TWO).unwrap().build());
 
     println!(
         "{:?}",
@@ -344,5 +337,33 @@ p = p + 1;
         )
         .unwrap()
         .build()
+    );
+}
+
+fn exercise_8_6_4() {
+    println!("Exercise 8.6.4:");
+
+    println!(
+        "{:?}",
+        bottom_up::Builder::build(Program::parse(PROGRAM_ONE).unwrap(), &["x"], 3)
+    );
+
+    println!(
+        "{:?}",
+        bottom_up::Builder::build(Program::parse(PROGRAM_TWO).unwrap(), &["x"], 3)
+    );
+}
+
+fn exercise_8_6_5() {
+    println!("Exercise 8.6.5:");
+
+    println!(
+        "{:?}",
+        bottom_up::Builder::build(Program::parse(PROGRAM_ONE).unwrap(), &["x"], 2)
+    );
+
+    println!(
+        "{:?}",
+        bottom_up::Builder::build(Program::parse(PROGRAM_TWO).unwrap(), &["x"], 2)
     );
 }

@@ -1,4 +1,3 @@
-use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::fmt::{self, Debug, Display, Formatter};
 
@@ -23,7 +22,7 @@ impl Debug for Idx {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Word {
     Reg(Reg),
     Lit(usize),
@@ -208,6 +207,34 @@ impl Display for Binary {
     }
 }
 
+#[allow(dead_code)]
+fn redundent_store(binary: Binary) -> Binary {
+    fn immediate_store(last: &Option<(Reg, Addr)>, next: &Code) -> bool {
+        match (last, next) {
+            (Some((r0, a0)), Code::St(a1, r1)) if Word::Reg(*r0) == *r1 && a0 == a1 => true,
+            _ => false,
+        }
+    }
+
+    let codes = binary
+        .codes
+        .into_iter()
+        .scan(None, |last, next| {
+            if let Code::Ld(r, a) = &next {
+                *last = Some((*r, a.clone()));
+                Some(next)
+            } else if immediate_store(last, &next) {
+                None
+            } else {
+                *last = None;
+                Some(next)
+            }
+        })
+        .collect();
+
+    Binary { codes }
+}
+
 #[test]
 fn parse_test() {
     let binary = "LD R0, x
@@ -216,7 +243,17 @@ SUB R0, R0, R1
 BLTZ *R3, L0";
 
     let bin = Binary::parse(binary).unwrap();
-    println!("{:?}", bin);
+    // println!("{:?}", bin);
     assert_eq!(bin.codes.len(), 4);
     assert_eq!(bin.cost(), 7);
+}
+
+#[test]
+fn redundent_store_test() {
+    let binary = "LD R0, a
+ST a, R0";
+
+    let bin = redundent_store(Binary::parse(binary).unwrap());
+    // println!("{:?}", bin);
+    assert_eq!(bin.codes.len(), 1);
 }
