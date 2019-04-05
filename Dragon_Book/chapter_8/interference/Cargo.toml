@@ -1,0 +1,10 @@
+[package]
+name = "interference"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+petgraph = "^0.4"
+regex = "^1.1"
+lazy_static = "^1.3"

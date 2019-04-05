@@ -4591,3 +4591,115 @@ b.  LD R0, b
 //  the algebraic optimizations in this chapter works on ir, not machine code
 ./Dragon_Book/chatper_8/naive/src/three_addr.rs#algebraic
 
+8.8.1
+./Dragon_Book/chatper_8/interference
+Graph {
+    Ty: "Undirected",
+    node_count: 6,
+    edge_count: 26,
+    edges: (0, 1), (0, 2), (0, 3), (0, 4), (4, 1), (4, 2), (4, 3), (2, 5), (2, 1), (2, 3), (2, 4), (1, 0), (1, 3), 
+           (1, 4), (0, 5), (0, 4), (0, 3), (0, 1), (5, 2), (5, 4), (5, 3), (5, 1), (5, 1), (5, 3), (5, 0), (5, 4),
+    node weights: {
+        0: 'e',
+        1: 'f',
+        2: 'a',
+        3: 'c',
+        4: 'd',
+        5: 'b'
+    }
+}
+
+8.8.2
+each procedure can be treated as a sequence of blocks where:
+    the first block has no living variables on entry
+    the last block has no living variables on exit
+
+//  what introduced in this chapter is an informal term rewriting system
+8.9.1
+./Dragon_Book/chatper_8/tree_rewrite
+a.  =
+        Mx
+        Add
+            Mul
+                Ma
+                Mb
+            Mul
+                Mc
+                Md
+    LD R0, a
+    LD R1, b
+    MUL R0, R0, R1
+    LD R2, c
+    LD R3, d
+    MUL R2, R2, R3
+    ADD R0, R0, R2
+    ST x, R0
+b.  =
+        Ind
+            Add
+                Add
+                    Cx
+                    RSP
+                Ind
+                    Add
+                        Ci
+                        RSP
+        Mul
+            Ind
+                Add
+                    Add
+                        Cy
+                        RSP
+                    Ind
+                        Add
+                            Cj
+                            RSP
+            Ind
+                Add
+                    Add
+                        Cz
+                        RSP
+                    Ind
+                        Add
+                            Ck
+                            RSP
+//  there's no rule to load a Ind(Reg) by LD r, *r in the original rule set
+//  rewriting of this statement will stuck without such a rule
+    LD R0, #Cx
+    ADD R0, R0, RSP
+    ADD R0, R0, i(RSP)
+    LD R1, #Cy
+    ADD R1, R1, RSP
+    ADD R1, R1, j(RSP)
+    LD R1, *R1
+    LD R2, #Cz
+    ADD R2, R2, RSP
+    ADD R2, R2, k(RSP)
+    LD R2, *R2
+    MUL R1, R1, R2
+    ST *R0, R1
+c.  =
+        Mx
+        Add
+            Mx
+            1
+    LD R0, x
+    INC R0
+    ST x, R0
+
+8.9.2
+//  the grammar is ambiguous hence cannot be treated by LALRPOP
+//  the two rule sets should be semantically the same, only differ in the order they try to apply rules
+
+8.9.3
+while statement is initially parsed as a node with two children:
+    while: Cmp(UL [ subtree of loop condition ]) [ subtree of loop body ]
+Li <- UL            { Li: (a new label) }
+Lik <- Cmp(Li Rj)   { BEZ Rj, Lk /* traditional C semantic: anything but 0 is true */ }
+while Lik Ma        { BR Li;
+                      Lk: }
+
+8.9.4
+rewriting a children is unsafe as it may be children of other nodes with different context
+a safe strategy may be "copy on rewrite" but it cancels all the benefits of DAG over tree
+

@@ -1,0 +1,36 @@
+use crate::{BinOp, Var, Cst, Node};
+
+#[LALR] grammar;
+
+pub A: Node = {
+    <dst:N> "=" <src:N> ";" => Node::assign(dst, src),
+}
+
+N: Node = {
+    <n:N> "+" <t:T> => Node::op(n, BinOp::Add, t),
+    <T>,
+}
+
+T: Node = {
+    <t:T> "*" <f:F> => Node::op(t, BinOp::Mul, f),
+    <F>,
+}
+
+F: Node = {
+    <a:Cst> "[" <i:Cst> "]" => Node::access(a, i),
+    <v:Id> => Node::Mem(v),
+    <n:Num> => Node::Cst(Cst::Lit(n)),
+}
+
+Cst: Cst = {
+    <var:Id> => Cst::Var(var),
+    <lit:Num> => Cst::Lit(lit),
+}
+
+Id: Var = {
+    <s:r"[a-z]"> => s.chars().next().unwrap(),
+}
+
+Num: usize = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}

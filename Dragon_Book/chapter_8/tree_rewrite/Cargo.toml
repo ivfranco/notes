@@ -1,0 +1,12 @@
+[package]
+name = "tree_rewrite"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@outlook.com>"]
+edition = "2018"
+
+[build-dependencies]
+lalrpop = "^0.16"
+
+[dependencies]
+lalrpop-util = "^0.16"
+regex = "^1.1"
