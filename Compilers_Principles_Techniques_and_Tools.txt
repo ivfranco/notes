@@ -4703,3 +4703,138 @@ while Lik Ma        { BR Li;
 rewriting a children is unsafe as it may be children of other nodes with different context
 a safe strategy may be "copy on rewrite" but it cancels all the benefits of DAG over tree
 
+8.10.1
+./Dragon_Book/chatper_8/ershov
+a.  expr: a/(b + c) - d * (e + f)
+    Ershov number: 3
+b.  expr: a + b * (c * (d + e))
+    Ershov number: 2
+c.  expr: (-a + *p) * ((b - *q)/(-c + *r))
+    Ershov number: 3
+
+8.10.2
+./Dragon_Book/chatper_8/ershov
+a.  LD R1, #b
+    LD R0, #c
+    ADD R1, R1, R0
+    LD R0, #a
+    DIV R1, R0, R1
+    ST #t0, R1
+    LD R1, #e
+    LD R0, #f
+    ADD R1, R1, R0
+    LD R0, #d
+    MUL R1, R0, R1
+    LD R0, #t0
+    SUB R1, R0, R1
+b.  LD R1, #d
+    LD R0, #e
+    ADD R1, R1, R0
+    LD R0, #c
+    MUL R1, R0, R1
+    LD R0, #b
+    MUL R1, R0, R1
+    LD R0, #a
+    ADD R1, R0, R1
+c.  LD R1, #b
+    LD R0, #q
+    LD R0, *R0
+    SUB R1, R1, R0
+    ST #t0, R1
+    LD R1, #c
+    SUB R1, 0, R1
+    LD R0, #r
+    LD R0, *R0
+    ADD R1, R1, R0
+    LD R0, #t0
+    DIV R1, R0, R1
+    ST #t1, R1
+    LD R1, #a
+    SUB R1, 0, R1
+    LD R0, #p
+    LD R0, *R0
+    ADD R1, R1, R0
+    LD R0, #t1
+    MUL R1, R1, R0
+
+8.10.3
+./Dragon_Book/chatper_8/ershov
+a.  LD R2, #b
+    LD R1, #c
+    ADD R2, R2, R1
+    LD R1, #a
+    DIV R2, R1, R2
+    LD R1, #e
+    LD R0, #f
+    ADD R1, R1, R0
+    LD R0, #d
+    MUL R1, R0, R1
+    SUB R2, R2, R1
+b.  LD R1, #d
+    LD R0, #e
+    ADD R1, R1, R0
+    LD R0, #c
+    MUL R1, R0, R1
+    LD R0, #b
+    MUL R1, R0, R1
+    LD R0, #a
+    ADD R1, R0, R1
+c.  LD R2, #b
+    LD R1, #q
+    LD R1, *R1
+    SUB R2, R2, R1
+    LD R1, #c
+    SUB R1, 0, R1
+    LD R0, #r
+    LD R0, *R0
+    ADD R1, R1, R0
+    DIV R2, R2, R1
+    LD R1, #a
+    SUB R1, 0, R1
+    LD R0, #p
+    LD R0, *R0
+    ADD R1, R1, R0
+    MUL R2, R1, R2
+
+8.10.4
+once the order of evaluation is fixed,
+evaluate the ith child ci (0-based) of an internal node requires
+    l = 
+        ci.label    // the register used to compute ci
+        + i         // the register used to store results of previous children
+the total number of registers required by an internal node is the maximum l of its children
+decreasing order of label is the optimal ordering:
+    assume in some arbitrary order there is an inversion i.e. ci.label > cj.label but i > j
+    by exchanging the position of ci and cj, the maximum li is not increased:
+        ci.label + i > cj.label + i > ci.label + j
+    when all inversions are eliminated, the ordering is sorted
+    if the original ordering has an optimal maximum, the resulting sorted ordering also is optimal
+algorithm:
+    sort the children in decreasing order of label
+    for each child c at position i (0-based), compute l = i + c.label
+    Ershov number of the internal node is the maximum l of its children
+./Dragon_Book/chatper_8/ershov/src/utils.rs#general_ershov
+
+8.10.5
+a[i] = x can be decomposed to:
+    o = i * WIDTH
+    p = a + o
+    *p = x
+each instruction has no more than two operators
+only the parsing phase have to be modified
+
+8.10.6
+each node now has two labels
+one as before, another is the label (denoted by rlabel) when it is used as a right operand
+a memory location now have rlabel 0
+the code generator should have a method to generate code for right operands that does not load memory into registers
+
+8.10.7
+multiplication:
+    beside the label, the size of the result of a node has to be stored with the node
+    for unary operation, label of internal node is still the label of its only child
+    for binary operation, the label of internal node is now:
+        max(rhs.size + lhs.label, lhs.size + rhs.label)
+division:
+    an internal node with such an operation uses at least 3 registers
+

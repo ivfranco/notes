@@ -1,0 +1,26 @@
+use crate::{Node, BinOp, UnOp, Var};
+
+#[LALR] grammar;
+
+pub E: Node = {
+    <e:E> "+" <t:T> => Node::bin(e, BinOp::Add, t),
+    <e:E> "-" <t:T> => Node::bin(e, BinOp::Sub, t),
+    <T>,
+}
+
+T: Node = {
+    <t:T> "*" <f:F> => Node::bin(t, BinOp::Mul, f),
+    <t:T> "/" <f:F> => Node::bin(t, BinOp::Div, f),
+    <F>,
+}
+
+F: Node = {
+    "-" <f:F> => Node::un(UnOp::Neg, f),
+    "*" <f:F> => Node::un(UnOp::Deref, f),
+    "(" <E> ")",
+    <v:Id> => Node::var(v),
+}
+
+Id: Var = {
+    <s:r"[a-z]"> => s.chars().next().unwrap(),
+}
