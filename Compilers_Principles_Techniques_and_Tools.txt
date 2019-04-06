@@ -4700,7 +4700,7 @@ while Lik Ma        { BR Li;
                       Lk: }
 
 8.9.4
-rewriting a children is unsafe as it may be children of other nodes with different context
+rewriting a child is unsafe as it may be child of other nodes with different context
 a safe strategy may be "copy on rewrite" but it cancels all the benefits of DAG over tree
 
 8.10.1
@@ -4806,7 +4806,8 @@ the total number of registers required by an internal node is the maximum l of i
 decreasing order of label is the optimal ordering:
     assume in some arbitrary order there is an inversion i.e. ci.label > cj.label but i > j
     by exchanging the position of ci and cj, the maximum li is not increased:
-        ci.label + i > cj.label + i > ci.label + j
+        ci.label + i > cj.label + i 
+        ci.label + i > ci.label + j
     when all inversions are eliminated, the ordering is sorted
     if the original ordering has an optimal maximum, the resulting sorted ordering also is optimal
 algorithm:
