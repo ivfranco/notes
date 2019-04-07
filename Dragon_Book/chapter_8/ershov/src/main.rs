@@ -5,6 +5,7 @@ fn main() {
     exercise_8_10_1();
     exercise_8_10_2();
     exercise_8_10_3();
+    exercise_8_11_1();
 }
 
 const EXPR_ONE: &str = "a/(b + c) - d * (e + f)";
@@ -36,5 +37,13 @@ fn exercise_8_10_3() {
     for expr in &[EXPR_ONE, EXPR_TWO, EXPR_THREE] {
         let node = Node::parse(expr).unwrap();
         println!("{:?}", Builder::build(&node, 3));
+    }
+}
+
+fn exercise_8_11_1() {
+    println!("Exercise 8.10.3:");
+
+    for expr in &["a * b + c * d", "y[j] * z[k]"] {
+        println!("{:#?}", Node::parse(expr).unwrap());
     }
 }

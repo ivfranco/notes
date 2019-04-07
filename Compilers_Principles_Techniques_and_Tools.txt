@@ -4839,3 +4839,112 @@ multiplication:
 division:
     an internal node with such an operation uses at least 3 registers
 
+8.11.1
+a.  Node {
+        label: 3,
+        cost: Cost {
+            m0: 6,
+            r1: 6,
+            r2: 5
+        },
+        expr: Bin(
+            Node {
+                label: 2,
+                cost: Cost {
+                    m0: 3,
+                    r1: 2,
+                    r2: 2
+                },
+                expr: Bin(
+                    Node {
+                        label: 1,
+                        cost: Cost {
+                            m0: 0,
+                            r1: 1,
+                            r2: 1
+                        },
+                        expr: Var(
+                            'a'
+                        )
+                    },
+                    Mul,
+                    Node {
+                        label: 1,
+                        cost: Cost {
+                            m0: 0,
+                            r1: 1,
+                            r2: 1
+                        },
+                        expr: Var(
+                            'b'
+                        )
+                    }
+                )
+            },
+            Add,
+            Node {
+                label: 2,
+                cost: Cost {
+                    m0: 3,
+                    r1: 2,
+                    r2: 2
+                },
+                expr: Bin(
+                    Node {
+                        label: 1,
+                        cost: Cost {
+                            m0: 0,
+                            r1: 1,
+                            r2: 1
+                        },
+                        expr: Var(
+                            'c'
+                        )
+                    },
+                    Mul,
+                    Node {
+                        label: 1,
+                        cost: Cost {
+                            m0: 0,
+                            r1: 1,
+                            r2: 1
+                        },
+                        expr: Var(
+                            'd'
+                        )
+                    }
+                )
+            }
+        )
+    }
+    //  either lhs or rhs can be computed with r2, another with r1
+    LD R0, a
+    LD R1, b
+    MUL R0, R0, R1
+    LD R1, c
+    MUL R1, d
+    ADD R0, R0, R1 
+    ST x, R0
+b.  //  with indexed addressing mode, an array access can be computed into memory with cost 1
+    //  but this computation requires at least one register, have no idea how to express this limit in the current model
+    y[j]: (1, 2, 2)
+    z[k]: (1, 2, 2)
+    y[j] * z[k]: (5, 4, 4)
+    LD R0, j
+    LD R0, y(R0)
+    LD R1, k
+    MUL R0, z(R1)
+    LD R1, i
+    ST x(R1), R0
+c.  x:      (0, 1, 1)
+    1:      (0, 1, 1)
+    x + 1:  (3, 2, 2) 
+    LD R0, x
+    INC R0   // or ADD R0, 1 with same cost
+    ST x, R0
+
+8.11.2
+same as 8.9.4
+the cost can be computed for each node in the DAG in reverse topological order
+different code may be generated for the same node in different context
+

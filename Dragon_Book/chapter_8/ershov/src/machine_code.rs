@@ -15,8 +15,8 @@ pub enum Mem {
 impl Display for Mem {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         match self {
-            Mem::Var(v) => write!(f, "#{}", v),
-            Mem::Tmp(t) => write!(f, "#t{}", t),
+            Mem::Var(v) => write!(f, "{}", v),
+            Mem::Tmp(t) => write!(f, "t{}", t),
             Mem::Ind(r) => write!(f, "*R{}", r),
             Mem::Null => write!(f, "NULL"),
         }

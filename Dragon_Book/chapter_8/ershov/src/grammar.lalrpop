@@ -18,9 +18,21 @@ F: Node = {
     "-" <f:F> => Node::un(UnOp::Neg, f),
     "*" <f:F> => Node::un(UnOp::Deref, f),
     "(" <E> ")",
+    <A>,
     <v:Id> => Node::var(v),
 }
 
 Id: Var = {
     <s:r"[a-z]"> => s.chars().next().unwrap(),
+}
+
+//  parse array access as pointer arithmetic
+//  assume 1-byte width word
+A: Node = {
+    <a:Id> "[" <i:Id> "]" => {
+        let arr = Node::var(a);
+        let idx = Node::var(i);
+        let add = Node::bin(arr, BinOp::Add, idx);
+        Node::un(UnOp::Deref, add)
+    }
 }
