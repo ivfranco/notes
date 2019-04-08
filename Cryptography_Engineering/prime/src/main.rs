@@ -3,11 +3,11 @@ extern crate num_integer;
 extern crate num_traits;
 extern crate rand;
 
-use std::time::Instant;
 use num_bigint::BigUint;
 use num_bigint::RandBigInt;
 use num_integer::Integer;
 use num_traits::One;
+use std::time::Instant;
 
 fn small_prime_list(n: usize) -> Vec<usize> {
     assert!(2 <= n && n <= 1 << 20);
