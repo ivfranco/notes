@@ -1,14 +1,19 @@
+pub mod reaching_def;
+
 use lazy_static::lazy_static;
+use petgraph::prelude::*;
 use regex::Regex;
 
 lazy_static! {
     static ref OP: Regex =
-        Regex::new(r"^(?P<dst>\w+) = (?P<lhs>\w+) (?P<op>\+|-|\*) (?P<rhs>\w+)$").unwrap();
-    static ref COPY: Regex = Regex::new(r"^(?P<dst>\w+) = (?P<src>\w+)$").unwrap();
+        Regex::new(r"^(?P<dst>\w+)\s?=\s?(?P<lhs>\w+)\s?(?P<op>\+|-|\*)\s?(?P<rhs>\w+)$").unwrap();
+    static ref COPY: Regex = Regex::new(r"^(?P<dst>\w+)\s?=\s?(?P<src>\w+)$").unwrap();
 }
 
 type Var = String;
 type Lit = u32;
+pub type BlockID = usize;
+pub type StmtID = usize;
 
 #[derive(Debug, PartialEq)]
 pub enum RValue {
@@ -52,7 +57,7 @@ impl BinOp {
             "+" => Add,
             "-" => Sub,
             "*" => Mul,
-            _ => panic!("Error: Invalid operator"),
+            _ => panic!("Error: Invalid operator: {}", s),
         }
     }
 }
@@ -80,7 +85,15 @@ impl Stmt {
 
             Copy(dst, src)
         } else {
-            panic!("Error: Invalid Statement");
+            panic!("Error: Invalid Statement \"{}\"", s);
+        }
+    }
+
+    fn dst(&self) -> Option<&str> {
+        use Stmt::*;
+        match self {
+            Op(dst, ..) => Some(dst),
+            Copy(dst, ..) => Some(dst),
         }
     }
 }
@@ -95,10 +108,14 @@ impl Block {
         let stmts = s
             .lines()
             .filter(|l| !l.is_empty())
-            .map(|l| Stmt::parse(l))
+            .map(Stmt::parse)
             .collect();
 
         Block { start, stmts }
+    }
+
+    pub fn in_range(&self, i: usize) -> bool {
+        i >= self.start && i < self.start + self.len()
     }
 
     pub fn is_empty(&self) -> bool {
@@ -115,6 +132,67 @@ impl Block {
         } else {
             self.stmts.get(i - self.start)
         }
+    }
+
+    pub fn stmts(&self) -> impl Iterator<Item = (usize, &Stmt)> {
+        (self.start..).zip(self.stmts.iter())
+    }
+}
+
+#[derive(Default)]
+pub struct Program {
+    blocks: Vec<Block>,
+    graph: GraphMap<usize, (), Directed>,
+}
+
+impl Program {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.blocks.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.blocks.len()
+    }
+
+    pub fn add_block(&mut self, block: Block) {
+        self.blocks.push(block);
+        self.graph.add_node(self.blocks.len() - 1);
+    }
+
+    pub fn add_edge(&mut self, from: BlockID, to: BlockID) {
+        self.graph.add_edge(from, to, ());
+    }
+
+    pub fn blocks(&self) -> impl Iterator<Item = &Block> {
+        self.blocks.iter()
+    }
+
+    pub fn stmts(&self) -> impl Iterator<Item = (StmtID, &Stmt)> {
+        self.blocks().flat_map(|b| b.stmts())
+    }
+
+    pub fn get_block(&self, i: BlockID) -> Option<&Block> {
+        self.blocks.get(i)
+    }
+
+    pub fn get_stmt(&self, i: StmtID) -> Option<&Stmt> {
+        self.blocks().find_map(|b| b.get(i))
+    }
+
+    pub fn predecessors(&self, block_id: BlockID) -> impl Iterator<Item = (BlockID, &Block)> {
+        self.graph
+            .neighbors_directed(block_id, Direction::Incoming)
+            .map(move |i| (i, &self.blocks[i]))
+    }
+
+    pub fn successors(&self, block_id: BlockID) -> impl Iterator<Item = (BlockID, &Block)> {
+        self.graph
+            .neighbors_directed(block_id, Direction::Outgoing)
+            .map(move |i| (i, &self.blocks[i]))
     }
 }
 
