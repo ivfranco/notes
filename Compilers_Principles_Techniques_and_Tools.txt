@@ -5047,3 +5047,86 @@ eliminate induction variables (i):
     t1 = t1 + 8
     if t1 < t2 goto L
 
+9.2.1
+attributes of B0 (ENTRY):
+    IN: []
+    OUT: []
+    gen: []
+    kill: []
+attributes of B1:
+    IN: []
+    OUT: [1, 2]
+    gen: [1, 2]
+    kill: [8, 10, 11]
+attributes of B2:
+    IN: [1, 2, 3, 5, 8, 9]
+    OUT: [1, 2, 3, 4, 8, 9]
+    gen: [3, 4]
+    kill: [5, 6]
+attributes of B3:
+    IN: [1, 2, 3, 4, 6, 7, 8, 9]
+    OUT: [1, 2, 3, 5, 7, 8, 9]
+    gen: [5]
+    kill: [4, 6]
+attributes of B4:
+    IN: [1, 2, 3, 5, 7, 8, 9]
+    OUT: [1, 2, 3, 6, 7, 8]
+    gen: [6, 7]
+    kill: [4, 5, 9]
+attributes of B5:
+    IN: [1, 2, 3, 5, 7, 8, 9]
+    OUT: [1, 3, 5, 8, 9]
+    gen: [8, 9]
+    kill: [2, 7, 11]
+attributes of B6:
+    IN: [1, 3, 5, 8, 9]
+    OUT: [3, 5, 9, 10, 11]
+    gen: [10, 11]
+    kill: [1, 2, 8]
+attributes of B7 (EXIT):
+    IN: [3, 5, 9, 10, 11]
+    OUT: [3, 5, 9, 10, 11]
+    gen: []
+    kill: []
+
+9.2.3:
+attributes of B0 (ENTRY):
+    IN: ["e"]
+    OUT: ["e"]
+    def: []
+    use: []
+attributes of B1:
+    IN: ["e"]
+    OUT: ["e"]
+    def: ["a", "b"]
+    use: []
+attributes of B2:
+    IN: ["a", "b", "e"]
+    OUT: ["a", "b", "e"]
+    def: ["c", "d"]
+    use: ["a", "b"]
+attributes of B3:
+    IN: ["a", "b", "c", "d", "e"]
+    OUT: ["a", "b", "c", "d", "e"]
+    def: []
+    use: ["b", "d"]
+attributes of B4:
+    IN: ["a", "b", "c", "e"]
+    OUT: ["a", "b", "c", "e"]
+    def: ["d"]
+    use: ["a", "b", "e"]
+attributes of B5:
+    IN: ["a", "b", "c", "d"]
+    OUT: ["a", "b", "c", "d"]
+    def: ["e"]
+    use: ["a", "b", "c"]
+attributes of B6:
+    IN: ["b", "d"]
+    OUT: ["b", "d"]
+    def: ["a"]
+    use: ["b", "d"]
+attributes of B7 (EXIT):
+    IN: []
+    OUT: []
+    def: []
+    use: []

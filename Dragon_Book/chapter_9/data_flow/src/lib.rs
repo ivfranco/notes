@@ -1,4 +1,6 @@
+pub mod live_var;
 pub mod reaching_def;
+pub(crate) mod utils;
 
 use lazy_static::lazy_static;
 use petgraph::prelude::*;
@@ -27,6 +29,14 @@ impl RValue {
             lit.into()
         } else {
             s.to_string().into()
+        }
+    }
+
+    fn var(&self) -> Option<&str> {
+        if let RValue::Var(var) = self {
+            Some(var)
+        } else {
+            None
         }
     }
 }
@@ -89,11 +99,19 @@ impl Stmt {
         }
     }
 
-    fn dst(&self) -> Option<&str> {
+    fn def(&self) -> Option<&str> {
         use Stmt::*;
         match self {
             Op(dst, ..) => Some(dst),
             Copy(dst, ..) => Some(dst),
+        }
+    }
+
+    fn uses(&self) -> Vec<&str> {
+        use Stmt::*;
+        match self {
+            Op(_, lhs, _, rhs) => vec![lhs, rhs].into_iter().flat_map(|r| r.var()).collect(),
+            Copy(_, src) => src.var().into_iter().collect(),
         }
     }
 }
@@ -146,8 +164,9 @@ pub struct Program {
 }
 
 impl Program {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(blocks: Vec<Block>, edges: &[(BlockID, BlockID)]) -> Self {
+        let graph = GraphMap::from_edges(edges);
+        Program { blocks, graph }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -156,15 +175,6 @@ impl Program {
 
     pub fn len(&self) -> usize {
         self.blocks.len()
-    }
-
-    pub fn add_block(&mut self, block: Block) {
-        self.blocks.push(block);
-        self.graph.add_node(self.blocks.len() - 1);
-    }
-
-    pub fn add_edge(&mut self, from: BlockID, to: BlockID) {
-        self.graph.add_edge(from, to, ());
     }
 
     pub fn blocks(&self) -> impl Iterator<Item = &Block> {
@@ -199,6 +209,33 @@ impl Program {
 #[cfg(test)]
 fn s(s: &str) -> String {
     s.to_owned()
+}
+
+#[cfg(test)]
+pub fn figure_9_13() -> Program {
+    use crate::Block;
+
+    let blocks = vec![
+        Block::parse(0, ""), // ENTRY
+        Block::parse(
+            1,
+            "i = m-1
+j = n
+a = u1",
+        ),
+        Block::parse(
+            4,
+            "i = i+1
+j = j-1",
+        ),
+        Block::parse(6, "a = u2"),
+        Block::parse(7, "i = u3"),
+        Block::parse(7, ""), // EXIT
+    ];
+
+    let edges = &[(0, 1), (1, 2), (2, 3), (2, 4), (3, 4), (4, 2), (4, 5)];
+
+    Program::new(blocks, edges)
 }
 
 #[test]

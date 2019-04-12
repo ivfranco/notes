@@ -1,19 +1,14 @@
+use crate::utils::sorted;
 use crate::{BlockID, Program, StmtID};
 use std::collections::HashSet;
 use std::fmt::{self, Debug, Formatter};
 
-fn sorted(set: &HashSet<BlockID>) -> Vec<BlockID> {
-    let mut sorted: Vec<_> = set.iter().cloned().collect();
-    sorted.sort();
-    sorted
-}
-
 fn killed(program: &Program, i: StmtID) -> HashSet<usize> {
-    if let Some(dst) = program.get_stmt(i).and_then(|stmt| stmt.dst()) {
+    if let Some(dst) = program.get_stmt(i).and_then(|stmt| stmt.def()) {
         program
             .stmts()
             .filter(|(j, stmt)| {
-                if let Some(d) = stmt.dst() {
+                if let Some(d) = stmt.def() {
                     d == dst && *j != i
                 } else {
                     false
@@ -52,14 +47,7 @@ impl GenKill {
     }
 }
 
-impl Debug for GenKill {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
-        writeln!(f, "gen: {:?}", sorted(&self.gen))?;
-        writeln!(f, "kill: {:?}", sorted(&self.kill))
-    }
-}
-
-pub struct ReachingDef {
+struct ReachingDef {
     block_id: BlockID,
     in_def: HashSet<StmtID>,
     out_def: HashSet<StmtID>,
@@ -89,22 +77,34 @@ impl ReachingDef {
 impl Debug for ReachingDef {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         writeln!(f, "attributes of B{}:", self.block_id)?;
-        writeln!(f, "IN: {:?}", sorted(&self.in_def))?;
-        writeln!(f, "OUT: {:?}", sorted(&self.out_def))?;
-        writeln!(f, "{:?}", self.gen_kill)
+        writeln!(f, "    IN: {:?}", sorted(&self.in_def))?;
+        writeln!(f, "    OUT: {:?}", sorted(&self.out_def))?;
+        writeln!(f, "    gen: {:?}", sorted(&self.gen_kill.gen))?;
+        writeln!(f, "    kill: {:?}", sorted(&self.gen_kill.kill))
     }
 }
 
-fn meet(i: BlockID, program: &Program, attrs: &mut Vec<ReachingDef>) {
-    let new_in = program
-        .predecessors(i)
-        .map(|(p, _)| &attrs[p].out_def)
-        .fold(HashSet::new(), |set, out_p| &set | out_p);
-
-    attrs[i].in_def = new_in;
+pub struct ReachingDefs {
+    attrs: Vec<ReachingDef>,
 }
 
-pub fn reaching_definitions(program: &Program) -> Vec<ReachingDef> {
+impl Debug for ReachingDefs {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        for attr in &self.attrs {
+            write!(f, "{:?}", attr)?;
+        }
+        Ok(())
+    }
+}
+
+fn meet(i: BlockID, program: &Program, attrs: &[ReachingDef]) -> HashSet<StmtID> {
+    program
+        .predecessors(i)
+        .map(|(p, _)| &attrs[p].out_def)
+        .fold(HashSet::new(), |set, out_p| &set | out_p)
+}
+
+pub fn reaching_definitions(program: &Program) -> ReachingDefs {
     let mut attrs: Vec<_> = (0..program.len())
         .map(|i| ReachingDef::new(i, program))
         .collect();
@@ -113,52 +113,26 @@ pub fn reaching_definitions(program: &Program) -> Vec<ReachingDef> {
     while updated {
         updated = false;
         for i in 0..program.len() {
-            meet(i, program, &mut attrs);
+            attrs[i].in_def = meet(i, program, &attrs);
             updated = attrs[i].update() || updated;
         }
     }
 
-    attrs
-}
-
-#[cfg(test)]
-fn figure_9_13() -> Program {
-    use crate::Block;
-
-    let mut program = Program::new();
-
-    for block in vec![
-        Block::parse(0, ""), // ENTRY
-        Block::parse(
-            1,
-            "i = m-1
-j = n
-a = u1",
-        ),
-        Block::parse(
-            4,
-            "i = i+1
-j = j-1",
-        ),
-        Block::parse(6, "a = u2"),
-        Block::parse(7, "i = u3"),
-        Block::parse(7, ""), // EXIT
-    ] {
-        program.add_block(block);
-    }
-
-    for (i, j) in &[(0, 1), (1, 2), (2, 3), (2, 4), (3, 4), (4, 2), (4, 5)] {
-        program.add_edge(*i, *j);
-    }
-
-    program
+    ReachingDefs { attrs }
 }
 
 #[test]
 fn reaching_definitions_test() {
-    let program = figure_9_13();
+    let program = crate::figure_9_13();
 
-    let attrs = reaching_definitions(&program);
-    // println!("{:#?}", attrs);
-    assert_eq!(attrs[2].gen_kill.kill, vec![1, 2, 7].into_iter().collect());
+    let rds = reaching_definitions(&program);
+    // println!("{:?}", rds);
+    assert_eq!(
+        rds.attrs[2].gen_kill.kill,
+        vec![1, 2, 7].into_iter().collect()
+    );
+    assert_eq!(rds.attrs[1].out_def, vec![1, 2, 3].into_iter().collect());
+    assert_eq!(rds.attrs[2].out_def, vec![3, 4, 5, 6].into_iter().collect());
+    assert_eq!(rds.attrs[3].out_def, vec![4, 5, 6].into_iter().collect());
+    assert_eq!(rds.attrs[4].out_def, vec![3, 5, 6, 7].into_iter().collect());
 }
