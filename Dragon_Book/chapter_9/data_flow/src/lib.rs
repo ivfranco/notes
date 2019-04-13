@@ -1,3 +1,4 @@
+pub mod available_expr;
 pub mod live_var;
 pub mod reaching_def;
 pub(crate) mod utils;
@@ -5,6 +6,7 @@ pub(crate) mod utils;
 use lazy_static::lazy_static;
 use petgraph::prelude::*;
 use regex::Regex;
+use std::fmt::{self, Debug, Formatter};
 
 lazy_static! {
     static ref OP: Regex =
@@ -17,7 +19,7 @@ type Lit = u32;
 pub type BlockID = usize;
 pub type StmtID = usize;
 
-#[derive(Debug, PartialEq)]
+#[derive(PartialEq, Eq, Hash)]
 pub enum RValue {
     Var(Var),
     Lit(Lit),
@@ -41,6 +43,15 @@ impl RValue {
     }
 }
 
+impl Debug for RValue {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        match self {
+            RValue::Lit(lit) => Debug::fmt(lit, f),
+            RValue::Var(var) => write!(f, "{}", var),
+        }
+    }
+}
+
 impl From<Var> for RValue {
     fn from(var: Var) -> RValue {
         RValue::Var(var)
@@ -53,7 +64,7 @@ impl From<Lit> for RValue {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BinOp {
     Add,
     Sub,
@@ -68,6 +79,17 @@ impl BinOp {
             "-" => Sub,
             "*" => Mul,
             _ => panic!("Error: Invalid operator: {}", s),
+        }
+    }
+}
+
+impl Debug for BinOp {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        use BinOp::*;
+        match self {
+            Add => write!(f, "+"),
+            Sub => write!(f, "-"),
+            Mul => write!(f, "*"),
         }
     }
 }
@@ -114,6 +136,33 @@ impl Stmt {
             Copy(_, src) => src.var().into_iter().collect(),
         }
     }
+
+    fn as_expr(&self) -> Option<Expr<'_>> {
+        if let Stmt::Op(_, lhs, op, rhs) = self {
+            Some(Expr { lhs, op: *op, rhs })
+        } else {
+            None
+        }
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub struct Expr<'a> {
+    lhs: &'a RValue,
+    op: BinOp,
+    rhs: &'a RValue,
+}
+
+impl<'a> Expr<'a> {
+    fn uses(&self, var: &str) -> bool {
+        self.lhs.var() == Some(var) || self.rhs.var() == Some(var)
+    }
+}
+
+impl<'a> Debug for Expr<'a> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{:?} {:?} {:?}", self.lhs, self.op, self.rhs)
+    }
 }
 
 pub struct Block {
@@ -122,6 +171,13 @@ pub struct Block {
 }
 
 impl Block {
+    pub fn empty() -> Self {
+        Block {
+            start: 0,
+            stmts: vec![],
+        }
+    }
+
     pub fn parse(start: usize, s: &str) -> Self {
         let stmts = s
             .lines()
@@ -175,6 +231,14 @@ impl Program {
 
     pub fn len(&self) -> usize {
         self.blocks.len()
+    }
+
+    pub fn entry(&self) -> BlockID {
+        0
+    }
+
+    pub fn exit(&self) -> BlockID {
+        self.len() - 1
     }
 
     pub fn blocks(&self) -> impl Iterator<Item = &Block> {

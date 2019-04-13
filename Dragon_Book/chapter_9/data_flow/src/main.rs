@@ -1,9 +1,11 @@
+use data_flow::available_expr::available_expressions;
 use data_flow::live_var::live_variables;
 use data_flow::reaching_def::reaching_definitions;
 use data_flow::{Block, Program};
 
 fn main() {
     exercise_9_2_1();
+    exercise_9_2_2();
     exercise_9_2_3();
 }
 
@@ -59,6 +61,13 @@ fn exercise_9_2_1() {
 
     let program = figure_9_10();
     println!("{:?}", reaching_definitions(&program));
+}
+
+fn exercise_9_2_2() {
+    println!("Exercise 9.2.2:");
+
+    let program = figure_9_10();
+    println!("{:?}", available_expressions(&program));
 }
 
 fn exercise_9_2_3() {

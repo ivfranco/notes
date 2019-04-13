@@ -5089,7 +5089,53 @@ attributes of B7 (EXIT):
     gen: []
     kill: []
 
+9.2.2:
+attributes of ENTRY:
+    IN: {}
+    OUT: {}
+    e_gen: {}
+    e_kill: {}
+attributes of B1:
+    IN: {}
+    OUT: {}
+    e_gen: {}
+    e_kill: {"a", "b"}
+attributes of B2:
+    IN: {c - a}
+    OUT: {c - a, a + b}
+    e_gen: {a + b, c - a}
+    e_kill: {"d", "c"}
+attributes of B3:
+    IN: {c - a, a + b}
+    OUT: {c - a, a + b}
+    e_gen: {}
+    e_kill: {"d"}
+attributes of B4:
+    IN: {c - a, a + b}
+    OUT: {c - a, a + b}
+    e_gen: {a + b}
+    e_kill: {"e", "d"}
+attributes of B5:
+    IN: {c - a, a + b}
+    OUT: {c - a}
+    e_gen: {c - a}
+    e_kill: {"e", "b"}
+attributes of B6:
+    IN: {c - a}
+    OUT: {a - d}
+    e_gen: {a - d}
+    e_kill: {"b", "a"}
+attributes of EXIT:
+    IN: {a - d}
+    OUT: {a - d}
+    e_gen: {}
+    e_kill: {}
+    
 9.2.3:
+// for a statement x = x + y
+// x belongs to useB but not defB as x is used before the first definition of x in B
+// this definition is more accurate but does not confirm to the definition in the textbook
+// IN[B] = useB | (OUT[B] - defB) will not change
 attributes of B0 (ENTRY):
     IN: ["e"]
     OUT: ["e"]
@@ -5130,3 +5176,97 @@ attributes of B7 (EXIT):
     OUT: []
     def: []
     use: []
+
+9.2.4
+a.  idempotency not satisfied: for a = 3, a + a = 6 != a
+b.  idempotency not satisfied: for a = 3, a * a = 9 != a
+c.  associativity:
+        (a + xi ∧ b + yi) ∧ c + zi 
+        = min(min(a, b), c) + min(min(x, y), z)i
+        = min(a, min(b, c)) + min(x, min(y, z))i
+        = a + xi ∧ (b + yi ∧ c + zi)
+    commutativity:
+        a + xi ∧ b + yi
+        = min(a, b) + min(x, y)i
+        = min(b, a) + min(y, x)i
+        = b + yi ∧ a + xi
+    idempotency:
+        a + xi ∧ a + xi
+        = min(a, a) + min(x, x)i
+        = a + xi
+d.  similar to part c.
+
+9.2.5
+when i = 1:
+    killB = kill1
+    genB = gen1
+    fB(x) = genB ∪ (x - killB) = f1(x)
+when i = k + 1, let B' be the block of first k statements in B, fB'(x) = fk(fk-1(.. f1(x))):
+    killB   = kill1 ∪ .. ∪ killi = killi ∪ killB'
+    genB    = geni ∪ (geni-1 - killi) ∪ .. ∪ (gen1 - kill1 - .. - killi)
+            // (A - C) ∪ (B - C) = (A ∪ B) - C
+            = geni ∪ ((geni-1 ∪ .. ∪ (gen1 - kill1 - .. - killk)) - killi)
+            = geni ∪ (genB' - killi)
+    fB(x)   = genB ∪ (x - killB) = geni ∪ (genB' - killi) ∪ ((x - killB') - killi)
+            = genB ∪ (genB' ∪ (x - killB') - killi)
+            = fi(genB' ∪ (x - killB'))
+            = fi(fB'(x)) = fi(fi-1(.. f1(x)))
+
+9.2.6
+let IN' and OUT' be the IN and OUT sets in the last iteration
+if OUT[P] for all P didn't shrink in the last iteration, IN[B] will not shrink:
+    for all x ∈ IN'[B], x ∈ OUT'[P] ⊆ OUT[P], x ∈ U(P){OUT[P]} = IN[B]
+if IN[B] will not shrink, OUT[B] will not shrink:
+    for all x ∈ OUT'[B], x ∈ genB ∪ (IN'[B] - killB)
+    if x ∈ genB, x ∈ OUT[B]
+    if x ∈ IN'[B] - killB, x ∈ IN'[B] ⊆ IN[B] and x ∉ killB, so x ∈ IN[B] - killB, x ∈ OUT[B]
+
+9.2.7
+a.  by induction
+    initially OUT[B] = genB, the set of downwards exposed definitions
+    in each iteration, for each d ∈ IN[B] = ∪(P){OUT[P]}
+        by induction there is a path from d to P, the path can be extended with the edge P -> B
+    for each d ∈ OUT[B] = fB(IN[B])
+        the path d -> B is downward exposed to the end of B
+b.  by induction on the number of iterations i
+    after iteration i, d ∈ IN[B] or OUT[B] if there is a path with length <= i from d to the start or end of B
+    for each d where there is a simple path d ~> IN[B] (similarly OUT[B])
+        the path d ~> IN[B] has length <= the number of blocks |B|
+        after |B| iteration d ∈ IN[B]
+        if the algorithm didn't run for |B| iterations, that's because the IN and OUT sets will no longer change
+        the current state of IN and OUT will be the same to their state after |B| iterations
+
+9.2.8
+a.  same to 9.2.6, only in reversed direction
+b.  same to 9.2.7
+c.  same to 9.2.7
+
+9.2.9
+a.  let IN' and OUT' be the IN and OUT sets in the last iteration
+    if OUT[P] for all P didn't grow in the last iteration, IN[B] will not grow:
+        for all x ∉ IN'[B], x ∉ OUT'[P] for some P => x ∉ OUT[P] => x ∉ IN[B]
+    if IN[B] didn't grow, OUT[B] will not grow:
+        for all x ∉ OUT'[B], x ∉ G ∪ (IN'[B] - K) => x ∉ G and x ∉ IN'[B] - K
+        if x ∉ IN'[B], x ∉ IN[B] => x ∉ OUT[B]
+        otherwise x ∈ IN'[B] and x ∈ K, then x ∉ IN[B] - K => x ∉ OUT[B]
+b.  the same argument of 9.2.6 can be applied, with ∉ instead of ∈
+c.  the same argument of 9.2.6 can be applied, with ∉ instead of ∈
+
+9.2.10
+by 9.2.8, the information stored in these sets is the absence of an element, not their presence
+by initializing OUT[B] to e_genB, the algorithm will improperly assume the absence of elements in U - genB
+consequently eliminates all expressions "fall through" (neither redefined nor used) this block
+e.g.
+B1:
+    t = a + b
+B2:
+    q = c + d
+B3:
+    ...
+if only edges are B1 -> B2 and B2 -> B3, OUT[B2] = e_genB = {c + d} in first iteration and will never grow
+a + b will never be passed to OUT[B2] and IN[B3], where it should be
+
+9.2.11
+first propagate constant values
+then remove the edge from B to the jump target if x has a constant value >= 10
+any analysis further may be undecidable

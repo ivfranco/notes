@@ -119,7 +119,7 @@ pub fn live_variables(program: &Program) -> LiveVariables<'_> {
 fn live_variables_test() {
     let program = crate::figure_9_13();
     let lvs = live_variables(&program);
-    println!("{:?}", lvs);
+    // println!("{:?}", lvs);
     assert_eq!(
         lvs.attrs[2].use_def.used,
         vec!["i", "j"].into_iter().collect()
