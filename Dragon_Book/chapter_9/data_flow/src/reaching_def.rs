@@ -1,10 +1,10 @@
 use crate::utils::sorted;
-use crate::{BlockID, Program, StmtID};
+use crate::{BlockID, Program, Stmt, StmtID};
 use std::collections::HashSet;
 use std::fmt::{self, Debug, Formatter};
 
 fn killed(program: &Program, i: StmtID) -> HashSet<usize> {
-    if let Some(dst) = program.get_stmt(i).and_then(|stmt| stmt.def()) {
+    if let Some(dst) = program.get_stmt(i).and_then(Stmt::def) {
         program
             .stmts()
             .filter(|(j, stmt)| {

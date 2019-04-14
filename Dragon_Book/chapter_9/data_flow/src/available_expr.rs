@@ -150,11 +150,11 @@ d = a - d",
 
     let program = Program::new(
         vec![
-            Block::empty(),
+            Block::entry(),
             Block::parse(1, "t1 = 4 * i"),
             Block::parse(2, "i = 1\nt1 = 4 * i"),
             Block::parse(3, "t2 = 4 * i"),
-            Block::empty(),
+            Block::exit(),
         ],
         &[(0, 1), (1, 2), (1, 3), (2, 3), (3, 4)],
     );

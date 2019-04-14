@@ -1,4 +1,5 @@
 pub mod available_expr;
+pub(crate) mod framework;
 pub mod live_var;
 pub mod reaching_def;
 pub(crate) mod utils;
@@ -132,7 +133,7 @@ impl Stmt {
     fn uses(&self) -> Vec<&str> {
         use Stmt::*;
         match self {
-            Op(_, lhs, _, rhs) => vec![lhs, rhs].into_iter().flat_map(|r| r.var()).collect(),
+            Op(_, lhs, _, rhs) => vec![lhs, rhs].into_iter().flat_map(RValue::var).collect(),
             Copy(_, src) => src.var().into_iter().collect(),
         }
     }
@@ -165,15 +166,32 @@ impl<'a> Debug for Expr<'a> {
     }
 }
 
+#[derive(PartialEq)]
+pub enum BlockType {
+    Entry,
+    Basic,
+    Exit,
+}
+
 pub struct Block {
     start: usize,
     stmts: Vec<Stmt>,
+    btype: BlockType,
 }
 
 impl Block {
-    pub fn empty() -> Self {
+    pub fn entry() -> Self {
         Block {
             start: 0,
+            btype: BlockType::Entry,
+            stmts: vec![],
+        }
+    }
+
+    pub fn exit() -> Self {
+        Block {
+            start: 0,
+            btype: BlockType::Exit,
             stmts: vec![],
         }
     }
@@ -185,7 +203,11 @@ impl Block {
             .map(Stmt::parse)
             .collect();
 
-        Block { start, stmts }
+        Block {
+            start,
+            stmts,
+            btype: BlockType::Basic,
+        }
     }
 
     pub fn in_range(&self, i: usize) -> bool {
@@ -245,8 +267,12 @@ impl Program {
         self.blocks.iter()
     }
 
+    pub fn block_indices(&self) -> impl Iterator<Item = BlockID> {
+        0..self.len()
+    }
+
     pub fn stmts(&self) -> impl Iterator<Item = (StmtID, &Stmt)> {
-        self.blocks().flat_map(|b| b.stmts())
+        self.blocks().flat_map(Block::stmts)
     }
 
     pub fn get_block(&self, i: BlockID) -> Option<&Block> {
@@ -280,7 +306,7 @@ pub fn figure_9_13() -> Program {
     use crate::Block;
 
     let blocks = vec![
-        Block::parse(0, ""), // ENTRY
+        Block::entry(), // ENTRY
         Block::parse(
             1,
             "i = m-1
@@ -294,7 +320,7 @@ j = j-1",
         ),
         Block::parse(6, "a = u2"),
         Block::parse(7, "i = u3"),
-        Block::parse(7, ""), // EXIT
+        Block::exit(), // EXIT
     ];
 
     let edges = &[(0, 1), (1, 2), (2, 3), (2, 4), (3, 4), (4, 2), (4, 5)];

@@ -11,7 +11,7 @@ fn main() {
 
 fn figure_9_10() -> Program {
     let blocks = vec![
-        Block::parse(0, ""), // ENTRY
+        Block::entry(), // ENTRY
         Block::parse(
             1,
             "a = 1
@@ -38,7 +38,7 @@ e = c-a",
             "a = b*d
 b = a-d",
         ),
-        Block::parse(10, ""), // EXIT
+        Block::exit(), // EXIT
     ];
 
     let edges = &[
