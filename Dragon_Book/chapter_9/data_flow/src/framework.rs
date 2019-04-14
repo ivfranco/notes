@@ -1,4 +1,4 @@
-use crate::{Block, BlockType};
+use crate::{Block, BlockID, BlockType, Program};
 use std::marker::PhantomData;
 
 trait Direction {}
@@ -9,8 +9,8 @@ pub enum Backward {}
 impl Direction for Backward {}
 
 pub trait SemiLattice: PartialEq {
-    fn top() -> Self;
-    fn start() -> Self;
+    fn top(program: &Program) -> Self;
+    fn start(program: &Program) -> Self;
     fn meet(&self, other: &Self) -> Self;
 }
 
@@ -64,8 +64,8 @@ where
     D: Direction,
     T: Transfer<Target = V>,
 {
-    fn new_basic(transfer: T) -> Self {
-        Attr::new_block(AttrType::Basic(V::top(), V::top()), transfer)
+    fn new_basic(program: &Program, transfer: T) -> Self {
+        Attr::new_block(AttrType::Basic(V::top(program), V::top(program)), transfer)
     }
 }
 
@@ -74,20 +74,24 @@ where
     V: SemiLattice,
     T: Transfer<Target = V>,
 {
-    fn new_entry(transfer: T) -> Self {
-        Attr::new_block(AttrType::Entry(V::start()), transfer)
+    fn new_entry(program: &Program, transfer: T) -> Self {
+        Attr::new_block(AttrType::Entry(V::start(program)), transfer)
     }
 
-    fn new_exit(transfer: T) -> Self {
-        Attr::new_block(AttrType::Exit(V::top()), transfer)
+    fn new_exit(program: &Program, transfer: T) -> Self {
+        Attr::new_block(AttrType::Exit(V::top(program)), transfer)
     }
 
-    fn new(block: &Block) -> Self {
+    fn new(block_id: BlockID, program: &Program) -> Self {
+        let block = program
+            .get_block(block_id)
+            .expect("Initialize Attr: Block inbound");
         let transfer = T::new(block);
+
         match block.btype {
-            BlockType::Entry => Self::new_entry(transfer),
-            BlockType::Basic => Self::new_basic(transfer),
-            BlockType::Exit => Self::new_exit(transfer),
+            BlockType::Entry => Self::new_entry(program, transfer),
+            BlockType::Basic => Self::new_basic(program, transfer),
+            BlockType::Exit => Self::new_exit(program, transfer),
         }
     }
 
@@ -109,20 +113,24 @@ where
     V: SemiLattice,
     T: Transfer<Target = V>,
 {
-    fn new_entry(transfer: T) -> Self {
-        Attr::new_block(AttrType::Entry(V::top()), transfer)
+    fn new_entry(program: &Program, transfer: T) -> Self {
+        Attr::new_block(AttrType::Entry(V::top(program)), transfer)
     }
 
-    fn new_exit(transfer: T) -> Self {
-        Attr::new_block(AttrType::Exit(V::start()), transfer)
+    fn new_exit(program: &Program, transfer: T) -> Self {
+        Attr::new_block(AttrType::Exit(V::start(program)), transfer)
     }
 
-    fn new(block: &Block) -> Self {
+    fn new(block_id: BlockID, program: &Program) -> Self {
+        let block = program
+            .get_block(block_id)
+            .expect("Initialize Attr: Block inbound");
         let transfer = T::new(block);
+
         match block.btype {
-            BlockType::Entry => Self::new_entry(transfer),
-            BlockType::Basic => Self::new_basic(transfer),
-            BlockType::Exit => Self::new_exit(transfer),
+            BlockType::Entry => Self::new_entry(program, transfer),
+            BlockType::Basic => Self::new_basic(program, transfer),
+            BlockType::Exit => Self::new_exit(program, transfer),
         }
     }
 
