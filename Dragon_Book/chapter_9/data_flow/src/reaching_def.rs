@@ -3,7 +3,7 @@ use crate::{BlockID, Program, Stmt, StmtID};
 use std::collections::HashSet;
 use std::fmt::{self, Debug, Formatter};
 
-fn killed(program: &Program, i: StmtID) -> HashSet<usize> {
+fn killed(program: &Program, i: StmtID) -> HashSet<StmtID> {
     if let Some(dst) = program.get_stmt(i).and_then(Stmt::def) {
         program
             .stmts()
@@ -21,13 +21,14 @@ fn killed(program: &Program, i: StmtID) -> HashSet<usize> {
     }
 }
 
-struct GenKill {
+#[derive(Clone)]
+pub(crate) struct GenKill {
     gen: HashSet<StmtID>,
     kill: HashSet<StmtID>,
 }
 
 impl GenKill {
-    fn new(block_id: BlockID, program: &Program) -> Self {
+    pub fn new(block_id: BlockID, program: &Program) -> Self {
         let block = program.get_block(block_id).expect("Block inbound");
         let mut gen = HashSet::new();
         let mut kill = HashSet::new();
@@ -42,7 +43,7 @@ impl GenKill {
         GenKill { gen, kill }
     }
 
-    fn transfer(&self, in_def: &HashSet<StmtID>) -> HashSet<StmtID> {
+    pub fn transfer(&self, in_def: &HashSet<StmtID>) -> HashSet<StmtID> {
         &self.gen | &(in_def - &self.kill)
     }
 }

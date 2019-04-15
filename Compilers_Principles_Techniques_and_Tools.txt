@@ -5270,3 +5270,71 @@ a + b will never be passed to OUT[B2] and IN[B3], where it should be
 first propagate constant values
 then remove the edge from B to the jump target if x has a constant value >= 10
 any analysis further may be undecidable
+
+9.3.1
+the resulting product lattice is isomorphic to that in figure 9.22:
+    let the product lattice be (V, ∧), the lattice in figure 9.22 be (V', ∧')
+    define p: V' -> V, p(x) = {di | {di} is an element of x}, p is a permutation
+    for all x, y, z ∈ V, if x ∧ y = z, p(x) ∧' p(y) = p(z)
+    x ∧ T = x for all x ∈ V, p(x) ∧ p(T) = p(x) for all x' = p(x) in V', p(T) is the top element of (V', ∧')
+
+9.3.2
+a.  F contains functions:
+        1.  computes x / 2^n, n ∈ N
+        2.  computes 1 / 2^n, n ∈ N
+b.  <= (smaller or equal to)
+    min(x, y) = x => x <= y
+    x <= y => min(x, y) = x
+c.  this semilattice have no top element
+    redefine the domain V = R+ ∪ {+∞}, so +∞ can be the top element, where
+        min(x, +∞) = x
+        +∞ / 2 = +∞
+    let B be a block that
+        has two predecessors ENTRY and B itself
+        has tranfer function f(x) = x / 2
+    let vENTRY = 1
+    in each iteration, INn+1[X] 
+        = min(1, OUTn[X])
+        = min(1, INn[X] / 2)
+        = 1 in the first iteration
+        = INn[X] / 2 in the following iterations
+    the value will never converge 
+d.  if f(x) = x / 2^n, x <= y => f(x) = x / 2^n <= y / 2^n = f(y)
+    if f(x) = 1 / 2^n, f(x) <= f(y) for all x and y
+    this framework is monotone
+    if f(x) = x / 2^n, f(min(x, y)) = min(f(x), f(y))
+    if f(x) = 1 / 2^n, f(min(x, y)) = 1 / 2^n = min(f(x), f(y))
+    this framework is distributive
+    
+9.3.3
+a.  there are only finite elements, the height must be finite
+    let x = 1, y = 2, x <= y but f(x) = 2 > f(y) = 1, the framework is not monotone
+b.  a single block B with fs as the transfer function and itself as the sole predecessor
+    the value of IN[B] will switch between 1 and 2 between iterations and never converge
+
+9.3.4
+the result depends on the order how Algorithm 9.25 evaluate blocks
+let ENTRY -> B1 -> B2 -> B3 -> EXIT be a chain and let Algorithm 9.25 evaluates them in topologically sorted order
+after the first iteration IN[B3] = MOP[B3], where MOP1[B3] = T and possibly MOP[B3] > T
+
+9.3.5
+1.  (x - K) ∪ (y - K) = (x ∪ y) - K
+    =>  if e ∈ x - K, e ∈ x and e ∉ K => e ∈ x ∪ y and e ∉ K => e ∈ (x ∪ y) - K
+        if e ∈ y - K, similar
+    <=  if e ∈ (x ∪ y) - K, 
+        e ∈ x ∪ y and x ∉ K 
+        (e ∈ x || e ∈ y) && x ∉ K
+        e ∈ x - K || e ∈ y - K 
+        e ∈ (x - k) ∪ (y - K)
+2.  (x - K) ∩ (y - K) = (x ∩ y) - K
+    similar to 1.
+3.  (A ∪ B) ∩ (A ∪ C) = A ∪ (B ∩ C)
+    trivial
+a.  f(x) ∪ f(y) = G ∪ (x - K) ∪ G ∪ (y - K) 
+                = G ∪ ((x - K) ∪ (y - K)) 
+                = G ∪ ((x ∪ y) - K)
+                = f(x ∪ y)
+b.  f(x) ∩ f(y) = (G ∪ (x - K)) ∩ (G ∪ (y - K))  
+                = G ∪ ((x - K) ∩ (y - K))
+                = G ∪ ((x ∩ y) - K)
+                = f(x ∩ y)
