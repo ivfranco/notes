@@ -1,4 +1,6 @@
-use crate::{Block, BlockID, BlockType, Program};
+#![allow(dead_code)]
+
+use crate::{BlockID, BlockType, Program};
 use std::marker::PhantomData;
 
 trait Direction {}
@@ -8,15 +10,15 @@ impl Direction for Forward {}
 pub enum Backward {}
 impl Direction for Backward {}
 
-pub trait SemiLattice: PartialEq + Clone {
-    fn top(program: &Program) -> Self;
-    fn start(program: &Program) -> Self;
+pub trait SemiLattice<'a>: PartialEq + Clone + 'a {
+    fn top(program: &'a Program) -> Self;
+    fn start(program: &'a Program) -> Self;
     fn meet(&self, other: &Self) -> Self;
 }
 
-pub trait Transfer: Clone {
+pub trait Transfer<'a>: Clone + 'a {
     type Target;
-    fn new(block_id: BlockID, program: &Program) -> Self;
+    fn new(block_id: BlockID, program: &'a Program) -> Self;
     fn apply(&self, value: &Self::Target) -> Self::Target;
 }
 
@@ -74,31 +76,31 @@ impl<V, D, T> Attr<V, D, T> {
     }
 }
 
-impl<V, D, T> Attr<V, D, T>
+impl<'a, V, D, T> Attr<V, D, T>
 where
-    V: SemiLattice,
+    V: SemiLattice<'a>,
     D: Direction,
-    T: Transfer<Target = V>,
+    T: Transfer<'a, Target = V>,
 {
-    fn new_basic(program: &Program, transfer: T) -> Self {
+    fn new_basic(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Basic(V::top(program), V::top(program)), transfer)
     }
 }
 
-impl<V, T> Attr<V, Forward, T>
+impl<'a, V, T> Attr<V, Forward, T>
 where
-    V: SemiLattice,
-    T: Transfer<Target = V>,
+    V: SemiLattice<'a>,
+    T: Transfer<'a, Target = V>,
 {
-    fn new_entry(program: &Program, transfer: T) -> Self {
+    fn new_entry(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Entry(V::start(program)), transfer)
     }
 
-    fn new_exit(program: &Program, transfer: T) -> Self {
+    fn new_exit(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Exit(V::top(program)), transfer)
     }
 
-    fn new(block_id: BlockID, program: &Program) -> Self {
+    fn new(block_id: BlockID, program: &'a Program) -> Self {
         let block = program
             .get_block(block_id)
             .expect("Initialize Attr: Block inbound");
@@ -124,20 +126,20 @@ where
     }
 }
 
-impl<V, T> Attr<V, Backward, T>
+impl<'a, V, T> Attr<V, Backward, T>
 where
-    V: SemiLattice,
-    T: Transfer<Target = V>,
+    V: SemiLattice<'a>,
+    T: Transfer<'a, Target = V>,
 {
-    fn new_entry(program: &Program, transfer: T) -> Self {
+    fn new_entry(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Entry(V::top(program)), transfer)
     }
 
-    fn new_exit(program: &Program, transfer: T) -> Self {
+    fn new_exit(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Exit(V::start(program)), transfer)
     }
 
-    fn new(block_id: BlockID, program: &Program) -> Self {
+    fn new(block_id: BlockID, program: &'a Program) -> Self {
         let block = program
             .get_block(block_id)
             .expect("Initialize Attr: Block inbound");
@@ -163,20 +165,20 @@ where
     }
 }
 
-struct Attrs<V, D, T> {
+pub struct Attrs<V, D, T> {
     attrs: Vec<Attr<V, D, T>>,
 }
 
-struct DataFlow<V, D, T> {
+pub struct DataFlow<V, D, T> {
     attrs: Vec<Attr<V, D, T>>,
 }
 
-impl<V, T> DataFlow<V, Forward, T>
+impl<'a, V, T> DataFlow<V, Forward, T>
 where
-    V: SemiLattice,
-    T: Transfer<Target = V>,
+    V: SemiLattice<'a>,
+    T: Transfer<'a, Target = V>,
 {
-    fn new(program: &Program) -> Self {
+    fn new(program: &'a Program) -> Self {
         let attrs = program
             .block_indices()
             .map(|block_id| Attr::<V, Forward, T>::new(block_id, program))
@@ -215,18 +217,18 @@ where
         Attrs { attrs: self.attrs }
     }
 
-    fn run(program: &Program) -> Attrs<V, Forward, T> {
+    pub fn run(program: &'a Program) -> Attrs<V, Forward, T> {
         let data_flow = Self::new(program);
         data_flow.compute(program)
     }
 }
 
-impl<V, T> DataFlow<V, Backward, T>
+impl<'a, V, T> DataFlow<V, Backward, T>
 where
-    V: SemiLattice,
-    T: Transfer<Target = V>,
+    V: SemiLattice<'a>,
+    T: Transfer<'a, Target = V>,
 {
-    fn new(program: &Program) -> Self {
+    fn new(program: &'a Program) -> Self {
         let attrs = program
             .block_indices()
             .map(|block_id| Attr::<V, Backward, T>::new(block_id, program))
@@ -265,7 +267,7 @@ where
         Attrs { attrs: self.attrs }
     }
 
-    fn run(program: &Program) -> Attrs<V, Backward, T> {
+    fn run(program: &'a Program) -> Attrs<V, Backward, T> {
         let data_flow = Self::new(program);
         data_flow.compute(program)
     }
@@ -283,7 +285,7 @@ mod test {
         value: HashSet<StmtID>,
     }
 
-    impl SemiLattice for Defs {
+    impl<'a> SemiLattice<'a> for Defs {
         fn top(_: &Program) -> Self {
             Self::default()
         }
@@ -298,7 +300,7 @@ mod test {
         }
     }
 
-    impl Transfer for GenKill {
+    impl<'a> Transfer<'a> for GenKill {
         type Target = Defs;
 
         fn new(block_id: BlockID, program: &Program) -> Self {

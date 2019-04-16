@@ -1,4 +1,5 @@
 pub mod available_expr;
+pub mod constant_propagation;
 pub(crate) mod framework;
 pub mod live_var;
 pub mod reaching_def;
@@ -80,6 +81,15 @@ impl BinOp {
             "-" => Sub,
             "*" => Mul,
             _ => panic!("Error: Invalid operator: {}", s),
+        }
+    }
+
+    fn apply(self, lhs: Lit, rhs: Lit) -> Lit {
+        use BinOp::*;
+        match self {
+            Add => lhs + rhs,
+            Sub => lhs - rhs,
+            Mul => lhs * rhs,
         }
     }
 }
