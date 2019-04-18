@@ -5338,3 +5338,77 @@ b.  f(x) ∩ f(y) = (G ∪ (x - K)) ∩ (G ∪ (y - K))
                 = G ∪ ((x - K) ∩ (y - K))
                 = G ∪ ((x ∩ y) - K)
                 = f(x ∩ y)
+
+9.4.1
+each variable in the map may have one of the two values:
+    Undef: its value is not defined yet
+    Defed: some path from entry to this point has its value defined
+meet operation is defined as 
+    Undef ∧ Defed = Undef
+    other case implied by idempotency
+the transfer function f for a statement s is defined as:
+    if s is not an assignment, f = Id
+    otherwise let d be the definition of s, f(x) set the value of x to Defed
+
+9.4.2
+a.  one inefficient way is to:
+        derive all equivalences from the two sets
+        take the intersection
+        minimalize the result
+    or for two sets of equivalences A and B:
+        filter A for those equivalences derivable from B
+        filter B for those equivalences derivable from A
+        take the union of results
+    not sure if the second method is correct
+b.  Expr is a tagged union in form of `a` or `a + b`
+    V is disjoint sets of equivalent groups of Exprs
+    with the inefficient method:
+        all possible equivalences can be enumerated using the disjoint sets in O(n^2) time
+        where n is the number of distinct Exprs in the sets
+        then only Exprs both in the same set in A and B is unioned in the result
+c.  if a == b + c can be derived from IN[B], f = Id
+    otherwise:
+        all equivalences involving variable a should be purged from the set
+        then a == b + c is added to the set
+d.  given two sets A and B and a statement x = y + z, A <= B
+    define "e = (s, t) is derivable from A" as s and t are in the same set of A
+    if x == y + z can be derived from both A and B, f(A) = A, f(B) = B, f(A) <= f(B)
+    if x == y + z can be derived from A but not B,
+        impossible since A <= B, all expressions derivable from A should be derivable from B
+    if x == y + z can be derived from B but not A,
+        f(B) = B
+        let p(A, a) be the function that purges all information of a from A
+        (i.e. remove a from the disjoint sets of A)
+        clearly 
+            p(A, a) <= A for all A and a
+            if A <= B, p(A, a) <= p(B, a)
+            p(A ∧ B, a) = p(A, a) ∧ p(B, a)
+        f(A) = p(A, x) ∪ {x == y + z}
+        p(A, x) <= A <= B, x == y + z ∈ B, hence f(A) <= B = f(B)
+    if x == y + z cannot be derived from both A and B,
+        f(A) = p(A, x) ∪ {x == y + z}
+        f(B) = p(B, x) ∪ {x == y + z}
+        as p(A, x) <= p(B, x), f(A) <= f(B)
+    this framework is monotonic
+    if x == y + z can be derived from B but not A,
+        f(A) = p(A, x) ∪ {x == y + z}
+        f(B) = B
+        f(A) ∧ f(B) = (p(A, x) ∪ {x == y + z}) ∧ B
+                    = (p(A, x) ∪ {x == y + z}) ∧ (B ∪ {x == y + z})
+        where f(A ∧ B)  = p(A ∧ B, x) ∪ {x == y + z}
+                        = (p(A, x) ∧ p(B, x)) ∪ {x == y + z}
+                        = (p(A, x) ∪ {x == y + z}) ∧ (p(B, x) ∪ {x == y + z})
+        for all e = (s == t) derivable from f(A) ∧ f(B), e is derivable from (p(A, x) ∪ {x == y + z}) and B
+        if s = x, t are in the same set with y + z in A
+        where x is also in the same set with y + z in p(B, x) ∪ {x == y + z}
+        when t = x, similar
+        if neither s nor t = x, (s, t) is derivable from p(B, x)
+        so f(A ∧ B) >= f(A) ∧ f(B)
+    if x == y + z can be derived from A and B,
+        f(A) = A, f(B) = B, f(A) ∧ f(B) = f(A ∧ B)
+    if x == y + z cannot be derived from A nor B,
+        f(A) ∧ f(B) = (p(A, x) ∪ {x == y + z}) ∧ (p(B, x) ∪ {x == y + z})
+                    >= (p(A, x) ∧ p(B, x)) ∪ {x == y + z}
+                    = p(A ∧ B, x) ∪ {x == y + z}
+                    = f(A ∧ B)
+    from monotonicity, f(A) ∧ f(B) >= f(A ∧ B), f(A) ∧ f(B) = f(A ∧ B)

@@ -1,9 +1,7 @@
-#![allow(dead_code)]
-
 use crate::{BlockID, BlockType, Program};
 use std::marker::PhantomData;
 
-trait Direction {}
+pub trait Direction {}
 
 pub enum Forward {}
 impl Direction for Forward {}
@@ -28,7 +26,7 @@ enum AttrType<V> {
     Exit(V),
 }
 
-struct Attr<V, D, T> {
+pub struct Attr<V, D, T> {
     block: AttrType<V>,
     tranfer: T,
     _direction: PhantomData<D>,
@@ -43,7 +41,7 @@ impl<V, D, T> Attr<V, D, T> {
         }
     }
 
-    fn in_value(&self) -> Option<&V> {
+    pub fn in_value(&self) -> Option<&V> {
         match &self.block {
             AttrType::Basic(v, _) => Some(v),
             AttrType::Exit(v) => Some(v),
@@ -51,7 +49,7 @@ impl<V, D, T> Attr<V, D, T> {
         }
     }
 
-    fn in_value_mut(&mut self) -> Option<&mut V> {
+    pub fn in_value_mut(&mut self) -> Option<&mut V> {
         match &mut self.block {
             AttrType::Basic(v, _) => Some(v),
             AttrType::Exit(v) => Some(v),
@@ -59,7 +57,7 @@ impl<V, D, T> Attr<V, D, T> {
         }
     }
 
-    fn out_value(&self) -> Option<&V> {
+    pub fn out_value(&self) -> Option<&V> {
         match &self.block {
             AttrType::Entry(v) => Some(v),
             AttrType::Basic(_, v) => Some(v),
@@ -67,7 +65,7 @@ impl<V, D, T> Attr<V, D, T> {
         }
     }
 
-    fn out_value_mut(&mut self) -> Option<&mut V> {
+    pub fn out_value_mut(&mut self) -> Option<&mut V> {
         match &mut self.block {
             AttrType::Entry(v) => Some(v),
             AttrType::Basic(_, v) => Some(v),
@@ -126,6 +124,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 impl<'a, V, T> Attr<V, Backward, T>
 where
     V: SemiLattice<'a>,
@@ -166,7 +165,7 @@ where
 }
 
 pub struct Attrs<V, D, T> {
-    attrs: Vec<Attr<V, D, T>>,
+    pub attrs: Vec<Attr<V, D, T>>,
 }
 
 pub struct DataFlow<V, D, T> {
@@ -187,20 +186,31 @@ where
         DataFlow { attrs }
     }
 
-    fn meet(&self, block_id: BlockID, program: &Program) -> V {
-        let init = self.attrs[block_id]
-            .in_value()
-            .expect("Non-ENTRY block")
-            .clone();
-
-        program
+    // previous version inits the fold with the current in_value
+    // which may cause inconvenience for certain kind of data flow analysis (e.g. constant propagation)
+    // now this method only reuses in_value of the current block when the block have no predecessors / successors
+    fn propagate(&self, block_id: BlockID, program: &Program) -> V {
+        let meet = program
             .predecessors(block_id)
             .map(|(p, _)| {
                 self.attrs[p]
                     .out_value()
                     .expect("EXIT should not have successors")
             })
-            .fold(init, |in_val, p_val| in_val.meet(p_val))
+            .fold(None, |opt: Option<V>, p_val| {
+                if let Some(in_val) = opt {
+                    Some(in_val.meet(p_val))
+                } else {
+                    Some(p_val.clone())
+                }
+            });
+
+        meet.unwrap_or_else(|| {
+            self.attrs[block_id]
+                .in_value()
+                .expect("Propagate: Non-ENTRY block")
+                .clone()
+        })
     }
 
     fn compute(mut self, program: &Program) -> Attrs<V, Forward, T> {
@@ -209,7 +219,7 @@ where
         while updated {
             updated = false;
             for block_id in program.block_indices().filter(|i| *i != program.entry()) {
-                *self.attrs[block_id].in_value_mut().unwrap() = self.meet(block_id, program);
+                *self.attrs[block_id].in_value_mut().unwrap() = self.propagate(block_id, program);
                 updated = self.attrs[block_id].update() || updated;
             }
         }
@@ -223,6 +233,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 impl<'a, V, T> DataFlow<V, Backward, T>
 where
     V: SemiLattice<'a>,
@@ -237,20 +248,29 @@ where
         DataFlow { attrs }
     }
 
-    fn meet(&self, block_id: BlockID, program: &Program) -> V {
-        let init = self.attrs[block_id]
-            .out_value()
-            .expect("Non-EXIT block")
-            .clone();
-
-        program
+    // see propagate of Forward version
+    fn propagate(&self, block_id: BlockID, program: &Program) -> V {
+        let meet = program
             .successors(block_id)
             .map(|(p, _)| {
                 self.attrs[p]
                     .in_value()
-                    .expect("ENTRY should not have predecessors")
+                    .expect("Propagate: ENTRY should not have predecessors")
             })
-            .fold(init, |out_val, s_val| out_val.meet(s_val))
+            .fold(None, |opt: Option<V>, p_val| {
+                if let Some(in_val) = opt {
+                    Some(in_val.meet(p_val))
+                } else {
+                    Some(p_val.clone())
+                }
+            });
+
+        meet.unwrap_or_else(|| {
+            self.attrs[block_id]
+                .out_value()
+                .expect("Propagate: Non-EXIT block")
+                .clone()
+        })
     }
 
     fn compute(mut self, program: &Program) -> Attrs<V, Backward, T> {
@@ -259,7 +279,7 @@ where
         while updated {
             updated = false;
             for block_id in program.block_indices().filter(|i| *i != program.exit()) {
-                *self.attrs[block_id].in_value_mut().unwrap() = self.meet(block_id, program);
+                *self.attrs[block_id].in_value_mut().unwrap() = self.propagate(block_id, program);
                 updated = self.attrs[block_id].update() || updated;
             }
         }

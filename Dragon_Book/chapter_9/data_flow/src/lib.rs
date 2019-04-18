@@ -257,6 +257,13 @@ impl Program {
         Program { blocks, graph }
     }
 
+    /// block id 1 still refers to the first non-ENTRY block
+    pub fn with_entry_exit(mut blocks: Vec<Block>, edges: &[(BlockID, BlockID)]) -> Self {
+        blocks.insert(0, Block::entry());
+        blocks.push(Block::exit());
+        Self::new(blocks, edges)
+    }
+
     pub fn is_empty(&self) -> bool {
         self.blocks.is_empty()
     }
