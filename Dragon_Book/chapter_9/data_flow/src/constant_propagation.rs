@@ -101,8 +101,9 @@ pub struct RefBlock<'a> {
 
 impl<'a> Transfer<'a> for RefBlock<'a> {
     type Target = Constants<'a>;
+    type Extra = ();
 
-    fn new(block_id: BlockID, program: &'a Program) -> Self {
+    fn new(block_id: BlockID, program: &'a Program, _: &'a ()) -> Self {
         let block = program
             .get_block(block_id)
             .expect("RefBlock: Block in-bound");
@@ -120,8 +121,8 @@ impl<'a> Transfer<'a> for RefBlock<'a> {
     }
 }
 
-pub fn constant_propagation(program: &Program) -> Attrs<Constants<'_>, Forward, RefBlock<'_>> {
-    DataFlow::run(program)
+pub fn constant_propagation(program: &Program) -> Attrs<Constants<'_>, Forward, RefBlock<'_>, ()> {
+    DataFlow::run(program, &())
 }
 
 #[cfg(test)]

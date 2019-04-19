@@ -16,7 +16,11 @@ pub trait SemiLattice<'a>: PartialEq + Clone + 'a {
 
 pub trait Transfer<'a>: Clone + 'a {
     type Target;
-    fn new(block_id: BlockID, program: &'a Program) -> Self;
+    // some data flow analysis requires data from outside the program or computed from previous passes
+    // to initiate the transfer functions, e.g. the four-pass analysis of partial redundent expressions
+    type Extra;
+
+    fn new(block_id: BlockID, program: &'a Program, data: &'a Self::Extra) -> Self;
     fn apply(&self, value: &Self::Target) -> Self::Target;
 }
 
@@ -26,18 +30,20 @@ enum AttrType<V> {
     Exit(V),
 }
 
-pub struct Attr<V, D, T> {
+pub struct Attr<V, D, T, E> {
     block: AttrType<V>,
     tranfer: T,
     _direction: PhantomData<D>,
+    _extra: PhantomData<E>,
 }
 
-impl<V, D, T> Attr<V, D, T> {
+impl<V, D, T, E> Attr<V, D, T, E> {
     fn new_block(block: AttrType<V>, tranfer: T) -> Self {
         Attr {
             block,
             tranfer,
             _direction: PhantomData,
+            _extra: PhantomData,
         }
     }
 
@@ -74,21 +80,21 @@ impl<V, D, T> Attr<V, D, T> {
     }
 }
 
-impl<'a, V, D, T> Attr<V, D, T>
+impl<'a, V, D, T, E> Attr<V, D, T, E>
 where
     V: SemiLattice<'a>,
     D: Direction,
-    T: Transfer<'a, Target = V>,
+    T: Transfer<'a, Target = V, Extra = E>,
 {
     fn new_basic(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Basic(V::top(program), V::top(program)), transfer)
     }
 }
 
-impl<'a, V, T> Attr<V, Forward, T>
+impl<'a, V, T, E> Attr<V, Forward, T, E>
 where
     V: SemiLattice<'a>,
-    T: Transfer<'a, Target = V>,
+    T: Transfer<'a, Target = V, Extra = E>,
 {
     fn new_entry(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Entry(V::start(program)), transfer)
@@ -98,11 +104,11 @@ where
         Attr::new_block(AttrType::Exit(V::top(program)), transfer)
     }
 
-    fn new(block_id: BlockID, program: &'a Program) -> Self {
+    fn new(block_id: BlockID, program: &'a Program, extra: &'a E) -> Self {
         let block = program
             .get_block(block_id)
             .expect("Initialize Attr: Block inbound");
-        let transfer = T::new(block_id, program);
+        let transfer = T::new(block_id, program, extra);
 
         match block.btype {
             BlockType::Entry => Self::new_entry(program, transfer),
@@ -125,10 +131,10 @@ where
 }
 
 #[allow(dead_code)]
-impl<'a, V, T> Attr<V, Backward, T>
+impl<'a, V, T, E> Attr<V, Backward, T, E>
 where
     V: SemiLattice<'a>,
-    T: Transfer<'a, Target = V>,
+    T: Transfer<'a, Target = V, Extra = E>,
 {
     fn new_entry(program: &'a Program, transfer: T) -> Self {
         Attr::new_block(AttrType::Entry(V::top(program)), transfer)
@@ -138,11 +144,11 @@ where
         Attr::new_block(AttrType::Exit(V::start(program)), transfer)
     }
 
-    fn new(block_id: BlockID, program: &'a Program) -> Self {
+    fn new(block_id: BlockID, program: &'a Program, extra: &'a E) -> Self {
         let block = program
             .get_block(block_id)
             .expect("Initialize Attr: Block inbound");
-        let transfer = T::new(block_id, program);
+        let transfer = T::new(block_id, program, extra);
 
         match block.btype {
             BlockType::Entry => Self::new_entry(program, transfer),
@@ -164,23 +170,23 @@ where
     }
 }
 
-pub struct Attrs<V, D, T> {
-    pub attrs: Vec<Attr<V, D, T>>,
+pub struct Attrs<V, D, T, E> {
+    pub attrs: Vec<Attr<V, D, T, E>>,
 }
 
-pub struct DataFlow<V, D, T> {
-    attrs: Vec<Attr<V, D, T>>,
+pub struct DataFlow<V, D, T, E> {
+    attrs: Vec<Attr<V, D, T, E>>,
 }
 
-impl<'a, V, T> DataFlow<V, Forward, T>
+impl<'a, V, T, E> DataFlow<V, Forward, T, E>
 where
     V: SemiLattice<'a>,
-    T: Transfer<'a, Target = V>,
+    T: Transfer<'a, Target = V, Extra = E>,
 {
-    fn new(program: &'a Program) -> Self {
+    fn new(program: &'a Program, extra: &'a E) -> Self {
         let attrs = program
             .block_indices()
-            .map(|block_id| Attr::<V, Forward, T>::new(block_id, program))
+            .map(|block_id| Attr::<V, Forward, T, E>::new(block_id, program, extra))
             .collect();
 
         DataFlow { attrs }
@@ -213,7 +219,7 @@ where
         })
     }
 
-    fn compute(mut self, program: &Program) -> Attrs<V, Forward, T> {
+    fn compute(mut self, program: &Program) -> Attrs<V, Forward, T, E> {
         let mut updated = true;
 
         while updated {
@@ -227,22 +233,22 @@ where
         Attrs { attrs: self.attrs }
     }
 
-    pub fn run(program: &'a Program) -> Attrs<V, Forward, T> {
-        let data_flow = Self::new(program);
+    pub fn run(program: &'a Program, extra: &'a E) -> Attrs<V, Forward, T, E> {
+        let data_flow = Self::new(program, extra);
         data_flow.compute(program)
     }
 }
 
 #[allow(dead_code)]
-impl<'a, V, T> DataFlow<V, Backward, T>
+impl<'a, V, T, E> DataFlow<V, Backward, T, E>
 where
     V: SemiLattice<'a>,
-    T: Transfer<'a, Target = V>,
+    T: Transfer<'a, Target = V, Extra = E>,
 {
-    fn new(program: &'a Program) -> Self {
+    fn new(program: &'a Program, extra: &'a E) -> Self {
         let attrs = program
             .block_indices()
-            .map(|block_id| Attr::<V, Backward, T>::new(block_id, program))
+            .map(|block_id| Attr::<V, Backward, T, E>::new(block_id, program, extra))
             .collect();
 
         DataFlow { attrs }
@@ -273,7 +279,7 @@ where
         })
     }
 
-    fn compute(mut self, program: &Program) -> Attrs<V, Backward, T> {
+    fn compute(mut self, program: &Program) -> Attrs<V, Backward, T, E> {
         let mut updated = true;
 
         while updated {
@@ -287,8 +293,8 @@ where
         Attrs { attrs: self.attrs }
     }
 
-    fn run(program: &'a Program) -> Attrs<V, Backward, T> {
-        let data_flow = Self::new(program);
+    fn run(program: &'a Program, extra: &'a E) -> Attrs<V, Backward, T, E> {
+        let data_flow = Self::new(program, extra);
         data_flow.compute(program)
     }
 }
@@ -322,8 +328,9 @@ mod test {
 
     impl<'a> Transfer<'a> for GenKill {
         type Target = Defs;
+        type Extra = ();
 
-        fn new(block_id: BlockID, program: &Program) -> Self {
+        fn new(block_id: BlockID, program: &Program, _: &'a ()) -> Self {
             Self::new(block_id, program)
         }
 
@@ -333,8 +340,8 @@ mod test {
         }
     }
 
-    fn reaching_definitions(program: &Program) -> Attrs<Defs, Forward, GenKill> {
-        DataFlow::<Defs, Forward, GenKill>::run(program)
+    fn reaching_definitions(program: &Program) -> Attrs<Defs, Forward, GenKill, ()> {
+        DataFlow::<Defs, Forward, GenKill, ()>::run(program, &())
     }
 
     #[test]
