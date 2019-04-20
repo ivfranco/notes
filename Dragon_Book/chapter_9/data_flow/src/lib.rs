@@ -1,6 +1,7 @@
 pub mod available_expr;
 pub mod constant_propagation;
 pub(crate) mod framework;
+pub mod lazy_code_motion;
 pub mod live_var;
 pub mod reaching_def;
 pub(crate) mod utils;
@@ -206,6 +207,14 @@ impl Block {
         }
     }
 
+    pub fn empty() -> Self {
+        Block {
+            start: 0,
+            btype: BlockType::Basic,
+            stmts: vec![],
+        }
+    }
+
     pub fn parse(start: usize, s: &str) -> Self {
         let stmts = s
             .lines()
@@ -240,8 +249,16 @@ impl Block {
         }
     }
 
-    pub fn stmts(&self) -> impl Iterator<Item = (usize, &Stmt)> {
+    pub fn stmts(&self) -> impl DoubleEndedIterator<Item = &Stmt> {
+        self.stmts.iter()
+    }
+
+    pub fn stmts_indices(&self) -> impl Iterator<Item = (usize, &Stmt)> {
         (self.start..).zip(self.stmts.iter())
+    }
+
+    pub fn exprs(&self) -> impl Iterator<Item = Expr<'_>> {
+        self.stmts().filter_map(|stmt| stmt.as_expr())
     }
 }
 
@@ -284,12 +301,12 @@ impl Program {
         self.blocks.iter()
     }
 
-    pub fn block_indices(&self) -> impl Iterator<Item = BlockID> {
+    pub fn block_range(&self) -> impl Iterator<Item = BlockID> {
         0..self.len()
     }
 
-    pub fn stmts(&self) -> impl Iterator<Item = (StmtID, &Stmt)> {
-        self.blocks().flat_map(Block::stmts)
+    pub fn stmts_indices(&self) -> impl Iterator<Item = (StmtID, &Stmt)> {
+        self.blocks().flat_map(Block::stmts_indices)
     }
 
     pub fn get_block(&self, i: BlockID) -> Option<&Block> {
@@ -310,6 +327,32 @@ impl Program {
         self.graph
             .neighbors_directed(block_id, Direction::Outgoing)
             .map(move |i| (i, &self.blocks[i]))
+    }
+
+    pub fn edges(&self) -> Vec<(BlockID, BlockID)> {
+        self.graph
+            .all_edges()
+            .map(|(from, to, _)| (from, to))
+            .collect()
+    }
+
+    pub fn insert_empty_between(&mut self, from: BlockID, to: BlockID) {
+        assert!(
+            self.graph.contains_edge(from, to),
+            "Error: Insert along nonexist edge"
+        );
+
+        let empty = Block::empty();
+        let empty_id = self.blocks.len();
+
+        self.graph.remove_edge(from, to);
+        self.blocks.push(empty);
+        self.graph.add_edge(from, empty_id, ());
+        self.graph.add_edge(empty_id, to, ());
+    }
+
+    pub fn exprs(&self) -> impl Iterator<Item = Expr<'_>> {
+        self.blocks().flat_map(|block| block.exprs())
     }
 }
 

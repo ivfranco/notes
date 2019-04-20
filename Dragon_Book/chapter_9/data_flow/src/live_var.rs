@@ -17,7 +17,7 @@ impl<'a> UseDef<'a> {
         // x belongs to useB but not defB as x is used before the first definition of x in B
         // this definition does not confirm to the definition in the textbook
         // but IN[B] = useB | (OUT[B] - defB) will not change
-        for (_, stmt) in block.stmts() {
+        for (_, stmt) in block.stmts_indices() {
             for var in stmt.uses() {
                 if !defd.contains(var) {
                     used.insert(var);

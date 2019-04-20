@@ -73,7 +73,7 @@ impl<'a> Constants<'a> {
 impl<'a> SemiLattice<'a> for Constants<'a> {
     fn top(program: &'a Program) -> Self {
         let map = program
-            .stmts()
+            .stmts_indices()
             .flat_map(|(_, stmt)| stmt.def().into_iter().chain(stmt.uses()))
             .map(|def| (def, Value::Undef))
             .collect();
@@ -103,7 +103,7 @@ impl<'a> Transfer<'a> for RefBlock<'a> {
     type Target = Constants<'a>;
     type Extra = ();
 
-    fn new(block_id: BlockID, program: &'a Program, _: &'a ()) -> Self {
+    fn new(block_id: BlockID, program: &'a Program, _: &()) -> Self {
         let block = program
             .get_block(block_id)
             .expect("RefBlock: Block in-bound");
@@ -111,18 +111,18 @@ impl<'a> Transfer<'a> for RefBlock<'a> {
     }
 
     fn apply(&self, constants: &Self::Target) -> Self::Target {
-        self.block
-            .stmts()
-            .map(|(_, stmt)| stmt)
-            .fold(constants.clone(), |mut csts, stmt| {
+        self.block.stmts_indices().map(|(_, stmt)| stmt).fold(
+            constants.clone(),
+            |mut csts, stmt| {
                 csts.update(stmt);
                 csts
-            })
+            },
+        )
     }
 }
 
 pub fn constant_propagation(program: &Program) -> Attrs<Constants<'_>, Forward, RefBlock<'_>, ()> {
-    DataFlow::run(program, &())
+    DataFlow::<Constants<'_>, Forward, RefBlock<'_>>::run(program, &())
 }
 
 #[cfg(test)]

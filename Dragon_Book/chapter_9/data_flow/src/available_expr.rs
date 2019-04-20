@@ -2,13 +2,6 @@ use crate::{Block, BlockID, Expr, Program};
 use std::collections::HashSet;
 use std::fmt::{self, Formatter};
 
-fn universal(program: &Program) -> HashSet<Expr<'_>> {
-    program
-        .stmts()
-        .filter_map(|(_, stmt)| stmt.as_expr())
-        .collect()
-}
-
 struct GenKill<'a> {
     gen: HashSet<Expr<'a>>,
     kill: HashSet<&'a str>,
@@ -19,7 +12,7 @@ impl<'a> GenKill<'a> {
         let mut gen = HashSet::new();
         let mut kill = HashSet::new();
 
-        for (_, stmt) in block.stmts() {
+        for (_, stmt) in block.stmts_indices() {
             gen.extend(stmt.as_expr());
             if let Some(def) = stmt.def() {
                 gen.retain(|expr| !expr.uses(def));
@@ -50,7 +43,7 @@ impl<'a> AvailableExpression<'a> {
     fn new(block_id: BlockID, program: &'a Program) -> Self {
         AvailableExpression {
             in_set: HashSet::new(),
-            out_set: universal(program),
+            out_set: program.exprs().collect(),
             gen_kill: GenKill::new(program.get_block(block_id).unwrap()),
         }
     }

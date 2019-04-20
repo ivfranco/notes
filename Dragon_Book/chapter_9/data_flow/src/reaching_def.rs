@@ -6,7 +6,7 @@ use std::fmt::{self, Debug, Formatter};
 fn killed(program: &Program, i: StmtID) -> HashSet<StmtID> {
     if let Some(dst) = program.get_stmt(i).and_then(Stmt::def) {
         program
-            .stmts()
+            .stmts_indices()
             .filter(|(j, stmt)| {
                 if let Some(d) = stmt.def() {
                     d == dst && *j != i
@@ -33,7 +33,7 @@ impl GenKill {
         let mut gen = HashSet::new();
         let mut kill = HashSet::new();
 
-        for (i, _) in block.stmts() {
+        for (i, _) in block.stmts_indices() {
             let kill_i = killed(program, i);
             gen.insert(i);
             kill = &kill | &kill_i;
