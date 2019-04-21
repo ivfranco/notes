@@ -5412,3 +5412,215 @@ d.  given two sets A and B and a statement x = y + z, A <= B
                     = p(A ∧ B, x) ∪ {x == y + z}
                     = f(A ∧ B)
     from monotonicity, f(A) ∧ f(B) >= f(A ∧ B), f(A) ∧ f(B) = f(A ∧ B)
+
+//  darkly shaded boxes in figure 9.33(b) indicates a postponable code point instead of a postponable block
+//  `b + c` is not in postponable[B3].in but in postponable[B3].out
+9.5.1
+./Dragon_Book/chapter_9/data_flow
+Anticipated of ENTRY:
+    IN:  {x + y}
+    OUT: {x + y}
+Anticipated of B1:
+    IN:  {x + y}
+    OUT: {}
+Anticipated of B2:
+    IN:  {}
+    OUT: {x + y}
+Anticipated of B3:
+    IN:  {x + y}
+    OUT: {x + y}
+Anticipated of B4:
+    IN:  {x + y}
+    OUT: {}
+Anticipated of EXIT:
+    IN:  {}
+    OUT: {}
+Available of ENTRY:
+    IN:  {}
+    OUT: {}
+Available of B1:
+    IN:  {}
+    OUT: {x + y}
+Available of B2:
+    IN:  {x + y}
+    OUT: {}
+Available of B3:
+    IN:  {}
+    OUT: {x + y}
+Available of B4:
+    IN:  {x + y}
+    OUT: {x + y}
+Available of EXIT:
+    IN:  {x + y}
+    OUT: {x + y}
+Earliest of ENTRY: {x + y}
+Earliest of B1: {x + y}
+Earliest of B2: {}
+Earliest of B3: {x + y}
+Earliest of B4: {}
+Earliest of EXIT: {}
+Postponable of ENTRY:
+    IN:  {}
+    OUT: {}
+Postponable of B1:
+    IN:  {}
+    OUT: {}
+Postponable of B2:
+    IN:  {}
+    OUT: {}
+Postponable of B3:
+    IN:  {}
+    OUT: {}
+Postponable of B4:
+    IN:  {}
+    OUT: {}
+Postponable of EXIT:
+    IN:  {}
+    OUT: {}
+Latest of ENTRY: {}
+Latest of B1: {x + y}
+Latest of B2: {}
+Latest of B3: {x + y}
+Latest of B4: {}
+Latest of EXIT: {}
+Used of ENTRY:
+    IN:  {}
+    OUT: {}
+Used of B1:
+    IN:  {}
+    OUT: {}
+Used of B2:
+    IN:  {}
+    OUT: {}
+Used of B3:
+    IN:  {}
+    OUT: {x + y}
+Used of B4:
+    IN:  {x + y}
+    OUT: {}
+Used of EXIT:
+    IN:  {}
+    OUT: {}
+x + y should be computed at: {3}
+temporary of x + y should be used at: {3, 4}
+
+9.5.2
+./Dragon_Book/chapter_9/data_flow
+Anticipated of ENTRY:
+    IN:  {}
+    OUT: {}
+Anticipated of B1:
+    IN:  {}
+    OUT: {a + b}
+Anticipated of B2:
+    IN:  {a + b}
+    OUT: {c - a}
+Anticipated of B3:
+    IN:  {c - a}
+    OUT: {c - a}
+Anticipated of B4:
+    IN:  {c - a, a + b}
+    OUT: {c - a}
+Anticipated of B5:
+    IN:  {c - a}
+    OUT: {}
+Anticipated of B6:
+    IN:  {b * d}
+    OUT: {}
+Anticipated of EXIT:
+    IN:  {}
+    OUT: {}
+Available of ENTRY:
+    IN:  {}
+    OUT: {}
+Available of B1:
+    IN:  {}
+    OUT: {}
+Available of B2:
+    IN:  {}
+    OUT: {a + b}
+Available of B3:
+    IN:  {a + b}
+    OUT: {a + b, c - a}
+Available of B4:
+    IN:  {a + b, c - a}
+    OUT: {a + b, c - a}
+Available of B5:
+    IN:  {a + b, c - a}
+    OUT: {c - a}
+Available of B6:
+    IN:  {c - a}
+    OUT: {}
+Available of EXIT:
+    IN:  {}
+    OUT: {}
+Earliest of ENTRY: {}
+Earliest of B1: {}
+Earliest of B2: {a + b}
+Earliest of B3: {c - a}
+Earliest of B4: {}
+Earliest of B5: {}
+Earliest of B6: {b * d}
+Earliest of EXIT: {}
+Postponable of ENTRY:
+    IN:  {}
+    OUT: {}
+Postponable of B1:
+    IN:  {}
+    OUT: {}
+Postponable of B2:
+    IN:  {}
+    OUT: {}
+Postponable of B3:
+    IN:  {}
+    OUT: {c - a}
+Postponable of B4:
+    IN:  {c - a}
+    OUT: {c - a}
+Postponable of B5:
+    IN:  {c - a}
+    OUT: {}
+Postponable of B6:
+    IN:  {}
+    OUT: {}
+Postponable of EXIT:
+    IN:  {}
+    OUT: {}
+Latest of ENTRY: {}
+Latest of B1: {}
+Latest of B2: {a + b}
+Latest of B3: {}
+Latest of B4: {}
+Latest of B5: {c - a}
+Latest of B6: {b * d}
+Latest of EXIT: {}
+Used of ENTRY:
+    IN:  {e + 1, b + d, c - a, a - d}
+    OUT: {e + 1, b + d, c - a, a - d}
+Used of B1:
+    IN:  {c - a, e + 1, b + d, a - d}
+    OUT: {c - a, e + 1, a - d, b + d}
+Used of B2:
+    IN:  {b + d, c - a, e + 1, a - d}
+    OUT: {a - d, e + 1, a + b, b + d}
+Used of B3:
+    IN:  {a - d, a + b, e + 1, b + d}
+    OUT: {a - d, b + d, e + 1, a + b}
+Used of B4:
+    IN:  {a - d, e + 1, a + b, b + d}
+    OUT: {a - d, a + b, e + 1, b + d}
+Used of B5:
+    IN:  {a - d, b + d, e + 1, a + b}
+    OUT: {c - a, b + d, a - d, e + 1}
+Used of B6:
+    IN:  {a - d}
+    OUT: {}
+Used of EXIT:
+    IN:  {}
+    OUT: {}
+a + b should be computed at: {2}
+temporary of a + b should be used at: {2, 4, 5}
+c - a should be computed at: {5}
+temporary of c - a should be used at: {5, 2}
+b * d should be computed at: {}
+temporary of b * d should be used at: {}

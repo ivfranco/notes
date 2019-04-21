@@ -1,10 +1,13 @@
+#![allow(clippy::implicit_hasher)]
+
 use crate::framework::{Backward, DataFlow, Forward, SemiLattice, Transfer};
 use crate::{Block, BlockID, Expr, Program, Stmt};
 use std::collections::HashSet;
 
-type TupleVec<T> = Vec<(T, T)>;
-type TupleSlice<T> = [(T, T)];
+type PairVec<T> = Vec<(T, T)>;
+pub type PairSlice<T> = [(T, T)];
 
+#[allow(dead_code)]
 fn cut_edges(mut program: Program) -> Program {
     for (from, to) in program.edges() {
         if program.predecessors(to).count() > 1 {
@@ -16,8 +19,14 @@ fn cut_edges(mut program: Program) -> Program {
 }
 
 #[derive(Clone, PartialEq, Default)]
-struct Anticipate<'a> {
-    exprs: HashSet<Expr<'a>>,
+pub struct Anticipate<'a> {
+    pub exprs: HashSet<Expr<'a>>,
+}
+
+impl<'a> std::fmt::Debug for Anticipate<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        std::fmt::Debug::fmt(&self.exprs, f)
+    }
 }
 
 impl<'a> SemiLattice<'a> for Anticipate<'a> {
@@ -86,13 +95,19 @@ impl<'a> Transfer<'a> for AnticipateT<'a> {
     }
 }
 
-fn anticipates(program: &Program) -> TupleVec<Anticipate<'_>> {
+pub fn anticipates(program: &Program) -> PairVec<Anticipate<'_>> {
     DataFlow::<Anticipate<'_>, Backward, AnticipateT<'_>>::run(program, &()).into_pairs()
 }
 
 #[derive(Clone, PartialEq, Default)]
-struct Available<'a> {
-    exprs: HashSet<Expr<'a>>,
+pub struct Available<'a> {
+    pub exprs: HashSet<Expr<'a>>,
+}
+
+impl<'a> std::fmt::Debug for Available<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        std::fmt::Debug::fmt(&self.exprs, f)
+    }
 }
 
 impl<'a> SemiLattice<'a> for Available<'a> {
@@ -152,10 +167,10 @@ impl<'a> Transfer<'a> for AvailableT<'a> {
     }
 }
 
-fn availables<'a>(
+pub fn availables<'a>(
     program: &'a Program,
-    anticipates: &'a TupleSlice<Anticipate<'a>>,
-) -> TupleVec<Available<'a>> {
+    anticipates: &'a PairSlice<Anticipate<'a>>,
+) -> PairVec<Available<'a>> {
     let anticipate_ins: Vec<_> = anticipates.iter().map(|(in_value, _)| in_value).collect();
     DataFlow::<Available<'a>, Forward, AvailableT<'a>, [&'a Anticipate<'a>]>::run(
         program,
@@ -164,9 +179,9 @@ fn availables<'a>(
     .into_pairs()
 }
 
-fn earliests<'a>(
-    anticipates: &TupleSlice<Anticipate<'a>>,
-    availables: &TupleSlice<Available<'a>>,
+pub fn earliests<'a>(
+    anticipates: &PairSlice<Anticipate<'a>>,
+    availables: &PairSlice<Available<'a>>,
 ) -> Vec<HashSet<Expr<'a>>> {
     assert_eq!(anticipates.len(), availables.len());
     anticipates
@@ -177,8 +192,14 @@ fn earliests<'a>(
 }
 
 #[derive(Clone, PartialEq)]
-struct Postponable<'a> {
-    exprs: HashSet<Expr<'a>>,
+pub struct Postponable<'a> {
+    pub exprs: HashSet<Expr<'a>>,
+}
+
+impl<'a> std::fmt::Debug for Postponable<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        std::fmt::Debug::fmt(&self.exprs, f)
+    }
 }
 
 impl<'a> SemiLattice<'a> for Postponable<'a> {
@@ -235,14 +256,139 @@ impl<'a> Transfer<'a> for PostponableT<'a> {
     }
 }
 
-fn postponables<'a>(
+pub fn postponables<'a>(
     program: &'a Program,
     earliests: &[HashSet<Expr<'a>>],
-) -> TupleVec<Postponable<'a>> {
+) -> PairVec<Postponable<'a>> {
     DataFlow::<Postponable<'a>, Forward, PostponableT<'a>, [HashSet<Expr<'a>>]>::run(
         program, earliests,
     )
     .into_pairs()
+}
+
+pub fn latests<'a>(
+    program: &'a Program,
+    earliests: &[HashSet<Expr<'a>>],
+    postponable: &PairSlice<Postponable<'a>>,
+) -> Vec<HashSet<Expr<'a>>> {
+    assert_eq!(earliests.len(), program.len());
+    assert_eq!(postponable.len(), program.len());
+
+    let exprs: HashSet<_> = program.exprs().collect();
+    program
+        .block_range()
+        .map(|i| {
+            let eop = &earliests[i] | &postponable[i].0.exprs;
+            let suc = program
+                .successors(i)
+                .map(|(s, _)| &earliests[s] | &postponable[s].0.exprs)
+                .fold(exprs.clone(), |intersection, s_set| &intersection & &s_set);
+            let using: HashSet<_> = program.get_block(i).unwrap().exprs().collect();
+            &eop & &(&using | &(&exprs - &suc))
+        })
+        .collect()
+}
+
+#[derive(Clone, PartialEq)]
+pub struct Used<'a> {
+    pub exprs: HashSet<Expr<'a>>,
+}
+
+impl<'a> std::fmt::Debug for Used<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        std::fmt::Debug::fmt(&self.exprs, f)
+    }
+}
+
+impl<'a> SemiLattice<'a> for Used<'a> {
+    fn top(_: &'a Program) -> Self {
+        Used {
+            exprs: HashSet::new(),
+        }
+    }
+
+    fn start(_: &'a Program) -> Self {
+        Used {
+            exprs: HashSet::new(),
+        }
+    }
+
+    fn meet(&self, other: &Self) -> Self {
+        let exprs = &self.exprs | &other.exprs;
+        Used { exprs }
+    }
+}
+
+#[derive(Clone)]
+struct UsedT<'a> {
+    gen: HashSet<Expr<'a>>,
+    kill: HashSet<Expr<'a>>,
+}
+
+impl<'a> UsedT<'a> {
+    fn new(block: &'a Block, latest: &HashSet<Expr<'a>>) -> Self {
+        let gen = block.exprs().collect();
+        let kill = latest.clone();
+        UsedT { gen, kill }
+    }
+}
+
+impl<'a> Transfer<'a> for UsedT<'a> {
+    type Target = Used<'a>;
+    type Extra = [HashSet<Expr<'a>>];
+
+    fn new(block_id: BlockID, program: &'a Program, latests: &[HashSet<Expr<'a>>]) -> Self {
+        let block = program.get_block(block_id).expect("UsedT: block in-bound");
+        let latest = latests.get(block_id).expect("UsedT: latest in-bound");
+        UsedT::new(block, latest)
+    }
+
+    fn apply(&self, out_value: &Self::Target) -> Self::Target {
+        let exprs = &(&self.gen | &out_value.exprs) - &self.kill;
+        Used { exprs }
+    }
+}
+
+pub fn used<'a>(program: &'a Program, latests: &'a [HashSet<Expr<'a>>]) -> PairVec<Used<'a>> {
+    DataFlow::<Used<'a>, Backward, UsedT<'a>, [HashSet<Expr<'a>>]>::run(program, latests)
+        .into_pairs()
+}
+
+pub fn where_to_compute<'a>(
+    expr: &Expr<'a>,
+    latests: &[HashSet<Expr<'a>>],
+    used: &PairSlice<Used<'a>>,
+) -> HashSet<BlockID> {
+    assert_eq!(latests.len(), used.len());
+
+    (0..latests.len())
+        .filter(|i| latests[*i].contains(&expr) && used[*i].1.exprs.contains(&expr))
+        .collect()
+}
+
+pub fn where_to_use<'a>(
+    expr: &Expr<'a>,
+    program: &'a Program,
+    latests: &[HashSet<Expr<'a>>],
+    used: &PairSlice<Used<'a>>,
+) -> HashSet<BlockID> {
+    assert_eq!(latests.len(), program.len());
+    assert_eq!(used.len(), program.len());
+
+    program
+        .blocks()
+        .enumerate()
+        .filter_map(|(i, block)| {
+            let using: HashSet<_> = block.exprs().collect();
+            if using.contains(expr)
+                && (!latests[i].contains(expr) || used[i].1.exprs.contains(expr))
+            {
+                Some(i)
+            } else {
+                None
+            }
+        })
+        .collect()
 }
 
 #[cfg(test)]
@@ -305,29 +451,15 @@ fn cut_edges_test() {
 
 #[test]
 fn lazy_motion_test() {
-    use crate::{BinOp, RValue};
+    use crate::utils::filter_indices;
 
     let program = figure_9_33();
     let anticipates = anticipates(&program);
+    let stmt = Stmt::parse("a = b + c");
+    let expr = stmt.as_expr().unwrap();
 
-    let b = RValue::Var("b".into());
-    let c = RValue::Var("c".into());
-    let expr = Expr {
-        lhs: &b,
-        op: BinOp::Add,
-        rhs: &c,
-    };
-    let anticipated_blocks: HashSet<BlockID> = anticipates
-        .iter()
-        .enumerate()
-        .filter_map(|(i, (in_value, _))| {
-            if in_value.exprs.contains(&expr) {
-                Some(i)
-            } else {
-                None
-            }
-        })
-        .collect();
+    let anticipated_blocks: HashSet<BlockID> =
+        filter_indices(&anticipates, |(in_value, _)| in_value.exprs.contains(&expr)).collect();
 
     assert_eq!(
         anticipated_blocks,
@@ -335,17 +467,8 @@ fn lazy_motion_test() {
     );
 
     let availables = availables(&program, &anticipates);
-    let not_available_blocks: HashSet<BlockID> = availables
-        .iter()
-        .enumerate()
-        .filter_map(|(i, (in_value, _))| {
-            if !in_value.exprs.contains(&expr) {
-                Some(i)
-            } else {
-                None
-            }
-        })
-        .collect();
+    let not_available_blocks: HashSet<BlockID> =
+        filter_indices(&availables, |(in_value, _)| !in_value.exprs.contains(&expr)).collect();
 
     assert_eq!(
         not_available_blocks,
@@ -353,32 +476,32 @@ fn lazy_motion_test() {
     );
 
     let earliests = earliests(&anticipates, &availables);
-    let earliest_blocks: HashSet<BlockID> = earliests
-        .iter()
-        .enumerate()
-        .filter_map(|(i, earliest)| {
-            if earliest.contains(&expr) {
-                Some(i)
-            } else {
-                None
-            }
-        })
-        .collect();
+    let earliest_blocks: HashSet<BlockID> =
+        filter_indices(&earliests, |earliest| earliest.contains(&expr)).collect();
 
     assert_eq!(earliest_blocks, vec![3, 5].into_iter().collect());
 
     let postponables = postponables(&program, &earliests);
-    let postponable_blocks: HashSet<BlockID> = postponables
-        .iter()
-        .enumerate()
-        .filter_map(|(i, (in_value, out_value))| {
-            if in_value.exprs.contains(&expr) || out_value.exprs.contains(&expr) {
-                Some(i)
-            } else {
-                None
-            }
+    let postponable_blocks: HashSet<BlockID> =
+        filter_indices(&postponables, |(in_value, out_value)| {
+            // darkly shaded boxes in figure 9.33(b) indicates a postponable code point instead of a postponable block
+            // `b + c` is not in postponable[B3].in but in postponable[B3].out
+            in_value.exprs.contains(&expr) || out_value.exprs.contains(&expr)
         })
         .collect();
 
     assert_eq!(postponable_blocks, vec![3, 4].into_iter().collect());
+
+    let latests = latests(&program, &earliests, &postponables);
+    let latest_blocks: HashSet<BlockID> =
+        filter_indices(&latests, |latest| latest.contains(&expr)).collect();
+    assert_eq!(latest_blocks, vec![4, 5].into_iter().collect());
+
+    let used = used(&program, &latests);
+    let used_blocks: HashSet<BlockID> =
+        filter_indices(&used, |(_, out_value)| out_value.exprs.contains(&expr)).collect();
+    assert_eq!(
+        &used_blocks & &latest_blocks,
+        vec![4, 5].into_iter().collect()
+    );
 }

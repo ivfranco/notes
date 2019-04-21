@@ -282,16 +282,16 @@ where
     fn propagate(&self, block_id: BlockID, program: &Program) -> V {
         let meet = program
             .successors(block_id)
-            .map(|(p, _)| {
-                self.attrs[p]
+            .map(|(s, _)| {
+                self.attrs[s]
                     .in_value()
                     .expect("Propagate: ENTRY should not have predecessors")
             })
-            .fold(None, |opt: Option<V>, p_val| {
-                if let Some(in_val) = opt {
-                    Some(in_val.meet(p_val))
+            .fold(None, |opt: Option<V>, s_val| {
+                if let Some(out_val) = opt {
+                    Some(out_val.meet(s_val))
                 } else {
-                    Some(p_val.clone())
+                    Some(s_val.clone())
                 }
             });
 

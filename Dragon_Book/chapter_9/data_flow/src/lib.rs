@@ -4,7 +4,7 @@ pub(crate) mod framework;
 pub mod lazy_code_motion;
 pub mod live_var;
 pub mod reaching_def;
-pub(crate) mod utils;
+pub mod utils;
 
 use lazy_static::lazy_static;
 use petgraph::prelude::*;
@@ -113,7 +113,7 @@ pub enum Stmt {
 }
 
 impl Stmt {
-    fn parse(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         use Stmt::*;
 
         if let Some(cap) = OP.captures(s) {
@@ -149,7 +149,7 @@ impl Stmt {
         }
     }
 
-    fn as_expr(&self) -> Option<Expr<'_>> {
+    pub fn as_expr(&self) -> Option<Expr<'_>> {
         if let Stmt::Op(_, lhs, op, rhs) = self {
             Some(Expr { lhs, op: *op, rhs })
         } else {
@@ -258,7 +258,7 @@ impl Block {
     }
 
     pub fn exprs(&self) -> impl Iterator<Item = Expr<'_>> {
-        self.stmts().filter_map(|stmt| stmt.as_expr())
+        self.stmts().filter_map(Stmt::as_expr)
     }
 }
 
@@ -352,7 +352,7 @@ impl Program {
     }
 
     pub fn exprs(&self) -> impl Iterator<Item = Expr<'_>> {
-        self.blocks().flat_map(|block| block.exprs())
+        self.blocks().flat_map(Block::exprs)
     }
 }
 
