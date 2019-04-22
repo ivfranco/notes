@@ -5624,3 +5624,114 @@ c - a should be computed at: {5}
 temporary of c - a should be used at: {5, 2}
 b * d should be computed at: {}
 temporary of b * d should be used at: {}
+
+9.5.3
+compute living definitions
+    domain:     set of statement ids
+    direction:  forwards
+    transfer:   fB(x) = defB ∪ (x - killB)
+    boundary:   OUT[ENTRY] = ∅
+    inits:      OUT[B] = ∅
+    meet:       ∪
+compute used definitions
+    living definitions which defines variables used in the block
+compute anticipated definitions (i.e. definitions used on all paths from a code point)
+    domain:     set of statement ids 
+    direction:  backwards
+    transfer:   fB(x) = used[B] ∪ (x - killB)
+    boundary:   IN[EXIT] = ∅
+    inits:      IN[B] = U
+    meet:       ∩
+compute available definitions
+    similar to available expressions
+    // its naming is quite confusing, it should be called something like
+    // "expressions potentially available due to an early placement which does not introduce redundancy"
+compute earliest definitions
+    similar to earliest expressions
+compute postponable definitions
+    similar to postponable expressions
+definition is placed at the postponable frontier as described in the textbook
+
+dom is a partial order:
+    reflexivity:    defined so
+    antisymmetry:   if a dom b and b dom a, a = b or all path to a or b must have infinite length
+    transitivity:   if a dom b, b dom c, every path ENTRY -> c passes b
+the path ENTRY -> b -> c must pass a as a dom b
+hence all paths ENTRY -> c passes a, a dom c
+additionally if a dom c and b dom c, all paths ENTRY -> c passes both a and b
+assume on some (simple) path a preceeds b, on some other path b preceeds a
+ENTRY ~> a ~> b ~> c, ENTRY ~> b ~> a ~> c
+there is a path ENTRY ~> a that does not pass b and a path a ~> c that does not pass b
+contradicts b dom c, hence all dominators of a node must be comparable
+there must be a least immediate dominator of c
+
+9.6.1
+./Dragon_Book/chapter_9/data_flow
+Immediate dominator of B1 is B0
+Immediate dominator of B2 is B1
+Immediate dominator of B3 is B2
+Immediate dominator of B4 is B3
+Immediate dominator of B5 is B3
+Immediate dominator of B6 is B5
+Immediate dominator of B7 is B6
+Tree edge: 0 -> 1
+Tree edge: 1 -> 2
+Tree edge: 2 -> 3
+Tree edge: 3 -> 4
+Back edge: 4 -> 3
+Tree edge: 3 -> 5
+Back edge: 5 -> 2
+Tree edge: 5 -> 6
+Tree edge: 6 -> 7
+One possible dfs order: [0, 1, 2, 3, 4, 5, 6, 7]
+This particular ordering shows no counter evidence to reducibility
+4 -> 3 -> 5 -> 2 is a path with two back edges, the depth is 2
+Natural loop of 4 -> 3 is: {4, 3}
+Natural loop of 5 -> 2 is: {4, 2, 5, 3}
+
+9.6.2
+./Dragon_Book/chapter_9/data_flow
+a.  Immediate dominator of B1 is B0
+    Immediate dominator of B2 is B1
+    Immediate dominator of B3 is B2
+    Immediate dominator of B4 is B3
+    Immediate dominator of B5 is B4
+    Immediate dominator of B6 is B4
+    Tree edge: 0 -> 1
+    Tree edge: 1 -> 2
+    Back edge: 2 -> 2
+    Tree edge: 2 -> 3
+    Back edge: 3 -> 3
+    Tree edge: 3 -> 4
+    Tree edge: 4 -> 5
+    Back edge: 5 -> 2
+    Tree edge: 4 -> 6
+    One possible dfs order: [0, 1, 2, 3, 4, 5, 6]
+    This particular ordering shows no counter evidence to reducibility
+    depth is 1 (5 -> 2)
+    Natural loop of 2 -> 2 is: {2}
+    Natural loop of 3 -> 3 is: {3}
+    Natural loop of 5 -> 2 is: {2, 4, 5, 3}
+b.  Immediate dominator of B1 is B0
+    Immediate dominator of B2 is B1
+    Immediate dominator of B3 is B2
+    Immediate dominator of B4 is B3
+    Immediate dominator of B5 is B4
+    Immediate dominator of B6 is B5
+    Immediate dominator of B7 is B6
+    Tree edge: 0 -> 1
+    Tree edge: 1 -> 2
+    Tree edge: 2 -> 3
+    Back edge: 3 -> 3
+    Tree edge: 3 -> 4
+    Back edge: 4 -> 2
+    Tree edge: 4 -> 5
+    Tree edge: 5 -> 6
+    Back edge: 6 -> 6
+    Tree edge: 6 -> 7
+    One possible dfs order: [0, 1, 2, 3, 4, 5, 6, 7]
+    This particular ordering shows no counter evidence to reducibility
+    depth is 1 (4 -> 2)
+    Natural loop of 3 -> 3 is: {3}
+    Natural loop of 4 -> 2 is: {4, 3, 2}
+    Natural loop of 6 -> 6 is: {6}

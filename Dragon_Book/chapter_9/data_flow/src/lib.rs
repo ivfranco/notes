@@ -1,5 +1,6 @@
 pub mod available_expr;
 pub mod constant_propagation;
+pub mod dominator;
 pub(crate) mod framework;
 pub mod lazy_code_motion;
 pub mod live_var;
@@ -8,7 +9,9 @@ pub mod utils;
 
 use lazy_static::lazy_static;
 use petgraph::prelude::*;
+use petgraph::visit::{depth_first_search, Dfs, DfsEvent, VisitMap};
 use regex::Regex;
+use std::collections::HashSet;
 use std::fmt::{self, Debug, Formatter};
 
 lazy_static! {
@@ -293,8 +296,13 @@ impl Program {
         0
     }
 
-    pub fn exit(&self) -> BlockID {
-        self.len() - 1
+    pub fn exit(&self) -> Option<BlockID> {
+        let id = self.len() - 1;
+        if self.blocks[id].btype == BlockType::Exit {
+            Some(id)
+        } else {
+            None
+        }
     }
 
     pub fn blocks(&self) -> impl Iterator<Item = &Block> {
@@ -354,6 +362,41 @@ impl Program {
     pub fn exprs(&self) -> impl Iterator<Item = Expr<'_>> {
         self.blocks().flat_map(Block::exprs)
     }
+
+    pub fn dfs_order<F>(&self, start: BlockID, mut f: F) -> Vec<BlockID>
+    where
+        F: FnMut(DfsEvent<BlockID>),
+    {
+        let mut nodes = vec![];
+
+        depth_first_search(&self.graph, Some(start), |event| {
+            if let DfsEvent::Discover(n, _) = event {
+                nodes.push(n);
+                f(event);
+            } else {
+                f(event);
+            }
+        });
+
+        nodes
+    }
+
+    pub fn natural_loop(&self, from: BlockID, to: BlockID) -> HashSet<BlockID> {
+        if from == to {
+            // for some reason, dfs in petgraph will run over the start node
+            // even it is marked visited
+            return Some(from).into_iter().collect();
+        }
+
+        let reverse: GraphMap<BlockID, (), Directed> =
+            GraphMap::from_edges(self.graph.all_edges().map(|(from, to, _)| (to, from, ())));
+
+        let mut dfs = Dfs::new(&reverse, from);
+        dfs.discovered.visit(to);
+        while let Some(..) = dfs.next(&reverse) {}
+
+        dfs.discovered
+    }
 }
 
 #[cfg(test)]
@@ -399,4 +442,27 @@ d = c - a";
     ];
 
     assert_eq!(Block::parse(0, block).stmts, stmts);
+}
+
+#[test]
+fn natural_loop_test() {
+    let program = crate::dominator::figure_9_38();
+
+    assert_eq!(
+        program.natural_loop(10, 7),
+        vec![7, 8, 10].into_iter().collect()
+    );
+    assert_eq!(
+        program.natural_loop(7, 4),
+        vec![4, 5, 6, 7, 8, 10].into_iter().collect()
+    );
+    assert_eq!(
+        program.natural_loop(4, 3),
+        vec![3, 4, 5, 6, 7, 8, 10].into_iter().collect()
+    );
+    assert_eq!(
+        program.natural_loop(8, 3),
+        vec![3, 4, 5, 6, 7, 8, 10].into_iter().collect()
+    );
+    assert_eq!(program.natural_loop(9, 1), (1..=10).collect());
 }

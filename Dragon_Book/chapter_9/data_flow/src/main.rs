@@ -1,11 +1,14 @@
 use data_flow::available_expr::available_expressions;
+use data_flow::dominator::dominators;
 use data_flow::lazy_code_motion::{
     anticipates, availables, earliests, latests, postponables, used, where_to_compute,
     where_to_use, PairSlice,
 };
 use data_flow::live_var::live_variables;
 use data_flow::reaching_def::reaching_definitions;
-use data_flow::{Block, Expr, Program, Stmt};
+use data_flow::{Block, BlockID, Expr, Program, Stmt};
+use petgraph::visit::{DfsEvent, Time};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 fn main() {
@@ -14,6 +17,8 @@ fn main() {
     exercise_9_2_3();
     exercise_9_5_1();
     exercise_9_5_2();
+    exercise_9_6_1();
+    exercise_9_6_2();
 }
 
 fn figure_9_10() -> Program {
@@ -174,4 +179,125 @@ fn exercise_9_5_2() {
     let exprs: Vec<_> = stmts.iter().filter_map(Stmt::as_expr).collect();
 
     report_lazy_code_motion(&program, &exprs)
+}
+
+fn report_dominator_relations(program: &Program, start: BlockID) {
+    let dominators = dominators(program);
+
+    let tree = dominators.tree();
+    for (dom, node, _) in tree.all_edges() {
+        println!("Immediate dominator of B{} is B{}", node, dom);
+    }
+
+    let mut times: HashMap<BlockID, Time> = HashMap::new();
+    let mut reducible = true;
+    let mut back_edges = vec![];
+
+    let order = program.dfs_order(start, |event| match event {
+        DfsEvent::Discover(n, t) => {
+            times.insert(n, t);
+        }
+        DfsEvent::TreeEdge(from, to) => {
+            println!("Tree edge: {} -> {}", from, to);
+        }
+        DfsEvent::BackEdge(from, to) => {
+            if dominators.rel(to, from) {
+                println!("Back edge: {} -> {}", from, to);
+                back_edges.push((from, to));
+            } else {
+                println!("Retreat edge: {} -> {}", from, to);
+                reducible = false;
+            }
+        }
+        DfsEvent::CrossForwardEdge(from, to) => {
+            if times[&to] > times[&from] {
+                println!("Advancing edge: {} -> {}", from, to);
+            } else {
+                println!("Cross edge: {} -> {}", from, to);
+            }
+        }
+        DfsEvent::Finish(n, t) => {
+            times.insert(n, t);
+        }
+    });
+
+    println!("One possible dfs order: {:?}", order);
+    if reducible {
+        println!("This particular ordering shows no counter evidence to reducibility");
+    } else {
+        println!("This particular ordering contains non-back retreating edges");
+    }
+
+    for (from, to) in back_edges {
+        println!(
+            "Natural loop of {} -> {} is: {:?}",
+            from,
+            to,
+            program.natural_loop(from, to)
+        );
+    }
+}
+
+fn figure_9_3_flow_only() -> Program {
+    Program::new(
+        vec![
+            Block::entry(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+        ],
+        &[
+            (0, 1),
+            (1, 2),
+            (2, 2),
+            (2, 3),
+            (3, 3),
+            (3, 4),
+            (4, 5),
+            (4, 6),
+            (5, 2),
+        ],
+    )
+}
+
+fn figure_8_9_flow_only() -> Program {
+    Program::with_entry_exit(
+        vec![
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+        ],
+        &[
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (3, 3),
+            (3, 4),
+            (4, 2),
+            (4, 5),
+            (5, 6),
+            (6, 6),
+            (6, 7),
+        ],
+    )
+}
+
+fn exercise_9_6_1() {
+    println!("Exercise 9.6.1:");
+    println!("analysis of Figure 9.10:");
+    report_dominator_relations(&figure_9_10(), 0);
+}
+
+fn exercise_9_6_2() {
+    println!("Exercise 9.6.2:");
+    println!("analysis of Figure 9.3:");
+    report_dominator_relations(&figure_9_3_flow_only(), 0);
+    println!("analysis of Figure 8.9:");
+    report_dominator_relations(&figure_8_9_flow_only(), 0);
 }

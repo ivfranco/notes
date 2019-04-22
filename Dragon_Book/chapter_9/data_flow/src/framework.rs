@@ -191,8 +191,12 @@ impl<'a, V, D, T, E: ?Sized> Attrs<V, D, T, E>
 where
     V: SemiLattice<'a>,
 {
+    pub fn into_iter(self) -> impl Iterator<Item = (V, V)> {
+        self.attrs.into_iter().map(Attr::into_pair)
+    }
+
     pub fn into_pairs(self) -> Vec<(V, V)> {
-        self.attrs.into_iter().map(Attr::into_pair).collect()
+        self.into_iter().collect()
     }
 }
 
@@ -308,7 +312,7 @@ where
 
         while updated {
             updated = false;
-            for block_id in program.block_range().filter(|i| *i != program.exit()) {
+            for block_id in program.block_range().filter(|i| Some(*i) != program.exit()) {
                 *self.attrs[block_id]
                     .out_value_mut()
                     .expect("Backward compute: Non-EXIT block") = self.propagate(block_id, program);
