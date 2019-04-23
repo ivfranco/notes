@@ -384,12 +384,12 @@ impl Program {
     pub fn natural_loop(&self, from: BlockID, to: BlockID) -> HashSet<BlockID> {
         if from == to {
             // for some reason, dfs in petgraph will run over the start node
-            // even it is marked visited
+            // even when it is marked as visited
             return Some(from).into_iter().collect();
         }
 
         let reverse: GraphMap<BlockID, (), Directed> =
-            GraphMap::from_edges(self.graph.all_edges().map(|(from, to, _)| (to, from, ())));
+            GraphMap::from_edges(self.graph.all_edges().map(|(from, to, _)| (to, from)));
 
         let mut dfs = Dfs::new(&reverse, from);
         dfs.discovered.visit(to);

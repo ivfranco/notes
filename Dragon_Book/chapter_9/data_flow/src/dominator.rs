@@ -1,5 +1,6 @@
 use crate::framework::{DataFlow, Forward, SemiLattice, Transfer};
 use crate::{BlockID, Program};
+use petgraph::algo::toposort;
 use petgraph::prelude::*;
 use std::collections::HashSet;
 
@@ -46,13 +47,21 @@ impl Transfer<'_> for DominatorT {
     }
 }
 
-pub struct Dominators {
+pub struct Dominators<'a> {
     sets: Vec<HashSet<BlockID>>,
-    entry: BlockID,
-    exit: Option<BlockID>,
+    program: &'a Program,
 }
 
-impl Dominators {
+impl<'a> Dominators<'a> {
+    pub fn new(program: &'a Program) -> Self {
+        let sets = DataFlow::<Dominator, Forward, DominatorT>::run(program, &())
+            .into_iter()
+            .map(|(_, out_value)| out_value.ids)
+            .collect();
+
+        Dominators { sets, program }
+    }
+
     pub fn rel(&self, from: BlockID, to: BlockID) -> bool {
         self.sets[to].contains(&from)
     }
@@ -91,14 +100,25 @@ impl Dominators {
 
         tree
     }
+
+    pub fn is_reducible(&self) -> bool {
+        let graph: GraphMap<BlockID, (), Directed> = GraphMap::from_edges(
+            self.program
+                .edges()
+                .into_iter()
+                .filter(|(from, to)| !self.rel(*to, *from)),
+        );
+
+        toposort(&graph, None).is_ok()
+    }
 }
 
-impl std::fmt::Debug for Dominators {
+impl<'a> std::fmt::Debug for Dominators<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         for (i, doms) in self.sets.iter().enumerate() {
-            let name = if i == self.entry {
+            let name = if i == self.program.entry() {
                 "ENTRY".into()
-            } else if Some(i) == self.exit {
+            } else if Some(i) == self.program.exit() {
                 "EXIT".into()
             } else {
                 format!("B{}", i)
@@ -108,19 +128,6 @@ impl std::fmt::Debug for Dominators {
         }
 
         Ok(())
-    }
-}
-
-pub fn dominators(program: &Program) -> Dominators {
-    let sets = DataFlow::<Dominator, Forward, DominatorT>::run(program, &())
-        .into_iter()
-        .map(|(_, out_value)| out_value.ids)
-        .collect();
-
-    Dominators {
-        sets,
-        entry: program.entry(),
-        exit: program.exit(),
     }
 }
 
@@ -165,7 +172,7 @@ pub fn figure_9_38() -> Program {
 #[test]
 fn dominators_test() {
     let program = figure_9_38();
-    let dominators = dominators(&program).sets;
+    let dominators = Dominators::new(&program).sets;
     assert_eq!(dominators[4], vec![1, 3, 4, 0].into_iter().collect());
     assert_eq!(dominators[5], vec![1, 3, 4, 5, 0].into_iter().collect());
     assert_eq!(dominators[6], vec![1, 3, 4, 6, 0].into_iter().collect());

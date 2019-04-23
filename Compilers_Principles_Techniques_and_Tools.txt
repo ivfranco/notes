@@ -5626,7 +5626,7 @@ b * d should be computed at: {}
 temporary of b * d should be used at: {}
 
 9.5.3
-compute living definitions
+compute reaching definitions
     domain:     set of statement ids
     direction:  forwards
     transfer:   fB(x) = defB ∪ (x - killB)
@@ -5652,20 +5652,9 @@ compute postponable definitions
     similar to postponable expressions
 definition is placed at the postponable frontier as described in the textbook
 
-dom is a partial order:
-    reflexivity:    defined so
-    antisymmetry:   if a dom b and b dom a, a = b or all path to a or b must have infinite length
-    transitivity:   if a dom b, b dom c, every path ENTRY -> c passes b
-the path ENTRY -> b -> c must pass a as a dom b
-hence all paths ENTRY -> c passes a, a dom c
-additionally if a dom c and b dom c, all paths ENTRY -> c passes both a and b
-assume on some (simple) path a preceeds b, on some other path b preceeds a
-ENTRY ~> a ~> b ~> c, ENTRY ~> b ~> a ~> c
-there is a path ENTRY ~> a that does not pass b and a path a ~> c that does not pass b
-contradicts b dom c, hence all dominators of a node must be comparable
-there must be a least immediate dominator of c
-
 9.6.1
+// thanks https://dreampuf.github.io/GraphvizOnline/
+// no idea how to compute path with most retreating edges, estimated by graphic tool above
 ./Dragon_Book/chapter_9/data_flow
 Immediate dominator of B1 is B0
 Immediate dominator of B2 is B1
@@ -5707,7 +5696,7 @@ a.  Immediate dominator of B1 is B0
     Back edge: 5 -> 2
     Tree edge: 4 -> 6
     One possible dfs order: [0, 1, 2, 3, 4, 5, 6]
-    This particular ordering shows no counter evidence to reducibility
+    This flow graph is reducible
     depth is 1 (5 -> 2)
     Natural loop of 2 -> 2 is: {2}
     Natural loop of 3 -> 3 is: {3}
@@ -5730,8 +5719,190 @@ b.  Immediate dominator of B1 is B0
     Back edge: 6 -> 6
     Tree edge: 6 -> 7
     One possible dfs order: [0, 1, 2, 3, 4, 5, 6, 7]
-    This particular ordering shows no counter evidence to reducibility
+    This flow graph is reducible
     depth is 1 (4 -> 2)
     Natural loop of 3 -> 3 is: {3}
     Natural loop of 4 -> 2 is: {4, 3, 2}
     Natural loop of 6 -> 6 is: {6}
+c.  Immediate dominator of B1 is B0
+    Immediate dominator of B2 is B1
+    Immediate dominator of B3 is B2
+    Immediate dominator of B4 is B3
+    Immediate dominator of B5 is B4
+    Immediate dominator of B6 is B4
+    Immediate dominator of B7 is B2
+    Immediate dominator of B8 is B7
+    Immediate dominator of B9 is B8
+    Immediate dominator of B10 is B9
+    Immediate dominator of B11 is B10
+    Immediate dominator of B12 is B11
+    Immediate dominator of B13 is B12
+    Immediate dominator of B14 is B12
+    Immediate dominator of B15 is B10
+    Immediate dominator of B16 is B8
+    Tree edge: 0 -> 1
+    Tree edge: 1 -> 2
+    Tree edge: 2 -> 3
+    Tree edge: 3 -> 4
+    Tree edge: 4 -> 5
+    Back edge: 5 -> 4
+    Tree edge: 4 -> 6
+    Back edge: 6 -> 2
+    Tree edge: 2 -> 7
+    Tree edge: 7 -> 8
+    Tree edge: 8 -> 9
+    Tree edge: 9 -> 10
+    Tree edge: 10 -> 11
+    Tree edge: 11 -> 12
+    Tree edge: 12 -> 13
+    Back edge: 13 -> 12
+    Tree edge: 12 -> 14
+    Back edge: 14 -> 10
+    Tree edge: 10 -> 15
+    Back edge: 15 -> 8
+    Tree edge: 8 -> 16
+    One possible dfs order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+    This flow graph is reducible
+    depth is 3 (13 -> 12 -> 14 -> 10 -> 15 -> 8)
+    Natural loop of 5 -> 4 is: {5, 4}
+    Natural loop of 6 -> 2 is: {3, 6, 4, 2, 5}
+    Natural loop of 13 -> 12 is: {12, 13}
+    Natural loop of 14 -> 10 is: {11, 12, 10, 13, 14}
+    Natural loop of 15 -> 8 is: {12, 11, 8, 15, 10, 13, 9, 14}
+d.  Immediate dominator of B1 is B0
+    Immediate dominator of B2 is B1
+    Immediate dominator of B3 is B2
+    Immediate dominator of B4 is B2
+    Immediate dominator of B5 is B4
+    Immediate dominator of B6 is B5
+    Immediate dominator of B7 is B6
+    Immediate dominator of B8 is B7
+    Immediate dominator of B9 is B8
+    Immediate dominator of B10 is B6
+    Immediate dominator of B11 is B5
+    Tree edge: 0 -> 1
+    Tree edge: 1 -> 2
+    Tree edge: 2 -> 3
+    Back edge: 3 -> 2
+    Tree edge: 2 -> 4
+    Tree edge: 4 -> 5
+    Tree edge: 5 -> 6
+    Tree edge: 6 -> 7
+    Tree edge: 7 -> 8
+    Tree edge: 8 -> 9
+    Tree edge: 9 -> 10
+    Back edge: 10 -> 5
+    Back edge: 9 -> 8
+    Advancing edge: 6 -> 10
+    Tree edge: 5 -> 11
+    One possible dfs order: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    This flow graph is reducible
+    depth is 1 (10 -> 5)
+    Natural loop of 3 -> 2 is: {3, 2}
+    Natural loop of 10 -> 5 is: {7, 8, 6, 9, 10, 5}
+    Natural loop of 9 -> 8 is: {8, 9}
+
+9.6.3
+a.  each path ENTRY ~> c must pass b
+    the subpath ENTRY ~> b must pass a
+    each path ENTRY ~> c must pass a => a dom c
+b.  if a dom b and b dom a, a != b
+    all path ENTRY ~> a must pass b
+    let p = ENTRY ~> a = (p0, p1 .. pn)
+    let pi be the first time a appears on the path
+    (since p starts from ENTRY != a and p ends with a, pi must exist)
+    by b dom a, there must be pj where j < i that pj = b
+    by a dom b, there must be pk where k < j that pk = a
+    k < i and pk = a, pi is not the first appearance of a, such path doesn't exist
+c.  if a dom c and b dom c, all paths ENTRY -> c passes both a and b
+    assume on some (simple) path a preceeds b, on some other path b preceeds a
+    ENTRY ~> a ~> b ~> c, ENTRY ~> b ~> a ~> c
+    there is a path ENTRY ~> a that does not pass b and a path a ~> c that does not pass b
+    contradicts b dom c, hence all dominators of a node must be comparable
+d.  natural consequence of part c.
+    the dominators of a node n forms a total order
+    there must be a least element in the total order
+    which is the immediate dominator of c
+
+9.6.4
+product of factorial of out degree of nodes:
+    Π(n.out_degree!)
+in case of figure 9.38, 2! * 2! * 2! * 3! = 48
+
+9.6.5
+no back edge will be tree edge of a DFST:
+    for a back edge (a, b), b dom a, all path ENTRY ~> a passes b
+    DFS starting from ENTRY will always visit b first, (a, b) is a reteating edge in all possible DFST
+if a graph G is reducible, for a possible DFST T of G
+let G' be G without all back edges, no edge from T is removed, T is still a DFST of G'
+G' has no retreating edge with respect to T, which means G' is acyclic (conclusion from CLRS)
+conversely, assume G' is acyclic
+no edge in G - G' can appear in any DFST of G
+all DFST of G is also a DFST of G', take any one of them as T
+G' has no retreating edge with respect to T
+by adding edges in G - G', G has only back edges as retreating edges with respect to T
+hence for all DFST of G all retreating edges are back edges, G is reducible
+
+9.6.6
+all nodes have a sole dominator which is ENTRY
+by 9.6.5, the graph must be acyclic after removing (n, ENTRY) and (n, n) for all node n
+when n >= 3, the graph is not acyclic
+the graph is reducible only when n = 1 or 2
+
+9.6.7
+a.  for all n the graph is acyclic, which implies reducibility
+b.  the answer will not change 
+    all self-loops are back edges, by removing them the graph will be acyclic again
+    by 9.6.5 the graph is still reducible
+
+9.6.8
+since (n, h) is a back edge, all path ENTRY ~> n passes h
+if there is a path m ~> n which does not pass h
+all paths ENTRY ~> m must pass h, otherwise there will be a path ENTRY ~> m ~> n which does not pass h
+hence h dom m or m is unreachable
+
+9.6.9
+if G is irreducible, there is a DFST T for G where there is a retreat edge (a, b) in G wrt. T that is not a back edge
+there is an edge ENTRY ~> b, b is not a dominator of a
+let c be the immediate dominator of a, the path ENTRY ~> b ~> a must pass c
+if c preceeds b on the path, 
+    there must be another path ENTRY ~> c ~> a which does not pass b, otherwise b dom a
+    denote the first subpath c ~> b ~> a by p1, denote the other subpath c ~> a which bypasses b by p2
+    both path starts with c and ends with a
+    let d be the last common node counting forwards starting from c
+    let e be the last common node counting backwards starting from a
+    thus there are two node-disjoint path d ~> e and d ~> b ~> e
+    the subgraph with vertices {d, e, a, b} is isomorphic to the canonical irreducible graph
+    the four paths {d ~> b, d ~> e, b ~> e, e ~> a -> b} are mutually node-disjoint
+    the top node d is reachable from ENTRY
+if c succeeds b on the path,
+    there must be another path ENTRY ~> d ~> e ~> c ~> a which bypasses b
+    (again d and e are forward and backward last common nodes with the path ENTRY ~> b ~> c)
+    the four paths {d ~> e, d ~> b, b ~> e, e ~> c ~> a -> b} are mutually node-disjoint
+    the top node d is reachable from ENTRY
+
+9.6.10
+if the graph G has a DFST T which contains no non-back edge as retreating edge
+by removing all back edges from G, T is still a DFST of the resulting graph G'
+this time T contains no retreating edges, so G' is acyclic, by 9.6.5 G is reducible
+
+9.6.11
+Global data flow analysis and iterative algorithms, J. Kam and J. Ullman
+http://rsim.cs.uiuc.edu/arch/qual_papers/compilers/kam.pdf
+
+9.6.12
+G.E = {
+    0 -> 1, 0 -> 2,
+    1 -> 3,
+    2 -> 3, 2 -> 4,
+    3 -> 1, 3 -> 4,
+    4 -> 3,
+}
+by DFS order [0, 1, 3, 4, 2], there are 2 retreating edges {4 -> 3, 3 -> 2}
+by DFS order [0, 2, 3, 4, 1], there are 1 retreating edge {4 -> 3}
+the graph is irreducible since it contains a subgraph {2, 3, 4} isomorphic to the canonical irreducible graph
+
+9.6.13
+a.  implied by exercise 9.2.7, the correctness of Algorithm 9.11
+b.  implied by exercise 9.2.9
+c.  implied by exercise 9.2.8

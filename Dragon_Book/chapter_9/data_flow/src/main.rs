@@ -1,5 +1,5 @@
 use data_flow::available_expr::available_expressions;
-use data_flow::dominator::dominators;
+use data_flow::dominator::Dominators;
 use data_flow::lazy_code_motion::{
     anticipates, availables, earliests, latests, postponables, used, where_to_compute,
     where_to_use, PairSlice,
@@ -182,7 +182,7 @@ fn exercise_9_5_2() {
 }
 
 fn report_dominator_relations(program: &Program, start: BlockID) {
-    let dominators = dominators(program);
+    let dominators = Dominators::new(program);
 
     let tree = dominators.tree();
     for (dom, node, _) in tree.all_edges() {
@@ -190,7 +190,6 @@ fn report_dominator_relations(program: &Program, start: BlockID) {
     }
 
     let mut times: HashMap<BlockID, Time> = HashMap::new();
-    let mut reducible = true;
     let mut back_edges = vec![];
 
     let order = program.dfs_order(start, |event| match event {
@@ -206,7 +205,6 @@ fn report_dominator_relations(program: &Program, start: BlockID) {
                 back_edges.push((from, to));
             } else {
                 println!("Retreat edge: {} -> {}", from, to);
-                reducible = false;
             }
         }
         DfsEvent::CrossForwardEdge(from, to) => {
@@ -222,10 +220,10 @@ fn report_dominator_relations(program: &Program, start: BlockID) {
     });
 
     println!("One possible dfs order: {:?}", order);
-    if reducible {
-        println!("This particular ordering shows no counter evidence to reducibility");
+    if dominators.is_reducible() {
+        println!("This flow graph is reducible");
     } else {
-        println!("This particular ordering contains non-back retreating edges");
+        println!("This flow graph is not reducible");
     }
 
     for (from, to) in back_edges {
@@ -288,6 +286,85 @@ fn figure_8_9_flow_only() -> Program {
     )
 }
 
+fn exercise_8_4_1_flow_only() -> Program {
+    Program::with_entry_exit(
+        vec![
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+        ],
+        &[
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (2, 7),
+            (3, 4),
+            (4, 5),
+            (4, 6),
+            (5, 4),
+            (6, 2),
+            (7, 8),
+            (8, 9),
+            (8, 16),
+            (9, 10),
+            (10, 11),
+            (10, 15),
+            (11, 12),
+            (12, 13),
+            (12, 14),
+            (13, 12),
+            (14, 10),
+            (15, 8),
+        ],
+    )
+}
+
+fn exercise_8_4_2_flow_only() -> Program {
+    Program::with_entry_exit(
+        vec![
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+            Block::empty(),
+        ],
+        &[
+            (0, 1),
+            (1, 2),
+            (2, 3),
+            (2, 4),
+            (3, 2),
+            (4, 5),
+            (5, 6),
+            (5, 11),
+            (6, 7),
+            (6, 10),
+            (7, 8),
+            (8, 9),
+            (9, 10),
+            (9, 8),
+            (10, 5),
+        ],
+    )
+}
+
 fn exercise_9_6_1() {
     println!("Exercise 9.6.1:");
     println!("analysis of Figure 9.10:");
@@ -300,4 +377,8 @@ fn exercise_9_6_2() {
     report_dominator_relations(&figure_9_3_flow_only(), 0);
     println!("analysis of Figure 8.9:");
     report_dominator_relations(&figure_8_9_flow_only(), 0);
+    println!("analysis of Exercise 8.4.1:");
+    report_dominator_relations(&exercise_8_4_1_flow_only(), 0);
+    println!("analysis of Exercise 8.4.2:");
+    report_dominator_relations(&exercise_8_4_2_flow_only(), 0);
 }
