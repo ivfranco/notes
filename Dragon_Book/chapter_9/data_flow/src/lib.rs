@@ -381,7 +381,7 @@ impl Program {
         nodes
     }
 
-    pub fn natural_loop(&self, from: BlockID, to: BlockID) -> HashSet<BlockID> {
+    pub(crate) fn natural_loop(&self, from: BlockID, to: BlockID) -> HashSet<BlockID> {
         if from == to {
             // for some reason, dfs in petgraph will run over the start node
             // even when it is marked as visited

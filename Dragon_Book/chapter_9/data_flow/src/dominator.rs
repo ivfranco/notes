@@ -111,6 +111,16 @@ impl<'a> Dominators<'a> {
 
         toposort(&graph, None).is_ok()
     }
+
+    pub fn natural_loop(&self, from: BlockID, to: BlockID) -> HashSet<BlockID> {
+        assert!(
+            self.rel(to, from),
+            "Error: {} -> {} is not a back edge",
+            from,
+            to
+        );
+        self.program.natural_loop(from, to)
+    }
 }
 
 impl<'a> std::fmt::Debug for Dominators<'a> {

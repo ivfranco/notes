@@ -5862,7 +5862,7 @@ all paths ENTRY ~> m must pass h, otherwise there will be a path ENTRY ~> m ~> n
 hence h dom m or m is unreachable
 
 9.6.9
-if G is irreducible, there is a DFST T for G where there is a retreat edge (a, b) in G wrt. T that is not a back edge
+if G is irreducible, there is a DFST T for G where there is a retreating edge (a, b) in G wrt. T that is not a back edge
 there is an edge ENTRY ~> b, b is not a dominator of a
 let c be the immediate dominator of a, the path ENTRY ~> b ~> a must pass c
 if c preceeds b on the path, 
@@ -5889,8 +5889,54 @@ this time T contains no retreating edges, so G' is acyclic, by 9.6.5 G is reduci
 9.6.11
 Global data flow analysis and iterative algorithms, J. Kam and J. Ullman
 http://rsim.cs.uiuc.edu/arch/qual_papers/compilers/kam.pdf
+sort the nodes be in DFS order, define:
+    PATH(n, j)  = { p | p is a path ENTRY ~> j with at most n - 1 retreating edges }
+    PRED(j)     = { p | p is a predecessor of j }
+    PRED*(j)    = { p | p < j} ∩ PRED(j), or predecessors of j where (p, j) is not a retreating edge
+    fP(x)       = fp1(fp2(.. fpn-1(x))) for P = <p1, .. , pn>
+lemma 1: after n iteration of Algorithm 9.25, IN[i] = ∧(P ∈ PATH(n, i))fP(vENTRY)
+    when n = 1 and i = 1 = ENTRY, PATH(1, 1) contains only the trivial path from ENTRY to ENTRY of length 0
+    fP(vENTRY) = vENTRY
+    when i = j + 1, by induction IN[k] = ∧(P ∈ PATH(1, k))fP(vENTRY) for k ∈ { 1 .. j }
+    for all P in PATH(1, i), P = 1 ~> q -> i, where q ∈ PRED*(i) since P contains no retreat edges
+    IN[i]   = ∧(q ∈ PRED*(i))fq(IN[q])
+            = ∧(q ∈ PRED*(i))∧(P ∈ PATH(1, q))f<P, i>(vENTRY)
+            = ∧(P ∈ PATH(1, i))fP(vENTRY)
+    when n > 1, i = 1, IN[1] = vENTRY = ∧(P ∈ PATH(n, 1))fP(vENTRY) for all n
+    when n > 1, i = j + 1, every path in PATH(n, i) is either:
+        <P, q, i> where q ∈ PRED*(i) and <P, q> ∈ PATH(n, q), or
+        <P, q, i> where q ∈ PRED(i) - PRED*(i) and <P, q> ∈ PATH(n - 1, q)  // (q, i) is a back edge
+    by induction, 
+        IN[q] = ∧(P ∈ PATH(n, q))fP(vENTRY) in the first case
+        IN[q] = ∧(P ∈ PATH(n - 1, q))fP(vENTRY) in the second case
+    so IN[i] = ∧(P ∈ PATH(n, i))fP(vENTRY)
+lemma 2: Algorithm will halt after n iterations if for all node i, for all P ∈ PATH(n, i),
+there exists PS ⊆ PATH(n - 1, i) that fP(vENTRY) >= ∧(P ∈ PS)fP(vENTRY)
+    let x >= a and y >= b, x ∧ a = a, y ∧ b = b
+    (x ∧ y) ∧ (a ∧ b) = (x ∧ a) ∧ (y ∧ b) = a ∧ b, x ∧ y >= a ∧ b
+    ∧(P ∈ PATH(n, i))fP(vENTRY) >= ∧(PS for each P)∧(Q ∈ PS)fQ(vENTRY)
+                                >= ∧(P ∈ PATH(n - 1, i))fP(vENTRY)
+    so IN[i] will not change at iteration n for all i, Algorithm 9.25 will halt at iteration n
+//  the condition here doesn't confirm with the condition in the exercise
+//  have no idea how to prove the theorem with the textbook condition
+if f(vENTRY) ∧ g(a) ∧ a <= f(g(a)) for all f, g ∈ F, denote depth of the graph by d
+let P be a path ENTRY ~> i for some i with d + 1 retreating edges
+P = <p1 .. pr> must be cyclic by defnition of d
+let pa be the start of the last cycle in P (i.e. the greatest a that pa = pb for some b > a)
+the subpath <pa+1 .. pr> is simple with at most d retreating edges
+when the edge (pa, pa+1) is a retreating edge, it may not appear in <pa+1 .. pr> again by definition of a
+<pa+1 .. pr> contains at most d - 1 retreating edges in that case
+so P1 = <p1 .. pa> must contain at least one retreating edge
+P2 = <pa .. pb> is a cycle thus contains at least one retreating edge
+let P3 = <pb .. pr>, P4 be a simple edge ENTRY ~> a from the DFST
+    fP(vENTRY)  = fP3(fP2(fP1(vENTRY)))
+                >= fP3(fP1(vENTRY) ∧ fP2(fP4(vENTRY)) ∧ fP4(vENTRY))    // take x = fP4(vENTRY)
+                >= fP3(fP1(vENTRY)) ∧ fP3(fP2(fP4(vENTRY))) ∧ fP3(fP4(vENTRY))
+where <P1, P3>, <P4, P2, P4>, <P4, P3> ∈ PATH(d + 1, i)
+therefore the algorithm will halt after iteration d + 2
 
 9.6.12
+//  a flow graph from the paper above
 G.E = {
     0 -> 1, 0 -> 2,
     1 -> 3,

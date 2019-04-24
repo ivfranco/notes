@@ -231,7 +231,7 @@ fn report_dominator_relations(program: &Program, start: BlockID) {
             "Natural loop of {} -> {} is: {:?}",
             from,
             to,
-            program.natural_loop(from, to)
+            dominators.natural_loop(from, to)
         );
     }
 }
