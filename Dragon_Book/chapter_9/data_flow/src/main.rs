@@ -6,6 +6,7 @@ use data_flow::lazy_code_motion::{
 };
 use data_flow::live_var::live_variables;
 use data_flow::reaching_def::reaching_definitions;
+use data_flow::region::{nested_regions, possible_nontrivial_regions};
 use data_flow::{Block, BlockID, Expr, Program, Stmt};
 use petgraph::visit::{DfsEvent, Time};
 use std::collections::HashMap;
@@ -19,6 +20,8 @@ fn main() {
     exercise_9_5_2();
     exercise_9_6_1();
     exercise_9_6_2();
+    exercise_9_7_1();
+    exercise_9_7_2();
 }
 
 fn figure_9_10() -> Program {
@@ -381,4 +384,31 @@ fn exercise_9_6_2() {
     report_dominator_relations(&exercise_8_4_1_flow_only(), 0);
     println!("analysis of Exercise 8.4.2:");
     report_dominator_relations(&exercise_8_4_2_flow_only(), 0);
+}
+
+fn report_regions(program: &Program) {
+    println!("Possible regions:");
+    for region in possible_nontrivial_regions(program) {
+        print!("{:?}", region);
+    }
+    println!("And regions with subset of nodes");
+    println!("Nested regions:");
+    for region in nested_regions(program) {
+        print!("{:?}", region);
+    }
+
+    program.reduce();
+}
+
+fn exercise_9_7_1() {
+    println!("Exercise 9.7.1:");
+    report_regions(&figure_9_10());
+}
+
+fn exercise_9_7_2() {
+    println!("Exercise 9.7.2:");
+    report_regions(&figure_9_3_flow_only());
+    report_regions(&figure_8_9_flow_only());
+    report_regions(&exercise_8_4_1_flow_only());
+    report_regions(&exercise_8_4_2_flow_only());
 }

@@ -5,6 +5,7 @@ pub(crate) mod framework;
 pub mod lazy_code_motion;
 pub mod live_var;
 pub mod reaching_def;
+pub mod region;
 pub mod utils;
 
 use lazy_static::lazy_static;
@@ -284,6 +285,10 @@ impl Program {
         Self::new(blocks, edges)
     }
 
+    pub(crate) fn graph(&self) -> &DiGraphMap<BlockID, ()> {
+        &self.graph
+    }
+
     pub fn is_empty(&self) -> bool {
         self.blocks.is_empty()
     }
@@ -396,6 +401,39 @@ impl Program {
         while let Some(..) = dfs.next(&reverse) {}
 
         dfs.discovered
+    }
+
+    pub fn reduce(&self) {
+        let mut graph = self.graph().clone();
+        while graph.node_count() > 1 {
+            let nodes: Vec<_> = graph.nodes().collect();
+            for node in nodes {
+                if graph.contains_edge(node, node) {
+                    println!("T1: removed edge from B{} to itself", node);
+                    while graph.remove_edge(node, node).is_some() {}
+                }
+            }
+
+            if let Some(node) = graph
+                .nodes()
+                .find(|node| graph.neighbors_directed(*node, Incoming).count() == 1)
+            {
+                let predecessor = graph.neighbors_directed(node, Incoming).next().unwrap();
+                println!(
+                    "T2: Combine B{} with its only predecessor B{}",
+                    node, predecessor
+                );
+
+                let successors: Vec<_> = graph.neighbors_directed(node, Outgoing).collect();
+                for successor in successors {
+                    graph.add_edge(predecessor, successor, ());
+                }
+
+                // petgraph will not remove edges to a node by remove_node
+                graph.remove_edge(predecessor, node);
+                graph.remove_node(node);
+            }
+        }
     }
 }
 

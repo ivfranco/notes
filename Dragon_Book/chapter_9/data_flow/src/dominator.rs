@@ -2,6 +2,7 @@ use crate::framework::{DataFlow, Forward, SemiLattice, Transfer};
 use crate::{BlockID, Program};
 use petgraph::algo::toposort;
 use petgraph::prelude::*;
+use petgraph::visit::DfsEvent;
 use std::collections::HashSet;
 
 #[derive(Clone, PartialEq)]
@@ -66,6 +67,13 @@ impl<'a> Dominators<'a> {
         self.sets[to].contains(&from)
     }
 
+    pub fn dominated(&self, dom: BlockID) -> HashSet<BlockID> {
+        self.program
+            .block_range()
+            .filter(|i| self.sets[*i].contains(&dom))
+            .collect()
+    }
+
     pub fn tree(&self) -> GraphMap<BlockID, (), Directed> {
         let least = |n: BlockID, m: BlockID| -> BlockID {
             if self.sets[n].contains(&m) {
@@ -120,6 +128,20 @@ impl<'a> Dominators<'a> {
             to
         );
         self.program.natural_loop(from, to)
+    }
+
+    pub fn back_edges(&self) -> Vec<(BlockID, BlockID)> {
+        let mut edges = vec![];
+
+        self.program.dfs_order(self.program.entry(), |event| {
+            if let DfsEvent::BackEdge(from, to) = event {
+                if self.rel(to, from) {
+                    edges.push((from, to));
+                }
+            }
+        });
+
+        edges
     }
 }
 

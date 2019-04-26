@@ -1,6 +1,7 @@
 //  unsolved: 
 //      3.4.9.d 
 //      4.2.8.c
+//      9.7.4
 
 Chapter 1
 1.1.1
@@ -5952,3 +5953,491 @@ the graph is irreducible since it contains a subgraph {2, 3, 4} isomorphic to th
 a.  implied by exercise 9.2.7, the correctness of Algorithm 9.11
 b.  implied by exercise 9.2.9
 c.  implied by exercise 9.2.8
+
+9.7.1
+a.  Possible regions:
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 7]
+    Edges: [(0, 1), (1, 2), (2, 3), (3, 4), (3, 5), (4, 3), (5, 2), (5, 6), (6, 7)]
+    Head: 1
+    Nodes: [1, 2, 3, 4, 5, 6, 7]
+    Edges: [(1, 2), (2, 3), (3, 4), (3, 5), (4, 3), (5, 2), (5, 6), (6, 7)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6, 7]
+    Edges: [(2, 3), (3, 4), (3, 5), (4, 3), (5, 2), (5, 6), (6, 7)]
+    Head: 3
+    Nodes: [3, 4, 5, 6, 7]
+    Edges: [(3, 4), (3, 5), (4, 3), (5, 6), (6, 7)]
+    Head: 5
+    Nodes: [5, 6, 7]
+    Edges: [(5, 6), (6, 7)]
+    Head: 6
+    Nodes: [6, 7]
+    Edges: [(6, 7)]
+    And regions with subset of nodes
+b.  Nested regions:
+    Head: 0
+    Nodes: [0]
+    Edges: []
+    Head: 1
+    Nodes: [1]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 4
+    Nodes: [4]
+    Edges: []
+    Head: 5
+    Nodes: [5]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 7
+    Nodes: [7]
+    Edges: []
+    Head: 3
+    Nodes: [3, 4]
+    Edges: [(3, 4)]
+    Head: 3
+    Nodes: [3, 4]
+    Edges: [(3, 4), (4, 3)]
+    Head: 2
+    Nodes: [2, 3, 4, 5]
+    Edges: [(2, 3), (3, 4), (3, 5), (4, 3)]
+    Head: 2
+    Nodes: [2, 3, 4, 5]
+    Edges: [(2, 3), (3, 4), (3, 5), (4, 3), (5, 2)]
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 7]
+    Edges: [(0, 1), (1, 2), (2, 3), (3, 4), (3, 5), (4, 3), (5, 2), (5, 6), (6, 7)]
+c.  T2: Combine B1 with its only predecessor B0
+    T2: Combine B7 with its only predecessor B6
+    T2: Combine B6 with its only predecessor B5
+    T2: Combine B5 with its only predecessor B3
+    T2: Combine B4 with its only predecessor B3
+    T1: removed edge from B3 to itself
+    T2: Combine B3 with its only predecessor B2
+    T1: removed edge from B2 to itself
+    T2: Combine B2 with its only predecessor B0
+
+9.7.2
+a.  Possible regions:
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6]
+    Edges: [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (4, 6), (5, 2)]
+    Head: 1
+    Nodes: [1, 2, 3, 4, 5, 6]
+    Edges: [(1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (4, 6), (5, 2)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6]
+    Edges: [(2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (4, 6), (5, 2)]
+    Head: 3
+    Nodes: [3, 4, 5, 6]
+    Edges: [(3, 3), (3, 4), (4, 5), (4, 6)]
+    Head: 4
+    Nodes: [4, 5, 6]
+    Edges: [(4, 5), (4, 6)]
+    And regions with subset of nodes
+    Nested regions:
+    Head: 0
+    Nodes: [0]
+    Edges: []
+    Head: 1
+    Nodes: [1]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 4
+    Nodes: [4]
+    Edges: []
+    Head: 5
+    Nodes: [5]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: [(2, 2)]
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: [(3, 3)]
+    Head: 2
+    Nodes: [2, 3, 4, 5]
+    Edges: [(2, 2), (2, 3), (3, 3), (3, 4), (4, 5)]
+    Head: 2
+    Nodes: [2, 3, 4, 5]
+    Edges: [(2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (5, 2)]
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6]
+    Edges: [(0, 1), (1, 2), (2, 2), (2, 3), (3, 3), (3, 4), (4, 5), (4, 6), (5, 2)]
+    T1: removed edge from B2 to itself
+    T1: removed edge from B3 to itself
+    T2: Combine B1 with its only predecessor B0
+    T2: Combine B6 with its only predecessor B4
+    T2: Combine B5 with its only predecessor B4
+    T2: Combine B4 with its only predecessor B3
+    T2: Combine B3 with its only predecessor B2
+    T1: removed edge from B2 to itself
+    T2: Combine B2 with its only predecessor B0
+b.  Possible regions:
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 7]
+    Edges: [(0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 2), (4, 5), (5, 6), (6, 6), (6, 7)]
+    Head: 1
+    Nodes: [1, 2, 3, 4, 5, 6, 7]
+    Edges: [(1, 2), (2, 3), (3, 3), (3, 4), (4, 2), (4, 5), (5, 6), (6, 6), (6, 7)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6, 7]
+    Edges: [(2, 3), (3, 3), (3, 4), (4, 2), (4, 5), (5, 6), (6, 6), (6, 7)]
+    Head: 3
+    Nodes: [3, 4, 5, 6, 7]
+    Edges: [(3, 3), (3, 4), (4, 5), (5, 6), (6, 6), (6, 7)]
+    Head: 4
+    Nodes: [4, 5, 6, 7]
+    Edges: [(4, 5), (5, 6), (6, 6), (6, 7)]
+    Head: 5
+    Nodes: [5, 6, 7]
+    Edges: [(5, 6), (6, 6), (6, 7)]
+    Head: 6
+    Nodes: [6, 7]
+    Edges: [(6, 6), (6, 7)]
+    And regions with subset of nodes
+    Nested regions:
+    Head: 0
+    Nodes: [0]
+    Edges: []
+    Head: 1
+    Nodes: [1]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 4
+    Nodes: [4]
+    Edges: []
+    Head: 5
+    Nodes: [5]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 7
+    Nodes: [7]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: [(3, 3)]
+    Head: 2
+    Nodes: [2, 3, 4]
+    Edges: [(2, 3), (3, 3), (3, 4)]
+    Head: 2
+    Nodes: [2, 3, 4]
+    Edges: [(2, 3), (3, 3), (3, 4), (4, 2)]
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: [(6, 6)]
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 7]
+    Edges: [(0, 1), (1, 2), (2, 3), (3, 3), (3, 4), (4, 2), (4, 5), (5, 6), (6, 6), (6, 7)]
+    T1: removed edge from B3 to itself
+    T1: removed edge from B6 to itself
+    T2: Combine B1 with its only predecessor B0
+    T2: Combine B7 with its only predecessor B6
+    T2: Combine B6 with its only predecessor B5
+    T2: Combine B5 with its only predecessor B4
+    T2: Combine B4 with its only predecessor B3
+    T2: Combine B3 with its only predecessor B2
+    T1: removed edge from B2 to itself
+    T2: Combine B2 with its only predecessor B0
+c.  Possible regions:
+    Head: 0
+    Nodes: [0, 1, 2, 3, 7, 4, 5, 6, 8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(0, 1), (1, 2), (2, 3), (2, 7), (3, 4), (4, 5), (4, 6), (5, 4), (6, 2), (7, 8), (8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 1
+    Nodes: [1, 2, 3, 7, 4, 5, 6, 8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(1, 2), (2, 3), (2, 7), (3, 4), (4, 5), (4, 6), (5, 4), (6, 2), (7, 8), (8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 2
+    Nodes: [2, 3, 7, 4, 5, 6, 8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(2, 3), (2, 7), (3, 4), (4, 5), (4, 6), (5, 4), (6, 2), (7, 8), (8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 3
+    Nodes: [3, 4, 5, 6]
+    Edges: [(3, 4), (4, 5), (4, 6), (5, 4)]
+    Head: 4
+    Nodes: [4, 5, 6]
+    Edges: [(4, 5), (4, 6), (5, 4)]
+    Head: 7
+    Nodes: [7, 8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(7, 8), (8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 8
+    Nodes: [8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 9
+    Nodes: [9, 10, 11, 15, 12, 13, 14]
+    Edges: [(9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10)]
+    Head: 10
+    Nodes: [10, 11, 15, 12, 13, 14]
+    Edges: [(10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10)]
+    Head: 11
+    Nodes: [11, 12, 13, 14]
+    Edges: [(11, 12), (12, 13), (12, 14), (13, 12)]
+    Head: 12
+    Nodes: [12, 13, 14]
+    Edges: [(12, 13), (12, 14), (13, 12)]
+    And regions with subset of nodes
+    Nested regions:
+    Head: 0
+    Nodes: [0]
+    Edges: []
+    Head: 1
+    Nodes: [1]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 4
+    Nodes: [4]
+    Edges: []
+    Head: 5
+    Nodes: [5]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 7
+    Nodes: [7]
+    Edges: []
+    Head: 8
+    Nodes: [8]
+    Edges: []
+    Head: 9
+    Nodes: [9]
+    Edges: []
+    Head: 10
+    Nodes: [10]
+    Edges: []
+    Head: 11
+    Nodes: [11]
+    Edges: []
+    Head: 12
+    Nodes: [12]
+    Edges: []
+    Head: 13
+    Nodes: [13]
+    Edges: []
+    Head: 14
+    Nodes: [14]
+    Edges: []
+    Head: 15
+    Nodes: [15]
+    Edges: []
+    Head: 16
+    Nodes: [16]
+    Edges: []
+    Head: 4
+    Nodes: [4, 5]
+    Edges: [(4, 5)]
+    Head: 4
+    Nodes: [4, 5]
+    Edges: [(4, 5), (5, 4)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6]
+    Edges: [(2, 3), (3, 4), (4, 5), (4, 6), (5, 4)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6]
+    Edges: [(2, 3), (3, 4), (4, 5), (4, 6), (5, 4), (6, 2)]
+    Head: 12
+    Nodes: [12, 13]
+    Edges: [(12, 13)]
+    Head: 12
+    Nodes: [12, 13]
+    Edges: [(12, 13), (13, 12)]
+    Head: 10
+    Nodes: [10, 11, 12, 13, 14]
+    Edges: [(10, 11), (11, 12), (12, 13), (12, 14), (13, 12)]
+    Head: 10
+    Nodes: [10, 11, 12, 13, 14]
+    Edges: [(10, 11), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10)]
+    Head: 8
+    Nodes: [8, 9, 10, 11, 15, 12, 13, 14]
+    Edges: [(8, 9), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10)]
+    Head: 8
+    Nodes: [8, 9, 10, 11, 15, 12, 13, 14]
+    Edges: [(8, 9), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    Head: 0
+    Nodes: [0, 1, 2, 3, 7, 4, 5, 6, 8, 9, 16, 10, 11, 15, 12, 13, 14]
+    Edges: [(0, 1), (1, 2), (2, 3), (2, 7), (3, 4), (4, 5), (4, 6), (5, 4), (6, 2), (7, 8), (8, 9), (8, 16), (9, 10), (10, 11), (10, 15), (11, 12), (12, 13), (12, 14), (13, 12), (14, 10), (15, 8)]
+    T2: Combine B1 with its only predecessor B0
+    T2: Combine B14 with its only predecessor B12
+    T2: Combine B13 with its only predecessor B12
+    T1: removed edge from B12 to itself
+    T2: Combine B12 with its only predecessor B11
+    T2: Combine B15 with its only predecessor B10
+    T2: Combine B11 with its only predecessor B10
+    T1: removed edge from B10 to itself
+    T2: Combine B10 with its only predecessor B9
+    T2: Combine B16 with its only predecessor B8
+    T2: Combine B9 with its only predecessor B8
+    T1: removed edge from B8 to itself
+    T2: Combine B8 with its only predecessor B7
+    T2: Combine B6 with its only predecessor B4
+    T2: Combine B5 with its only predecessor B4
+    T1: removed edge from B4 to itself
+    T2: Combine B4 with its only predecessor B3
+    T2: Combine B7 with its only predecessor B2
+    T2: Combine B3 with its only predecessor B2
+    T1: removed edge from B2 to itself
+    T2: Combine B2 with its only predecessor B0
+d.  Possible regions:
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 11, 7, 10, 8, 9]
+    Edges: [(0, 1), (1, 2), (2, 3), (2, 4), (3, 2), (4, 5), (5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 1
+    Nodes: [1, 2, 3, 4, 5, 6, 11, 7, 10, 8, 9]
+    Edges: [(1, 2), (2, 3), (2, 4), (3, 2), (4, 5), (5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 2
+    Nodes: [2, 3, 4, 5, 6, 11, 7, 10, 8, 9]
+    Edges: [(2, 3), (2, 4), (3, 2), (4, 5), (5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 4
+    Nodes: [4, 5, 6, 11, 7, 10, 8, 9]
+    Edges: [(4, 5), (5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 5
+    Nodes: [5, 6, 11, 7, 10, 8, 9]
+    Edges: [(5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 6
+    Nodes: [6, 7, 10, 8, 9]
+    Edges: [(6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8)]
+    Head: 7
+    Nodes: [7, 8, 9]
+    Edges: [(7, 8), (8, 9), (9, 8)]
+    Head: 8
+    Nodes: [8, 9]
+    Edges: [(8, 9), (9, 8)]
+    And regions with subset of nodes
+    Nested regions:
+    Head: 0
+    Nodes: [0]
+    Edges: []
+    Head: 1
+    Nodes: [1]
+    Edges: []
+    Head: 2
+    Nodes: [2]
+    Edges: []
+    Head: 3
+    Nodes: [3]
+    Edges: []
+    Head: 4
+    Nodes: [4]
+    Edges: []
+    Head: 5
+    Nodes: [5]
+    Edges: []
+    Head: 6
+    Nodes: [6]
+    Edges: []
+    Head: 7
+    Nodes: [7]
+    Edges: []
+    Head: 8
+    Nodes: [8]
+    Edges: []
+    Head: 9
+    Nodes: [9]
+    Edges: []
+    Head: 10
+    Nodes: [10]
+    Edges: []
+    Head: 11
+    Nodes: [11]
+    Edges: []
+    Head: 2
+    Nodes: [2, 3]
+    Edges: [(2, 3)]
+    Head: 2
+    Nodes: [2, 3]
+    Edges: [(2, 3), (3, 2)]
+    Head: 5
+    Nodes: [5, 6, 7, 10, 8, 9]
+    Edges: [(5, 6), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8)]
+    Head: 5
+    Nodes: [5, 6, 7, 10, 8, 9]
+    Edges: [(5, 6), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    Head: 8
+    Nodes: [8, 9]
+    Edges: [(8, 9)]
+    Head: 8
+    Nodes: [8, 9]
+    Edges: [(8, 9), (9, 8)]
+    Head: 0
+    Nodes: [0, 1, 2, 3, 4, 5, 6, 11, 7, 10, 8, 9]
+    Edges: [(0, 1), (1, 2), (2, 3), (2, 4), (3, 2), (4, 5), (5, 6), (5, 11), (6, 7), (6, 10), (7, 8), (8, 9), (9, 10), (9, 8), (10, 5)]
+    T2: Combine B1 with its only predecessor B0
+    T2: Combine B9 with its only predecessor B8
+    T1: removed edge from B8 to itself
+    T2: Combine B8 with its only predecessor B7
+    T2: Combine B3 with its only predecessor B2
+    T1: removed edge from B2 to itself
+    T2: Combine B2 with its only predecessor B0
+    T2: Combine B11 with its only predecessor B5
+    T2: Combine B6 with its only predecessor B5
+    T2: Combine B7 with its only predecessor B5
+    T2: Combine B10 with its only predecessor B5
+    T1: removed edge from B5 to itself
+    T2: Combine B4 with its only predecessor B0
+    T2: Combine B5 with its only predecessor B0
+
+9.7.3
+for a back edge (n, h), by 9.6.8, all nodes in the natural loop N is dominated by h
+by definition of domination, no nodes outside of N can reach n ∈ N without going through h
+
+9.7.4
+a.  lemma: T1 and T2 will not affect reducibility
+        T1 remove self loops, which must be back edges wrt. any DFST
+        T2 folds node a into b if b is the only predecessor of a 
+        then b is the immediate dominator of a, b -> a is a tree edge in any DFST
+        each outgoing edge a -> c is replaced by b -> c
+        if a -> c is a back edge, c dom a, c dom b, b -> c is a back edge
+        if a -> c is a retreating but not back edge, there is a path ENTRY ~> a without going through c
+        as b dom a, that path must go through b, b -> c is not a back edge
+    if T1 and T2 cannot transform the graph to a single node, after some step:
+        there are no self loops
+        there are no node with only a single predecessor
+    let a be an arbitrary node in the graph, b and c be two of its predecessors
+    ?
+
+9.7.5
+before splitting, a node n has k predecessors
+after the splitting, there are k copies of n each with a single predecessor
+all these copies can be combined with their predecessor
+splitting creates k - 1 new nodes, k nodes are combined by T2, the graph now contains one fewer node
+
+9.7.6
+a complete graph Gn with n nodes will become Gn-1 a complete graph with n - 1 nodes after splitting and T1 / T2
