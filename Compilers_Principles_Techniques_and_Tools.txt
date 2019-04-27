@@ -6441,3 +6441,30 @@ splitting creates k - 1 new nodes, k nodes are combined by T2, the graph now con
 
 9.7.6
 a complete graph Gn with n nodes will become Gn-1 a complete graph with n - 1 nodes after splitting and T1 / T2
+
+9.8.1 
+a.  f(m)(c) = m(a) + m(b)
+    f(m)(d) = m(b)
+    f(m)(v) = m(v) otherwise
+b.  f(m)(d) = m(a) + m(b)
+    f(m)(e) = m(e) + 1
+    f(m)(v) = m(v) otherwise
+c.  f(m)(b) = m(a) + m(b)
+    f(m)(e) = m(c) - m(a)
+    f(m)(v) = m(v) otherwise
+
+9.8.2
+fi(m)(d) = m(a) + m(b)
+fi(m)(e) = m(e) + i
+
+9.8.3
+g(a) = m(a)
+g(b) = m(a) + m(b)
+g(c) = m(a) + m(b)
+g(d) = NAA // two predecessors of B3 doesn't have the same affine expression on d
+g(e) = NAA // iteration of the inner loop is unknown
+gi(a) = m(a)
+gi(b) = NAA // b is not a symbolic constant or basic induction variable
+gi(c) = NAA // b is not a symbolic constant or basic induction variable
+gi(d) = NAA
+gi(e) = NAA
