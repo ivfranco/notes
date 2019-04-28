@@ -184,7 +184,7 @@ impl Binary {
     }
 
     pub fn cost(&self) -> u32 {
-        self.codes.iter().map(|code| code.cost()).sum()
+        self.codes.iter().map(Code::cost).sum()
     }
 }
 
@@ -201,7 +201,7 @@ impl Display for Binary {
     fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         for code in &self.codes {
             code.format_sp(f)?;
-            writeln!(f, "")?;
+            writeln!(f)?;
         }
         Ok(())
     }

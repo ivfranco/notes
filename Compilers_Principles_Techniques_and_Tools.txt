@@ -6432,6 +6432,7 @@ a.  lemma: T1 and T2 will not affect reducibility
         there are no node with only a single predecessor
     let a be an arbitrary node in the graph, b and c be two of its predecessors
     ?
+    //  Characterizations of Reducible Flow Graphs, M. Hecht & J. Ullman J. ACM 21
 
 9.7.5
 before splitting, a node n has k predecessors
@@ -6468,3 +6469,116 @@ gi(b) = NAA // b is not a symbolic constant or basic induction variable
 gi(c) = NAA // b is not a symbolic constant or basic induction variable
 gi(d) = NAA
 gi(e) = NAA
+
+10.2.1
+a.  true dependence
+b.  antidependence
+c.  output dependence
+d.  true dependence
+e.  antidependence
+
+10.2.2
+./Dragon_Book/chapter_8/naive
+./Dragon_Book/chapter_8/ershov
+LD R0, u
+LD R1, v
+ADD R2, R0, R1
+ST t0, R2
+LD R3, w
+LD R4, x
+ADD R5, R3, R4
+ST t1, R5
+ADD R6, R2, R5
+ST t2, R6
+LD R7, y
+LD R8, z
+ADD R9, R7, R8
+ST t3, R9
+ADD R10, R6, R9
+ST t4, R10
+
+10.2.3
+./Dragon_Book/chapter_8/naive
+./Dragon_Book/chapter_8/ershov
+a.  (u + (v + (w + x)))+ (y + z)
+    most parallelism:
+    LD R0, w
+    LD R1, x
+    ADD R2, R0, R1
+    LD R3, v
+    ADD R4, R3, R2
+    LD R5, u
+    ADD R6, R5, R4
+    LD R7, y
+    LD R8, z
+    ADD R9, R7, R8
+    ADD R10, R6, R9
+    least register:
+    LD R1, w
+    LD R0, x
+    ADD R1, R1, R0
+    LD R0, v
+    ADD R1, R0, R1
+    LD R0, u
+    ADD R1, R0, R1
+    ST t0, R1
+    LD R1, y
+    LD R0, z
+    ADD R1, R1, R0
+    LD R0, t0
+    ADD R1, R0, R1
+    the least register program is sequential
+    with full parallelism the expression can be computed in 5 steps
+b.  (u + (v + w))+ (x + (y + z))
+    most parallelism:
+    LD R0, v
+    LD R1, w
+    ADD R2, R0, R1
+    LD R3, u
+    ADD R4, R3, R2
+    LD R5, y
+    LD R6, z
+    ADD R7, R5, R6
+    LD R8, x
+    ADD R9, R8, R7
+    ADD R10, R4, R9
+    least register:
+    LD R1, v
+    LD R0, w
+    ADD R1, R1, R0
+    LD R0, u
+    ADD R1, R0, R1
+    ST t0, R1
+    LD R1, y
+    LD R0, z
+    ADD R1, R1, R0
+    LD R0, x
+    ADD R1, R0, R1
+    LD R0, t0
+    ADD R1, R0, R1
+    the least register program is sequential
+    with full parallelism the expression can be computed in 4 steps
+
+10.2.4
+//  in general the problem is similar to the problem of determining the span of a program DAG in CLRS chapter 27
+//  or searching a critical path in a DAG, which can be done in O(V + E) by dynamic programming
+./Dragon_Book/chapter_10/critical_path
+8 steps
+
+10.2.5
+//  assume b is a temporary variable in this scope
+//  otherwise its value has to be stored, CMOVZ cannot handle conditional stores
+0: LD R0, a
+1: LD R1, t
+2: SUB RF, R0, R1
+3: MUL R2, R0, R0
+4: CMOVGZ RF, R3, R2
+5: LD R3, c
+6: ADD R4, R0, R3
+0 -> 2: true dependency
+0 -> 3: true dependency
+0 -> 6: true dependency
+1 -> 2: true dependency
+2 -> 4: true dependency
+3 -> 4: true dependency
+5 -> 6: true dependency

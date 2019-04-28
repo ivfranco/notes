@@ -14,6 +14,8 @@ fn main() {
     exercise_8_6_3();
     exercise_8_6_4();
     exercise_8_6_5();
+    exercise_10_2_2();
+    exercise_10_2_3();
 }
 
 fn exercise_8_2_1() {
@@ -366,4 +368,52 @@ fn exercise_8_6_5() {
         "{:?}",
         bottom_up::Builder::build(Program::parse(PROGRAM_TWO).unwrap(), &["x"], 2)
     );
+}
+
+fn exercise_10_2_2() {
+    println!("Exercise 10.2.2:");
+
+    let binary = Program::parse(
+        "
+        t0 = u + v;
+        t1 = w + x;
+        t2 = t0 + t1;
+        t3 = y + z;
+        t4 = t2 + t3;
+    ",
+    )
+    .unwrap()
+    .build();
+
+    println!("{:?}", binary);
+}
+
+fn exercise_10_2_3() {
+    println!("Exercise 10.2.3:");
+
+    let program_one = Program::parse(
+        "
+        t0 = w + x;
+        t1 = v + t0;
+        t2 = u + t1;
+        t3 = y + z;
+        t4 = t2 + t3;
+    ",
+    )
+    .unwrap();
+
+    let program_two = Program::parse(
+        "
+        t0 = v + w;
+        t1 = u + t0;
+        t2 = y + z;
+        t3 = x + t2;
+        t4 = t1 + t3;
+    ",
+    )
+    .unwrap();
+
+    for program in &[program_one, program_two] {
+        println!("{:?}", program.build());
+    }
 }

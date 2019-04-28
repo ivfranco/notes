@@ -120,7 +120,7 @@ impl Debug for Line {
             let prefix = self
                 .labels
                 .iter()
-                .map(|label| label.as_str())
+                .map(Label::as_str)
                 .collect::<Vec<_>>()
                 .join(", ");
 
@@ -131,18 +131,6 @@ impl Debug for Line {
 
 pub struct Program {
     pub lines: Vec<Line>,
-}
-
-impl Program {
-    pub fn build(&self) -> Binary {
-        let mut builder = Builder::new();
-
-        for ir in self.lines.iter().map(|line| &line.ir) {
-            builder.gen(ir);
-        }
-
-        builder.seal()
-    }
 }
 
 impl Debug for Program {
@@ -168,6 +156,16 @@ impl Program {
             .iter()
             .find(|line| line.labels.iter().any(|l| l == label))
             .map(|line| &line.ir)
+    }
+
+    pub fn build(&self) -> Binary {
+        let mut builder = Builder::new();
+
+        for ir in self.lines.iter().map(|line| &line.ir) {
+            builder.gen(ir);
+        }
+
+        builder.seal()
     }
 }
 
