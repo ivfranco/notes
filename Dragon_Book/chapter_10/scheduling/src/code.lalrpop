@@ -1,0 +1,36 @@
+use crate::{Reg, Addr, Lit, Mem, Op, Code, Binary};
+
+#[LALR] grammar;
+
+pub Binary: Binary = {
+    <Code*> => Binary::new(<>),
+}
+
+pub Code: Code = {
+    "LD" <r:Reg> "," <a:Addr> => Code::Ld(r, a),
+    "ST" <a:Addr> "," <r:Reg> => Code::St(a, r),
+    <op:Op> <dst:Reg> "," <lhs:Reg> "," <rhs:Reg> => Code::Op(op, dst, lhs, rhs),
+}
+
+Addr: Addr = {
+    <m:Mem> => Addr::Mem(m),
+    <l:Lit> "(" <r:Reg> ")" => Addr::Idx(l, r),
+}
+
+Reg: Reg = {
+    <s:r"R(\d+)"> => s[1..].parse().unwrap(),
+}
+
+Mem: Mem = {
+    <s:r"[a-z]\w*"> => s.to_string(),
+}
+
+Lit: Lit = {
+    <s:r"\d+"> => s.parse().unwrap(),
+}
+
+Op: Op = {
+    "ADD" => Op::Add,
+    "SUB" => Op::Sub,
+    "Mul" => Op::Mul,
+}
