@@ -1,6 +1,9 @@
 #[macro_use]
 extern crate lalrpop_util;
 
+pub mod resource;
+
+use crate::resource::Resource;
 use petgraph::prelude::*;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
@@ -10,6 +13,7 @@ lalrpop_mod!(pub code);
 pub type Mem = String;
 pub type Reg = u8;
 pub type Lit = usize;
+pub type Delay = usize;
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum Addr {
@@ -149,7 +153,7 @@ impl std::fmt::Debug for Code {
 }
 
 pub struct Binary {
-    codes: Vec<Code>,
+    pub codes: Vec<Code>,
 }
 
 impl Binary {
@@ -161,9 +165,9 @@ impl Binary {
         code::BinaryParser::new().parse(s).map_err(Box::from)
     }
 
-    pub fn dependency_graph<F, D>(&self, mut delay: F) -> DiGraph<&Code, D>
+    pub fn dependency_graph<F>(&self, mut delay: F) -> DependencyGraph
     where
-        F: FnMut(&Code, &Code) -> D,
+        F: FnMut(&Code, &Code) -> Delay,
     {
         let mut graph = DiGraph::new();
         let mut node_map: HashMap<&Code, NodeIndex> = HashMap::new();
@@ -181,7 +185,7 @@ impl Binary {
             }
         }
 
-        graph
+        DependencyGraph { graph }
     }
 }
 
@@ -191,6 +195,72 @@ impl std::fmt::Debug for Binary {
             writeln!(f, "{:?}", code)?;
         }
         Ok(())
+    }
+}
+
+pub struct DependencyGraph<'a> {
+    graph: DiGraph<&'a Code, Delay>,
+}
+
+impl<'a> DependencyGraph<'a> {
+    fn toposort(&self) -> Vec<NodeIndex> {
+        petgraph::algo::toposort(&self.graph, None).unwrap()
+    }
+
+    pub fn linear_scheduling<R, F, G>(
+        &self,
+        resources: &R,
+        mut elapse: F,
+        mut cost: G,
+    ) -> Vec<Delay>
+    where
+        R: Resource + std::fmt::Debug,
+        F: FnMut(&Code) -> Delay,
+        G: FnMut(&Code) -> R,
+    {
+        let mut schedule = HashMap::new();
+        let mut segments: Vec<((Delay, Delay), R)> = vec![];
+
+        for node in self.toposort() {
+            let code = *self.graph.node_weight(node).unwrap();
+            let mut start = self
+                .graph
+                .edges_directed(node, Incoming)
+                .map(|e| schedule[&e.source()] + e.weight())
+                .max()
+                .unwrap_or(0);
+
+            let cost = cost(code);
+
+            while !cost.add(&occupied(start, &mut segments)).fit_in(resources) {
+                start += 1;
+            }
+
+            schedule.insert(node, start);
+            segments.push(((start, start + elapse(code)), cost));
+        }
+
+        let mut delays: Vec<_> = schedule.into_iter().collect();
+        delays.sort_by_key(|(k, _)| *k);
+        delays.into_iter().map(|(_, v)| v).collect()
+    }
+}
+
+fn occupied<R>(instance: Delay, segments: &mut Vec<((Delay, Delay), R)>) -> R
+where
+    R: Resource,
+{
+    // segments.retain(|(_, end), _| *end > instance);
+    segments
+        .iter()
+        .filter(|((start, end), _)| *start <= instance && instance < *end)
+        .map(|(_, r)| r)
+        .fold(R::empty(), |sum, r| sum.add(r))
+}
+
+impl<'a> std::fmt::Debug for DependencyGraph<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        write!(f, "{:#?}", self.graph)
     }
 }
 
@@ -225,6 +295,6 @@ fn parse_test() {
 #[test]
 fn dependency_graph_test() {
     let binary = Binary::parse(FIGURE_10_10_A).unwrap();
-    let graph = binary.dependency_graph(|_, _| ());
+    let graph = binary.dependency_graph(|_, _| 0).graph;
     assert_eq!(graph.edge_count(), 9);
 }
