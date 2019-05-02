@@ -6747,3 +6747,169 @@ c.  // only one optimal schedule
     2: 1, 3, 5
     3: 4
     5: 6
+
+10.4.1
+in general while loop cannot be unrolled without inserting branching codes after each statement
+while (C)
+    S;
+    if (!C) break;
+    S;
+    ...
+if the condition is "monotonic" in the sense that
+    let S(C) be the condition after execution of S
+    if C is falsy, S(C) must be falsy
+also the composition of a few S, denoted by Si, can be applied more efficiently than apply S i times
+then the while loop can be unrolled just like a for loop with numerial condition
+
+10.4.2
+0: LD R0, x
+0: LD R1, b
+2: LD R2, c
+4: CMOVZ R0, R2, R1
+5: ST a, R2
+5: ST d, R2
+
+10.5.1
+a.  (a, b):
+        S(b) - S(a) >= 2
+    (a, c):
+        S(c) - S(a) >= 3
+    (a, d):
+        S(d) - S(a) >= 4
+    (b, d):
+        S(d) - S(b) >= 2
+        S(b) - S(d) >= 1 - T
+    (c, d):
+        S(d) - S(c) >= 1
+        S(c) - S(d) >= 2 - T
+b.  implied by a
+c.  implied by a
+
+10.5.2
+//  assume a different set of registers are used for each iteration
+dependencies:
+    1 -> 2, 1 -> 4, 1 -> 6,
+    3 -> 4, 3 -> 6,
+    4 -> 5,
+    6 -> 7,
+a.  LD
+    ST  LD
+    LD  ST
+    ADD LD
+    ST  ADD
+    SUB ST
+    ST  SUB
+    BL  ST
+        BL
+b.  LD
+    ST  LD
+    LD  ST  
+    ADD LD  
+    ST  ADD LD
+    SUB -   ST
+    ST  SUB LD
+    BL  ST  ADD
+        ST  -
+        BL  ST
+            SUB
+            ST
+            BL
+c.  impossible since one iteration issues three ST
+
+10.5.3
+a.  max(ceil(5/3), ceil(7/4), ceil(8/5)) = 2
+b.  max(ceil(5/3), ceil(7/3), ceil(8/3)) = 3
+
+10.5.4
+//  assume i is stored and auto-incremented in R0
+0: SUB R1, R0, 1
+1: LD R2, B(R1)
+2: ADD R3, R2, 1
+3: ST A(R0), R3
+4: LD R4, A(R1)
+5: ADD R5, R4, 2
+6: ST B(R0), R5
+dependencies:
+    0 -> 1, 0 -> 4,
+    1 -> 2,
+    2 -> 3,
+    4 -> 5,
+    5 -> 6,
+    // all with delay (0, 1)
+inter-iteration dependencies:
+    3 -> 1,
+    6 -> 4,
+    // all with delay (1, 1)
+dependency graph: http://bit.ly/2Y1EWvC
+delay table:
+        0       1       2       3
+0               1       2       3
+1                       1       2
+2               2 - T           1
+3               1 - T   2 - T   
+// the subgraph with {0, 4, 5, 6} is isomorphic
+by resource requirements, T >= 3
+S(3) - S(1) <= T - 1
+S(3) - S(2) <= T - 2
+S(6) - S(4) <= T - 1
+S(6) - S(5) <= T - 2
+schedule with minimal initiation interval T = 3:
+    SUB(0)
+    LD(1)
+    ADD(2)
+    ---
+    ST(3)
+    -
+    -
+    ---
+    LD(4)
+    ADD(5)
+    ST(6)
+
+10.5.5
+when the denpendency graph is acyclic, there's no upper bound between the delay of two operations
+let RT be the modular resource table before scheduling operations n, let r be the only resource n uses
+by definition of T0, there must be a row k in RT where r is not fully allocated yet
+when s = k mod T0, NodeScheduled(RT, T, n, s) will return true
+therefore the algorithm will always succeed
+
+10.5.6
+a.  digraph G {
+        a -> b [label = "(0, 1)"]
+        c -> d [label = "(0, 1)"]
+        b -> c [label = "(1, 1)"]
+        d -> a [label = "(1, 1)"]
+    }
+    http://bit.ly/2Y6pcaF
+b.          a       b       c       d
+    a               1       2 - T   3 - T
+    b       3 - 2T          1 - T   2 - T
+    c       2 - T   3 - T           1
+    d       1 - T   2 - T   3 - 2T
+c.          a       b       c       d
+    a               1       0       1     
+    b       -1              -1      0     
+    c       0       1               1
+    d       -1      0       -1     
+d.          a       b       c       d
+    a               1       -1      0     
+    b       -3              -2      -1   
+    c       -1      0               1
+    d       -2      -1      -3    
+e.  3 >= S(b) - S(a) >= 1
+    1 >= S(c) - S(a) >= -1
+    2 >= S(d) - S(a) >= 0
+    0 >= S(c) - S(b) >= -2
+    1 >= S(d) - S(b) >= -1
+    3 >= S(d) - S(c) >= 1
+
+10.5.7
+let G' be G with negated weights of edges
+by definition, G' contains no cycle of negative length
+hence Floyd-Warshall algorithm applies in time O(n^3)
+G' can be computed from G in time O(V + E) = O(n^2)
+
+10.5.8
+./Dragon_Book/chapter_10/delays
+Requires no delay: 36
+Requires one delay: 42
