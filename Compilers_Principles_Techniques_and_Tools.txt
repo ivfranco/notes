@@ -6913,3 +6913,16 @@ G' can be computed from G in time O(V + E) = O(n^2)
 ./Dragon_Book/chapter_10/delays
 Requires no delay: 36
 Requires one delay: 42
+
+11.2.1
+for (ii = 0; ii < n; ii = ii+B)
+    for (jj = 0; jj < n; jj = jj+B)
+        for (kk = 0; kk < n; kk = kk+B) {
+            for (i = ii; i < ii+B; i++)
+                for (j = jj; j < jj+B; j++)
+                    Z[i, j] = 0;
+            for (i = ii; i < ii+B; i++)
+                for (j = jj; j < jj+B; j++)
+                    for (k = kk; k < kk+B; k++)
+                        Z[i,j] = Z[i,j] + X[i,k]*Y[k,j];
+        }
