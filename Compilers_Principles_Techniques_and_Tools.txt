@@ -6926,3 +6926,206 @@ for (ii = 0; ii < n; ii = ii+B)
                     for (k = kk; k < kk+B; k++)
                         Z[i,j] = Z[i,j] + X[i,k]*Y[k,j];
         }
+
+11.3.1
+a.  for j in 0..=(50 - 10) / 7 {
+        let i = 10 + j * 7;
+        X[i, i+1] = 0;
+    }
+b.  for j in 0..=(10 - -3) / 2 {
+        let i = -3 + j * 2;
+        X[i] = X[i+1];
+    }
+c.  for j in 0..=(10 - 50) / -1 {
+        let i = 50 + j * -1;
+        X[i] = 0;
+    }
+
+11.3.2
+a.  1 <= i <= 29
+    i+2 <= j <= 39 - i
+b.  10 <= i <= 1000
+    i <= j <= i + 9
+c.  0 <= i <= 99
+    0 <= j <= 99 + i
+    i + j <= k <= 99 - i - j
+
+11.3.3
+./Dragon_Book/chapter_11/loop_nest
+a.  Matrix B: [
+        [1, 0],
+        [-1, 0],
+        [-1, 1],
+        [-1, -1],
+    ]
+    variables i: ['i', 'j']T
+    constants b: [-1, 29, -2, 39]T
+b.  Matrix B: [
+        [1, 0],
+        [-1, 0],
+        [-1, 1],
+        [1, -1],
+    ]
+    variables i: ['i', 'j']T
+    constants b: [-10, 1000, 0, 9]T
+c.  Matrix B: [
+        [1, 0, 0],
+        [-1, 0, 0],
+        [0, 1, 0],
+        [1, -1, 0],
+        [-1, -1, 1],
+        [-1, -1, -1],
+    ]
+    variables i: ['i', 'j', 'k']T
+    constants b: [0, 99, 0, 99, 0, 99]T
+
+11.3.4
+./Dragon_Book/chapter_11/loop_nest
+a.  1 <= i
+    i <= 29
+    i <= -2 + j
+    i <= 39 - j
+    3 <= j
+    j <= 38
+    for j in 3 ..= 38 {
+        for i in 1 ..= min(29, -2 + j, 39 - j) {
+            ...
+        }
+    }
+b.  10 <= i
+    -9 + j <= i
+    i <= 1000
+    i <= j
+    10 <= j
+    j <= 1009
+    for j in 10 ..= 1009 {
+        for i in max(10, -9 + j) ..= min(1000, j) {
+            ...
+        }
+    }
+c.  0 <= i
+    -99 + j <= i
+    i <= 99
+    i <= - j + k
+    i <= 99 - j - k
+    0 <= j
+    j <= k
+    j <= 99 - k
+    j <= 198
+    2j <= 99 + k
+    2j <= 198 - k
+    0 <= k
+    -99 <= k
+    k <= 99
+    k <= 198
+    for k in 0 ..= 99 {
+        for j in 0 ..= min(k, 99 - k, 198, (99 + k) / 2, (198 - k) / 2) {
+            for i in max(0, -99 + j) ..= min(99, -j + k, 99 - j - k) {
+                ...
+            }
+        }
+    }
+
+11.3.5
+./Dragon_Book/chapter_11/loop_nest
+a.  Matrix B: [
+        [1],
+        [-1],
+    ]
+    variables i: ['j']T
+    constants b: [-3, 38]T
+b.  Matrix B: [
+        [1],
+        [-1],
+    ]
+    variables i: ['j']T
+    constants b: [-10, 1009]T
+c.  Matrix B: [
+        [1, 0],
+        [-1, 1],
+        [-1, -1],
+        [-1, 0],
+        [-2, 1],
+        [-2, -1],
+    ]
+    variables i: ['j', 'k']T
+    constants b: [0, 0, 99, 198, 99, 198]T
+
+11.3.6
+./Dragon_Book/chapter_11/loop_nest
+a.  Matrix B: [
+        [1],
+        [-1],
+        [-2],
+    ]
+    variables i: ['i']T
+    constants b: [-1, 29, 37]T
+b.  Matrix B: [
+        [1],
+        [-1],
+    ]
+    variables i: ['i']T
+    constants b: [-10, 1000]T
+c.  Matrix B: [
+        [1, 0],
+        [-1, 0],
+        [1, 0],
+        [-1, 1],
+        [-1, -1],
+    ]
+    variables i: ['i', 'k']T
+    constants b: [0, 99, 99, 0, 99]T
+
+11.3.7
+./Dragon_Book/chapter_11/loop_nest
+a.  1 <= i <= 29
+    i+2 <= j <= 39 - i
+    let 
+        k = j - i
+        i = j - k
+    1 <= j - k <= 29
+    j - k + 2 <= j <= 39 - j + k
+    reported constraints:
+        1 + k <= j
+        j <= 29 + k
+        2j <= 39 + k
+        2 <= k
+        k <= 37
+    for k in 2 ..= 37 {
+        for j in 1 + k ..= min(29 + k, 39 + k / 2) {
+            ...
+        }
+    } 
+//  skipped
+
+11.3.8
+//  skipped
+
+11.3.9
+D = floor((B - A) / C)
+F = A
+E = C
+
+11.3.10
+0 <= i <= A
+Bi + C <= j <= Di + E
+B = [
+    [1, 0],
+    [-1, 0],
+    [-B, 1],
+    [D, -1],
+]
+i = [i, j]T
+b = [0, A, -C, E]T
+
+11.3.11
+0 <= i <= m
+Ai + B <= j <= Ci + n
+B = [
+    [1, 0, 0, 0],
+    [-1, 0, 1, 0],
+    [-A, 1, 0, 0],
+    [C, -1, 0, 1],
+]
+i = [i, j, m, n]T
+b = [0, 0, -B, 0]T
