@@ -1,4 +1,5 @@
 mod affine;
+pub mod utils;
 
 use affine::{Affine, Coeff, Var};
 

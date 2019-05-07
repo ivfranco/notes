@@ -1,3 +1,4 @@
+use loop_nest::utils::gcd;
 use loop_nest::Triple;
 
 fn main() {
@@ -6,6 +7,7 @@ fn main() {
     exercise_11_3_5();
     exercise_11_3_6();
     exercise_11_3_7();
+    exercise_11_6_1();
 }
 
 fn loop_nest_a() -> Triple {
@@ -94,4 +96,12 @@ fn exercise_11_3_7() {
     );
 
     triple.report_constraints(&['j', 'k']);
+}
+
+fn exercise_11_6_1() {
+    println!("Exercise 11.6.1:");
+
+    println!("{}", gcd(&[16, 24, 56]));
+    println!("{}", gcd(&[-45, 105, 240]));
+    println!("{}", gcd(&[84, 105, 180, 315, 350]));
 }

@@ -7218,3 +7218,93 @@ whether there is a reuse also depends on the range of i and j
 
 11.5.7
 by blocking
+
+11.6.1
+./Dragon_Book/chapter_11/loop_nest
+a.  8
+b.  15
+c.  1
+
+11.6.2
+a.  A[1], A[2], A[3], A[4]
+b.  A[5], A[6], A[7], A[8], A[9]
+c.  none
+
+11.6.3
+refer 31.1, 31.2 and problem 31.2-7 of CLRS
+
+11.6.4
+4x + 6y + 9z = 0
+one solution is v = [x, y, z] = [3, 1, -2]
+any [-1, 0, 1] + iv for some integer i is a solution to the original equation
+
+11.6.5
+0 <= i, j, k, i', j', k' <= 99
+a.  i' = i + 100
+    j' = j + 100
+    k' = k + 100
+    99 >= i' >= 100
+    99 >= j' >= 100
+    99 >= k' >= 100
+    no dependency
+b.  similar to a.
+    no dependency
+c.  the access is not even valid
+    A[-50, -50, -50] is undefined behavior
+d.  i' = i + 99
+    j' = k + 100
+    k' = j
+    100 <= j' <= 199
+    100 <= j' <= 99
+    no dependency
+
+11.6.6
+x >= 3
+3 <= y - 100
+3 <= 2y - 50
+
+11.6.7
+digraph G {
+    v -> x [label = "0"]
+    x -> v [label = "99"]
+    v -> y [label = "0"]
+    y -> v [label = "99"]
+    v -> z [label = "0"]
+    z -> v [label = "99"]
+    y -> x [label = -50]
+    z -> y [label = -60]
+}
+http://bit.ly/2PSVaEj
+there is a negative cycle v -> z -> y -> x -> v with weight -11
+the system has no solution
+
+11.6.8
+digraph G {
+    v -> x [label = "0"]
+    x -> v [label = "99"]
+    v -> y [label = "0"]
+    y -> v [label = "99"]
+    v -> z [label = "0"]
+    z -> v [label = "99"]
+    y -> x [label = -50]
+    z -> y [label = 40]
+    x -> z [label = 20]
+}
+http://bit.ly/2PRCu7K
+no negative cycle
+
+11.6.9
+digraph G {
+    v -> x [label = "0"]
+    x -> v [label = "99"]
+    v -> y [label = "0"]
+    y -> v [label = "99"]
+    v -> z [label = "0"]
+    z -> v [label = "99"]
+    y -> x [label = -100]
+    z -> y [label = 60]
+    x -> z [label = 50]
+}
+http://bit.ly/2PNuEfF
+there is a negative cycle v -> y -> x -> v with weight -1
+the system has no solution
