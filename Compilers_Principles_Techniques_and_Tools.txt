@@ -7308,3 +7308,93 @@ digraph G {
 http://bit.ly/2PNuEfF
 there is a negative cycle v -> y -> x -> v with weight -1
 the system has no solution
+
+11.7.1
+the loop copies A[0] to each A[2n], A[1] to each A[2n + 1] for 0 <= n <= 49
+the loop can be rewritten as:
+for i in 2 ..= 99 {
+    A[i] = A[i % 2];
+}
+a.  98
+b.  for p in 0 ..= 97 {
+        A[p + 2] = A[(p + 2) % 2];
+    }
+c.  i1 = i2 % 2 => Ci1 + c = Ci2 + c
+    as i1 = i2 % 2 never happens, there's no constraints on C and c
+    C = [1], c = -2;
+d.  rank 1
+
+11.7.2
+a.  for p in 0 ..= 1 {
+            for i in 0 ..= 97 {
+                if i % 2 == p {
+                    A[i] = A[i + 2]; 
+                }
+            }
+        }
+    i1 = i2 + 2 => Ci1 + c = Ci2 + c
+    C(i1 - i2) = 0
+    2C = 0
+    C = 0
+    the partition must has rank 0
+//  skipped
+
+11.7.3
+for p in 0 .. 100 {
+    A[p] = 2 * A[p];
+    A[p] = A[p] + 1;
+}
+
+11.7.4
+in the sequential loop, the only write in each iteration is to A[i, j], where A[i, j] is read at
+    s(i+1, j) and s(i, j+1), both executed after s(i, j) in sequential order
+    s(i-1, j) and s(i, j-1), both executed before s(i, j) in sequential order
+hence the constraints are:
+    1.  s(i-1, j) before s(i, j)
+    2.  s(i, j-1) before s(i, j)
+    3.  s(i, j) before s(i+1, j)
+    4.  s(i, j) before s(i, j+1)
+by substitute i by i+1, 3 can be derived from 1
+by substitute j by j+1, 4 can be derived from 2
+so 1 and 2 are the only necessary constraints
+for p in 2 ..= 200 {
+    for i in 1 ..= p - 1 {
+        let j = p - i;
+        /* (s) */
+    }
+}
+
+
+11.7.5
+impossible / sync required
+
+11.7.6
+//  the second loop should be:
+//  for (j = 98; j >= 0; j = j - 2)
+//      B[j] = j;
+//  otherwise the second loop is degenerate
+reverse (second loop):
+for (i = 0; i < 100; i++) 
+    A[i] = B[i];
+for (j = 0; j <= 98; j += 2)
+    B[j] = j;
+scaling (second loop):
+for (i = 0; i < 100; i++) 
+    A[i] = B[i];
+for (j = 0; j <= 98; j += 1)
+    if (j mod 2 == 0)
+        B[j] = j;
+fusion:
+for (p = 0; p < 100; p++) 
+    A[p] = B[p];
+    if (p <= 98 && p mod 2 == 0)
+        B[p] = p;
+    
+11.7.7
+//  http://wosugi.sakura.ne.jp/app/linear-transform/
+determinant = 2 * 1 - 1 * 1 = 1
+with determinant 1 or -1, the transformation preserves the area of the shape
+
+11.7.8
+determinant = 1 * 5 - 2 * 3 = -1
+with determinant < 0, the shape is mirrored
