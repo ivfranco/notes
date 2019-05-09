@@ -7398,3 +7398,126 @@ with determinant 1 or -1, the transformation preserves the area of the shape
 11.7.8
 determinant = 1 * 5 - 2 * 3 = -1
 with determinant < 0, the shape is mirrored
+
+11.8.1
+//  will only show where the sync is inserted
+for (i = 0; i < 100; i++)
+    A[i] = A[i] + X[i]; // s1
+/* barrier */
+for (i = 0; i < 100; i++)
+    for (j = 0; j < 100; j++)
+        B[i, j] = Y[i, j] + A[i] + A[j];    // s2
+dependency: 
+    s1 -> s2
+SCCs:
+    { s1 }
+    { s2 }
+
+11.8.2
+for (i=0; i<100; i++)
+    A[i] = A[i] + X[i]; /* (s1) */
+for (i=0; i<100; i++) {
+    B[i] = B[i] + A[i]; /* (s2) */
+    for (j=0; j<100; j++)
+        C[j] = Y[j] + B[j]; /* (s3) */
+}
+fusion:
+for (i=0; i<100; i++) {
+    A[i] = A[i] + X[i]; /* (s1) */
+    B[i] = B[i] + A[i]; /* (s2) */
+    for (j=0; j<100; j++)
+        C[j] = Y[j] + B[j]; /* (s3) */
+}
+all but the last iteration of the inner loop has no effect:
+for (i=0; i<100; i++) {
+    A[i] = A[i] + X[i]; /* (s1) */
+    B[i] = B[i] + A[i]; /* (s2) */
+}
+for (j=0; j<100; j++)
+    C[j] = Y[j] + B[j]; /* (s3) */
+fusion:
+for (i=0; i<100; i++) {
+    A[i] = A[i] + X[i]; /* (s1) */
+    B[i] = B[i] + A[i]; /* (s2) */
+    C[i] = Y[i] + B[i]; /* (s3) */
+}
+no sync required
+
+11.8.3
+for (i=0; i<100; i++)
+    A[i] = A[i] + X[i]; /* (s1) */
+/* barrier */
+for (i=0; i<100; i++) {
+    for (j=0; j<100; j++)
+        B[j] = A[i] + Y[j]; /* (s2) */
+    C[i] = B[i] + Z[i]; /* (s3) */
+    for (j=0; j<100; j++)
+        D[i,j] = A[i] + B[j]; /* (s4) */
+}
+dependency:
+    s1 -> s2, s1 -> s4,
+    s2 -> s2, s2 -> s4,
+    s3 -> s2,
+    s4 -> s2,
+SCCs:
+    { s1 }
+    { s2, s3, s4 }
+
+//  semantics of wait() and signal() in this chapter is equivalent to spsc channels of trivial data
+//  (Sender<()> and Receiver<()> as in Rust)
+//  the channel is unbounded, the sender will never block, the receiver will block on wait if the channel is empty
+11.9.1
+a.  // s(i, j) mapped to p = i + j
+    // 0 <= p - j <= m, p - m <= j <= p
+    // p - j <= j <= p - j + n, p / 2 <= j <= (p + n) / 2
+    for (j = max(p - m, p / 2); j <= min(p, (p + n) / 2); j++) {
+        i = p - j;
+        // as it's mentioned nowhere in the text
+        // assume the semantics of wait() and signal() above, i.e. sending extra signals causes no trouble
+        if (i - 1 >= m && j - 1 >= i - 1) {
+            wait(p - 2);
+        }
+        if (j - 1 >= i) {
+            wait(p - 1);
+        }
+        /* (s) */
+        signal(p + 1);
+        signal(p + 2);
+    }
+b.  // skippped
+
+11.9.2
+for (ii = 0; ii<n; i+=b)
+    for (jj = 0; jj<n; jj+=b)
+        for (i = ii*b; i < ii * (b + 1); i++)
+            for (j = jj*b; j < jj * (b + 1); j++)
+                <S>
+
+11.9.3
+a.  for (i=0; i<100; i++) {
+        P[i,0] = 1; /* s1 */
+        P[i,i] = 1; /* s2 */
+        for (j=1; j<i; j++)
+            P[i,j] = P[i-1,j-1] + P[i-1,j]; /* s3 */
+    }
+b.  each row is a stage
+    // 0 <= p <= 100
+    i = p;
+    P[0, p] = 1;
+    P[p, p] = 1;    
+    for (j = 1; j < i; j++) {
+        if (i >= 2) {
+            wait(p - 1);
+        }
+        P[i, j] = P[i - 1, j - 1] + P[i - 1, j];
+        if (i < 100 - 1) {
+            signal(p + 1);
+        }
+    }
+c.  // skipped
+
+11.9.4
+//  skipped
+
+11.9.5
+//  skipped
