@@ -7549,3 +7549,113 @@ for (ii = n-1; ii >= 0; i -= 10)
     for (j=0; j<n; j++)
         for (i = ii; i >= max(0, ii - 9); i--)
 
+12.1.1
+a.  z = 5
+b.  B1: ...
+    B2: x = id(2);
+    B3: y = id(3);
+    B4: x = id(3); 
+    B5: y = id(2);
+    B6: z = x + y;
+    B0: a few blocks performing assignment depend on the call site // id(int x) { return x; }
+    B1 -> B2, B1 -> B4,
+    B2 -> B0,
+    B3 -> B0,
+    B4 -> B0, B4 -> B6
+    B5 -> B0, B5 -> B6
+    B0 -> B2, B0 -> B3, B0 -> B4, B0 -> B5,
+c.  Nac (Constant propagation cannot inspect logic in B0)
+d.  c1:  x = id(2)
+    c2:  y = id(3)
+    c3:  x = id(3)
+    c4:  y = id(2)
+e.  [c1]
+    [c2]
+    [c3]
+    [c4]
+f.  int id1(int x) { return x;}
+    int id2(int x) { return x;}
+    int id3(int x) { return x;}
+    int id4(int x) { return x;}
+    ...
+    if (a == 1) { x = id1(2); y = id2(3); }
+    else { x = id3(3); y = id4(2); }
+    z = x+y;
+    ...
+g.  B1: ...
+    B2: // x = id(2);
+    B3: // y = id(3);
+    B4: // x = id(3); 
+    B5: // y = id(2);
+    B6: z = x + y;
+    B7: x = 2 // id1(int x) { return x; }
+    B8: y = 3 // id2(int x) { return x; }
+    B9: x = 3 // id3(int x) { return x; }
+    B10: y = 2 // id4(int x) { return x; }
+    B1 -> B2, B1 -> B4,
+    B2 -> B7, B2 -> B3,
+    B3 -> B8, B3 -> B6
+    B4 -> B9, B4 -> B5
+    B5 -> B10, B5 -> B6
+    B7 -> B2, 
+    B8 -> B3, 
+    B9 -> B4, 
+    B10 -> B5,
+h.  Cst(5)
+
+12.3.1
+new EDBs:
+    type(X, T) :- the type of a variable X is T
+defines(I, X)   :- defines(I, *P) & type(X, T) & type (P, *T)
+kill(I, D, X)   :- defines(I, X) & defines(D, X)
+out(I, I, X)    :- defines(I, X)
+out(I, D, X)    :- in(I, D, X) & NOT kill(I, D, X)
+in(I, D, X)     :- out(J, D, X) & pred(J, I)
+
+12.3.2
+EDBs:
+    eval(I, X, O, Y)    :- defind as described
+    kill(I, X)  :- statement I defines variable X
+    pred(I, J)  :- predecessor relation
+//  nin and nout defines the unavailable expressions instead of available ones
+nout(I, X, O, Y)    :- kill(I, X) | kill(I, Y)
+nout(I, X, O, Y)    :- nin(I, X, O, Y) & NOT eval(I, X, O, Y)
+nin(I, X, O, Y)     :- nout(J, X, O, Y) & pred(J, I)
+out(I, X, O, Y)     :- NOT nout(I, X, O, Y)
+in(I, X, O, Y)      :- NOT nin(I, X, O, Y)
+
+12.3.3
+EDBs:
+    defines(I, X)   :- statement I defines variable X directly
+    use(I, X)       :- statement I uses variable X directly
+    pred(I, J)      :- predecessor relation
+kill(I, D)  :- defines(I, X) & defines(D, X)
+in(I, I)    :- use(I, X)
+in(I, D)    :- out(I, D) & NOT kill(I, D)
+out(I, D)   :- in(J, D) & pred(J, I)
+
+12.3.4
+dependencies (I -> J means J depends on I):
+    Anticipated -> Available, Anticipated -> Earliest, 
+    NOT Available -> Earliest,
+    Earliest -> Postponable, Earliest -> Latest, 
+    Postponable -> Latest,
+    NOT Latest -> Used,
+strate:
+    Anticipated, Available,
+    Earliest,
+    Postponable,
+    Latest,
+    Used,
+
+12.3.5
+//  skipped
+
+12.3.6
+a.  head:   p(X, Y)
+    body:   -q(X, Z) & r(Z, W) & NOT p(W, Y)
+    subgoals:   -q(X, Z), r(Z, W), NOT p(W, Y)
+b.  p
+c.  none
+d.  not safe, Y is only mentioned in a negated subgoal
+e.  not stratified, p is in its own subgoal
