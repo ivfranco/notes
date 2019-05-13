@@ -7653,9 +7653,66 @@ strate:
 
 12.3.6
 a.  head:   p(X, Y)
-    body:   -q(X, Z) & r(Z, W) & NOT p(W, Y)
-    subgoals:   -q(X, Z), r(Z, W), NOT p(W, Y)
+    body:   q(X, Z) & r(Z, W) & NOT p(W, Y)
+    subgoals:   q(X, Z), r(Z, W), NOT p(W, Y)
 b.  p
 c.  none
 d.  not safe, Y is only mentioned in a negated subgoal
 e.  not stratified, p is in its own subgoal
+
+12.4.1
+./Dragon_Book/chapter_12/datalog/point_to.py
+pts:
+    V | H
+    --|--
+    b | G
+    d | G
+    c | H
+    a | H
+hpts:
+    H | F | G
+    --|---|--
+    H | f | G
+    G | f | H
+
+12.4.2
+value: set of point-to definitions, either of the form Var(V, H) or Field(H, F, V)
+transition functions:
+    "H: T V = new T" => remove all Var(V, _) and Field(V, _, _) from the value, add Var(V, H)
+    "V = W" => {
+        remove all Var(V, _)
+        for each Var(W, H) add Var(V, H), for each Field(W, F, H) add Field(V, F, H)
+    }
+    "V.F = W" => for all Var(V, H), for all Var(W, G), add Field(H, F, G)
+    "V = W.F" => for all Var(W, H), for all Field(H, F, G), add Var(V, G)
+
+12.4.3
+//  inline function p
+./Dragon_Book/chapter_12/datalog/point_to.py
+a.  pts:
+        V | H
+        --|--
+        a | h
+        b | g
+        b | h
+    hpts:
+        H | F | G
+        --|---|--
+        h | f | h
+        h | f | g
+b.  void main() {
+        g:  T b = new T;
+        c = p(b);
+        d = c.f;
+    }
+    pts:
+        V | H
+        --|--
+        c | h
+        b | g
+        a | h
+        d | g
+    hpts:
+        H | F | G
+        --|---|--
+        h | f | g
