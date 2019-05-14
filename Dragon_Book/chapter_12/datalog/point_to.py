@@ -1,6 +1,6 @@
 from pyDatalog import pyDatalog
 
-pyDatalog.create_terms("create,copy,store,load,pts,hpts,V,H,G,F,W,T")
+pyDatalog.create_terms("create,copy,store,load,pts,hpts,V,H,G,F,W,T,S,I,N,M")
 
 def rules():
     pts(V, H) <= create(H, T, V)

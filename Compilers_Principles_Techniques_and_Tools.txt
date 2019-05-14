@@ -7716,3 +7716,48 @@ b.  void main() {
         H | F | G
         --|---|--
         h | f | g
+
+12.5.1
+a.  formal(1, 0, 'this1')
+    formal(2, 0, 'this2')
+    formal(3, 0, 'this3')
+    actual(5, 0, 'a')
+    cha('t', 'n', 1)
+    cha('s', 'n', 2)
+    cha('r', 'n', 3)
+b.  ./Dragon_Book/chapter_12/datalog/interprocedure.py
+    V     | H
+    ------|--
+    3     | i
+    a     | g
+    this1 | j
+    this1 | g
+    a     | j
+    2     | h
+    1     | g
+
+12.5.2
+//  only for trivial methods in which the return value does not depend on parameters, as in figure 12.26
+//  otherwise as the analysis is context insensitive
+//  return value of a method will point to result of all calls
+EDBs:
+    ret(M, V) :- return value of method M is binded to a virtual variable V
+    // whatever returned in the method is copied to the virtual variable
+    dispatch(S, V, W, N) :- "S: V = W.N(..)"
+IDBs:
+    pts(V, H) :- dispatch(S, V, _, _) & invokes(S, M) & ret(M, W) & pts(W, H)
+
+12.6.1
+SCCs:
+    {q} // non-trivial
+    {p} // trivial
+    {r} // trivial
+()          // the only call context for p
+(c1)        // the only call context for q
+(c1, c4)    // the only call context for r
+//  practically c2 will cause infinite loop
+
+12.6.2
+//  the same to context insensitive analysis as each procedure has a unique call context
+
+12.6.3
