@@ -7761,3 +7761,96 @@ SCCs:
 //  the same to context insensitive analysis as each procedure has a unique call context
 
 12.6.3
+new and modified EDBs:
+    hType(H, T) :- a value H has dynamic type T
+    vType(V, T) :- a variable V has static type T
+    assignable(T, S) :- S and T have subtype relation S <: T
+    cha(T, N, M) :- call N with receiver type T dispatches method M
+    CSinvokes(S, C, M, D) :- now take types of receiver at call side S into consideration 
+modified IDBs:
+    pts(V, C, H) :-   "V = W"
+                    & pts(W, C, H)
+                    & vType(V, T)
+                    & hType(H, S)
+                    & assignable(T, S)
+    pts(V, H)    :-   "V = W.F"
+                    & pts(W, C, G)
+                    & hpts(G, F, H)
+                    & vType(V, T)
+                    & hType(H, S)
+                    & assignable(T, S)
+
+12.7.1
+./Dragon_Book/chapter_12/bdd
+//  a = (0, 0)
+//  b = (0, 1)
+//  c = (1, 0)
+digraph bdd {
+    n5 [label = "y"];
+    n5 -> n18446744073709551614 [style=dotted];
+    n5 -> n18446744073709551615;
+    n6 [label = "x"];
+    n6 -> n18446744073709551615 [style=dotted];
+    n6 -> n5;
+    n16 [label = "z"];
+    n16 -> n18446744073709551614 [style=dotted];
+    n16 -> n18446744073709551615;
+    n17 [label = "y"];
+    n17 -> n16 [style=dotted];
+    n17 -> n18446744073709551615;
+    n18 [label = "x"];
+    n18 -> n17 [style=dotted];
+    n18 -> n18446744073709551615;
+    n23 [label = "w"];
+    n23 -> n6 [style=dotted];
+    n23 -> n18;
+    n18446744073709551615 [label="0"];
+    n18446744073709551614 [label="1"];
+}
+http://bit.ly/2JHTtZw
+
+12.7.2
+./Dragon_Book/chapter_12/bdd
+2n + 1
+an example when n = 4:
+digraph bdd {
+    n20 [label = "d"];
+    n20 -> n18446744073709551615 [style=dotted];
+    n20 -> n18446744073709551614;
+    n26 [label = "d"];
+    n26 -> n18446744073709551614 [style=dotted];
+    n26 -> n18446744073709551615;
+    n32 [label = "c"];
+    n32 -> n20 [style=dotted];
+    n32 -> n26;
+    n33 [label = "c"];
+    n33 -> n26 [style=dotted];
+    n33 -> n20;
+    n34 [label = "b"];
+    n34 -> n32 [style=dotted];
+    n34 -> n33;
+    n35 [label = "b"];
+    n35 -> n33 [style=dotted];
+    n35 -> n32;
+    n36 [label = "a"];
+    n36 -> n34 [style=dotted];
+    n36 -> n35;
+    n18446744073709551615 [label="0"];
+    n18446744073709551614 [label="1"];
+}
+http://bit.ly/2JEFOSN
+
+12.7.3
+basis:
+    when both BDD are leaves, let them be a and b
+    when a = 1 and b = 1, return a leaf labeled 1
+    otherwise return a leaf labeled 0
+induction:
+    the same to OR
+
+12.7.4
+a.  for each node N labeled a, let its children be (H, L)
+    compute the union of H and L, let it be U
+    replace N with U
+    repeat until there's no node labeled a in the BDD
+b.  take AND of the two BDDs, then project out all variables used to represent the joined attribute    

@@ -1,0 +1,23 @@
+use boolean_expression::Expr;
+
+grammar;
+
+pub BOr: Expr<char> = {
+    <BOr> "|" <BAnd> => Expr::or(<>),
+    <BAnd>,
+}
+
+BAnd: Expr<char> = {
+    <BAnd> "&" <BFactor> => Expr::and(<>),
+    <a:BAnd> "^" <b:BFactor> => Expr::or(
+        Expr::and(Expr::not(a.clone()), b.clone()),
+        Expr::and(a, Expr::not(b)),
+    ),
+    <BFactor>,
+}
+
+BFactor: Expr<char> = {
+    "~" <BFactor> => Expr::not(<>),
+    "(" <BOr> ")",
+    <s:r"[a-z]"> => Expr::Terminal(s.chars().next().unwrap()),
+}
