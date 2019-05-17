@@ -1,0 +1,97 @@
+1.1
+a.  ability to act rationally based on knowledge
+b.  intelligence originates not in biomass but in artifacts
+c.  actor
+d.  make near optimal decisions under certain criteria
+e.  inference correct conclusions given a set of facts
+
+1.2
+https://www.csee.umbc.edu/courses/471/papers/turing.pdf
+The Theological Objection:
+    have no familiarity in christianity
+    by my buddhist grandma, even the most insignificant kind of bugs have souls equal to human's
+    so why not intelligent machines
+The "Heads in the Sand" Objection
+    this idea is even stronger today fueled by 70 years of sci-fi movies and literatures since then
+    threat of a possible "AI domination" scenario is unlikely to stop the creation of AI (if ever possible)
+    similar to nuclear weapons, AI technology is too much an advantage to any major power
+The Mathematical Objection
+    machines cannot solve the halting problem for certain, yet there's no proof whether human can do it better
+    modern compilers can sometimes detect infinite loops which are unobvious to human eyes
+The Argument from Consciousness
+    seems to be the most relevant objection today and Turing's refutations on this topic was quite weak
+    the idea was later expanded by the Chinese room argument
+    recent breakthrough in ML and AI research made machines more rational, but not necessarily more humanly
+Arguments from Various Disabilities
+    either solved by now or not falsifiable at first place
+Lady Lovelace's Objection
+    if creativity on music composing or literature writing can be specified in terms of scores
+    ML algorithms can train a machine to do it
+    this objection lands more on ambiguity in human feelings / languages than ability of machines
+Argument from Continuity in the Nervous System 
+    no idea 
+The Argument from Informality of Behaviour 
+    AI today is already more error-prone than human while e.g. driving a car
+The Argument from Extrasensory Perception
+    can't believe they took ESP into consideration seriously
+    was that common back in 1950s?
+it turns out unskilled interrogator is too easy to fool:
+    "Artificial Stupidity", The Economist, 324 (7770): 14, 1 August 1992
+at this rate no one knows what will possibly happen in 50 years 
+
+1.3
+it's rational in the sense that it's based on practical reasons instead of emotions
+it's not intelligent as it's not a decision by reasoning
+
+1.4
+IQ test is designed for normal human beings, not machines on a special task
+the microworld of IQ test is overly restrictive
+
+1.5
+10^4 / 10^-3 = 10^7
+human power: 10^14
+
+1.6
+1.  people lies for various reasons
+2.  people who lacks certain knowledges cannot express their thought and emotion correctly
+3.  people with satisfactory knowledge of thought and emotion is a biased sample
+
+1.7
+a.  pattern recognition for non-natural patterns (artifical barcodes)
+b.  pattern recognition (NLP) & decision making (order of entries by preference / collected browse histories)
+c.  pattern recognition for natural patterns (human voice)
+d.  decision making
+
+1.8
+these computational models immitates result of human evolution instead of human knowledge
+people don't have to understand the ATP cycle to lift and get fit
+
+1.9
+self-preservation as a population
+by natural selection, entities without the urge of self-preservation are more likely to be eliminated by the environment
+and in most case self-preservation is considered rational
+
+1.10
+both the theory and the realization of the theory should be considered AI
+recent boom in ML is mostly boosted by powerful video cards 
+
+1.11
+the latter is true in the same way to 
+"human thoughts are just a bunch of electrical and chemical signals being tossed around inside the brain"
+thus the first sentence cannot be derived from the latter
+
+1.12
+the latter is not true, human thought and behavior is not that deterministic by gene
+
+1.13
+same to 1.11
+
+1.14
+Lists of entries not possible yet:
+    h:  NLP or the ability of catching fuzzy ideas as "funny" is still lagging behind other aspects
+    k:  not heard, but AI can help surgeons perform better
+        by https://publishing.rcseng.ac.uk/doi/pdf/10.1308/rcsbull.2017.87, better computer vision is the missing piece
+
+1.15
+//  skipped
+
