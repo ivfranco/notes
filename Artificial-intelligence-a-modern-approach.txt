@@ -87,11 +87,78 @@ the latter is not true, human thought and behavior is not that deterministic by 
 same to 1.11
 
 1.14
-Lists of entries not possible yet:
+List of entries not possible yet:
     h:  NLP or the ability of catching fuzzy ideas as "funny" is still lagging behind other aspects
     k:  not heard, but AI can help surgeons perform better
         by https://publishing.rcseng.ac.uk/doi/pdf/10.1308/rcsbull.2017.87, better computer vision is the missing piece
 
 1.15
 //  skipped
+
+2.1
+consider a vaccum cleaner with limited battery, in an environment where dust is generated randomly over time
+performance is again measured by how clean the floor is on average 
+if T is short compared to the battery capacity
+the cleaner may choose to search very actively, consume more energy than optimal in the first T time steps
+and do no work at all afterwards 
+
+2.2
+a.  there are 4 cases for the initial environment, 2 cases of initial place of the vaccum cleaner
+    4 * 2 = 8 inital cases in total, where half the cases are symmetric
+    assume the cleanliness is asserted at the start of each time step 
+    A: Clean, B: Clean, Start: A,
+        performance measure is 2000 for any agents
+    A: Dirt, B: Clean, Start: A,
+        the agent cleans dirt in square A in time step 1, move back and forth afterwards
+        performance measure is 1999
+        1999 is the optimal performance as the dirty square cannot be cleaned before time step 1
+    A: Dirt, B: Clean, Start: B,
+        the agent moves to square A at the end of time step 1, clean square A in time step 2
+        performance measure is 1998
+        1998 is optimal as any agent needs at least 2 time steps to move and clean the dirt in square A
+    A: Dirt, B: Dirt, Start: A,
+        1: clean A, 2: move to B, 3: clean B
+        performance measure is 1996
+        1996 is optimal as any agent needs at least 3 time steps to clean the two squares
+b.  same to figure 2.3 but stop moving when no square is dirty
+    if the agent can observe the cleanliness of both squares, no internal state required
+    otherwise the agent has to remember the cleanliness of another square
+c.  it may be beneficial to learn the dirt distribution and the geography of the room
+    dirts will be cleaned earlier if the agent returns to the square with a highest posibility to generate dirt
+
+2.3
+a.  false, the vaccum cleaner agent in figure 2.2 is perfectly rational despite sensing only partial information
+b.  true, an environment in which a button should be pushed when two parts are defected in a row
+c.  true, a vaccum cleaner world as figure 2.3 in which no dirt are ever generated
+d.  false, agent function always takes sequence of precepts, while agent program may be pure reflex
+e.  false, it may be phisically impossible due to limitation on storage or computation power
+f.  true, where the performance measure is independent to the actions of agents
+g.  true, the vaccum cleaner agent in 2.2.b is also rational in the world defined in figure 2.3
+h.  false, an agent that never clean squares cannot be rational in the vaccum cleaner world, with sensor or not
+i.  false, it's logically impossible: what will happen when two of such agents play against each other?
+
+2.4
+a.  playing soccer (as a single player):
+        P:  (depends on position) goals, assists, pass success rate, ...
+        E:  position, momentum, ... of other players, ball, judges, ...
+        A:  all possible moves of a human being
+        S:  visual, sound and physical contact
+b.  subsurface ocean of Titan (as a rover / submarine):
+        P:  completeness and accuracy of aquired data, project cost, (if manned) casualty
+        E:  Titan (atmosphere, climate, marine condition, ...)
+        A:  sampling devices, thrust, ...
+        S:  visual inputs
+// skipped
+
+2.5
+agent function:         formal definition of the performance logic of an agent
+agent program:          implementation of an agent function
+autonomy:               ability to complete tasks / make decisions under no supervision
+reflex agent:           agent whose action is independent to history of percepts
+model-based agent:      agent which simulates unobservable part of environment as interal states from percepts
+                        and make decision based on those simulations
+goal-based agent:       agent which asserts and changes its actions by a binary performance measure (goal / defeat)
+utility-based agent:    agent which asserts and changes its actions by a performance measure function
+learning agent: agent   agent which asserts and improves its actions from experiences
+
 
