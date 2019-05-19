@@ -130,7 +130,7 @@ c.  it may be beneficial to learn the dirt distribution and the geography of the
 a.  false, the vaccum cleaner agent in figure 2.2 is perfectly rational despite sensing only partial information
 b.  true, an environment in which a button should be pushed when two parts are defected in a row
 c.  true, a vaccum cleaner world as figure 2.3 in which no dirt are ever generated
-d.  false, agent function always takes sequence of precepts, while agent program may be pure reflex
+d.  false, agent function always takes sequence of percepts, while agent program may be pure reflex
 e.  false, it may be phisically impossible due to limitation on storage or computation power
 f.  true, where the performance measure is independent to the actions of agents
 g.  true, the vaccum cleaner agent in 2.2.b is also rational in the world defined in figure 2.3
@@ -161,4 +161,52 @@ goal-based agent:       agent which asserts and changes its actions by a binary 
 utility-based agent:    agent which asserts and changes its actions by a performance measure function
 learning agent: agent   agent which asserts and improves its actions from experiences
 
+2.6
+a.  let F be an reflex agent function, P be an agent program implementing F
+    let P' be a program that on a percept:
+        runs P twice, return the result of the second run
+    by definition P' is also an implementation of F
+b.  none, ignoring storage and computation limitations, the table-driven method is always possible
+c.  yes or no according to a more precise definition of randomized agent function / program
+d.  infinite, there are infinite possible implementations of a trivial agent which yields a single action forever 
+e.  no, by structure of the program it will only emit an action on percept inputs
+    speed up the machine only boost the reaction speed of the agent
+    if the agent is a valid implementation of the agent function at the first space it have to wait more
 
+2.7
+a.  function GOAL-BASED-AGENT(percept) returns an action
+        persistent: state, the agent's current simulation of the world
+                    model, the simulation model used to update state
+                    action, the most recent action taken
+                    DESIRABLE, boolean function with built-in goal
+        state <- UPDATE-STATE(state, action, percept, model)
+        for action' in all feasible actions
+            // estimate the impact of a chosen action
+            state <- UPDATE-STATE(state, action', NULL, model)
+            if DESIRABLE(state)
+                return action'
+b.  function UTILITY-BASED-AGENT(percept) returns an action
+        persistent: state, the agent's current simulation of the world
+                    model, the simulation model used to update state
+                    action, the most recent action taken
+                    UTILITY, function from state to a performance measure
+        state <- UPDATE-STATE(state, action, percept, model)
+        for action' in all feasible actions
+            // estimate the impact of a chosen action
+            state <- UPDATE-STATE(state, action', NULL, model)
+            if UTILITY(state) is maximized
+                return action'
+
+2.8
+./AI/vaccum_cleaner
+
+2.9
+./AI/vaccum_cleaner
+World: TwoSquare { left: Clean, right: Clean }, agent: ReflexCleaner { pos: Left }, Score: 2000
+World: TwoSquare { left: Clean, right: Clean }, agent: ReflexCleaner { pos: Right }, Score: 2000
+World: TwoSquare { left: Clean, right: Dirt }, agent: ReflexCleaner { pos: Left }, Score: 1998
+World: TwoSquare { left: Clean, right: Dirt }, agent: ReflexCleaner { pos: Right }, Score: 1999
+World: TwoSquare { left: Dirt, right: Clean }, agent: ReflexCleaner { pos: Left }, Score: 1999
+World: TwoSquare { left: Dirt, right: Clean }, agent: ReflexCleaner { pos: Right }, Score: 1998
+World: TwoSquare { left: Dirt, right: Dirt }, agent: ReflexCleaner { pos: Left }, Score: 1996
+World: TwoSquare { left: Dirt, right: Dirt }, agent: ReflexCleaner { pos: Right }, Score: 1996
