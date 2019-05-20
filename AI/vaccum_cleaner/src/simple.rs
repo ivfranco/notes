@@ -1,3 +1,4 @@
+use self::{Action::*, Pos::*};
 use crate::{Actuator, Agent, Perceptor, Score, World};
 
 #[derive(Debug, Clone, Copy)]
@@ -65,15 +66,22 @@ pub enum Action {
     Move,
     CleanLeft,
     CleanRight,
+    Stay,
 }
 
 impl Actuator<TwoSquare> for Action {
     fn apply(&self, world: &mut TwoSquare) {
-        use Action::*;
         match self {
             CleanLeft => world.left.clean(),
             CleanRight => world.right.clean(),
             _ => (),
+        }
+    }
+
+    fn cost(&self) -> Score {
+        match self {
+            Stay => 0,
+            _ => 1,
         }
     }
 }
@@ -89,7 +97,6 @@ impl ReflexCleaner {
     }
 
     pub fn enumerate() -> Vec<Self> {
-        use Pos::*;
         vec![ReflexCleaner::new(Left), ReflexCleaner::new(Right)]
     }
 }
@@ -108,17 +115,14 @@ impl Perceptor<TwoSquare> for ReflexCleaner {
 impl Agent<TwoSquare, Cleanliness> for ReflexCleaner {
     type A = Action;
 
-    fn step(&mut self, percept: Cleanliness) -> (Self::A, Score) {
-        use Action::*;
-        use Pos::*;
-
+    fn step(&mut self, percept: Cleanliness) -> Self::A {
         if percept == Cleanliness::Clean {
             self.pos = self.pos.swap();
-            (Move, 0)
+            Move
         } else {
             match self.pos {
-                Left => (CleanLeft, 0),
-                Right => (CleanRight, 0),
+                Left => CleanLeft,
+                Right => CleanRight,
             }
         }
     }

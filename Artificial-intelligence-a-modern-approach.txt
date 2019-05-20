@@ -210,3 +210,17 @@ World: TwoSquare { left: Dirt, right: Clean }, agent: ReflexCleaner { pos: Left 
 World: TwoSquare { left: Dirt, right: Clean }, agent: ReflexCleaner { pos: Right }, Score: 1998
 World: TwoSquare { left: Dirt, right: Dirt }, agent: ReflexCleaner { pos: Left }, Score: 1996
 World: TwoSquare { left: Dirt, right: Dirt }, agent: ReflexCleaner { pos: Right }, Score: 1996
+
+2.10
+a.  it cannot
+    when there's initially no dirt in the environment, the simple reflex agent will move mindlessly
+    an agent that does nothing at all will achieve score 2000 instead of 1000 by the simple reflex agent
+b.  refer 2.2
+c.  refer 2.2
+
+2.11
+a.  it cannot, a simple deterministic agent will only clean dirt on a fixed path
+    if the initial dirt distribution generates no dirt along that path, no dirt will be cleaned by the reflex agent
+    another agent may outperform it by cleaning even one square of dirt (by chance or better perception)
+b.  it's possible as stated in part a
+    
