@@ -1,3 +1,5 @@
+
+pub mod rectangle;
 pub mod simple;
 
 pub type Score = i32;

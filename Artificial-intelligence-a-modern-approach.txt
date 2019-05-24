@@ -219,8 +219,100 @@ b.  refer 2.2
 c.  refer 2.2
 
 2.11
+./AI/vaccum_cleaner
 a.  it cannot, a simple deterministic agent will only clean dirt on a fixed path
     if the initial dirt distribution generates no dirt along that path, no dirt will be cleaned by the reflex agent
     another agent may outperform it by cleaning even one square of dirt (by chance or better perception)
 b.  it's possible as stated in part a
-    
+    results are concluded in part d
+c.  a spiral environment
+    @: start position of agent
+    ##########
+    #%%%%%%%%@
+    #%########
+    #%#%%%%%%#
+    #%#%####%#
+    #%#%#%%#%#
+    #%#%%%%#%#
+    #%######%#
+    #%%%%%%%%#
+    ##########
+    after cleaning the square, the random cleaner will bump into walls frequently
+    dispite there are only one correct direction to progress
+d.  a stateful agent that records the visited part of the environment, decide the next moving direction by
+        1. prioritize unvisited squares
+        2. choose a non-obstacle square if surrounded by visited squares
+    % ##%%# %%
+    # # % % %#
+    %%  %  %
+    %   #  %
+    %  #    %
+    # %%#  %
+    %###%#%###
+    %% %% % #
+    %#%#%  % #
+    % #   #
+    Bot position: (1, 0)
+    RandomCleaner Score: 68262
+    Stateful BumpCleaner Score: 73193
+    #  %#% %
+    % %# %
+    %     %%
+    # % %#% %%
+    %% % #% %
+    ## #%   %%
+    % #% #%% %
+    # % %%%
+    % % %  %
+    %#%% % # %
+    Bot position: (4, 1)
+    RandomCleaner Score: 70134
+    Stateful BumpCleaner Score: 78198
+    %  #  # %
+    % # %  %
+    ####  % %%
+    %
+    %%   %%%
+    % #%#%% %
+    #  %% %
+    %%   % %
+    %     %#%#
+    ##%% % % %
+    Bot position: (4, 8)
+    RandomCleaner Score: 74664
+    Stateful BumpCleaner Score: 80026
+    %# %%  %#
+    # #%%%#
+    %  %#%%%#
+    #   %  %
+    %%# %
+    %% #%%%%%%
+    %%#%  %%#
+    %%%%   %%%
+    %%   %% %
+    %% %% #%
+    Bot position: (4, 3)
+    RandomCleaner Score: 73039
+    Stateful BumpCleaner Score: 82044
+    #    %
+    # %#% #%%#
+    %%% % %%
+    % % % % %
+        # #  %
+    %%% #%
+    % % #  % #
+    %%# %%
+    %#%  %%%
+    #  %   %
+    Bot position: (6, 6)
+    RandomCleaner Score: 74993
+    Stateful BumpCleaner Score: 80545
+    a cleaner cannot be perfectly rational without full percept of the environment
+
+2.12
+the agent in 2.11.d is already based on bump detection
+if the bump detector fails, the cleaner should fall back to randomized reflex mode
+
+2.13
+a.  repeat the Clean action until the the dirt sensor gives "clean" twice in a row
+b.  again a cleaner cannot be perfectly rational without full percept of the environment
