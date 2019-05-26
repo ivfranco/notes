@@ -226,7 +226,11 @@ a.  it cannot, a simple deterministic agent will only clean dirt on a fixed path
 b.  it's possible as stated in part a
     results are concluded in part d
 c.  a spiral environment
-    @: start position of agent
+    map legend:
+        #: obstacle
+        %: dirty
+         : clean
+        @: start position of agent
     ##########
     #%%%%%%%%@
     #%########
@@ -241,7 +245,13 @@ c.  a spiral environment
     dispite there are only one correct direction to progress
 d.  a stateful agent that records the visited part of the environment, decide the next moving direction by
         1. prioritize unvisited squares
-        2. choose a non-obstacle square if surrounded by visited squares
+        2. choose a random non-obstacle square if surrounded by visited squares
+    all environments are 10 x 10 rectangles of clean and dirty squares or obstacles
+    a square has
+        1/8 chance to be an obstacle
+        3/8 chance to be dirty
+        4/8 chance to be clean
+    score is measured by number of clean squares over a time period of 1000
     % ##%%# %%
     # # % % %#
     %%  %  %
@@ -316,3 +326,122 @@ if the bump detector fails, the cleaner should fall back to randomized reflex mo
 2.13
 a.  repeat the Clean action until the the dirt sensor gives "clean" twice in a row
 b.  again a cleaner cannot be perfectly rational without full percept of the environment
+
+3.1
+without a goal, no action or state is rationally better than others, problem formulation is meaningless
+
+3.2
+let w be width of the maze, h be height of the maze
+let i be the number of intersections
+a.  4wh (4 orientations for each position)
+b.  4i (4 orientations for each intersection)
+c.  i, no need to keep track of orientations
+d.  how the robot accelerate
+    how the robot is controlled remotely
+    position of the robot in the maze is in fact continuous 
+
+3.3
+a.  let G be a indirected graph
+    each city is a node of G
+    each road is an edge of G
+    the state space is tuples of nodes (i, j) where i, j ∈ G.N
+    starting state is (i0, j0) for some i0, j0 ∈ G.N
+    for each state (i, j), an action is defined with 
+        result: (i', j') where (i, i'), (j, j') ∈ G.E
+        cost:   max(d(i, i'), d(j, j'))
+b.  (i) is not admissible:
+        let d(1, 2) = 1, d(2, 3) = 1, D(1, 3) = 2
+        given start state (1, 3), the optimal solution has cost 1 < 2 = D(1, 3)
+    (ii) >= (i), nor is (ii) admissible
+    (iii):
+        let start state be (i, j), let C*(i, j) be cost of the optimal solution
+        if there's no solution to this instance, C*(i, j) is virtually infinite, greater than D(i, j) / 2 
+        if there's an optimal solution to this instance
+        basic: 
+            i = j, C*(i, j) = D(i, j) / 2 = 0
+        induction (on length of optimal solution):
+            let the next state in the solution be (i', j')
+            the cost of the next action is max(d(i, i'), d(j, j'))
+            tail of the solution must be the optimal solution to the subproblem (i', j')
+            (or a better solution can be constructed by replace the tail with a better solution to (i', j'))
+            by induction on number of actions of optimal solution, C*(i', j') >= D(i', j') / 2
+            C*(i, j)    = C*(i', j') + max(d(i, i'), d(j, j'))
+                        >= D(i', j') / 2 + max(d(i, i'), d(j, j'))
+                        >= (D(i', j') + d(i, i') + d(j, j')) / 2
+                        >= D(i, j) / 2  // apply triangle inequality twice
+c.  if they cannot stay in a city for a turn (i.e. there's no zero-cost self-cycle for each node)
+        for each bi-partite graph with partitions {A, B}, if i0 ∈ A and j0 ∈ B
+        if (i, j) is a successor of (i0, j0), by definition of bi-partite graph, i ∈ B and j ∈ A
+        similarly, if (i', j') is a successor of (i, j), i ∈ A and j ∈ B
+        since A and B are disjoint, there's no solution to the instance
+    otherwise the shortest path i ~> j must contain infinite edges
+d.  G.E = {(1, 1), (1, 2)}, start state = (1, 2)
+    successors of (1, 2) are (1, 1) and (2, 1)
+    (1, 1) is a goal state where 1 is visited twice by the first friend
+    (2, 1) is symmetric to (1, 2), any state from (2, 1) will visit at least one city twice
+
+3.4
+//  only half of the proof
+//  complete proof can be found in A Modern Treatment of the 15 Puzzle, AF Archer 1999
+//  http://www.cs.cmu.edu/afs/cs/academic/class/15859-f01/www/notes/15-puzzle.pdf
+represent the tiles as an array in row-major order
+the goal state is a sorted array of numbers [1 - 8, E], where E is the empty tile
+let I be the number of inversions in the state, let R be the row number (0-based) of the empty tile in the state
+(I + R) mod 2 is invariant by legal moves:
+    a horizontal move will not change I or R
+    when a tile A is moved downwards to the empty tile:
+        there are three tiles B, C and D between A and the empty tile in row-major order
+        if there are k inversions among (A, B), (A, C) and (A, D), after the move there will be 3 - k inversions
+        I changeed by (3 - k) - k = 3 - 2k, which is odd
+        R changeed by 1, I + R changed by an even number, (I + R) mod 2 is invariant
+the goal state [1, 2, 3, 4, 5, 6, 7, 8, E] has (I + R) mod 2 = 0
+another state [1, 2, 3, 4, 5, 6, 8, 7, E] has (I + R) mod 2 = 1, both partitions are nonempty
+by CLRS, number of inversions can be computed by modified merge sort in O(nlgn)
+treat E as the tile number 9, then deduct the inversions caused by 9 from the result
+search algorithms introduced in this chapter can only find an instance unsolvable after exhausting the state space
+which is n! / 2 for an (n-1)-puzzle, the program might only terminate after years given enough space
+
+3.5
+a queen located left to a column may attack at most 3 squares in the column
+hence there are at least n - 3i possible squares on ith column with n rows
+S(n)    >= Π(n - 3i)
+S^3(n)  >= Π(n - 3i)^3
+        >= Π(n - 3i)(n - 3i - 1)(n - 3i - 2)
+        = n!
+S(n)    >= n^(1/3)
+when n = 30, S(n) >= 10^10, any n greater may exhaust the memory of a personal computer
+
+3.6
+a.  let G be an indirected graph
+    G.V = {i | i is a region on the map}
+    G.E = {(i, j) | i and j are adjacent on the map}
+    state of the problem is an array of length <= |V| of c ∈ Z4
+    where 1 - 4 indicates different colors
+    start state is the empty array []
+    a state [c0 .. ck] is valid if:
+        assign each ci to vertex i, no (i, j) ∈ G.E has ci = cj
+    goal state is a valid state of length |V|
+    for a state [c0, c1 .. ci], a possible action is defined as:
+        result: [c0, c1 .. ci, ci+1] which is valid
+        cost: 0
+b.  state: position of monkey and crates (may be continuous)
+    initial state: implied by the description of the problem
+    goal state: monkey with banana
+    actions: climb / leave the crates, move the crates around, grab the banana
+    cost: unclear
+c.  state: a set of records
+    initial state: the file of records
+    goal state: a singleton set of record
+    actions: for a set of records R:
+        result: R' ⊆ R, the program outputs "illegal input record" when fed R'
+        cost: depends on how the result is computed
+d.  state: amount of water in three jugs
+    initial state: three empty jugs
+    goal state: there's exactly one gallon of water in one of the jugs
+    actions: given w0, w1, w2 as amount of water in jugs, c1, c2 and c3 be their capacities
+        result: set wi = 0, or
+                set wi = ci, or
+                for some i != j, set wi = 0, wj = max(cj, wi + wj)
+        cost: 1
+
+3.7
