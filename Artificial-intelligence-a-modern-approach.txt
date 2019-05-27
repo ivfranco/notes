@@ -445,3 +445,155 @@ d.  state: amount of water in three jugs
         cost: 1
 
 3.7
+a.  both uncountable
+b.  when there are obstacles between two points on a plane, instead of the shortest (straight) path, the robot should 
+    bypass the obstacle by turn away from the shortest path as little as possible, in which case the optimality of 
+    polygon vertices over point on polygon sides and middle of nowhere can be roughly explained by triangle inequality
+    the state space now contains all vertices of obstacles and the start and goal points
+c.  let G be an indirected graph
+    G.V = {i | i is a vertex of an obstacle, the start point or the goal point}
+    G.E = {(i, j) | the straight line between point i and j is not blocked by any obstacle }
+    state: any i ∈ G.V
+    start state: the start point
+    goal state: the goal point
+    possible actions from a point i:
+        result: j for all (i, j) ∈ G.E
+        cost: straight line distance between i and j
+d.  simply shortest path from single vertex after formulation, can be easily solved optimally with linear time and space
+
+3.8
+a.  consider only graph G that, for each states V, there is a path from start state to goal state passing V
+    let start state be s, goal state be g
+    let (v, u) be any transition in the graph, let G' be G without (v, u)
+    let Cm be the maximum cost of any simple path in G'
+    assume an algorithm which didn't examine (v, u) gave an optimal solution to G' with cost C*
+    if the cost of (v, u) < -2Cm + C*, construct a path s ~> v -> u ~> g where s ~> v and u ~> g are simple paths
+    by definition cost of such a path <= 2Cm + c(v, u) < C*
+    hence ignoring any single transition in the graph may result in suboptimal solution
+    an optimal algorithm must examine all transitions in the graph
+b.  it won't help
+    if the negative-cost edge forms a negative cost cycle in the graph
+    then there's no optimal solution to the instance
+c.  the optimal cost of the instance can be arbitrary low, i.e. no optimal solution
+d.  the mental gain from repeatedly visiting the same scenery is diminishing (for sane people)
+    formally the cost of an action is not independent to the history of actions
+    enrich the state space with history of actions / states
+    adjust action costs according to the history to reflect the diminishing gain in reality
+e.  drug abuse
+    the cost of taking drugs may not be significantly negative
+    but the cost of not to take drugs will increase overtime and for each action of taking drugs
+    to a point the drug abuser have no other choice
+    
+3.9
+a.  state:  a five-tuple (M, C, M', C', B), where M, C, M' and C' are integers indicating missionaries and cannibals
+            B are a binary value representing the position of the boat
+    start state: (3, 3, 0, 0, 0)
+    goal state: (0, 0, 3, 3, _)
+    action: transfer at most two people from one side of the river to another while keeping M >= C and M' >= C'
+            if B = 0, only transfer from M, C to M' and C' is valid and vice versa
+            cost is uniform
+b.  ./AI/searching
+    this side: 3M + 3C, other side: 0M + 0C, boat on: This side
+    this side: 2M + 2C, other side: 1M + 1C, boat on: Other side
+    this side: 2M + 3C, other side: 1M + 0C, boat on: This side
+    this side: 2M + 1C, other side: 1M + 2C, boat on: Other side
+    this side: 2M + 2C, other side: 1M + 1C, boat on: This side
+    this side: 1M + 1C, other side: 2M + 2C, boat on: Other side
+    this side: 1M + 2C, other side: 2M + 1C, boat on: This side
+    this side: 1M + 0C, other side: 2M + 3C, boat on: Other side
+    this side: 1M + 1C, other side: 2M + 2C, boat on: This side
+    this side: 0M + 0C, other side: 3M + 3C, boat on: Other side
+    without checking repeated space, the searching will loop forever
+c.  some move in an optimal solution is anti-intuitive
+
+3.10
+state: vertex, atomic description of the moving parts of the environment
+state space: G.V, set of all possible states
+search tree: tree derived from the state graph during searching
+search node: a data structure keeping track of extra information tied to a state
+goal: the destination in the state graph
+action: transitions / edges in the state graph
+transition model: adjacency list from a vertex in the state graph 
+branching factor: out-degree of a vertex in the state graph
+
+3.11
+world state: the state in reality, without abstraction
+state description: abstracted world state percepted and emulated by the agent
+search node: data structure keeping track of state descriptions and else in search algorithm
+none of any two of the above terms are equivalent:
+several world state may correspond to the same state descriptions
+there may be a lot search node for a single state description
+
+3.12
+for a problem with |V| states and branching factor b
+making composite actions of n actions will increase total transitions from |V|b to |V|b^n
+while only speed up the searching n times at best
+the cost is not justified by the return
+
+3.13
+basic: 
+    the frontier contains only the initial state s, path to any other state passes the initial state
+induction:
+    let u be the state expanded next, u is removed from the frontier after the iteration
+    let s ~> v be the path from initial state to an unexplored state before expansion
+    if u is not on s ~> v, as u is the only state removed from the frontier, s ~> v passes a state in the frontier
+    if u is on s ~> v
+        if v = u, v is nolonger unexplored
+        if v != u, the path is s ~> u ~> v, where u ~> v must pass a successor of u
+        by the algorithm, all successors of u are added to the frontier
+
+3.14
+a.  false, depth-first search may be quick to find suboptimal solutions
+    if the initial state has an immediate goal state successor with high cost
+    depth first search may accidentally explore it first and terminate
+    A* search will only explore it after all node with lower-cost is explored
+b.  true, h(n) = 0 is an admissible heuristic for any problem with non-negative costs
+c.  false, not after proper abstraction
+d.  true, breath-first search is ignorant to costs
+e.  false, obvious
+
+3.15
+a.  digraph {
+        0 [label="1"]
+        1 [label="2"]
+        2 [label="3"]
+        3 [label="4"]
+        4 [label="5"]
+        5 [label="6"]
+        6 [label="7"]
+        7 [label="8"]
+        8 [label="9"]
+        9 [label="10"]
+        10 [label="11"]
+        11 [label="12"]
+        12 [label="13"]
+        13 [label="14"]
+        14 [label="15"]
+        0 -> 1
+        0 -> 2
+        1 -> 3
+        1 -> 4
+        2 -> 5
+        2 -> 6
+        3 -> 7
+        3 -> 8
+        4 -> 9
+        4 -> 10
+        5 -> 11
+        5 -> 12
+        6 -> 13
+        6 -> 14
+    }
+b.  BFS:
+        1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+    depth-limited (3):
+        1, 2, 4, 8, 9, 5, 10, 11
+    iterative deepening:
+        1,
+        1, 2, 3,
+        1, 2, 4, 5, 3, 6, 7,
+        1, 2, 4, 8, 9, 5, 10, 11
+c.  reverse transition model has branching factor 1
+    the search will be trivial in reverse order
+d.  see part e
+e.  
