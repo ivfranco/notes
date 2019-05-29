@@ -596,4 +596,36 @@ b.  BFS:
 c.  reverse transition model has branching factor 1
     the search will be trivial in reverse order
 d.  see part e
-e.  
+e.  ./AI/searching
+
+3.16
+a.  state: a railway and a set of unconnected pieces
+    start state: an empty railway and 32 unconnected pieces
+    goal state: a railway with no overlapping and loose ends with no unconnected pieces
+    action: plug one of the unconnected piece to a hole on the railway
+            for unsymmatric pieces there are two ways to plug it to a hole
+    cost: insignificant
+b.  as all goal states are in the same depth (depth 32)
+    DFS will be most memory-efficient without incurring suboptimal time complexity
+    also there's no significant cost, hence no reasonable heuristic to guide the searching
+c.  for there being no loose ends, the number of plugs and holes must match
+    removing any one of the fork pieces then the instance won't meet the prerequisite above
+d.  the railway under construction has at most 3 holes
+    there are 12 + (16 + 2 + 2) * 2 = 52 ways to plug a piece to a hole
+    the maximum branching factor is 52 * 3 = 168, with maximum depth 32 the state space is at most 168^32
+
+3.17
+a.  given a finite program instance, let the set of action costs be C
+    number of subsets of C is also finite
+    hence the minimum positive difference between the sum of any two subsets is greater than a constant ε
+    in graph search, the cost of a path is the sum of a subset of C
+    therefore each iteration of iterative lengthening search will increase the cost limit by ε
+    let the optimal cost be C*, when the cost limit is smaller than C*, there's no solution
+    the algorithm will retry with a greater cost limit
+    when the cost limit is greater or equal to C*, given non-negative costs
+    uniform-cost search, as an optimal search algorithm, will find the optimal solution
+    as C* / ε is finite, the algorithm will definitely terminate
+b.  with unit step costs, ε >= 1
+    d iterations at most
+c.  it depends on the minimum positive difference ε defind above
+d.  

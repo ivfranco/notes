@@ -31,4 +31,33 @@ fn exercise_3_15() {
     }
 
     println!("{:?}", Dot::new(&graph));
+
+    #[derive(Debug)]
+    enum Dir {
+        Left,
+        Right,
+    }
+
+    fn dir(mut n: u32) -> Vec<Dir> {
+        assert!(n >= 1);
+        let mut dirs: Vec<_> = std::iter::from_fn(|| {
+            if n == 1 {
+                None
+            } else {
+                let dir = if n % 2 == 0 { Dir::Left } else { Dir::Right };
+                n /= 2;
+                Some(dir)
+            }
+        })
+        .collect();
+
+        dirs.reverse();
+        dirs
+    }
+
+    println!("{:?}", dir(11));
+}
+
+fn exercise_3_17() {
+    println!("3.17");
 }

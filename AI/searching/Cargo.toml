@@ -6,4 +6,6 @@ edition = "2018"
 
 [dependencies]
 pathfinding = "^1.1"
+rand = "^0.6"
 petgraph = "^0.4"
+num-traits = "^0.2"
