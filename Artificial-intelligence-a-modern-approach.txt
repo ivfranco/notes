@@ -386,16 +386,15 @@ d.  G.E = {(1, 1), (1, 2)}, start state = (1, 2)
 //  http://www.cs.cmu.edu/afs/cs/academic/class/15859-f01/www/notes/15-puzzle.pdf
 represent the tiles as an array in row-major order
 the goal state is a sorted array of numbers [1 - 8, E], where E is the empty tile
-let I be the number of inversions in the state, let R be the row number (0-based) of the empty tile in the state
-(I + R) mod 2 is invariant by legal moves:
-    a horizontal move will not change I or R
+let I be the number of inversions in the state
+I mod 2 is invariant by legal moves:
+    a horizontal move will not change I
     when a tile A is moved downwards to the empty tile:
-        there are three tiles B, C and D between A and the empty tile in row-major order
-        if there are k inversions among (A, B), (A, C) and (A, D), after the move there will be 3 - k inversions
-        I changeed by (3 - k) - k = 3 - 2k, which is odd
-        R changeed by 1, I + R changed by an even number, (I + R) mod 2 is invariant
-the goal state [1, 2, 3, 4, 5, 6, 7, 8, E] has (I + R) mod 2 = 0
-another state [1, 2, 3, 4, 5, 6, 8, 7, E] has (I + R) mod 2 = 1, both partitions are nonempty
+        there are two tiles B and C between A and the empty tile in row-major order
+        if there are k inversions among (A, B), (A, C), after the move there will be 2 - k inversions
+        I changeed by (2 - k) - k = 2 - 2k, which is even
+the goal state [1, 2, 3, 4, 5, 6, 7, 8, E] has I mod 2 = 0
+another state [1, 2, 3, 4, 5, 6, 8, 7, E] has I mod 2 = 1, both partitions are nonempty
 by CLRS, number of inversions can be computed by modified merge sort in O(nlgn)
 treat E as the tile number 9, then deduct the inversions caused by 9 from the result
 search algorithms introduced in this chapter can only find an instance unsolvable after exhausting the state space
@@ -628,4 +627,4 @@ a.  given a finite program instance, let the set of action costs be C
 b.  with unit step costs, ε >= 1
     d iterations at most
 c.  it depends on the minimum positive difference ε defind above
-d.  
+d.  ./AI/searching/ils

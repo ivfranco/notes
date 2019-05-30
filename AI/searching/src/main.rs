@@ -57,7 +57,3 @@ fn exercise_3_15() {
 
     println!("{:?}", dir(11));
 }
-
-fn exercise_3_17() {
-    println!("3.17");
-}

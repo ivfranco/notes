@@ -22,7 +22,22 @@ fn inversions(tiles: &[Tile]) -> usize {
         .sum()
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+fn diff(a: usize, b: usize) -> usize {
+    if a >= b {
+        a - b
+    } else {
+        b - a
+    }
+}
+
+fn manhattan_distance(side: usize, from: usize, to: usize) -> usize {
+    let (from_x, from_y) = (from % side, from / side);
+    let (to_x, to_y) = (to % side, to / side);
+
+    diff(from_x, to_x) + diff(from_y, to_y)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Eight {
     tiles: [Tile; TILES],
 }
@@ -46,10 +61,7 @@ impl Eight {
 
     pub fn solvable(&self) -> bool {
         let inversions = inversions(&self.tiles);
-        dbg!(inversions);
-        let empty_row = self.empty_idx() / SIDE;
-
-        (inversions + empty_row) % 2 == 0
+        inversions % 2 == 0
     }
 
     pub fn successors(&self) -> Vec<Eight> {
@@ -59,6 +71,11 @@ impl Eight {
         // swap empty with a tile above
         if empty_idx >= SIDE {
             swappable.push(empty_idx - SIDE);
+        }
+
+        // swap empty with a tile below
+        if empty_idx < TILES - SIDE {
+            swappable.push(empty_idx + SIDE);
         }
 
         // swap empty with a left tile
@@ -71,11 +88,6 @@ impl Eight {
             swappable.push(empty_idx + 1);
         }
 
-        // swap empty with a tile below
-        if TILES - empty_idx >= SIDE {
-            swappable.push(empty_idx + SIDE);
-        }
-
         swappable
             .into_iter()
             .map(|i| {
@@ -84,6 +96,14 @@ impl Eight {
                 Eight { tiles: succ }
             })
             .collect()
+    }
+
+    pub fn heuristic(&self) -> usize {
+        self.tiles.iter().enumerate().map(|(i, t)| if *t == EMPTY {
+            0
+        } else {
+            manhattan_distance(SIDE, i, *t as usize - 1)
+        }).sum()
     }
 }
 
