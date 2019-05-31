@@ -19,7 +19,7 @@ The Mathematical Objection
     machines cannot solve the halting problem for certain, yet there's no proof whether human can do it better
     modern compilers can sometimes detect infinite loops which are unobvious to human eyes
 The Argument from Consciousness
-    seems to be the most relevant objection today and Turing's refutations on this topic was quite weak
+    seems to be the most relevant objection today and Turing's refutations on this topic were quite weak
     the idea was later expanded by the Chinese room argument
     recent breakthrough in ML and AI research made machines more rational, but not necessarily more humanly
 Arguments from Various Disabilities
@@ -628,3 +628,77 @@ b.  with unit step costs, ε >= 1
     d iterations at most
 c.  it depends on the minimum positive difference ε defind above
 d.  ./AI/searching/ils
+
+3.18
+a state space with branching factor f in which all state at depth d is a goal state
+DFS will always terminate in O(d) time, while IDDFS algorithm have to analysis Ω(f^d) states at least
+
+3.19
+//  skipped
+//  tracing every link on a page is extremely complicated nowadays with all the front end arcane magics
+//  the state space is infinite (dynamic generated pages)
+astar with heuristic based on common parts of the url
+one (cheat) strategy may be heading a search engine from the first page then search the url of the second page
+bidirectional search is infeasible as there's no proper way to generate complete of a predecessor
+even with a search engine (single page applications, js user interfaces e.g. React, etc.)
+
+3.20
+a.  state space is tiny, any algorithm will suffice
+    a possible admissible heuristic is f(n) = dirty squares * 2 - 1
+    each square requires at least two actions (move to and suck) to clean
+    except the square under the cleaner which can be cleaned by a single action
+    non-negative cost actions only, graph search is preferable
+b.  %%%
+    ...
+    ...
+    Cleaner: (1, 1)
+    %%%
+    ...
+    ...
+    Cleaner: (1, 0)
+    %.%
+    ...
+    ...
+    Cleaner: (1, 0)
+    %.%
+    ...
+    ...
+    Cleaner: (0, 0)
+    ..%
+    ...
+    ...
+    Cleaner: (0, 0)
+    ..%
+    ...
+    ...
+    Cleaner: (1, 0)
+    ..%
+    ...
+    ...
+    Cleaner: (2, 0)
+    ...
+    ...
+    ...
+    Cleaner: (2, 0)
+c.  search cost is negligible in such a tiny state space (a few milliseconds at most)
+    avarage cost of 1000 samples is 4.493
+d.  the astar search agent is optimal
+e.  state space has size 2^(n^2) * n^2, the search cost will dominate move cost quickly
+    reflex agent will outperform the search agent for any moderately large n
+
+3.21
+a.  when the transition model has uniform cost for all actions
+    g(n) = depth of the node n, the shallowest node will be expanded next
+    that's exactly the behavior of BFS
+b.  assume the depth of a node is stored in the node itself
+    let f(n) = -n.depth, the deepest node will always be expanded next
+    which is exactly the behavior of DFS
+c.  when h(n) = 0, f(n) = g(n) + f(n) = g(n)
+
+3.22
+//  skipped, in doubt whether the description of the algorithm is complete
+
+3.23
+//  skipped
+
+3.24

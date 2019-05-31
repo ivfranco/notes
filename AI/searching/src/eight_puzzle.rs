@@ -1,6 +1,7 @@
-use rand::distributions::{Distribution, Standard};
+use crate::utils::possible_dests;
 use rand::prelude::*;
 use std::collections::HashSet;
+use rand::distributions::{Distribution, Standard};
 
 type Tile = u32;
 const EMPTY: Tile = 0;
@@ -66,29 +67,8 @@ impl Eight {
 
     pub fn successors(&self) -> Vec<Eight> {
         let empty_idx = self.empty_idx();
-        let mut swappable: Vec<usize> = vec![];
 
-        // swap empty with a tile above
-        if empty_idx >= SIDE {
-            swappable.push(empty_idx - SIDE);
-        }
-
-        // swap empty with a tile below
-        if empty_idx < TILES - SIDE {
-            swappable.push(empty_idx + SIDE);
-        }
-
-        // swap empty with a left tile
-        if empty_idx % SIDE != 0 {
-            swappable.push(empty_idx - 1);
-        }
-
-        // swap empty with a right tile
-        if empty_idx % SIDE != SIDE - 1 {
-            swappable.push(empty_idx + 1);
-        }
-
-        swappable
+        possible_dests(empty_idx, SIDE, TILES)
             .into_iter()
             .map(|i| {
                 let mut succ = self.tiles;
@@ -99,11 +79,17 @@ impl Eight {
     }
 
     pub fn heuristic(&self) -> usize {
-        self.tiles.iter().enumerate().map(|(i, t)| if *t == EMPTY {
-            0
-        } else {
-            manhattan_distance(SIDE, i, *t as usize - 1)
-        }).sum()
+        self.tiles
+            .iter()
+            .enumerate()
+            .map(|(i, t)| {
+                if *t == EMPTY {
+                    0
+                } else {
+                    manhattan_distance(SIDE, i, *t as usize - 1)
+                }
+            })
+            .sum()
     }
 }
 

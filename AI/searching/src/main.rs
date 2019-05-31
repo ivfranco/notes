@@ -1,10 +1,12 @@
 use petgraph::dot::Dot;
 use petgraph::prelude::*;
 use searching::river_crossing::solve_river_crossing;
+use searching::vaccum_cleaner::{Cleanliness, Room};
 
 fn main() {
     exercise_3_9();
     exercise_3_15();
+    exercise_3_20();
 }
 
 fn exercise_3_9() {
@@ -17,6 +19,7 @@ fn exercise_3_9() {
 
 fn exercise_3_15() {
     println!("3.15");
+
     let mut graph: GraphMap<u32, (), Directed> = GraphMap::new();
 
     for i in 1..=15 {
@@ -56,4 +59,31 @@ fn exercise_3_15() {
     }
 
     println!("{:?}", dir(11));
+}
+
+fn exercise_3_20() {
+    use Cleanliness::*;
+
+    println!("3.20");
+
+    let fixed = Room::new(
+        (1, 1),
+        3,
+        vec![
+            Dirty, Dirty, Dirty, Clean, Clean, Clean, Clean, Clean, Clean,
+        ],
+    );
+
+    for room in fixed.solve().0 {
+        print!("{:?}", room);
+    }
+
+    const SAMPLE: usize = 1000;
+
+    let sum = std::iter::from_fn(|| Some(Room::new_random(3, 0.2)))
+        .take(SAMPLE)
+        .map(|room| room.solve().1)
+        .sum::<usize>();
+
+    println!("avarage cost of {} samples is {}", SAMPLE, sum as f64 / SAMPLE as f64);
 }
