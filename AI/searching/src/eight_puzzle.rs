@@ -1,7 +1,8 @@
 use crate::utils::possible_dests;
+use rand::distributions::{Distribution, Standard};
 use rand::prelude::*;
 use std::collections::HashSet;
-use rand::distributions::{Distribution, Standard};
+use pathfinding::prelude::astar;
 
 type Tile = u32;
 const EMPTY: Tile = 0;
@@ -38,7 +39,7 @@ fn manhattan_distance(side: usize, from: usize, to: usize) -> usize {
     diff(from_x, to_x) + diff(from_y, to_y)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub struct Eight {
     tiles: [Tile; TILES],
 }
@@ -91,7 +92,33 @@ impl Eight {
             })
             .sum()
     }
+
+    pub fn solve(&self) -> Option<(Vec<Self>, usize)> {
+        astar(
+            self,
+            |puzzle| puzzle.successors().into_iter().map(|succ| (succ, 1)),
+            Eight::heuristic,
+            Eight::is_goal,
+        )
+    }
 }
+
+impl std::fmt::Debug for Eight {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+        for chunk in self.tiles.chunks_exact(3) {
+            for tile in chunk {
+                if *tile == EMPTY {
+                    write!(f, ".")?;
+                } else {
+                    write!(f, "{}", tile)?;
+                }
+            }
+            writeln!(f)?;
+        }
+        Ok(())
+    }
+}
+
 
 impl Distribution<Eight> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Eight {

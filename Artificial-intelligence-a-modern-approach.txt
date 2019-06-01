@@ -693,12 +693,120 @@ a.  when the transition model has uniform cost for all actions
 b.  assume the depth of a node is stored in the node itself
     let f(n) = -n.depth, the deepest node will always be expanded next
     which is exactly the behavior of DFS
-c.  when h(n) = 0, f(n) = g(n) + f(n) = g(n)
+c.  when h(n) = 0, f(n) = g(n) + f(n) = g(n), as well as uniform-cost search
 
 3.22
-//  skipped, in doubt whether the description of the algorithm is complete
+//  this line of the pseudo-code
+//      (result, best.f) ← RBFS(problem, best, min(f.limit, alternative))
+//  contains a very sneaky assignment to best.f
+//  without this assignment the implementation will blow the stack up
+./AI/searching/src/rbfs.rs
+much slower
+partially due to naive unoptimized RBFS vs A* from an optimized extern crate
+also RBFS is a tree search, exploring much more redundant states compared to A*
 
 3.23
 //  skipped
 
 3.24
+start state: 0
+goal state: 3
+costs:
+    0 -> 1: 0
+    1 -> 2: 0
+    0 -> 2: 1
+    2 -> 3: 2
+heuristics:
+    1: 2
+    2: 0
+    3: 0
+frontier = [1, 2] after expanding start state
+g(2) + h(2) = 1 < g(1) + h(1), 2 will be expanded next
+the path 0 -> 1 -> 2 will never be expanded as 0 -> 2 adds 2 to explored set
+
+3.25
+when w = 0, f(n) = 2g(n), the algorithm is uniform cost search, not complete in tree search
+when 0 < w < 2, f(n) = (2 - w)(g(n) + w * h(n) / (2 - w))
+the algorithm is A* search with heuristic w * h(n) / (2 - w)
+depending on h(n), this algorithm may or may not be complete
+when w = 2, f(n) = 2h(n), the algorithm is greedy best first search, not complete in tree search
+when h(n) is admissible, for 0 <= w / (2 - w) <= 1, w <= 1, (w / (2 - w))h(n) is also admissible
+
+3.26
+a.  4
+b.  4k in graph search
+    2(k + 1)(k + 2) in tree search
+c.  Θ(4^(x + y))
+d.  2(x + y + 1)(x + y + 2)
+e.  true (manhattan distance)
+f.  all nodes in the rectance((0, 0), (x, y)), (x + 1)(y + 1) nodes
+g.  true, shortest path p0 ~> p1 may only increase when some link is removed
+h.  no, if there is a link ((0, 0), (x, y)) when |x| + |y| > 1, the heuristic is no longer admissible
+
+3.27
+a.  A(n^2, n) = (n^2)! / n!
+b.  <= 5^n
+c.  manhattan distance
+    it cannot move more than one grid without another vehicle
+d.  (i) is not admissible:
+        when n = 2, Σh = 4 but the optimal solution has cost 2
+    (ii) is not admissible:
+        given a state:
+            . 2 3
+            . . 1
+            . . .
+        the goal state is:
+            3 2 1
+            . . .
+            . . .
+        max{h} = 2, but the state can reach the goal state in a single action
+    (iii) is admissible:
+        let s be an arbitrary state, s' be one of its successor
+        let h = (h1 .. hn) be heuristics in state s, h' = (h1' .. hn') be heuristics in s'
+        let hi = min{h},
+            if the ith vehicle stay put, hi' = hi, min{h'} >= min{h}
+            if the ith vehicle moves normally, hi' >= hi - 1, min{h'} >= min{h} - 1
+            if the ith vehicle hops over the jth car, hj' = hj >= min{h}, min{h'} >= min{h}
+        thus an action can at most deduce min{h} by 1
+        the goal state has min{h} = 0, if (s0 .. sk) is an optimal solution, h(s0) <= k
+
+3.28
+a totally random heuristic can easily lead A* to suboptimal solutions
+./AI/searching
+the optimal solution has f(n*) = g(n*) + h(n*) <= C* + c
+any node explored before the optimal solution must have f(n) <= f(n*) = C* + c
+assume h(n) is non-negative, f(n) = g(n) + h(n) >= g(n), g(n) <= C* + c
+
+3.29
+h(n) <= c(n, a, n') + h(n')
+for an arbitrary state n0, let (n0 .. nk) be an optimal solution
+optimal cost is sum of action costs Σc(ni, ai, ni+1) = C*
+for each pair (ni, ni+1), h(ni) <= c(ni, ai, ni+1) + h(ni+1)
+    Σh(ni) <= Σ(c(ni, ai, ni+1) + h(ni+1))
+    // all but h(n0) and h(nk) cancels each other
+    h(n0) <= Σ(c(ni, ai, ni+1)) + h(nk)
+    h(n0) <= C* + 0 = C*
+the heuristic in exercise 3.24
+
+3.30
+a.  a relaxed version of TSP where the tour does not have to be a hamiltonian cycle
+b.  no description for straight line distance as a heuristic function provided
+c.  cities: random points from [0, 1]^2
+    start city: one of the cities
+    a state keeps track of the current position of the salesman and the traveled city 
+d.  refer CLRS
+
+3.31
+moving a square to the blank square can at most fix one misplaced square
+for a solvable puzzle
+    4 5 3
+    1 2 6
+    7 8 .
+h1 = 4, h2 = 4, Gaschnig's heuristic = 5, optimal solution has cost 16
+if a square i is misplaced, it occupies the tile of another square j, which occupies tile of square k, ..
+these misplacements therefore forms cycles
+each misplacement cycle of length k requires k actions to fix if the blank square is on the cycle
+otherwise k + 1 actions
+
+3.32
+//  skipped

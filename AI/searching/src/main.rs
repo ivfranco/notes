@@ -1,12 +1,17 @@
 use petgraph::dot::Dot;
 use petgraph::prelude::*;
-use searching::river_crossing::solve_river_crossing;
+use rand::prelude::*;
+use searching::eight_puzzle::Eight;
 use searching::vaccum_cleaner::{Cleanliness, Room};
+use searching::river_crossing::solve_river_crossing;
+use pathfinding::prelude::astar;
 
 fn main() {
     exercise_3_9();
     exercise_3_15();
     exercise_3_20();
+    exercise_3_28();
+    exercise_3_31();
 }
 
 fn exercise_3_9() {
@@ -85,5 +90,42 @@ fn exercise_3_20() {
         .map(|room| room.solve().1)
         .sum::<usize>();
 
-    println!("avarage cost of {} samples is {}", SAMPLE, sum as f64 / SAMPLE as f64);
+    println!(
+        "avarage cost of {} samples is {}",
+        SAMPLE,
+        sum as f64 / SAMPLE as f64
+    );
+}
+
+fn exercise_3_28() {
+    println!("3.28");
+
+    loop {
+        let puzzle = random::<Eight>();
+        let (_, optimal_cost) = astar(
+            &puzzle,
+            |puzzle| puzzle.successors().into_iter().map(|succ| (succ, 1)),
+            Eight::heuristic,
+            Eight::is_goal,
+        ).unwrap();
+        let (_, over_cost) = astar(
+            &puzzle,
+            |puzzle| puzzle.successors().into_iter().map(|succ| (succ, 1)),
+            |_| random(),
+            Eight::is_goal,
+        ).unwrap();
+
+        if over_cost > optimal_cost {
+            print!("for start state\n{:?}", puzzle);
+            println!("optimal cost is {}, with random heuristic {}", optimal_cost, over_cost);
+            break;
+        }
+    }
+}
+
+fn exercise_3_31() {
+    println!("3.31");
+
+    let (_, cost) = Eight::new([4, 5, 3, 1, 2, 6, 7, 8, 0]).solve().unwrap();
+    println!("{}", cost);
 }
