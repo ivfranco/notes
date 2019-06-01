@@ -1,8 +1,8 @@
 use num_traits::identities::Zero;
-use std::rc::Rc;
 use std::cmp::{self, Ordering};
 use std::collections::{BinaryHeap, HashSet};
 use std::hash::Hash;
+use std::rc::Rc;
 
 #[derive(Clone)]
 struct SmallestCost<N, C> {
@@ -16,7 +16,7 @@ impl<N, C> SmallestCost<N, C> {
         Rc::new(SmallestCost {
             parent: Some(parent),
             state,
-            cost
+            cost,
         })
     }
 
@@ -157,8 +157,8 @@ where
 #[test]
 fn eight_puzzle_test() {
     use crate::eight_puzzle::Eight;
-    use rand::prelude::*;
     use pathfinding::directed::astar::astar;
+    use rand::prelude::*;
 
     let puzzle = random();
 
@@ -166,14 +166,16 @@ fn eight_puzzle_test() {
         &puzzle,
         |state| state.successors().into_iter().map(|succ| (succ, 1)),
         Eight::is_goal,
-    ).unwrap();
+    )
+    .unwrap();
 
     let (_, astar_cost) = astar(
         &puzzle,
         |state| state.successors().into_iter().map(|succ| (succ, 1)),
         Eight::heuristic,
         Eight::is_goal,
-    ).unwrap();
+    )
+    .unwrap();
 
     assert_eq!(ils_cost, astar_cost);
 }

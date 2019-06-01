@@ -1,10 +1,10 @@
+use pathfinding::prelude::astar;
 use petgraph::dot::Dot;
 use petgraph::prelude::*;
 use rand::prelude::*;
 use searching::eight_puzzle::Eight;
-use searching::vaccum_cleaner::{Cleanliness, Room};
 use searching::river_crossing::solve_river_crossing;
-use pathfinding::prelude::astar;
+use searching::vaccum_cleaner::{Cleanliness, Room};
 
 fn main() {
     exercise_3_9();
@@ -107,17 +107,22 @@ fn exercise_3_28() {
             |puzzle| puzzle.successors().into_iter().map(|succ| (succ, 1)),
             Eight::heuristic,
             Eight::is_goal,
-        ).unwrap();
+        )
+        .unwrap();
         let (_, over_cost) = astar(
             &puzzle,
             |puzzle| puzzle.successors().into_iter().map(|succ| (succ, 1)),
             |_| random(),
             Eight::is_goal,
-        ).unwrap();
+        )
+        .unwrap();
 
         if over_cost > optimal_cost {
             print!("for start state\n{:?}", puzzle);
-            println!("optimal cost is {}, with random heuristic {}", optimal_cost, over_cost);
+            println!(
+                "optimal cost is {}, with random heuristic {}",
+                optimal_cost, over_cost
+            );
             break;
         }
     }

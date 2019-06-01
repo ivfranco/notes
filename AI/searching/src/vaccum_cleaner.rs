@@ -1,6 +1,6 @@
 use crate::utils::possible_dests;
-use rand::prelude::*;
 use pathfinding::prelude::astar;
+use rand::prelude::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Cleanliness {
@@ -31,7 +31,11 @@ pub struct Room {
 }
 
 impl Room {
-    pub fn new((cleaner_x, cleaner_y): (usize, usize), width: usize, squares: Vec<Cleanliness>) -> Self {
+    pub fn new(
+        (cleaner_x, cleaner_y): (usize, usize),
+        width: usize,
+        squares: Vec<Cleanliness>,
+    ) -> Self {
         assert!(
             cleaner_x < width && cleaner_y < squares.len() / width,
             "Room new: initial position of cleaner out of bound"
@@ -109,7 +113,8 @@ impl Room {
             |state| state.successors().into_iter().zip(std::iter::repeat(1)),
             Room::heuristic,
             Room::is_goal,
-        ).unwrap()
+        )
+        .unwrap()
     }
 }
 
@@ -119,6 +124,11 @@ impl std::fmt::Debug for Room {
             let line: String = chunk.iter().cloned().map(Cleanliness::char).collect();
             writeln!(f, "{}", line)?;
         }
-        writeln!(f, "Cleaner: ({}, {})", self.cleaner % self.width, self.cleaner / self.width)
+        writeln!(
+            f,
+            "Cleaner: ({}, {})",
+            self.cleaner % self.width,
+            self.cleaner / self.width
+        )
     }
 }

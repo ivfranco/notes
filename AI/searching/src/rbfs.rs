@@ -1,9 +1,9 @@
 use num_traits::identities::Zero;
+use std::cell::RefCell;
 use std::cmp::{self, Ordering};
 use std::collections::BinaryHeap;
 use std::hash::Hash;
 use std::rc::Rc;
-use std::cell::RefCell;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum OrInfinite<C> {
@@ -23,7 +23,12 @@ struct Node<N, C> {
 }
 
 impl<N, C> Node<N, C> {
-    fn new_shared(parent: SharedNode<N, C>, state: N, cost: C, memo: OrInfinite<C>) -> SharedNode<N, C> {
+    fn new_shared(
+        parent: SharedNode<N, C>,
+        state: N,
+        cost: C,
+        memo: OrInfinite<C>,
+    ) -> SharedNode<N, C> {
         Rc::new(RefCell::new(Node {
             parent: Some(parent),
             state,
@@ -172,8 +177,8 @@ where
 #[test]
 fn eight_puzzle_test() {
     use crate::eight_puzzle::Eight;
-    use rand::prelude::*;
     use pathfinding::directed::astar::astar;
+    use rand::prelude::*;
 
     let puzzle = random();
 
@@ -182,14 +187,16 @@ fn eight_puzzle_test() {
         |state| state.successors().into_iter().map(|succ| (succ, 1)),
         Eight::heuristic,
         Eight::is_goal,
-    ).unwrap();
+    )
+    .unwrap();
 
     let (_, astar_cost) = astar(
         &puzzle,
         |state| state.successors().into_iter().map(|succ| (succ, 1)),
         Eight::heuristic,
         Eight::is_goal,
-    ).unwrap();
+    )
+    .unwrap();
 
     assert_eq!(rbfs_cost, astar_cost);
 }

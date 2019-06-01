@@ -1,8 +1,8 @@
 use crate::utils::possible_dests;
+use pathfinding::prelude::astar;
 use rand::distributions::{Distribution, Standard};
 use rand::prelude::*;
 use std::collections::HashSet;
-use pathfinding::prelude::astar;
 
 type Tile = u32;
 const EMPTY: Tile = 0;
@@ -118,7 +118,6 @@ impl std::fmt::Debug for Eight {
         Ok(())
     }
 }
-
 
 impl Distribution<Eight> for Standard {
     fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Eight {
