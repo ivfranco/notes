@@ -1,9 +1,8 @@
+use crate::min_heap::MinHeap;
+use indexmap::IndexSet;
 use num_traits::identities::Zero;
-use std::cell::RefCell;
-use std::cmp::{self, Ordering};
-use std::collections::BinaryHeap;
+use std::cmp;
 use std::hash::Hash;
-use std::rc::Rc;
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 enum OrInfinite<C> {
@@ -13,87 +12,6 @@ enum OrInfinite<C> {
 
 use OrInfinite::*;
 
-type SharedNode<N, C> = Rc<RefCell<Node<N, C>>>;
-
-struct Node<N, C> {
-    parent: Option<SharedNode<N, C>>,
-    state: N,
-    cost: C,
-    memo: OrInfinite<C>,
-}
-
-impl<N, C> Node<N, C> {
-    fn new_shared(
-        parent: SharedNode<N, C>,
-        state: N,
-        cost: C,
-        memo: OrInfinite<C>,
-    ) -> SharedNode<N, C> {
-        Rc::new(RefCell::new(Node {
-            parent: Some(parent),
-            state,
-            cost,
-            memo,
-        }))
-    }
-
-    fn new_init_shared(state: N) -> SharedNode<N, C>
-    where
-        C: Zero,
-    {
-        Rc::new(RefCell::new(Node {
-            parent: None,
-            state,
-            cost: C::zero(),
-            memo: Finite(C::zero()),
-        }))
-    }
-
-    fn solution(&self) -> Vec<N>
-    where
-        N: Clone,
-    {
-        let mut path = vec![self.state.clone()];
-        let mut node = self.parent.clone();
-        while let Some(next) = node {
-            path.push(next.borrow().state.clone());
-            node = next.borrow().parent.clone();
-        }
-
-        path.reverse();
-        path
-    }
-}
-
-impl<N, C> PartialEq for Node<N, C>
-where
-    C: PartialEq,
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.memo == other.memo
-    }
-}
-
-impl<N, C> Eq for Node<N, C> where C: Eq {}
-
-impl<N, C> PartialOrd for Node<N, C>
-where
-    C: Eq + PartialOrd,
-{
-    fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
-        self.memo.partial_cmp(&rhs.memo).map(Ordering::reverse)
-    }
-}
-
-impl<N, C> Ord for Node<N, C>
-where
-    C: Eq + Ord,
-{
-    fn cmp(&self, rhs: &Self) -> Ordering {
-        self.memo.cmp(&rhs.memo).reverse()
-    }
-}
-
 enum SearchResult<N, C> {
     Success(Vec<N>, C),
     Failed(OrInfinite<C>),
@@ -101,51 +19,139 @@ enum SearchResult<N, C> {
 
 use SearchResult::*;
 
-fn rbfs<N, C, FN, FH, FS, IN>(
-    start: SharedNode<N, C>,
-    successors: &mut FN,
-    heuristic: &mut FH,
-    successful: &mut FS,
-    limit: OrInfinite<C>,
-) -> SearchResult<N, C>
+type NodeID = usize;
+type StateID = usize;
+
+#[derive(Clone, Copy)]
+struct RBFSNode<C> {
+    parent: Option<NodeID>,
+    state: StateID,
+    cost: C,
+}
+
+impl<C> RBFSNode<C>
+where
+    C: Zero,
+{
+    fn new_init(state: StateID) -> Self {
+        RBFSNode {
+            parent: None,
+            state,
+            cost: C::zero(),
+        }
+    }
+
+    fn new(parent: NodeID, state: StateID, cost: C) -> Self {
+        RBFSNode {
+            parent: Some(parent),
+            state,
+            cost,
+        }
+    }
+}
+
+struct RBFS<N, C> {
+    nodes: Vec<RBFSNode<C>>,
+    states: IndexSet<N>,
+}
+
+impl<N, C> RBFS<N, C>
 where
     N: Clone + Eq + Hash,
     C: Zero + Ord + Copy,
-    FN: FnMut(&N) -> IN,
-    IN: IntoIterator<Item = (N, C)>,
-    FH: FnMut(&N) -> C,
-    FS: FnMut(&N) -> bool,
 {
-    if successful(&start.borrow().state) {
-        let path = start.borrow().solution();
-        return Success(path, start.borrow().cost);
+    fn new(start: N) -> Self {
+        let mut states = IndexSet::new();
+        let (id, _) = states.insert_full(start);
+
+        RBFS {
+            nodes: vec![RBFSNode::new_init(id)],
+            states,
+        }
     }
 
-    let mut succs: BinaryHeap<SharedNode<N, C>> = successors(&start.borrow().state)
-        .into_iter()
-        .map(|(state, step_cost)| {
-            let cost = start.borrow().cost + step_cost;
-            let memo = cmp::max(Finite(cost + heuristic(&state)), start.borrow().memo);
-            Node::new_shared(start.clone(), state, cost, memo)
-        })
-        .collect();
-
-    while let Some(best) = succs.pop() {
-        if best.borrow().memo > limit {
-            return Failed(best.borrow().memo);
-        }
-
-        let alt_memo = succs.peek().map_or(Infinite, |node| node.borrow().memo);
-        let next_limit = cmp::min(limit, alt_memo);
-        match rbfs(best.clone(), successors, heuristic, successful, next_limit) {
-            s @ Success(..) => return s,
-            Failed(memo) => best.borrow_mut().memo = memo,
-        }
-
-        succs.push(best);
+    fn push_node(&mut self, node: RBFSNode<C>) -> NodeID {
+        let id = self.nodes.len();
+        self.nodes.push(node);
+        id
     }
 
-    Failed(Infinite)
+    fn state_id(&mut self, state: N) -> StateID {
+        if let Some((id, _)) = self.states.get_full(&state) {
+            id
+        } else {
+            let (id, _) = self.states.insert_full(state);
+            id
+        }
+    }
+
+    fn get_state(&self, id: StateID) -> &N {
+        self.states.get_index(id).unwrap()
+    }
+
+    fn path(&self, i: NodeID) -> Vec<N> {
+        let mut id = Some(i);
+        let mut path = vec![];
+
+        while let Some(i) = id {
+            let node = &self.nodes[i];
+            id = node.parent;
+            path.push(self.get_state(node.state).clone());
+        }
+
+        path.reverse();
+        path
+    }
+
+    fn search<FN, FH, FS, IN>(
+        &mut self,
+        start_id: NodeID,
+        start_memo: OrInfinite<C>,
+        successors: &mut FN,
+        heuristic: &mut FH,
+        successful: &mut FS,
+        limit: OrInfinite<C>,
+    ) -> SearchResult<N, C>
+    where
+        FN: FnMut(&N) -> IN,
+        IN: IntoIterator<Item = (N, C)>,
+        FH: FnMut(&N) -> C,
+        FS: FnMut(&N) -> bool,
+    {
+        let node = self.nodes[start_id];
+        let start = self.get_state(node.state).clone();
+        if successful(&start) {
+            return Success(self.path(start_id), node.cost);
+        }
+
+        let mut succs: MinHeap<OrInfinite<C>, NodeID> = MinHeap::new();
+
+        for (state, step_cost) in successors(&start) {
+            let cost = node.cost + step_cost;
+            let memo = cmp::max(Finite(cost + heuristic(&state)), start_memo);
+            let state_id = self.state_id(state);
+            let succ = RBFSNode::new(start_id, state_id, cost);
+            let succ_id = self.push_node(succ);
+            succs.push(memo, succ_id);
+        }
+
+        while let Some((best_memo, best_id)) = succs.pop() {
+            if best_memo > limit {
+                return Failed(best_memo);
+            }
+
+            let alt_memo = succs.peek().map_or(Infinite, |(alt_memo, _)| *alt_memo);
+            let next_limit = cmp::min(limit, alt_memo);
+            match self.search(
+                best_id, best_memo, successors, heuristic, successful, next_limit,
+            ) {
+                s @ Success(..) => return s,
+                Failed(memo) => succs.push(memo, best_id),
+            }
+        }
+
+        Failed(Infinite)
+    }
 }
 
 pub fn recursive_best_first_search<N, C, FN, FH, FS, IN>(
@@ -162,15 +168,10 @@ where
     FH: FnMut(&N) -> C,
     FS: FnMut(&N) -> bool,
 {
-    match rbfs(
-        Node::new_init_shared(start.clone()),
-        &mut successors,
-        &mut heuristic,
-        &mut successful,
-        Infinite,
-    ) {
+    let mut rbfs_env = RBFS::new(start.clone());
+    match rbfs_env.search(0, Finite(C::zero()), &mut successors, &mut heuristic, &mut successful, Infinite) {
         Success(path, cost) => Some((path, cost)),
-        _ => None,
+        Failed(..) => None,
     }
 }
 
