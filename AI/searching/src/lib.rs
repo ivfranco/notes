@@ -1,7 +1,10 @@
 pub mod eight_puzzle;
+pub mod genetic;
+pub mod hill_climbing;
 pub mod ils;
+mod min_heap;
 pub mod rbfs;
 pub mod river_crossing;
+pub mod tsp;
 mod utils;
 pub mod vaccum_cleaner;
-mod min_heap;

@@ -169,7 +169,14 @@ where
     FS: FnMut(&N) -> bool,
 {
     let mut rbfs_env = RBFS::new(start.clone());
-    match rbfs_env.search(0, Finite(C::zero()), &mut successors, &mut heuristic, &mut successful, Infinite) {
+    match rbfs_env.search(
+        0,
+        Finite(C::zero()),
+        &mut successors,
+        &mut heuristic,
+        &mut successful,
+        Infinite,
+    ) {
         Success(path, cost) => Some((path, cost)),
         Failed(..) => None,
     }

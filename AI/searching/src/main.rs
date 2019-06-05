@@ -1,10 +1,18 @@
+#![allow(dead_code)]
+
 use pathfinding::prelude::astar;
-use petgraph::dot::Dot;
-use petgraph::prelude::*;
+
+use petgraph::{dot::Dot, prelude::*};
+
 use rand::prelude::*;
-use searching::eight_puzzle::Eight;
-use searching::river_crossing::solve_river_crossing;
-use searching::vaccum_cleaner::{Cleanliness, Room};
+
+use searching::{
+    eight_puzzle::Eight,
+    hill_climbing::hill_climbing,
+    river_crossing::solve_river_crossing,
+    tsp::{self, TSP},
+    vaccum_cleaner::{Cleanliness, Room},
+};
 
 fn main() {
     exercise_3_9();
@@ -12,6 +20,7 @@ fn main() {
     exercise_3_20();
     exercise_3_28();
     exercise_3_31();
+    exercise_4_3();
 }
 
 fn exercise_3_9() {
@@ -133,4 +142,28 @@ fn exercise_3_31() {
 
     let (_, cost) = Eight::new([4, 5, 3, 1, 2, 6, 7, 8, 0]).solve().unwrap();
     println!("{}", cost);
+}
+
+fn exercise_4_3() {
+    println!("4.3");
+
+    const SAMPLE: usize = 100;
+
+    let avg_ratio: f64 = (0..SAMPLE)
+        .map(|_| {
+            let map: tsp::Map = random();
+            let start = TSP::new(0, &map);
+
+            let optimal_cost = start.solve().cost();
+            let local_maxima_cost = hill_climbing(&start, TSP::successors, TSP::heuristic).cost();
+
+            (local_maxima_cost / optimal_cost).into_inner()
+        })
+        .sum::<f64>()
+        / (SAMPLE as f64);
+
+    println!(
+        "average cost ratio over {} samples is {}",
+        SAMPLE, avg_ratio
+    );
 }

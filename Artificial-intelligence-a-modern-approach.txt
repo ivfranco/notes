@@ -810,3 +810,23 @@ otherwise k + 1 actions
 
 3.32
 //  skipped
+
+4.1
+a.  simple hill-climbing search
+b.  BFS if no information are shared between threads
+c.  first-choice hill climbing
+d.  random walk
+e.  random walk (with mutations instead of successors from actions)
+
+4.2
+change from 3.16:
+when connecting the next piece to the track, the piece can be rotated by an angle a in the range [-10, 10]
+an angle a is accepted as the next state with probability e^(a/T), where T = schedule(t) is a function on time
+
+4.3
+a.  ./AI/searching
+    average cost ratio over 1000 samples is 1.2425902960619555
+b.  // oddly nowhere in the paper mentioned the fitness function they used
+    // skipped
+
+4.4

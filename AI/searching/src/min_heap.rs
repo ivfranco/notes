@@ -1,6 +1,5 @@
 /// min heap with seperated key and value
 /// a wrapper around std::collections::BinaryHeap
-
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -9,8 +8,9 @@ struct Pair<K, V> {
     value: V,
 }
 
-impl<K, V> PartialEq for Pair<K, V> 
-where K: PartialEq 
+impl<K, V> PartialEq for Pair<K, V>
+where
+    K: PartialEq,
 {
     fn eq(&self, other: &Self) -> bool {
         self.key == other.key
@@ -20,7 +20,8 @@ where K: PartialEq
 impl<K, V> Eq for Pair<K, V> where K: Eq {}
 
 impl<K, V> PartialOrd for Pair<K, V>
-where K: Eq + PartialOrd
+where
+    K: Eq + PartialOrd,
 {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
         self.key.partial_cmp(&rhs.key).map(Ordering::reverse)
@@ -28,7 +29,8 @@ where K: Eq + PartialOrd
 }
 
 impl<K, V> Ord for Pair<K, V>
-where K: Eq + Ord
+where
+    K: Eq + Ord,
 {
     fn cmp(&self, rhs: &Self) -> Ordering {
         self.key.cmp(&rhs.key).reverse()
@@ -39,8 +41,9 @@ pub struct MinHeap<K, V> {
     heap: BinaryHeap<Pair<K, V>>,
 }
 
-impl<K, V> MinHeap<K, V> 
-where K: Eq + Ord 
+impl<K, V> MinHeap<K, V>
+where
+    K: Eq + Ord,
 {
     pub fn new() -> Self {
         MinHeap {
