@@ -24,3 +24,11 @@ where
 
     dests
 }
+
+pub fn diff(a: usize, b: usize) -> usize {
+    if a >= b {
+        a - b
+    } else {
+        b - a
+    }
+}

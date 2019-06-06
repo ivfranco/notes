@@ -1,14 +1,14 @@
 #![allow(dead_code)]
 
 use pathfinding::prelude::astar;
-
 use petgraph::{dot::Dot, prelude::*};
-
 use rand::prelude::*;
+use std::time::{Duration, Instant};
 
 use searching::{
     eight_puzzle::Eight,
-    hill_climbing::hill_climbing,
+    eight_queens::Queens,
+    local_search::{first_choice, random_restart, simulated_annealing, steepest_ascent},
     river_crossing::solve_river_crossing,
     tsp::{self, TSP},
     vaccum_cleaner::{Cleanliness, Room},
@@ -21,6 +21,7 @@ fn main() {
     exercise_3_28();
     exercise_3_31();
     exercise_4_3();
+    exercise_4_4();
 }
 
 fn exercise_3_9() {
@@ -155,7 +156,7 @@ fn exercise_4_3() {
             let start = TSP::new(0, &map);
 
             let optimal_cost = start.solve().cost();
-            let local_maxima_cost = hill_climbing(&start, TSP::successors, TSP::heuristic).cost();
+            let local_maxima_cost = steepest_ascent(&start).cost();
 
             (local_maxima_cost / optimal_cost).into_inner()
         })
@@ -166,4 +167,77 @@ fn exercise_4_3() {
         "average cost ratio over {} samples is {}",
         SAMPLE, avg_ratio
     );
+}
+
+fn elapsed<F, R>(mut f: F) -> (R, Duration)
+where
+    F: FnMut() -> R,
+{
+    let now = Instant::now();
+    let r = f();
+    (r, now.elapsed())
+}
+
+fn exercise_4_4() {
+    println!("4.4");
+
+    const SAMPLE: usize = 1000;
+
+    let mut steepest_sum = Duration::default();
+    let mut steepest_success = 0;
+
+    let mut first_choice_sum = Duration::default();
+    let mut first_choice_success = 0;
+
+    let mut restart_sum = Duration::default();
+
+    let mut annealing_sum = Duration::default();
+    let mut annealing_success = 0;
+
+    for _ in 0..SAMPLE {
+        let start = random::<Queens>();
+
+        let (ret, cost) = elapsed(|| steepest_ascent(&start));
+        steepest_sum += cost;
+        if ret.is_goal() {
+            steepest_success += 1;
+        }
+
+        let (ret, cost) = elapsed(|| first_choice(&start));
+        first_choice_sum += cost;
+        if ret.is_goal() {
+            first_choice_success += 1;
+        }
+
+        let (ret, cost) = elapsed(|| simulated_annealing(&start, |t| (1000 - 10 * t) as f64));
+        annealing_sum += cost;
+        if ret.is_goal() {
+            annealing_success += 1;
+        }
+
+        let (_, cost) = elapsed(|| random_restart(random::<Queens>));
+        restart_sum += cost;
+    }
+
+    println!("over {} samples of eight queens:", SAMPLE);
+
+    println!("Steepest ascent cost: {:?}", steepest_sum);
+    println!(
+        "Steepest ascent success ratio: {}",
+        f64::from(steepest_success) / SAMPLE as f64
+    );
+
+    println!("First choice cost: {:?}", first_choice_sum);
+    println!(
+        "First choice success ratio: {}",
+        f64::from(first_choice_success) / SAMPLE as f64
+    );
+
+    println!("Simulated annealing cost: {:?}", annealing_sum);
+    println!(
+        "Simulated annealing success ratio: {}",
+        f64::from(annealing_success) / SAMPLE as f64
+    );
+
+    println!("Random restart cost: {:?}", restart_sum);
 }

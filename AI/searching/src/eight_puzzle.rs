@@ -1,8 +1,15 @@
-use crate::utils::possible_dests;
+use crate::{
+    local_search::Local,
+    utils::{diff, possible_dests},
+};
+
 use pathfinding::prelude::astar;
-use rand::distributions::{Distribution, Standard};
-use rand::prelude::*;
 use std::collections::HashSet;
+
+use rand::{
+    distributions::{Distribution, Standard},
+    prelude::*,
+};
 
 type Tile = u32;
 const EMPTY: Tile = 0;
@@ -22,14 +29,6 @@ fn inversions(tiles: &[Tile]) -> usize {
                 .count()
         })
         .sum()
-}
-
-fn diff(a: usize, b: usize) -> usize {
-    if a >= b {
-        a - b
-    } else {
-        b - a
-    }
 }
 
 fn manhattan_distance(side: usize, from: usize, to: usize) -> usize {
@@ -129,6 +128,20 @@ impl Distribution<Eight> for Standard {
                 break eight;
             }
         }
+    }
+}
+
+impl Local for Eight {
+    fn successors(&self) -> Vec<Self> {
+        self.successors()
+    }
+
+    fn heuristic(&self) -> f64 {
+        self.heuristic() as f64
+    }
+
+    fn successful(&self) -> bool {
+        self.is_goal()
     }
 }
 

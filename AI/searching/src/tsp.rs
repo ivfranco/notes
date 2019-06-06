@@ -1,3 +1,4 @@
+use crate::local_search::Local;
 use num_traits::identities::Zero;
 use ordered_float::NotNan;
 
@@ -30,8 +31,9 @@ pub struct Map {
     cities: Vec<Pos>,
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl Map {
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.cities.len()
     }
 }
@@ -186,6 +188,20 @@ impl<'a> Eq for TSP<'a> {}
 impl<'a> Hash for TSP<'a> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.visited.hash(state);
+    }
+}
+
+impl<'a> Local for TSP<'a> {
+    fn successors(&self) -> Vec<Self> {
+        self.successors()
+    }
+
+    fn heuristic(&self) -> f64 {
+        self.heuristic().into_inner()
+    }
+
+    fn successful(&self) -> bool {
+        self.is_goal()
     }
 }
 

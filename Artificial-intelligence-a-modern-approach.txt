@@ -830,3 +830,13 @@ b.  // oddly nowhere in the paper mentioned the fitness function they used
     // skipped
 
 4.4
+over 1000 samples of eight queens:
+Steepest ascent cost: 31.666097ms
+Steepest ascent success ratio: 0.16
+First choice cost: 33.931055ms
+First choice success ratio: 0.157
+Simulated annealing cost: 172.206779ms
+Simulated annealing success ratio: 0.14
+Random restart cost: 220.052079ms
+
+4.5

@@ -1,7 +1,8 @@
 pub mod eight_puzzle;
+pub mod eight_queens;
 pub mod genetic;
-pub mod hill_climbing;
 pub mod ils;
+pub mod local_search;
 mod min_heap;
 pub mod rbfs;
 pub mod river_crossing;
