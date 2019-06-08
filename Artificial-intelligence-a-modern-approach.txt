@@ -830,6 +830,8 @@ b.  // oddly nowhere in the paper mentioned the fitness function they used
     // skipped
 
 4.4
+//  8-puzzle cannot be fomulated as a local search problem
+//  the goal state is obvious for 8-puzzle, only the path matters
 over 1000 samples of eight queens:
 Steepest ascent cost: 31.666097ms
 Steepest ascent success ratio: 0.16
@@ -840,3 +842,80 @@ Simulated annealing success ratio: 0.14
 Random restart cost: 220.052079ms
 
 4.5
+there must be a persistent map of type (state, SearchResult) as global variable or object field
+the resulting plan may be a DAG instead of a tree
+SearchResult is a tagged enum with three variants:
+    Failed: there's no goal state reachable from this state
+    Success(Plan): a goal state is reachable from this state
+assume Plan type is already a shared pointer to the real plan structure
+function OR-SEARCH(state, problem, path) returns a conditional plan, failure
+    if Success(plan) = map[state] {
+        return plan
+    } else if Failed = map[state] {
+        return failure
+    } else if state is on path {
+        map[state] <- Failed
+    } else {
+        // this is the first time state is explored
+        plan <- new shared pointer to a plan structure
+        for each action in problem.ACTIONS(state) do {
+            plan <- AND-SEARCH(RESULTS(state, action), problem, map)
+            if plan != failure {
+                map[state] <- Success([action | plan])
+                return [action | plan]
+            }
+        }
+        map[state] <- Failed
+        return failure
+    }
+
+4.6
+//  incomplete
+labeling:
+    the search result is now Success(Plan), Loop(Plan) or Failure
+    stored along each state on the path is the plan of that state
+OR-SEARCH:
+    if a loop is detected, return Loop(plan) with plan stored on the path
+    in for each action loop, return Loop(plan) if there's no acyclic plan, return Failure if there's no plan at all
+    the extended path [state | path] now must contain a placeholder plan LoopPlan, i.e. [(state, LoopPlan) | path]
+    the value of the plan is replaced with the computed acyclic plan (if any) on return
+AND-SEARCH:
+    if resulting plan on all branches are cyclic, return Failure
+
+4.7
+max{h*(s) | s ∈ b}
+let the original problem be P, the sensorless problem be P'
+assume there is a solution (a0 .. ak) for believe state b, s ∈ b
+applying (a0 .. ak) on s must bring s to a goal state of P, otherwise b is not a goal state of P'
+therefore (a0 .. ak) is also a solution to s, c(a0 .. ak) >= h*(s)
+
+4.8
+a.  let b ⊆ b', RESULT(b, a) = {s' | s' = RESULTp(s, a) and s ∈ b}
+                            ⊆ {s' | s' = RESULTp(s, a) and s ∈ b'}
+                            = RESULT(b', a)
+    let G be the set of goal states in the original problem
+    for a sequence of actions a = (a0 .. ak), let APPLY(b, a) be the result of applying a to b in order
+    clearly APPLY(b, a) ⊆ APPLY(b', a)
+    if a is a solution to b', APPLY(b, a) ⊆ APPLY(b', a) ⊆ G, a is also a solution to b
+    let c ⊆ b ∪ b', RESULT(c, a)
+        = {s' | s' = RESULTp(s, a) and s ∈ c}
+        ⊆ {s' | s' = RESULTp(s, a) and s ∈ b ∪ b'}
+        = RESULT(b, a) ∪ RESULT(b', a)
+    hence APPLY(c, a) ⊆ APPLY(b, a) ∪ APPLY(b', a) for any sequence a
+    if a is a solution to both b and b', a is also a solution to c
+b.  if b is in EXPLORED, for all b' ⊆ b, a solution to b is also a solution to b'
+    therefore it's not necessary to add b to the frontier
+c.  store solved states along with their plans
+    on start of OR-SEARCH(b, ..), if a superset of b is solved, return the plan associated with it
+
+4.9
+let initial state be {s1, s2}, 
+RESULT(s1, a) = RESULT(s1, b) = RESULT(s2, a) = RESULT(s2, b) = g
+c(s1, a, g) = c(s2, b, g) = 3, c(s2, a, g) = c(s2, b, g) = 1
+c({s1, s2}, a, {g}) = (1, 3), c({s1, s2}, b, {g}) = (3, 1), the two costs cannot be compared
+the interval case and the set case cannot be solved by A*, as the heuristic is not well ordered
+//  thanks solutions manual
+
+
+4.10
+there's no path from initial state to any of the goal state
