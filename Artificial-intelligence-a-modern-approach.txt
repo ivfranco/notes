@@ -914,8 +914,60 @@ RESULT(s1, a) = RESULT(s1, b) = RESULT(s2, a) = RESULT(s2, b) = g
 c(s1, a, g) = c(s2, b, g) = 3, c(s2, a, g) = c(s2, b, g) = 1
 c({s1, s2}, a, {g}) = (1, 3), c({s1, s2}, b, {g}) = (3, 1), the two costs cannot be compared
 the interval case and the set case cannot be solved by A*, as the heuristic is not well ordered
-//  thanks solutions manual
-
+//  thanks solution manual
+by principle of optimality:
+    An optimal policy has the property that whatever the initial state and initial decision are, 
+    the remaining decisions must constitute an optimal policy with regard to the state 
+    resulting from the first decision.
+ if the total cost of a path is defined as the minimal cost of any physical realization of the whole path
+as stated in the solution manual, this definition violates principle of optimality
+however if the cost of an action defined as the minimal (maximal) cost of any physical realization of an action
+A* will return optimal solutions
+when defined as interval or set, the cost is not well ordered
 
 4.10
+./AI/and_or_search
 there's no path from initial state to any of the goal state
+digraph {
+    0 [label="[1, 2, 3, 4, 5, 6, 7, 8]"]
+    1 [label="[1, 3, 5, 7]"]
+    2 [label="[2, 4, 6, 8]"]
+    0 -> 0 [label="Suck"]
+    0 -> 1 [label="Left"]
+    0 -> 2 [label="Right"]
+    2 -> 2 [label="Suck"]
+    2 -> 1 [label="Left"]
+    2 -> 2 [label="Right"]
+    1 -> 1 [label="Suck"]
+    1 -> 1 [label="Left"]
+    1 -> 2 [label="Right"]
+}
+
+4.11
+//  skipped
+
+4.12
+a.  a physical state is consisted of a configuration of the maze and the position of the agent
+    percepts and the position of the agent filters the set of possible configurations
+    there are 12 possible internal walls, i.e. the inital believe state contains 2^12 configurations
+    2^(2^12) * 3^2 believe states in total
+b.  four: {Up, Right}, {Up}, {Right}, {}
+c.  each percept of a preciously unknown wall shrinks the size of the believe state to 1/2
+    each of the four possible percepts at the inital state shrinks the size of the believe state to 1/4
+    any believe state with believe set of size 1 is a goal state
+    if the maze is connected, 2 * MST = 18 is an upper bound of the length of a tour
+    the size of the plan is roughly 4^18
+
+4.13
+//  skipped
+
+4.14
+by the line
+    if s' is a new state (not in untried) then untried[s'] ← ACTIONS(s')
+each step adds four actions to the untried list 
+each step consumes only one action, the untried list is never empty
+the algorithm will never backtrack
+if ACTIONS(s') is pushed to untried[s'] with a fixed order, the same action will be repeated over and over
+the agent can only reach (x, 0) or (0, y) for arbitrary x or y
+a random walk agent will be complete: at each step the agent takes a random possible action or backtrack by chance
+the path reaching (1, -1) can be any path possible

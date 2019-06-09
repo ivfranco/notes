@@ -1,3 +1,5 @@
+pub mod vaccum_cleaner;
+
 use std::{
     collections::{HashMap, HashSet},
     hash::Hash,
