@@ -971,3 +971,57 @@ if ACTIONS(s') is pushed to untried[s'] with a fixed order, the same action will
 the agent can only reach (x, 0) or (0, y) for arbitrary x or y
 a random walk agent will be complete: at each step the agent takes a random possible action or backtrack by chance
 the path reaching (1, -1) can be any path possible
+
+5.1
+let p' be the single agent search problem derived from OM and the original two-player problem p
+p'.RESULT(s, a) = OM(p.RESULT(s, a))
+p'.GOAL-TEST(s) = state s which maximizes the utility function in p
+then this problem can be solved by any search algorithm in chapter 3
+
+5.2
+a.  assume the two puzzles can be solved in arbitrary order (player can move pieces on either puzzle each move)
+    a state is a tuple of two 8-puzzle states (s1, s2)
+    the actions are sum of actions on the two puzzles 
+    cost is uniform
+b.  9!^2, or (9!/2)^2 counting only reachable states
+c.  EXPECTMINIMAX from Figure 5.11
+d.  it may not be the case
+    let p(s) be the minimum number of moves required to solve a puzzle s
+    terminal state is (s1, s2) where p(s1) = p(s2) = 0
+    when p(s1) = 1 and p(s2) = 1
+    if the player take an action which reduces p(s1) or p(s2), the other player will win with 50% chance next turn
+    it seems better to move away from the terminal state by increasing p(s1) or p(s2)
+
+5.3
+a.  from left to right:
+        dd(1): -4
+        dd(2): -4
+        cc: 2
+b.  P is guranteed to win in at most 4 moves by the left half of the game tree
+    each internal node in there has value >= its deepest descendants
+    the right half is suboptimal moves for P and should not be taken
+c.  from left to right:
+        be, bf, be, bf, bc
+d.  P can always drive E to node e or f and win the next turn as there's no way to escape
+    the value of these nodes is bounded from below by
+        - (the total time taken up to now + 2 * the length from P's position to node e or f)
+    from left to right:
+        be: 3 + 3 * 2 = 9
+        bf: 3 + 3 * 2 = 9
+        be: same to above
+        bf: same to above
+        bc: 3 + 3 * 2 = 9
+e.  any node except the two paths from root to termination state dd(1) and dd(2)
+f.  P always wins
+    let the tree rooted from the node p occupied by P, let e be the node occupied by E
+    if e = n, P wins immediately
+    otherwise let c be the child of p which has e as its descendant, move E to c
+    let S((p, e)) be the number of nodes in the subtree rooted at c, it's obvious that:
+        each move of P reduces S((p, e))
+        any move of E cannot increase S((p, e))
+    when S((p, e)) = 1, P will win the next turn by moving to e, the only node in the subtree and a child of p
+    so as long as S((p, e)) is finite at the beginning (i.e. the subtree is finite), P will always win
+
+5.4
+Scrabble
+State:
