@@ -1,0 +1,9 @@
+[package]
+name = "minimax"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@outlook.com>"]
+edition = "2018"
+
+[dependencies]
+ordered-float = "^1.0"
+num-traits = "^0.2"

@@ -1023,5 +1023,83 @@ f.  P always wins
     so as long as S((p, e)) is finite at the beginning (i.e. the subtree is finite), P will always win
 
 5.4
-Scrabble
+Monopoly (simplified)
 State:
+    position and assets of each player
+Move: given state and player p,
+    a chance node (2d6) decides the next stop of p
+    mutate state according to the description of the stop (rants, taxes, may spawn more chance nodes by cards)
+    if stopped at an unowned property, the player can choose whether to buy the property
+Terminal test:
+    all but one player is bankrupt
+Utility function:
+    the winning player has utility 1, others 0
+Evaluation function:
+    linear function of net asset and owned properties of players
+
+5.5
+Gomoku with time control
+State:
+    pieces on the board (next player can be computed from number of white / black pieces)
+    remaining time of each player
+Move:
+    a piece of the player's color can be placed at any empty tile on the board
+    a fixed time duration t + the remaining time of the player is allowed for the move
+    if the time consumed exceeds t, the surplus is deducted from the remaining time of the player
+Terminal test:
+    5 or more pieces of the same color are placed on a row (vertial, horizontal or diagonal)
+Utility function:
+    the winning player has utility 1, other one 0
+    or 1/2 and 1/2 if end in a draw
+Evaluation function:
+    a linear function of blocked / unblocked 3, 4, >= 5 pieces in a row for each color
+    where the constant of >= 5 pieces in a row is big enough to dominate any other factors
+
+5.6
+even if the AI player can control exactly where to land its shots, in the absence of proper discretization
+the branching factor is easily infinite, the AI does not stand a chance against a trained amateur
+tennis players are constantly moving around regarding the position / velocity of the ball and the other player
+it requires further discretization (to tiny time period?) to turn this constant move into turn-based nodes
+
+5.7
+induct on the height of the game tree from the shallowest MIN node
+basis:
+    all child nodes are terminal nodes from a MIN node
+    if the decision of MIN at this node is not optimal, the value of the MIN node increases
+    by definition of minimax algorithm, all MAX nodes above can only have value >= before
+induction:
+    the MIN nodes has children either terminal or is a MAX node
+    by induction all the MAX children have value better or equal than before
+    the optimal value of this MIN node is no better than that computed from minimax algorithm
+    as the MIN player is suboptimal, the value of this MIN node is greater than minimax
+    value of MAX nodes computed by minimax algorithm above it may never decrease
+if MIN will always choose the same suboptimal move in a tree
+RESULT(A, a1) = B
+RESULT(A, a2) = C
+RESULT(B, b1).UTILITY = 10
+RESULT(B, b2).UTILITY = -10
+RESULT(C, c).UTILITY = 5
+if MIN is optimal, MAX should choose a2 in node A
+if MIN is suboptimal and will always choose b1 at node B, MAX should chooce a1 at node A
+
+5.8
+a.  digraph G {
+        node [shape=circle]
+        1 [label="(1, 4) +1"]
+        2 [label="(2, 4) +1"]
+        3 [label="(2, 3) +1"]
+        4 [label="(4, 3) +1", shape=box]
+        5 [label="(1, 3) -1"]
+        6 [label="(1, 4) ?", shape=box, peripheries=2]
+        7 [label="(1, 2) -1"]
+        8 [label="(3, 2) -1"]
+        9 [label="(3, 1) -1", shape=box]
+        10 [label="(3, 4) ?"]
+        11 [label="(2, 4) ?", shape=box, peripheries=2]
+        1 -> 2 -> 3 -> 4
+        3 -> 5 -> 6
+        5 -> 7 -> 8 -> 9
+        8 -> 10 -> 11
+    }
+b.  assume both players prefer acyclic states over cyclic ones
+c.  
