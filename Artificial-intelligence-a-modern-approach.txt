@@ -1102,4 +1102,87 @@ a.  digraph G {
         8 -> 10 -> 11
     }
 b.  assume both players prefer acyclic states over cyclic ones
-c.  
+c.  MINIMAX algorithm in the text is a DFS without redundancy check, it may loop forever with cyclic state graph
+    record the path of states and assign special value Loop to repeated states, in the same way as and or graph search
+    the value space is not a total order any more with the special value
+    the assumption in part b above may not always be true
+    if a player has to choose between certain lose and loop, they may prefer loop
+d.  by graph generation, when n = 3 player B always wins, when n = 4 player A always wins
+    for n = 2k, the start state is (1, 2k), the next state is (2, 2k)
+    if A never goes back to the location 1, this is equivalent to a game where
+        1. n = 2k - 1 
+        2. the roles of two players are swapped
+    by induction, when n = 2k - 1, player B will always win, i.e. reach the other end eariler than player A
+    hence when n = 2k, player A can always win
+    for n = 2k, the start state is (1, 2k + 1), the third state is (2, 2k)
+    if A never goes back to location 1, this is equivalent to a game
+        1. n = 2k - 1
+    so player B will always win
+    otherwise whenever A goes back to location 1, B moves moves left
+    A's move is negated by B's move, reduces the state to a valid state in a game n = 2k - 1
+
+5.9
+a.  <= 3^9
+    each tile may either be empty, X or O
+    the next player can be decided by the number of Xs / Os on the board
+b.  digraph G {
+        node [shape=record]
+        0 [label="...\n...\n...|1"]
+        1 [label="x..\n...\n...|-1"]
+        2 [label=".x.\n...\n...|-2"]
+        3 [label="...\n.x.\n...|1"]
+        4 [label="xo.\n...\n...|1"]
+        5 [label="x.o\n...\n...|0"]
+        6 [label="x..\n.o.\n...|-1"]
+        7 [label="x..\n..o\n...|1"]
+        8 [label="x..\n...\n..o|0"]
+        9 [label="ox.\n...\n...|-1"]
+        10 [label=".x.\no..\n...|0"]
+        11 [label=".x.\n.o.\n...|-2"]
+        12 [label=".x.\n...\no..|-1"]
+        13 [label=".x.\n...\n.o.|0"]
+        14 [label="o..\n.x.\n...|1"]
+        15 [label=".o.\n.x.\n...|2"]
+        0 -> 1, 2, 3
+        1 -> 4, 5, 6, 7, 8
+        2 -> 9, 10, 11, 12, 13
+        3 -> 14, 15
+    } 
+c.  xo./.../...: 1
+    x.o/.../...: 0
+    x../.o./...: -1
+    x../..o/...: 1
+    x../.../..o: 0
+    ox./.../...: -1
+    .x./o../...: 0
+    .x./.o./...: -2
+    .x./.../o..: -1
+    .x./.../.o.: 0
+    o../.x./...: 1
+    .o./.x./...: 2
+d.  .../.../...: 1
+    x../.../...: -1 
+    .x./.../...: -2
+    .../.x./...: 1
+    best start move: .../.x./...
+e.  if .../.x./... is explored first, all nodes but 
+        o../.x./...
+        .o./.x./...
+        a random child of x../.../...
+        a random child of .x./.../...
+    will not be evaluated
+
+5.10
+a.  branching factor of a node at depth d is N - d
+    depth of the game tree is at most N, number of nodes <= N!
+b.  N! as stated above
+c.  generalize the evaluation function defined in 5.9
+    let Xi be the number of winning positions w ∈ W which is occupied by (|w| - i) X and no O
+    the evaluation function is a linear combination of Xi and Oi, where
+        if i < j, coefficient of Xi is greater than Xj, coefficient of Oi is smaller than Oj (both negative)
+d.  with optimal exploration order, alpha-beta pruning only evaluates (N!)^(1/2) nodes
+    100N * (N!)^(1/2) / (2 * 10^9) <= 1 => N <= 15
+    100N * (N!)^(1/2) / (2 * 10^9) <= 60 => N <= 17
+    100N * (N!)^(1/2) / (2 * 10^9) <= 3600 => N <= 20
+
+5.11

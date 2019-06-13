@@ -1,18 +1,22 @@
+pub mod tic_tac_toe;
+
 use num_traits::identities::{One, Zero};
 use ordered_float::NotNan;
 
-pub type Util = NotNan<f64>;
+use std::{cmp, f64};
+
+type Util = NotNan<f64>;
 type Prob = NotNan<f64>;
 
-enum Node<S> {
+enum NodeType<S> {
     Min(S),
     Max(S),
     Chance(S),
 }
 
-use Node::*;
+use NodeType::*;
 
-impl<S> Node<S> {
+impl<S> NodeType<S> {
     fn as_state(&self) -> &S {
         match self {
             Min(s) => &s,
@@ -22,38 +26,38 @@ impl<S> Node<S> {
     }
 }
 
-pub struct ChanceNode<S> {
-    node: Node<S>,
+pub struct Node<S> {
+    node_type: NodeType<S>,
     prob: Prob,
 }
 
-impl<S> ChanceNode<S> {
-    fn new(node: Node<S>, prob: Prob) -> Self {
-        ChanceNode { node, prob }
+impl<S> Node<S> {
+    fn new(node_type: NodeType<S>, prob: Prob) -> Self {
+        Node { node_type, prob }
     }
 
     pub fn min(state: S) -> Self {
-        ChanceNode::new(Min(state), Prob::one())
+        Node::new(Min(state), Prob::one())
     }
 
     pub fn max(state: S) -> Self {
-        ChanceNode::new(Max(state), Prob::one())
+        Node::new(Max(state), Prob::one())
     }
 
     pub fn chance(state: S) -> Self {
-        ChanceNode::new(Chance(state), Prob::one())
+        Node::new(Chance(state), Prob::one())
     }
 
-    pub fn prob(self, prob: f64) -> Self {
-        let node = self.node;
-        ChanceNode {
-            node,
+    pub fn set_prob(self, prob: f64) -> Self {
+        let node_type = self.node_type;
+        Node {
+            node_type,
             prob: Prob::new(prob).expect("ChanceNode initialization: probability is NaN"),
         }
     }
 
     fn as_state(&self) -> &S {
-        self.node.as_state()
+        self.node_type.as_state()
     }
 }
 
@@ -61,11 +65,11 @@ pub trait State: Sized {
     type Action;
 
     fn actions(&self) -> Vec<Self::Action>;
-    fn result(&self, action: &Self::Action) -> ChanceNode<Self>;
+    fn result(&self, action: &Self::Action) -> Node<Self>;
     fn utility(&self) -> Option<f64>;
 }
 
-fn results<'a, S>(state: &'a S) -> impl Iterator<Item = ChanceNode<S>> + 'a
+fn successors<'a, S>(state: &'a S) -> impl Iterator<Item = Node<S>> + 'a
 where
     S: State,
 {
@@ -79,26 +83,71 @@ pub fn minimax<S>(state: S) -> S::Action
 where
     S: State,
 {
+    let alpha = Util::new(f64::NEG_INFINITY).unwrap();
+    let beta = Util::new(f64::INFINITY).unwrap();
+
     state
         .actions()
         .into_iter()
-        .max_by_key(|action| value_of(&state.result(action)))
+        .max_by_key(|action| value_of(&state.result(action), alpha, beta))
         .unwrap()
 }
 
-fn value_of<S>(chance_node: &ChanceNode<S>) -> Util
+fn value_of<S>(node: &Node<S>, mut alpha: Util, mut beta: Util) -> Util
 where
     S: State,
 {
-    if let Some(util) = chance_node.as_state().utility() {
-        return NotNan::new(util).expect("value_of: Utility value is NaN");
+    if let Some(util) = node.as_state().utility() {
+        return Util::new(util).expect("value_of: Utility value is NaN");
     }
 
-    match &chance_node.node {
-        Min(state) => results(state).map(|node| value_of(&node)).min().unwrap(),
-        Max(state) => results(state).map(|node| value_of(&node)).max().unwrap(),
-        Chance(state) => results(state)
-            .map(|node| value_of(&node) * node.prob)
-            .fold(NotNan::zero(), |sum, elem| sum + elem),
+    match &node.node_type {
+        Max(state) => {
+            let mut v = Util::new(f64::NEG_INFINITY).unwrap();
+
+            for succ in successors(state) {
+                v = cmp::max(v, value_of(&succ, alpha, beta));
+                if v >= beta {
+                    break;
+                } else {
+                    alpha = cmp::max(alpha, v);
+                }
+            }
+
+            v
+        }
+        Min(state) => {
+            let mut v = Util::new(f64::INFINITY).unwrap();
+
+            for succ in successors(state) {
+                v = cmp::min(v, value_of(&succ, alpha, beta));
+                if v <= alpha {
+                    break;
+                } else {
+                    beta = cmp::min(beta, v);
+                }
+            }
+
+            v
+        }
+        Chance(state) => successors(state)
+            .map(|node| value_of(&node, alpha, beta) * node.prob)
+            .fold(Util::zero(), |sum, elem| sum + elem),
     }
+}
+
+#[test]
+fn tic_tac_toe_test() {
+    use crate::tic_tac_toe::TicTacToe;
+
+    let init = TicTacToe::init();
+    let node = Node::max(init);
+
+    let alpha = Util::new(f64::NEG_INFINITY).unwrap();
+    let beta = Util::new(f64::INFINITY).unwrap();
+
+    assert!(
+        value_of(&node, alpha, beta).is_zero(),
+        "Tic-Tac-Toe should always end in a tie with two optimal players",
+    );
 }
