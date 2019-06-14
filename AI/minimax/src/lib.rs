@@ -1,3 +1,4 @@
+pub mod othello;
 pub mod tic_tac_toe;
 
 use num_traits::identities::{One, Zero};
@@ -8,56 +9,46 @@ use std::{cmp, f64};
 type Util = NotNan<f64>;
 type Prob = NotNan<f64>;
 
-enum NodeType<S> {
-    Min(S),
-    Max(S),
-    Chance(S),
+enum NodeType {
+    Min,
+    Max,
+    Chance,
 }
 
 use NodeType::*;
 
-impl<S> NodeType<S> {
-    fn as_state(&self) -> &S {
-        match self {
-            Min(s) => &s,
-            Max(s) => &s,
-            Chance(s) => &s,
-        }
-    }
-}
-
 pub struct Node<S> {
-    node_type: NodeType<S>,
+    node_type: NodeType,
+    state: S,
     prob: Prob,
 }
 
 impl<S> Node<S> {
-    fn new(node_type: NodeType<S>, prob: Prob) -> Self {
-        Node { node_type, prob }
+    fn new(node_type: NodeType, state: S, prob: Prob) -> Self {
+        Node { node_type, state, prob }
     }
 
     pub fn min(state: S) -> Self {
-        Node::new(Min(state), Prob::one())
+        Node::new(Min, state, Prob::one())
     }
 
     pub fn max(state: S) -> Self {
-        Node::new(Max(state), Prob::one())
+        Node::new(Max, state, Prob::one())
     }
 
     pub fn chance(state: S) -> Self {
-        Node::new(Chance(state), Prob::one())
+        Node::new(Chance, state, Prob::one())
     }
 
     pub fn set_prob(self, prob: f64) -> Self {
-        let node_type = self.node_type;
         Node {
-            node_type,
             prob: Prob::new(prob).expect("ChanceNode initialization: probability is NaN"),
+            ..self
         }
     }
 
     fn as_state(&self) -> &S {
-        self.node_type.as_state()
+        &self.state
     }
 }
 
@@ -101,8 +92,10 @@ where
         return Util::new(util).expect("value_of: Utility value is NaN");
     }
 
+    let state = node.as_state();
+
     match &node.node_type {
-        Max(state) => {
+        Max => {
             let mut v = Util::new(f64::NEG_INFINITY).unwrap();
 
             for succ in successors(state) {
@@ -116,7 +109,7 @@ where
 
             v
         }
-        Min(state) => {
+        Min => {
             let mut v = Util::new(f64::INFINITY).unwrap();
 
             for succ in successors(state) {
@@ -130,7 +123,7 @@ where
 
             v
         }
-        Chance(state) => successors(state)
+        Chance => successors(state)
             .map(|node| value_of(&node, alpha, beta) * node.prob)
             .fold(Util::zero(), |sum, elem| sum + elem),
     }

@@ -1186,3 +1186,49 @@ d.  with optimal exploration order, alpha-beta pruning only evaluates (N!)^(1/2)
     100N * (N!)^(1/2) / (2 * 10^9) <= 3600 => N <= 20
 
 5.11
+a.  ./AI/minimax/src/othello.rs
+b.  ./AI/minimax
+c.  // skipped
+b.  // skipped, papers paywalled
+
+5.12
+minimax works exactly as multiplayer game in section 5.2.2
+each player maximizes their own utility and ignores the other's
+the utility of one player will not affect the decision of the other
+hence no node will be pruned by alpha-beta pruning
+when the optimal terminal state for MAX is also the optimal terminal state for MIN
+the game is just an optimal search problem which can be solved by any local search algorithm in chapter 4
+otherwise it's still competitive
+
+5.13
+a.  n2 is a MAX node
+    n2 = max{n | n is a child of n2}
+    n1 = nj iff 
+        n2 = min{n | n is a child of n1}
+        n3 = max{n | n is a child of n2}
+        ..
+        nj = min{n | n is a child of nj-1}
+    otherwise n1 is independent of nj
+b.  n1  = min(l2, n2, r2)
+        = min(l2, max(l3, n3, r3), r3)
+        = ..
+        = min(l2, max(l3, min(l4 .. min(lj, nj, rj) .. r4), r3), r2)
+c.  if nj is greater than min(l2, r2, l5, r5, .., lj, rj), it will not affect n1
+c.  if nj is smaller than max(l3, r3, l5, r5, .., lj, rj), it will not affect n1
+
+5.14
+assume 
+    for a MIN node, the first child gives the minimum v
+    for a MAX node, the first child gives the maximum v
+if a MAX node is explored with (α, β) = (+∞, -∞)
+    the first child (MIN) will be explored with (+∞, -∞), give the optimal v*
+    α is updated to v*
+    all the other children is explored with (v*, -∞)
+if a MIN node is explored with (+∞, -∞)
+    the first child (MAX) will be explored with (+∞, -∞), give the optimal v*
+    β is updated to v*
+    all the other children is explored with (+∞, v*)
+if a MIN node is explored with (v*, -∞)
+    the first child (MAX) will give v <= v*
+if a MAX node is explored with (+∞, v*)
+    the first child (MIN) will be explored with v <= v*
