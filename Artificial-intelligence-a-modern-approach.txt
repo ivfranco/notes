@@ -1221,14 +1221,122 @@ assume
     for a MIN node, the first child gives the minimum v
     for a MAX node, the first child gives the maximum v
 if a MAX node is explored with (α, β) = (+∞, -∞)
-    the first child (MIN) will be explored with (+∞, -∞), give the optimal v*
+    the first child (MIN) will be explored with (+∞, -∞), give the maximal v*
     α is updated to v*
     all the other children is explored with (v*, -∞)
 if a MIN node is explored with (+∞, -∞)
-    the first child (MAX) will be explored with (+∞, -∞), give the optimal v*
+    the first child (MAX) will be explored with (+∞, -∞), give the minimal v*
     β is updated to v*
     all the other children is explored with (+∞, v*)
-if a MIN node is explored with (v*, -∞)
-    the first child (MAX) will give v <= v*
 if a MAX node is explored with (+∞, v*)
-    the first child (MIN) will be explored with v <= v*
+    if its parent is evaluated with (-∞, +∞)
+        the first child (MIN) is explored with (+∞, v*), results in v >= v*
+        otherwise the backed-up value of this node is greater than maximum
+        no other child will be explored
+    otherwise in the worst case it explores the same set of nodes as (-∞, +∞)
+if a MIN node is explored with (v*, -∞)
+    if its parent is evaluated with (-∞, +∞)
+        the first child (MAX) is explored with (v*, -∞), results in v <= v*
+        otherwise the backed-up value of this node is smaller than minimum
+        no other child will be explored
+    otherwise in the worst case it explores the same set of nodes as (-∞, +∞)
+roughly half the levels are not expanded, O(b^(m/2)) nodes expanded in total
+
+5.15
+representation:
+    there are 8 x 8 = 2^6 positions on the board, a position can be represented by 6 bits
+    7 bits with the additional "not on board" position, or 1 byte with proper alignment
+    there are 16 pieces for each side, 16 * 2 * 1 = 32 bytes
+2^30 / 2^5 = 2^25 entries in 2GB table
+10^7 * 3 * 60 = 1.8 * 10^9 > 2^25, the memory is not enough
+without detail of the evaluation function / hash method / disk specification, no conclusion can be drawn
+
+5.16
+a.  digraph G {
+        node [shape=none, label="", style=filled]
+        1 [shape=triangle, label=1.5]
+        2, 3 [shape=circle]
+        2 [label=1.5]
+        3 [label=-0.5]
+        4, 5, 6, 7 [shape=invtriangle]
+        4 [label=2]
+        5 [label=1]
+        6 [label=0]
+        7 [label=-1]
+        8, 9, 11, 13 [label="2"]
+        10 [label="1"]
+        12, 15 [label="0"]
+        14 [label="-1"]
+        1 -> 2, 3
+        2 -> 4, 5 [label=0.5]
+        3 -> 6, 7 [label=0.5]
+        4 -> 8, 9
+        5 -> 10, 11
+        6 -> 12, 13
+        7 -> 14, 15
+    }
+b.  let n3 be the right chance node
+    if min{t7, t8} > 3, n3 > 1.5, the first action will be suboptimal
+    if t7 = -1, n3 = -0.5, utility of t8 won't affect the optimal action
+c.  0 <= n2 <= 2
+d.  the last two terminal node
+
+5.17
+./AI/minimax
+
+5.18
+induct on the height of subtrees
+basis (all children are terminal):
+    MAX node:
+        when a > 0, if x >= y, ax + b >= ay + b
+        the optimal child will not change 
+        backed-up value of this node is updated from x to ax + b
+    MIN node:
+        symmetric
+    CHANCE node:
+        Σ(aVi + b)Pi = ΣaViPi + ΣbPi = aΣViPi + b
+        backed-up value of this node is updated from x to ax + b
+induction:
+    MAX node:
+        all children have backed up value updated from x to ax + b
+        the optimal child will not change
+    MIN node:
+        symmetric
+    CHANCE node:
+        similar to basis
+
+5.19
+it's a special case of Monte Carlo method which only expands chance nodes in random
+the method describes a different game compared to the real scenario
+(as players can forcast outcomes of all chance nodes)
+in practice it may converge to expectminimax just like Monte Carlo to minimax
+
+5.20
+a.  no, adding a single terminal node may increase the optimal outcome
+b.  no, adding a single terminal node may increase the value of its parent,
+    either a MAX or CHANCE node, by an arbitrary value, which change may propagate all the way to the root
+c.  no, as stated in b.
+d.  no, as stated in b.
+e.  yes, if any child evaluates to 1, other children can be pruned
+f.  yes, alongside the situation of e., if
+        a, left child of the root evaluates to 1
+        b, right child of the root is a chance node with two children c, d with probability 0.5 each
+        c = 0
+    then b <= (0 + 1) / 2 = 0.5, d can be pruned
+g.  highest probability first    
+    more outcomes of children (probability-wise) are known about a node, more precise is the range of its own outcome 
+
+5.21
+a.  true
+    as demonstrated by minimax algorithm, if both players are optimal, 
+    the moves of one player is easily predictable by the other
+b.  false, the assumption turns the game to a fully-observable game
+c.  false, what will happen if two of such agents play against each other
+
+5.22
+a.  Monopoly, CHANCE nodes in other games have huge branching factor
+b.  Scrabble, with fixed outcome of CHANCE nodes, poker and bridge are no longer partially observable,
+    nature of the two games will change dramatically
+c.  maintain believe states for all players assuming optimality
+    likely to be extremely inpractical
+    

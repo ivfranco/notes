@@ -9,10 +9,11 @@ use std::{cmp, f64};
 type Util = NotNan<f64>;
 type Prob = NotNan<f64>;
 
+#[derive(Clone, Copy)]
 enum NodeType {
     Min,
     Max,
-    Chance,
+    Chance(Util, Util),
 }
 
 use NodeType::*;
@@ -25,7 +26,11 @@ pub struct Node<S> {
 
 impl<S> Node<S> {
     fn new(node_type: NodeType, state: S, prob: Prob) -> Self {
-        Node { node_type, state, prob }
+        Node {
+            node_type,
+            state,
+            prob,
+        }
     }
 
     pub fn min(state: S) -> Self {
@@ -36,8 +41,16 @@ impl<S> Node<S> {
         Node::new(Max, state, Prob::one())
     }
 
-    pub fn chance(state: S) -> Self {
-        Node::new(Chance, state, Prob::one())
+    pub fn chance(state: S, upper: f64, lower: f64) -> Self {
+        Node::new(
+            Chance(Util::new(upper).unwrap(), Util::new(lower).unwrap()),
+            state,
+            Prob::one(),
+        )
+    }
+
+    pub fn chance_unbounded(state: S) -> Self {
+        Node::chance(state, f64::NEG_INFINITY, f64::INFINITY)
     }
 
     pub fn set_prob(self, prob: f64) -> Self {
@@ -45,6 +58,10 @@ impl<S> Node<S> {
             prob: Prob::new(prob).expect("ChanceNode initialization: probability is NaN"),
             ..self
         }
+    }
+
+    fn prob(&self) -> Util {
+        self.prob
     }
 
     fn as_state(&self) -> &S {
@@ -94,7 +111,7 @@ where
 
     let state = node.as_state();
 
-    match &node.node_type {
+    match node.node_type {
         Max => {
             let mut v = Util::new(f64::NEG_INFINITY).unwrap();
 
@@ -123,9 +140,33 @@ where
 
             v
         }
-        Chance => successors(state)
-            .map(|node| value_of(&node, alpha, beta) * node.prob)
-            .fold(Util::zero(), |sum, elem| sum + elem),
+        Chance(upper, lower) => {
+            let mut v = Util::zero();
+            let mut p = Prob::zero();
+
+            for succ in successors(state) {
+                // Σ(1 <= k <= i - 1)(VkPk) + ViPi + U(1 - Σ(1 <= k <= i)Pi) <= α
+                // v + ViPi + U(1 - p - Pi) <= α
+                // Vi <= (α - v - U(1 - p - Pi)) / Pi
+                let local_alpha = (alpha - v - upper * (Prob::one() - p - succ.prob())) / succ.prob();
+                // similar
+                let local_beta = (beta - v - lower * (Prob::one() - p - succ.prob())) / succ.prob();
+
+                let vi = value_of(&succ, cmp::max(upper, local_alpha), cmp::min(lower, local_beta));
+
+                if vi <= local_alpha {
+                    return alpha;
+                }
+                if vi >= local_beta {
+                    return beta;
+                }
+
+                v += vi;
+                p += succ.prob();
+            }
+
+            v
+        }
     }
 }
 
