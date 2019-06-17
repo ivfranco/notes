@@ -1340,3 +1340,26 @@ b.  Scrabble, with fixed outcome of CHANCE nodes, poker and bridge are no longer
 c.  maintain believe states for all players assuming optimality
     likely to be extremely inpractical
     
+6.1
+Solution with 2 colors: 0
+Solution with 3 colors: 36
+Solution with 4 colors: 1152
+
+6.2
+a.  variables: positions of knights
+b.  values: P ∈ Z8^2
+c.  a single contraint between each pair of variables:
+        for two knights at position (x0, y0) and (x1, y1), 
+        (x1, y1) != (x0 + 2, y0 + 1) &&
+        (x1, y1) != (x0 + 1, y0 + 2) &&
+        (x1, y1) != (x0 - 2, y0 + 1) &&
+        (x1, y1) != (x0 - 1, y0 + 2) &&
+        (x1, y1) != (x0 + 2, y0 - 1) &&
+        (x1, y1) != (x0 + 1, y0 - 2) &&
+        (x1, y1) != (x0 - 2, y0 - 1) &&
+        (x1, y1) != (x0 - 1, y0 - 2)
+d.  ACTIONS: positions on the board not yet attacked by any knights existing
+    RESULT: add a knight to the board with position given by ACTIONS
+    objective function: number of knights on the board
+
+6.3
