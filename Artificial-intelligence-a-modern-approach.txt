@@ -1341,6 +1341,7 @@ c.  maintain believe states for all players assuming optimality
     likely to be extremely inpractical
     
 6.1
+./AI/csp
 Solution with 2 colors: 0
 Solution with 3 colors: 36
 Solution with 4 colors: 1152
@@ -1363,3 +1364,74 @@ d.  ACTIONS: positions on the board not yet attacked by any knights existing
     objective function: number of knights on the board
 
 6.3
+a.  state: the board
+    start state: no blank square is filled
+    goal state: each blank square is filled
+    actions: fill a word in the puzzle with a word in the dictionary, respecting crossword rules
+    the path doesn't matter, local search is preferable
+    if the blank squares are filled one character at a time, it will be harder to define legal actions
+b.  variables: hole of words on the board
+    values: words in the dictionary
+    constraints: if one word spans another, the character on the intersection should be the same (2-constraints only)
+    with characters as variables, constraints could involve more than 2 variables and would be harder to verify
+    (each word on the board should be a word in the dictionary)
+
+6.4
+a.  variables: positions (coordinates of top left corner) of each rectangles
+    values: coordinates in the larger rectangle
+    constraints: no overlapping between any two rectangles (2-constraints only)
+b.  variables: classes
+    values: triple of time slot, classroom and professor
+    1-constraints:
+        professors are assigned to classes they can teach
+    2-constraints:
+        if two classes are allocated to the same time slot, 
+        they should be assigned to different classroom and professor
+c.  variables: cities
+    values: order in the tour
+    2-constraints:
+        let (i, j) be the orders of two cities (a, b)
+        if j = i + 1, there should be a road from a to b
+    global constraints:
+        ALLDIFF on orders
+
+6.5
+// thanks http://bach.istc.kobe-u.ac.jp/llp/crypt.html
+938+938=1876
+928+928=1856
+867+867=1734
+846+846=1692
+836+836=1672
+765+765=1530
+734+734=1468
+
+6.6
+let domain of variable A be DA
+consider any relation R ⊆ DA * DB * DC
+define a new variable T with domain DA * DB
+define 2-constraints:
+    (A, T): T = (A, _)
+    (B, T): T = (_, B)
+    (C, T): T = (a, b), (a, b, c) ∈ R
+for any R ⊆ Π(1 <= i <= n)Di
+define T with domain Π(1 <= i <= n - 1)Di
+the proof is similar to n = 3
+if there are some unary constraints Ri ⊆ D for a variable V with domain D
+let D' = ∩Ri
+any value in D - ∩Ri will violate at least one unary constraint
+all values in D - ∩Ri do not violate any of the unary constraints
+change the domain to D - ∩Ri safely eliminates all the unary constraints on V
+
+6.7
+variables: five nationalities, five colors, five brands of candy, five drink and five pets, 25 in total
+values: houses in domain {1, 2, 3, 4, 5}, ordered from left to right
+most constraints will be unary or binary e.g.:
+    The Norwegian lives in the first house on the left => Norwegian = 1
+    The Englishman lives in the red house => Englishman = red
+there are also 5 ALLDIFF constraints on five nationalities, colors, etc.
+
+6.8
+./AI/csp
+[2, 0, 2, 0, 1, 2, 1, 0]
+
+6.9
