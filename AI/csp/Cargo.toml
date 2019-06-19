@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 petgraph = "^0.4"
+rand = "^0.6"
+ordered-float = "^1.0"

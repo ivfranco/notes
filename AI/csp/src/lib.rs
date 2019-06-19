@@ -24,6 +24,21 @@ pub trait Constraint<V> {
         }
         filtered
     }
+
+    fn filter_backward(&self, x_set: &HashSet<V>, y_set: &HashSet<V>) -> HashSet<V>
+    where
+        V: Clone + Eq + Hash,
+    {
+        let mut filtered = HashSet::new();
+        for x in x_set {
+            for y in y_set {
+                if self.relation(x, y) {
+                    filtered.insert(x.clone());
+                }
+            }
+        }
+        filtered
+    }
 }
 
 pub struct Diff;
@@ -43,8 +58,22 @@ pub struct Inconsistency;
 pub type Var<V> = HashSet<V>;
 pub type Csp<C> = Graph<(), C, Directed>;
 
+fn two_way_edges<'a, N, E>(
+    node: NodeIndex,
+    graph: &'a DiGraph<N, E>,
+) -> impl Iterator<Item = (EdgeIndex, Direction)> + 'a {
+    graph
+        .edges_directed(node, Outgoing)
+        .map(|e| (e.id(), Outgoing))
+        .chain(
+            graph
+                .edges_directed(node, Incoming)
+                .map(|e| (e.id(), Incoming)),
+        )
+}
+
 fn ac3<V, C>(
-    edges: impl IntoIterator<Item = EdgeIndex>,
+    edges: impl IntoIterator<Item = (EdgeIndex, Direction)>,
     variables: &mut [Var<V>],
     csp: &Csp<C>,
 ) -> Result<(), Inconsistency>
@@ -52,43 +81,57 @@ where
     V: Clone + Eq + Hash,
     C: Constraint<V>,
 {
-    let mut queue: VecDeque<EdgeIndex> = edges.into_iter().collect();
+    let mut queue: VecDeque<(EdgeIndex, Direction)> = edges.into_iter().collect();
 
-    while let Some(e) = queue.pop_front() {
+    while let Some((e, d)) = queue.pop_front() {
         let (from, to) = csp.edge_endpoints(e).unwrap();
-        let from_var = &variables[from.index()];
-        let to_var = &variables[to.index()];
+        let (from_var, to_var) = (&variables[from.index()], &variables[to.index()]);
         let constraint = csp.edge_weight(e).unwrap();
 
-        let orig_size = to_var.len();
-        let filtered = constraint.filter_forward(from_var, to_var);
-        let shrinked = filtered.len() < orig_size;
+        let (target, filtered) = if d == Outgoing {
+            let filtered = constraint.filter_forward(from_var, to_var);
+            (to, filtered)
+        } else {
+            let filtered = constraint.filter_backward(from_var, to_var);
+            (from, filtered)
+        };
 
         if filtered.is_empty() {
             return Err(Inconsistency);
         }
 
-        variables[to.index()] = filtered;
+        let shrinked = filtered.len() < variables[target.index()].len();
 
+        variables[target.index()] = filtered;
         if shrinked {
-            queue.extend(csp.edges(to).map(|e| e.id()));
+            queue.extend(two_way_edges(target, csp));
         }
     }
 
     Ok(())
 }
 
+pub fn ac3_total<V, C>(
+    variables: &mut [Var<V>],
+    csp: &Csp<C>,
+) -> Result<(), Inconsistency>
+where
+    V: Clone + Eq + Hash,
+    C: Constraint<V>,
+{
+    let edges = csp.edge_indices().map(|e| (e, Outgoing)).chain(csp.edge_indices().map(|e| (e, Incoming)));
+    ac3(edges, variables, csp)
+}
+
 pub fn backtracking_search<V, C>(
     mut variables: Vec<Var<V>>,
-    csp: &mut Csp<C>,
+    csp: &Csp<C>,
 ) -> Result<Vec<V>, Inconsistency>
 where
     V: Clone + Eq + Hash,
     C: Constraint<V>,
 {
-    let edges: Vec<_> = csp.edge_indices().collect();
-    ac3(edges, &mut variables, csp)?;
-
+    ac3_total(&mut variables, csp)?;
     backtrack(variables, csp)
 }
 
@@ -113,7 +156,7 @@ where
     variables[idx].iter().cloned().collect()
 }
 
-fn backtrack<V, C>(mut variables: Vec<Var<V>>, csp: &mut Csp<C>) -> Result<Vec<V>, Inconsistency>
+fn backtrack<V, C>(mut variables: Vec<Var<V>>, csp: &Csp<C>) -> Result<Vec<V>, Inconsistency>
 where
     V: Clone + Eq + Hash,
     C: Constraint<V>,
@@ -131,8 +174,7 @@ where
         let mut updated = variables.to_vec();
         updated[idx] = Some(value).into_iter().collect();
 
-        let edges = csp.edges(NodeIndex::new(idx)).map(|e| e.id());
-        ac3(edges, &mut updated, csp)?;
+        ac3(two_way_edges(NodeIndex::new(idx), csp), &mut updated, csp)?;
 
         if let Ok(assignment) = backtrack(updated, csp) {
             return Ok(assignment);

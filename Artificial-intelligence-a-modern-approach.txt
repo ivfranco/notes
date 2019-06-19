@@ -1343,8 +1343,8 @@ c.  maintain believe states for all players assuming optimality
 6.1
 ./AI/csp
 Solution with 2 colors: 0
-Solution with 3 colors: 36
-Solution with 4 colors: 1152
+Solution with 3 colors: 18
+Solution with 4 colors: 768
 
 6.2
 a.  variables: positions of knights
@@ -1435,3 +1435,102 @@ there are also 5 ALLDIFF constraints on five nationalities, colors, etc.
 [2, 0, 2, 0, 1, 2, 1, 0]
 
 6.9
+most constrained variable: smaller branching factor
+least constrained variable: more likely to be consistent, closer to a goal state
+
+6.10
+Sample size = 100
+n = 10, k = 3, average time: 45.803µs
+n = 10, k = 4, average time: 58.821µs
+n = 20, k = 3, average time: 161.787µs
+n = 20, k = 4, average time: 195.926µs
+n = 30, k = 3, average time: 313.017µs
+n = 30, k = 4, average time: 343.659µs
+n = 40, k = 3, average time: 498.832µs
+n = 40, k = 4, average time: 528.52µs
+n = 50, k = 3, average time: 713.714µs
+n = 50, k = 4, average time: 781.804µs
+n = 60, k = 3, average time: 921.854µs
+n = 60, k = 4, average time: 985.129µs
+n = 70, k = 3, average time: 1.288054ms
+n = 70, k = 4, average time: 1.376637ms
+n = 80, k = 3, average time: 1.614063ms
+n = 80, k = 4, average time: 1.688802ms
+n = 90, k = 3, average time: 2.02847ms
+n = 90, k = 4, average time: 2.081303ms
+n = 100, k = 3, average time: 2.487953ms
+n = 100, k = 4, average time: 2.664178ms
+n = 110, k = 3, average time: 3.009056ms
+n = 110, k = 4, average time: 3.096969ms
+n = 120, k = 3, average time: 3.688433ms
+n = 120, k = 4, average time: 3.92376ms
+n = 130, k = 3, average time: 4.508409ms
+n = 130, k = 4, average time: 4.536822ms
+n = 140, k = 3, average time: 5.225739ms
+n = 140, k = 4, average time: 5.445125ms
+n = 150, k = 3, average time: 6.139016ms
+n = 150, k = 4, average time: 6.203166ms
+n = 160, k = 3, average time: 7.180469ms
+n = 160, k = 4, average time: 7.404204ms
+n = 170, k = 3, average time: 7.981097ms
+n = 170, k = 4, average time: 8.107019ms
+n = 180, k = 3, average time: 8.889312ms
+n = 180, k = 4, average time: 9.092286ms
+n = 190, k = 3, average time: 9.967555ms
+n = 190, k = 4, average time: 10.107981ms
+n = 200, k = 3, average time: 10.917996ms
+n = 200, k = 4, average time: 11.265273ms
+n = 210, k = 3, average time: 12.022255ms
+n = 210, k = 4, average time: 12.487402ms
+n = 220, k = 3, average time: 13.422819ms
+n = 220, k = 4, average time: 13.653953ms
+n = 230, k = 3, average time: 14.635311ms
+n = 230, k = 4, average time: 14.935789ms
+n = 240, k = 3, average time: 15.938145ms
+n = 240, k = 4, average time: 16.251375ms
+n = 250, k = 3, average time: 17.275465ms
+n = 250, k = 4, average time: 17.656288ms
+n = 260, k = 3, average time: 18.982531ms
+n = 260, k = 4, average time: 19.508623ms
+n = 270, k = 3, average time: 20.831927ms
+n = 270, k = 4, average time: 21.118058ms
+n = 280, k = 3, average time: 22.793173ms
+n = 280, k = 4, average time: 23.28953ms
+n = 290, k = 3, average time: 24.759013ms
+n = 290, k = 4, average time: 24.864295ms
+n = 300, k = 3, average time: 26.079515ms
+n = 300, k = 4, average time: 26.54345ms
+n = 310, k = 3, average time: 27.405902ms
+n = 310, k = 4, average time: 28.365417ms
+n = 320, k = 3, average time: 29.848001ms
+n = 320, k = 4, average time: 30.388094ms
+n = 330, k = 3, average time: 31.850545ms
+n = 330, k = 4, average time: 32.298845ms
+n = 340, k = 3, average time: 33.672704ms
+n = 340, k = 4, average time: 34.208691ms
+n = 350, k = 3, average time: 34.849628ms
+n = 350, k = 4, average time: 35.996554ms
+n = 360, k = 3, average time: 37.107424ms
+n = 360, k = 4, average time: 37.22433ms
+n = 370, k = 3, average time: 39.466757ms
+n = 370, k = 4, average time: 40.312503ms
+n = 380, k = 3, average time: 41.036165ms
+n = 380, k = 4, average time: 41.037952ms
+n = 390, k = 3, average time: 43.320708ms
+n = 390, k = 4, average time: 43.584628ms
+n = 400, k = 3, average time: 45.540979ms
+n = 400, k = 4, average time: 45.755596ms
+n = 410, k = 3, average time: 48.01493ms
+n = 410, k = 4, average time: 48.26128ms
+n = 420, k = 3, timeout after 5s
+running time roughly quadratic in n
+
+6.11
+./AI/csp
+
+6.12
+n <- the number of variables, d <- the maximum size of domain
+O(n) edges are checked, each takes O(d^2) time
+O(nd^2) in total
+
+6.13
