@@ -1534,3 +1534,65 @@ O(n) edges are checked, each takes O(d^2) time
 O(nd^2) in total
 
 6.13
+only put an edge (Xq, Xk) back on the queue when:
+    (Xk, Xi) is the current edge / constraint under examination
+    (Xq, Xk) is an edge in the graph
+    counter for some x ∈ Xk on (Xk, Xi) is reduced to 0
+each edge has O(d) counters, which in turn takes value <= d
+sum of all these counters at the beginning is O(cd^2)
+counters are non-negative
+// thanks solution manual
+by algorithm AC-4 on the paper 
+    Arc and path consistency revisited, Mohr and Henderson (1986) 
+    http://cse.unl.edu/~choueiry/Documents/Mohr+Henderson-AIJ1986.pdf
+the innermost loop decrements a counter, there are O(cd^2) = O(n^2d^2) such decrementations
+
+6.14
+the arc-consistent graph is later searched from the root
+if arc-consistency is forced from parent to child, for (Xj, Xi = PARENT(Xj))
+    for all xj ∈ Xj, there is xi ∈ Xi that (xi, xj) ∈ R
+    if an arbitrary value xi in the domain is assigned to Xi
+    {xj | xj ∈ Xj, (xi, xj) ∈ R} may be empty, backtracking may be necessary
+if arc-consistency is forced from child to parent, for (Xi = PARENT(Xj), Xj)
+    for all xi ∈ Xi, there is xj ∈ Xj that (xi, xj) ∈ R
+    if an arbitrary value xi in the domain is assigned to Xi
+    there is always an xj ∈ Xj that (xi, xj) ∈ R, no backtracking is required
+
+6.15
+for a given inital board:
+START STATE: assign number in random order, only ensure each zone (3 x 3 square) is filled with number 1-9
+GOAL STATE: by Sudoku rules 
+ACTIONS: swap places of two numbers in a zone (3 x 3 square) that's not fixed by the inital board
+size of the state space <= 9! * 9 <= 2^22, local search should be efficient in such a small state space
+
+6.16
+constraint:
+    let (Di .. Dj) be a tuple of domains of variables, a constraint is a subset R ⊆ Di * .. * Dj
+    or a structure C with an exposed method rel that C.rel(xi .. xj) = true iff (xi .. xj) ∈ R for some fixed R
+backtracking search: 
+    repeat the process:
+    1.  assign a value to a variable with a domain of size >= 2
+    2.  prune inconsistent values from other variables 
+    3.  if any domain is reduced to empty, revert the changes made in 1. and 2. 
+    4.  if any domain has size >= 2, go back to 1; otherwise return the assignment
+arc consistency:
+    csp has arc consistency <=> csp is consistent in respect to all the binary constraints
+backjumping:
+    in backtracking search, when the current assignment is proved to be inconsistent
+    backtrack to the most recent variables that caused the inconsistency instead of the most recent variable
+min-conflicts:
+    upon choosing a new value for a variable
+    choose a value that prunes as few as possible values from other variables
+cycle cutset:
+    let G be a CSP graph, S ⊆ G.V
+    if by removing S and incdent edges from G, the resulting graph G' is a tree
+    then S is a cycle cutset of G
+
+6.17
+enumerate all possible combination of k nodes in G, remove these nodes, check if the remaining graph is a tree
+check can be performed in time O(V + E), O((V + E)n^k) in total
+Approximation Algorithms for the Loop Cutset Problem, Becker, A. and Geige, D. (2013)
+https://arxiv.org/ftp/arxiv/papers/1302/1302.6787.pdf
+described an algorithm with time complexity O(E + VlgV)
+for common CSP graphs, the optimal cycle cutset is already large
+enumerating all the possible value assignments of S would be impractical
