@@ -1,4 +1,5 @@
 pub mod colors;
+pub mod sudoku;
 
 use petgraph::prelude::*;
 
