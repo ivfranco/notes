@@ -1596,3 +1596,189 @@ https://arxiv.org/ftp/arxiv/papers/1302/1302.6787.pdf
 described an algorithm with time complexity O(E + VlgV)
 for common CSP graphs, the optimal cycle cutset is already large
 enumerating all the possible value assignments of S would be impractical
+
+7
+KB worlds:
+  24: Pits: [(3, 1)], Wumpus: (1, 3)
+a2 worlds:
+  8: Pits: [(1, 3), (3, 1)], Wumpus: (1, 3)
+  9: Pits: [(1, 3), (3, 1)], Wumpus: (2, 2)
+  10: Pits: [(1, 3), (3, 1)], Wumpus: (3, 1)
+  11: Pits: [(1, 3), (3, 1)], No wumpus
+  12: Pits: [(1, 3)], Wumpus: (1, 3)
+  13: Pits: [(1, 3)], Wumpus: (2, 2)
+  14: Pits: [(1, 3)], Wumpus: (3, 1)
+  15: Pits: [(1, 3)], No wumpus
+  24: Pits: [(3, 1)], Wumpus: (1, 3)
+  25: Pits: [(3, 1)], Wumpus: (2, 2)
+  26: Pits: [(3, 1)], Wumpus: (3, 1)
+  27: Pits: [(3, 1)], No wumpus
+  28: Pits: [], Wumpus: (1, 3)
+  29: Pits: [], Wumpus: (2, 2)
+  30: Pits: [], Wumpus: (3, 1)
+  31: Pits: [], No wumpus
+a3 worlds:
+  0: Pits: [(1, 3), (2, 2), (3, 1)], Wumpus: (1, 3)
+  4: Pits: [(1, 3), (2, 2)], Wumpus: (1, 3)
+  8: Pits: [(1, 3), (3, 1)], Wumpus: (1, 3)
+  12: Pits: [(1, 3)], Wumpus: (1, 3)
+  16: Pits: [(2, 2), (3, 1)], Wumpus: (1, 3)
+  20: Pits: [(2, 2)], Wumpus: (1, 3)
+  24: Pits: [(3, 1)], Wumpus: (1, 3)
+  28: Pits: [], Wumpus: (1, 3).1
+
+7.2
+a.  mythical => immortal
+b.  ~mythical => mortal ∧ mammal
+c.  immortal ∨ mammal => horned
+d.  horned => magical
+from a and b:
+    e.  immortal ∨ (mortal ∧ mammal)
+from c and e:
+    f.  horned
+from d and f:
+    g.  magical
+
+7.3
+a.  ./AI/propositional/src/lib.rs
+b.  a => b with a = false
+    a || b with a = true
+    a && b with a = false
+c.  TAOTOLOGY can be reduced to PL-TRUE? with empty model
+    hence PL-TRUE? is NP-complete
+d.  ./AI/propositional/src/lib.rs
+    a => b with { a = true }
+    a || b with { a = false }
+    a && b with { a = true }
+e.  if for a partial model P, PL-TRUE?(KB, P) is true or false
+    all the full models M where P ⊆ M nolonger have to be checked
+
+7.4
+a.  true
+b.  false (by definition of =>)
+c.  true
+d.  false {a = false, b = false}
+e.  true 
+f.  true
+        !((A => C) ∨ (B => C))
+    <=> (!A ∧ C) ∧ (!B ∧ C)
+    <=> !(A ∨ B) ∧ C
+    =>  !(A ∧ B) ∧ C
+    =>  !(A ∧ B) ∨ C
+    =>  !((A ∧ B) => C)
+g.  true
+        (C ∨ (!A ∧ !B))
+    <=> (C ∨ !A) ∧ (C ∨ !B)
+    <=> (A => C) ∧ (B => C)
+h.  true (and-elimination)
+i.  false {a = false, b = false, c = false, d = true, e = false}
+j.  true {a = true, b = false}
+k.  true {a = true, b = true}
+l.  false (./AI/propositional)
+
+7.5
+let M(a) be the set of models in which a is true
+a.      a is valid
+    =>  a is true for every model
+    =>  M(True) = M(a)
+    =>  True |= a
+        True |= a
+    =>  M(True) ⊆ M(a), as M(True) is the universal set of models
+    =>  a is valid
+b.  M(False) = ∅ ⊆ M(a) for any a
+c.      a |= b
+    <=> M(a) ⊆ M(b)
+    <=> for all model, if a is true, b must be true
+    <=> !(a ∧ !b) is valid
+    <=> (!a ∨ b) is valid
+    <=> a <=> b is valid
+d.  a |= b iff a => b is valid
+    b |= a iff b => a is valid
+    a ≡ b => (a => b && b => a), a <=> b is valid
+    and vice versa
+e.      a ∧ !b is unsatisfiable
+    <=> !(a ∧ !b) is valid
+    <=> !a ∨ b is valid
+    <=> a => b is valid
+    <=> a |= b
+
+7.6
+a.  a ∧ b => a is valid, so a ∧ b |= a and a ∧ b |= b
+    if a |= γ, M(a ∧ b) ⊆ M(a) ⊆ M(γ), a ∧ b => γ
+    if b |= γ, similar
+b.      a |= (b ∧ γ)
+    =>  a => b ∧ γ is valid
+    =>  a => b ∧ a => γ is valid
+    =>  a => b is valid and a => γ is valid
+    =>  a |= b and a |= γ
+c.  define
+        a = True
+        b = s
+        γ = !s
+    s ∨ !s is valid, True |= b ∨ γ
+    but neither s nor !s is valid, both a |= b or a |= !s are false
+
+7.7
+a.  2^2
+b.  2^4
+c.  2^4
+
+7.8
+a.  XOR
+b.  there are 2^4 = 16 functions in the domain N2 * N2 => N2
+    each corresponds to a binary operation
+c.  for some of them the result does not depend on all the operands
+
+7.9
+./AI/propositional
+
+7.10
+./AI/propositional
+a.  valid
+b.  neither
+c.  neither
+d.  valid
+e.  valid
+f.  valid
+g.  valid
+
+7.11
+let S = {Si} be the set of symbols appeared in the sentence
+let M = {Mi} be the set of models in which the sentence is not the case
+let C(Mj) be a conjunction that:
+    C(Mi) = L1 ∧ .. ∧ Ln where
+    Lj  = Sj if Sj is true in Mi
+        = !Sj if Sj is false in Mi
+the sentence is equivalent to:
+        !(∨{C(Mi) | Mi ∈ M})
+    <=> ∧{!C(Mi) | Mi ∈ M}
+    <=> ∧{!C'(Mi) | Mi ∈ M} where
+    C'(Mi) = L'1 ∨ .. ∨ L'n
+    L'j = !Sj if Sj is true in Mi
+        = Sj if Sj is false in Mi
+which is a CNF
+
+7.12
+~(~A & ~B) = A | B
+A | B + ~B | A:
+    A
+~A | B | E + A:
+    B | E
+B | E + ~E | B:
+    B
+~B | F + B:
+    F
+~B | C + B:
+    C
+~C | ~F | ~B + B + F + C:
+    {}
+~A & ~B is proven
+
+7.20
+// thanks http://formal.cs.utah.edu:8080/pbl/PBL.php
+S1: (~A | B | E) & (~B | A) & (~E | A)
+S2: ~E | D
+S3: ~C | ~F | ~B
+S4: ~E | B
+S5: ~B | F
+S6: ~B | C
