@@ -1774,6 +1774,41 @@ B | E + ~E | B:
     {}
 ~A & ~B is proven
 
+7.13
+a.      (P1 & .. & Pm) => Q
+    <=> ~(P1 & .. & Pm) | Q
+    <=> (~P1 | .. | ~Pm) | Q
+    <=> ~P1 | .. | ~Pm | Q
+b.      ~P1 | .. | ~Pm | Q1 | .. | Qn
+    <=> (~P1 | .. | ~Pm) | (Q1 | .. | Qn)
+    <=> (P1 & .. & Pm) => (Q1 | .. | Qn)
+c.  let two clauses be
+        (P1 & .. & Pm) => (Q1 | .. | Qn) and
+        (X1 & .. & Xs) => (Y1 | .. | Yt)
+    where Pi = Yj, then
+        (P1 & .. & Pi-1 & Pi+1 & Pm & X1 & .. & Xs) => (Q1 | .. | Qn | Y1 | .. | Yj-1 | Yj+1 | .. | Yt)
+
+7.14
+a.  (ii)
+b.  (i):    ~R | ~E | C
+    (ii):   (~R | ~E | C) & (~R | ~C | E)
+    (iii):  ~R | ~C | E | ~E
+
+7.15
+a.  digraph G {
+        X1 -> X2 -> X3 -> X4 -> X5 [label="Imp"]
+    }
+b.  ~A | B <=> A => B ("Imp")
+    if Xi = true, all Xj with j > i must have Xj = true
+    there are n solutions to this SAT problem
+c.  with MAC:
+    at first the solution X1 .. X5 = false is explored in O(n)
+    assigning false to variables triggers no change to consistent domains, INFERENCE is O(1)
+    then the algorithm backtracks to X1 .. Xi = false, starting from i = 4
+    one run of MAC in time O(n - i) will reduce the domain of all variables Xi+1 .. Xn to a single value
+    O(n^2) in total
+d.  
+
 7.20
 // thanks http://formal.cs.utah.edu:8080/pbl/PBL.php
 S1: (~A | B | E) & (~B | A) & (~E | A)
