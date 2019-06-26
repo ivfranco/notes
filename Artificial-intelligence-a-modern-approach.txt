@@ -1807,7 +1807,69 @@ c.  with MAC:
     then the algorithm backtracks to X1 .. Xi = false, starting from i = 4
     one run of MAC in time O(n - i) will reduce the domain of all variables Xi+1 .. Xn to a single value
     O(n^2) in total
-d.  
+d.  PL-FC-ENTAILS? only has running time linear in number of literals 
+    if clauses can be indexed by literals in premise in constant time
+    possible connection: for both problems edges (clauses in SAT, constraints in CSP) are only propagated once
+
+7.16
+let c = {l1 .. ln} be a clause
+if l1 = A, assign true to A, c is satisfied
+if l1 = ~A, assign false to A, c is satisfied
+a 3-clause {A, B, C} is unsatisfied only when both A, B and C is false
+when A, B and C mention distinct symbols, in 1 / 2^3 = 1/8 of all the models the clause is unsatisfiable
+hence each clause rules out at most 1/8 of all the models, 5 / 8 < 1, 3-SAT of 5 clauses is always satisfiable
+unsatisfiable 3-SAT problem contains at least 8 clauses
+
+7.17
+a.  ~C | G + ~G:
+        ~C
+    ~D | G + ~G:
+        ~D
+    ~B | D + ~D:
+        ~B
+    A | B + ~B:
+        A
+    ~A | C + A + ~C:
+        {}
+b.  there are C(n, 2) = n * (n - 1) / 2 pairs of distinct symbols, 4 semantically distinct clauses for each pair:
+        {A, B}, {~A, B}, {A, ~B}, {~A, ~B}
+    two semantically distinct clauses for each symbol alone:
+        {A, A}, {~A, ~A}
+    where {A, ~A} <=> True for any A
+    4(n^2 - n)/2 + 2n + 1 = 2n^2 + 1 clauses in total
+c.  resolving two 2-CNF clauses will result in another 2-CNF clause
+    there are O(n^2) semantically distinct 2-CNF clauses
+    constructing a new clause from the KB may take at most O(n^2) time by enumerating all pairs
+    O(n^4) in total
+d.  RC(3-CNF) is not closed, resolving two 3-CNF results in a 4-CNF clause
+
+7.18
+./AI/propositional
+a.  satisfiable
+b.  lhs: (~A | ~C | B)
+    rhs: (~A | B) & (~C | B)
+    all symbols appear in both CNF with the same sign
+c.  original: (~A | ~B | B) & (~A | A | B) & (~A | B | C)
+    negation: (~A | ~C | B) & (~B) & (A | C)
+    none of them resolves to empty clause
+
+7.19
+a.  enumerate all the assignments in which the sentence is true
+    construct a clause for each assignment that:
+        li = si if s1 = true in the assignment
+        li = ~si if s1 = false in the assignment
+b.  first to NNF, then distribute each AND over ORs 
+    ./AI/propositional/src/lib.rs#to_dnf_expr
+c.  for each clause ci:
+        for each literal li in ci:
+            if symbol of li is already assigned with contradicting value, return UNSATISFIABLE
+            otherwise assign li to make it satisfied
+        assign all symbols not in ci true
+        return assignment
+d.  ((((~A & ~B) & ~C) | ((B & ~B) & ~C)) | (((~A & C) & ~C) | ((B & C) & ~C))) | ((((~A & ~B) & ~A) | ((B & ~B) & ~A)) | (((~A & C) & ~A) | ((B & C) & ~A)))
+    A = B = C = false
+e.  // thanks solutions manual
+    the final step (distribute AND over ORs) frequently produces DNF of exponential size of the original sentence
 
 7.20
 // thanks http://formal.cs.utah.edu:8080/pbl/PBL.php
@@ -1817,3 +1879,72 @@ S3: ~C | ~F | ~B
 S4: ~E | B
 S5: ~B | F
 S6: ~B | C
+
+7.21
+more likely
+a random 4-CNF clause is a random 3-CNF clause + a new literal, distinct or not 
+which is more likely to be satisfiable
+
+7.22
+a.  assuming indices are one-based
+    (X12 & X22 & ~X21) | (X12 & ~X22 & X21) | (~X12 & X22 & X21)
+b.  for each of C(n, k) combinations of neighbors N
+    construct a conjuction clause in which:
+        li = Xi if Xi ∈ N
+        li = ~Xi if Xi ∉ N
+    return disjunction of these clauses
+c.  KB contains assertions from all known numbers 
+    resolve KB & Xi and KB & ~Xi
+d.  there are N symbols in which exactly M of them must be true
+    let DPLL take one more parameter: limit
+    return false if the number of true symbols in model > limit
+    return false if the model is complete but the number of true symbols < limit 
+e.  no, if KB |= a, KB & b |= a
+f.  when M = k, k-1 mines are already proved
+    if there are two squares Xi and Xj that may contain a mine
+    no matter how long the distance between Xi and Xj is, Xi <=> ~Xj
+
+7.23
+KB |= a is proved by unsatisfiability of KB & ~a
+first all pure symbols will be assigned
+a pure symbol can be extracted in time O(n) where n is the number of literals in the CNF
+here a is not a pure symbol since both a and ~a ∈ (KB & ~a)
+then all the unit clauses are assigned
+again a unit clause can be find in time O(n) given a partial model 
+once a is assigned, further recursive calls will immediately return false
+let p be the number of pure symbols appear in the run, u be the number of unit clauses appear in the run
+DPLL will take O(pn + un) time
+
+7.24
+// ./AI/propositional
+(~A | ~B | L) & (~A | ~P | L) & (~B | ~L | M) & (~L | ~M | P) & (~P | Q) & (~Q) & (A) & (B)
+{}
+chosen Q = false by unique clause heuristic
+{Q = false}
+chosen P = false by unique clause heuristic
+{P = false, Q = false}
+chosen A = true by pure symbol heuristic
+{A = true, P = false, Q = false}
+chosen L = true by pure symbol heuristic
+{A = true, L = true, P = false, Q = false}
+chosen B = true by pure symbol heuristic
+{A = true, B = true, L = true, P = false, Q = false}
+chosen M = true by unique clause heuristic
+{A = true, B = true, L = true, M = true, P = false, Q = false}
+heuristics were unbelievably effective here
+
+7.25
+Locked(t+1) <=> (~Locked(t) & Lock(t)) | (Locked(t) & ~Unlock(t))
+
+7.26
+// only fluents mentioned in the text
+FaceingEast(t+1) <=>    (FacingNorth(t) & TurnRight(t)) |
+                        (FacingSouth(t) & TurnLeft(t)) |
+                        (FacingEast(t) & ~TurnRight(t) & ~TurnLeft(t))
+WumpusAlive(t+1) <=>    WumpusAlive(t) &
+                        ~(FacingWumpus(t) & HaveArrow(t) & Shoot(t))
+FacingWumpus is not a fluent, it only depends on background & fluents for the current time t
+
+7.27
+define symbol or(Pij, Pqr) for each pair of Pij and Pqr
+then P31 | P22 will be included in the next believe state as or(P31, P22)

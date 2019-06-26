@@ -1,6 +1,9 @@
 pub mod cnf;
 
-use std::fmt::{self, Formatter};
+use std::{
+    fmt::{self, Formatter},
+    ops::{BitAnd, BitOr, Not, Shr},
+};
 
 pub type Symbol = usize;
 
@@ -51,6 +54,38 @@ pub mod build {
 
     pub fn iff(lhs: Expr, rhs: Expr) -> Expr {
         Iff(Box::new(lhs), Box::new(rhs))
+    }
+}
+
+impl BitOr for Expr {
+    type Output = Self;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        build::or(self, rhs)
+    }
+}
+
+impl BitAnd for Expr {
+    type Output = Self;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        build::and(self, rhs)
+    }
+}
+
+impl Not for Expr {
+    type Output = Self;
+
+    fn not(self) -> Self::Output {
+        build::not(self)
+    }
+}
+
+impl Shr for Expr {
+    type Output = Self;
+
+    fn shr(self, rhs: Self) -> Self::Output {
+        build::imply(self, rhs)
     }
 }
 
@@ -119,8 +154,14 @@ impl Expr {
                 False => True,
                 Var(..) => self.clone(),
                 Not(inn) => inn.to_nnf_expr(),
-                And(lhs, rhs) => or(not(*lhs.clone()).to_nnf_expr(), not(*rhs.clone()).to_nnf_expr()),
-                Or(lhs, rhs) => and(not(*lhs.clone()).to_nnf_expr(), not(*rhs.clone()).to_nnf_expr()),
+                And(lhs, rhs) => or(
+                    not(*lhs.clone()).to_nnf_expr(),
+                    not(*rhs.clone()).to_nnf_expr(),
+                ),
+                Or(lhs, rhs) => and(
+                    not(*lhs.clone()).to_nnf_expr(),
+                    not(*rhs.clone()).to_nnf_expr(),
+                ),
                 Imply(lhs, rhs) => not(or(not(*lhs.clone()), *rhs.clone())).to_nnf_expr(),
                 Iff(lhs, rhs) => not(and(
                     imply(*lhs.clone(), *rhs.clone()),
@@ -154,15 +195,18 @@ impl Expr {
         match self {
             And(lhs, rhs) => and(lhs.distribute_ors(), rhs.distribute_ors()),
             Or(lhs, rhs) => {
-                if let And(p, q) = rhs.as_ref() {
+                let lhs = lhs.distribute_ors();
+                let rhs = rhs.distribute_ors();
+
+                if let And(p, q) = &rhs {
                     and(
-                        or(*lhs.clone(), *p.clone()).distribute_ors(),
-                        or(*lhs.clone(), *q.clone()).distribute_ors(),
+                        or(lhs.clone(), *p.clone()).distribute_ors(),
+                        or(lhs, *q.clone()).distribute_ors(),
                     )
-                } else if let And(p, q) = lhs.as_ref() {
+                } else if let And(p, q) = &lhs {
                     and(
-                        or(*p.clone(), *rhs.clone()).distribute_ors(),
-                        or(*q.clone(), *rhs.clone()).distribute_ors(),
+                        or(*p.clone(), rhs.clone()).distribute_ors(),
+                        or(*q.clone(), rhs).distribute_ors(),
                     )
                 } else {
                     self.clone()
@@ -172,20 +216,44 @@ impl Expr {
         }
     }
 
-    pub(crate) fn to_cnf_expr(&self) -> Expr {
+    fn distribute_ands(&self) -> Expr {
+        use build::*;
+
+        match self {
+            Or(lhs, rhs) => or(lhs.distribute_ands(), rhs.distribute_ands()),
+            And(lhs, rhs) => {
+                let lhs = lhs.distribute_ands();
+                let rhs = rhs.distribute_ands();
+
+                if let Or(p, q) = &rhs {
+                    or(
+                        and(lhs.clone(), *p.clone()).distribute_ands(),
+                        and(lhs, *q.clone()).distribute_ands(),
+                    )
+                } else if let Or(p, q) = &lhs {
+                    or(
+                        and(*p.clone(), rhs.clone()).distribute_ands(),
+                        and(*q.clone(), rhs).distribute_ands(),
+                    )
+                } else {
+                    self.clone()
+                }
+            }
+            _ => self.clone(),
+        }
+    }
+
+    pub fn to_cnf_expr(&self) -> Expr {
         self.to_nnf_expr().distribute_ors()
+    }
+
+    pub fn to_dnf_expr(&self) -> Expr {
+        self.to_nnf_expr().distribute_ands()
     }
 
     fn format(&self, parent: Precedence, f: &mut Formatter) -> Result<(), fmt::Error> {
         if self.precedence() <= parent {
             write!(f, "(")?;
-        }
-
-        fn to_symbol(i: usize) -> char {
-            use std::convert::TryInto;
-
-            const A: u32 = b'A' as u32;
-            (A + i as u32).try_into().unwrap()
         }
 
         fn binary(
@@ -221,6 +289,13 @@ impl Expr {
 
         Ok(())
     }
+}
+
+pub(crate) fn to_symbol(i: usize) -> char {
+    use std::convert::TryInto;
+
+    const A: u32 = b'A' as u32;
+    (A + i as u32).try_into().unwrap()
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd)]

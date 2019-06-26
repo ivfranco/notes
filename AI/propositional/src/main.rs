@@ -1,12 +1,15 @@
 use itertools::iproduct;
 
-use propositional::{build::*, Expr, Sentence};
+use propositional::{build::*, cnf::ToCNF, Expr, Sentence};
 
 fn main() {
     exercise_7_1();
     exercise_7_4();
     exercise_7_9();
     exercise_7_10();
+    exercise_7_18();
+    exercise_7_19();
+    exercise_7_24();
 }
 
 struct World {
@@ -147,6 +150,16 @@ fn exercise_7_9() {
     println!("verified all taotologies");
 }
 
+fn report(expr: &Expr) -> &'static str {
+    if expr.is_taotology() {
+        "valid"
+    } else if not(expr.clone()).is_taotology() {
+        "unsatisfiable"
+    } else {
+        "satisfiable"
+    }
+}
+
 fn exercise_7_10() {
     println!("7.10");
 
@@ -170,7 +183,7 @@ fn exercise_7_10() {
         var(1)
     }
 
-    for (i, expr) in vec![
+    for (i, expr) in [
         imply(smoke(), smoke()),
         imply(smoke(), fire()),
         imply(imply(smoke(), fire()), imply(not(smoke()), not(fire()))),
@@ -182,19 +195,65 @@ fn exercise_7_10() {
         imply(imply(smoke(), fire()), imply(and(smoke(), heat()), fire())),
         or(big(), or(dumb(), imply(big(), dumb()))),
     ]
-    .into_iter()
+    .iter()
     .enumerate()
     {
-        let sentence = Sentence::new(expr.clone(), 3);
-        let negation = Sentence::new(not(expr), 3);
         let index: char = (b'a' + i as u8).into();
-
-        if sentence.is_taotology() {
-            println!("{}.  valid", index);
-        } else if negation.is_taotology() {
-            println!("{}.  unsatisfiable", index);
-        } else {
-            println!("{}.  neither", index);
-        }
+        println!("{}.  {}", index, report(expr));
     }
+}
+
+fn exercise_7_18() {
+    println!("7.18");
+
+    fn food() -> Expr {
+        var(0)
+    }
+
+    fn party() -> Expr {
+        var(1)
+    }
+
+    fn drinks() -> Expr {
+        var(2)
+    }
+
+    let lhs = (food() >> party()) | (drinks() >> party());
+    let rhs = (food() | drinks()) >> party();
+    println!("{:?}", lhs.to_cnf());
+    println!("{:?}", rhs.to_cnf());
+
+    let expr = lhs >> rhs;
+    println!("{}", report(&expr));
+
+    println!("{:?}", expr.to_cnf());
+    println!("{:?}", (!expr).to_cnf());
+}
+
+fn exercise_7_19() {
+    println!("7.19");
+
+    let expr = (var(0) >> var(1)) & (var(1) >> var(2)) & (var(2) >> (!var(0)));
+
+    println!("{:?}", expr.to_dnf_expr());
+}
+
+fn exercise_7_24() {
+    println!("7.24");
+
+    fn v(c: char) -> Expr {
+        var(c as usize - b'a' as usize)
+    }
+
+    let kb = (v('p') >> v('q'))
+        & ((v('l') & v('m')) >> v('p'))
+        & ((v('b') & v('l')) >> v('m'))
+        & ((v('a') & v('p')) >> v('l'))
+        & ((v('a') & v('b')) >> v('l'))
+        & v('a')
+        & v('b');
+
+    let cnf = (kb & !v('q')).to_cnf();
+    println!("{:?}", cnf);
+    assert!(!cnf.satisfiable());
 }
