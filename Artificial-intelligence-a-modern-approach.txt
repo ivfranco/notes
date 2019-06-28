@@ -1946,5 +1946,218 @@ WumpusAlive(t+1) <=>    WumpusAlive(t) &
 FacingWumpus is not a fluent, it only depends on background & fluents for the current time t
 
 7.27
+// thanks solutions manual
 define symbol or(Pij, Pqr) for each pair of Pij and Pqr
 then P31 | P22 will be included in the next believe state as or(P31, P22)
+// code / performance test skipped
+
+8.1
+a.  road, city, coastline
+b.  explicit: location of cities, start and end point of roads, scale of the map
+    implicit: whether two cities are connected by roads, length of the roads, size of cities
+c.  temporal states / fluents (e.g. traffic flow at the moment)
+d.  exact shape of the coastline
+    exact shape of a road
+e.  statistical graphics
+        pros: intuitive, expressive
+        cons: lacks precision compared to raw data
+    Venn diagram:
+        pros: intuitive
+        cons: causes certain kind of misunderstanding of set theories
+
+8.2
+true under closed-world assumption
+in standard semantics there may be infinitely more unnamed objects x in the domain, for which ~P(x)
+
+8.3
+it is valid, without unique-name assumption x and y may be different names of the same object
+
+8.4
+∀x, y x = y
+
+8.5
+each constant symbol may point to one of D elements, c^D possible arrangements
+a predicate of arity k is a subset of the powerset of domain D in which all sets are of size k
+    there are C(D, k) different subsets of size k, 2^C(D, k) for each predicate
+    2^C(D, k)pk for all predicates of arity k, Π(1 <= k <= A)2^C(D, k)pk = 2^Σ(1 <= k <= A)C(D, k)pk in total
+size of the function domain D^k => D ∪ {empty} is (D + 1)^D^k
+    ((D + 1)^D^k)^fk = (D + 1)^(D^k)fk for each k
+    Π(1 <= k <= A)(D + 1)^(D^k)pk = (D + 1)^Σ(1 <= k <= A)(D^k)pk in total
+c^D * 2^Σ(1 <= k <= A)C(D, k)pk * (D + 1)^Σ(1 <= k <= A)(D^k)pk
+
+8.6
+a.  valid
+    ∃x x = x means the object domain is not empty
+    hence for each object there is an object (itself) equals to it
+b.  valid, only falsy in intuitionistic logic
+c.  valid, x = x for all object by definition, x = x => Smart(x) | x = x 
+
+8.7
+1.  ∃x x = x
+    true in any domain with at least one object, false in the empty domain
+2.  ∃x P(x) | ~P(x)
+    same to above
+the empty domain leads to the strange consequence that ∀x α is no longer stronger than ∃x α
+namely ∀x P(x) | ~P(x) is valid but not sentence 2. above
+
+8.8
+no, there's no axiom forcing monogamy in the system
+∀x,y,z Spouse(y, x) & Spouse(z, x) => y = z
+proof:
+        Jim != George & Spouse(Jim, Laura)
+    assume Spouse(Laura, George)
+    =>  Jim = George & Jim != George // monogamy axiom
+    contradiction
+    =>  ~Spouse(Laura, George)
+if Spouse if an unary function, monogamy is implicitly forced, but everything now in the domain must be married
+
+8.9
+a.  i.  invalid, Paris & Marseilles is not an object
+    ii. correct
+    iii.incorrect, disjunction instead of conjunction
+b.  i.  correct
+    ii. incorrect, true if any non-country object in the domain
+    iii.invalid
+    iv. invalid 
+c.  i.  correct
+    ii. correct, a & b => c <=> a => (b => c):
+            a & b => c <=> ~(a & b) | c <=> ~a | ~b | c
+            a => (b => c) <=> a => (~b | c) <=> ~a | ~b | c
+    iii.incorrect, (a => b) => c <=> (~a | b) => c <=> ~(~a | b) | c <=> (a & ~b) | c
+        additional restriction: for all object c, 
+        if c is not in South America, c must not share border with Eucador & c must be a country
+    iv. incorrect, all countries must be in South America & share border with Ecuador
+d.  i.  correct
+    ii. correct, a & b => ~c <=> ~(a & b) | ~c <=> ~a | ~b | ~c <=> ~(a & b & c)
+    iii.incorrect: if there is a region in South America, there is a region in Europe sharing no border with it
+    iv. invalid: ambiguous syntax
+e.  i.  incorrect
+    ii. correct
+    iii.incorrect
+    iv. invalid, x != y is not an object
+
+8.10
+a.  Occupation(Emily, Surgeon) | Occupation(Emily, Lawyer)
+b.  Occupation(Joe, Actor) & ∃o Occupation(Joe, o) & o != Actor
+c.  ∀p Occupation(p, Surgeon) => Occupation(p, Doctor)
+d.  ~∃p Occupation(p, Lawyer) & Customer(Joe, p)
+e.  ∃p Occupation(p, Lawyer) & Boss(p, Emily)
+f.  ∃p1,p2 Occupation(p1, Lawyer) & (Customer(p2, p1) => Occupation(p2, Doctor))
+g.  ∀p1∃p2 Occupation(p1, Doctor) => (Occupation(p2, Lawyer) & Customer(p1, p2))
+
+8.11
+a.  if two speaks the same language they may understand each other
+b.  naturally Understands(x, y) is symmetric
+c.  i.  ∀x,y Understands(x, y) => Friend(x, y)
+    ii. ∀x,y,z Friend(x, y) & Friend(y, z) => Friend(x, z)
+
+8.12
+∀x NatNum(x) <=> x = 0 | ∃y x = S(y) & NatNum(y)
+
+8.13
+a.  ∀s Breezy(s) => ∃s' Adjacent(s, s') & Pit(s')
+    ∀s ~Breezy(s) => ~∃s' Adjacent(s, s') & Pit(s')
+        (a => b) & (~a => ~b)
+    <=> (a => b) & (~~b | ~a)
+    <=> (a => b) & (~a | b)
+    <=> (a => b) & (a => b)
+    <=> (a <=> b)
+b.  ∀s,s' Pit(s) & Adjacent(s, s') => Breezy(s')
+    this axiom won't factor out other causes of breeze
+    no conclusions can be derived from Breezy(s)
+
+8.14
+∀p1,p2 GrandChild(p1, p2) <=> ∃p3 Parent(p3, p2) & Parent(p1, p3)
+∀p1,p2 GrandParent(p1, p2) <=> GrandChild(p2, p1)
+∀p1,p2 Grandgrandparent(p1, p2) <=> ∃p3 GrandParent(p3, p2) & Parent(p1, p3)
+∀p1,p2 Ancestor(p1, p2, k) <=> Parent(p1, p2) & k = 1 | ∃p3 Ancestor(p3, p2, k-1) & Parent(p1, p3)
+∀p1,p2 Sibling(p1, p2) <=> ∃p3 Parent(p3, p1) & Parent(p3, p2) & p1 != p2
+∀p1,p2 Brother(p1, p2) <=> Sibling(p1, p2) & Male(p1)
+∀p1,p2 Sister(p1, p2) <=> Sibling(p1, p2) & Female(p1)
+∀p1,p2 Daughter(p1, p2) <=> Parent(p2, p1) & Female(p1)
+∀p1,p2 Son(p1, p2) <=> Parent(p2, p1) & Male(p1)
+∀p1,p2 FirstCousin(p1, p2) <=> ∃p3 GrandParent(p3, p1) & GrandParent(p3, p2) & ~Sibling(p1, p2) & p1 != p2
+∀p1,p2 BrotherInLaw(p1, p2) <=> ∃p3 Spouse(p2, p3) & Brother(p1, p3)
+∀p1,p2 SisterInLaw(p1, p2) <=> ∃p3 Spouse(p2, p3) & Sister(p1, p3)
+∀p1,p2 Aunt(p1, p2) <=> ∃p3 Parent(p3, p2) & Sister(p1, p3)
+∀p1,p2 Uncle(p1, p2) <=> ∃p3 Parent(p3, p2) & Brother(p1, p3)
+https://en.wikipedia.org/wiki/Cousin
+∀p1,p2,p3 MostRecentCommonAncestor(p3, p1, p2) <=>  ∃k1,k2 Ancestor(p3, p1, k1) & Ancestor(p3, p2, k2) &
+                                                    ∀p4,k3,k4 Ancestor(p4, p1, k3) & Ancestor(p4, p2, k4) => (k1 <= k3 && k2 <= k4)
+∀p1,p2,m,n Cousin(p1, p2, m, n) <=> ∃p3,k Ancestor(p3, p1, m + 1) & Ancestor(p3, p2, k) &
+                                    MostRecentCommonAncestor(p3, p1, p2) & ~Sibling(p1, p2) & 
+                                    k > 1 & |m + 1 - k| = n
+./AI/first_order/kinship.py
+Elizabeth's grandchildren:
+    Peter
+    Harry
+    Eugenie
+    James
+    William
+    Beatrice
+    Louise
+    Zara
+Diana's brothers-in-law:
+    Andrew
+    Edward
+Zara's great-grandparents:
+    Mum
+    George
+Eugenie's ancestors:
+    George
+    Elizabeth
+    Philip
+    Mum
+    Andrew
+    Sarah
+
+8.15
+there's no way to derive the absence of an element in a set
+
+8.16
+Nil = []
+∀l List?(l) <=> l = [] | ∃h,t l = [h|t]
+∀h,t First([h|t]) = h
+First([]) = None
+∀h,t Rest([h|t]) = t
+Rest([]) = None
+∀l Append([], l) = l
+∀h,t,l Append([h|t], r) = [h|Append(t, r)]
+∀x ~Find(x, [])
+∀x,h,t Find(x, [h|t]) <=> h = x | Find(x, t)
+
+8.17
+the sentence may refer to squares out of bounds
+the definition of adjacent is not symmetric
+there's no way to prove non-adjacency
+
+8.18
+∀s,t At(Agent, s, t) & Stench(t) => Stenchy(s)
+∀s Stenchy(s) <=> ∃s',t At(Wumpus, s', t) & Adjacent(s, s')
+∀s,s' At(Wumpus, s, 0) & At(Wumpus, s', 0) => s = s'
+∀s,t At(Wumpus, s, t) <=> At(Wumpus, s, 0)
+
+8.19
+∀p,p' Daughter(p, p') <=> Parent(p', p) & Female(p)
+∀p1,p2,p3 ChildTogether(p1, p2, p3) <=> Parent(p2, p1) & Parent(p3, p1)
+a.  ∃p Daughter(p, Joan)
+b.  ∃1p Daughter(p, Joan)
+c.  ∃1p Parent(Joan, p) & Female(p)
+d.  ∃1p ChildTogether(p, Joan, Kevin)
+e.  ∃p ChildTogether(p, Joan, Kevin) & ~(∃p,p' ChildTogether(p, Joan, p') & p' != Kevin)
+
+8.20
+a.  Even(0), ~Even(1)
+    ∀x Even(x + 2) <=> Even(x)
+b.  Prime(x) <=> x >= 2 & ∀y,z y * z = x => (y = 1 & z = x) | (y = x & z = 1)
+c.  ∀x Even(x) => ∃y,z Prime(y) & Prime(z) & y + z = x
+
+8.21
+equality is transitive
+if WA = red and any other region X also has X = red, WA = X entails
+
+8.22
+∀x,t∃t' Key(x) & Before(t', t) => Lost(x, t)
+∀x,y,t∃t' Sock(x) & Sock(y) & Pair(x, y) & Before(t', t) => Lost(x, t) | Lost(y, t)
+
+8.23
