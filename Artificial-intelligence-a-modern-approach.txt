@@ -2087,6 +2087,7 @@ https://en.wikipedia.org/wiki/Cousin
 ∀p1,p2,m,n Cousin(p1, p2, m, n) <=> ∃p3,k Ancestor(p3, p1, m + 1) & Ancestor(p3, p2, k) &
                                     MostRecentCommonAncestor(p3, p1, p2) & ~Sibling(p1, p2) & 
                                     k > 1 & |m + 1 - k| = n
+engine used: pyDatalog https://sites.google.com/site/pydatalog/home
 ./AI/first_order/kinship.py
 Elizabeth's grandchildren:
     Peter
@@ -2161,3 +2162,106 @@ if WA = red and any other region X also has X = red, WA = X entails
 ∀x,y,t∃t' Sock(x) & Sock(y) & Pair(x, y) & Before(t', t) => Lost(x, t) | Lost(y, t)
 
 8.23
+a.  x and y may be different names of the same object
+    the sentence would be false whenever there is both a Person and a non-Person object
+    ~∃x,y,n Person(x) & Person(y) & x != y & HasSS#(x, n) & HasSS#(y, n)
+b.  correct
+c.  sentence is stronger than in English: every Person has a SSN
+    ∀x,n Person(x) & HasSS#(x, n) => Digits(n, 9) 
+d.  ~∃x,y Person(x) & Person(y) => SS#(x) = SS#(y)
+    SS#(John) = SS#(Mary)
+    ∀x Person(x) => Digits(SS#(x), 9)
+
+8.24
+constants:  Franch, Greek, Spr2001
+predicates: Take(s, l, t), Pass(s, l, t)
+function:   Score(s, l, t)
+a.  ∃s Take(s, Franch, Spr2001)
+b.  ∀s,t Take(s, Franch, t) => Pass(s, Franch, t)
+c.  ∃s Take(s, Greek, Spr2001) & (∀x,y Take(x, Greek, Spr2001) & Take(y, Greek, Spr2001) => x = y)
+d.  ∀x,t1∃y,t2 Take(s, Franch, t1) => Score(y, Greek, t2) > Score(x, Franch, t1)
+predicates: Smart(c), Expensive(p), Buy(c, p, a)
+e.  ∀c (∃p,a Buy(c, p, a)) => Smart(c)
+f.  ∀c,p Expensive(p) => ~Buy(c, p)
+g.  ∃a∀c,p Buy(c, p, a) => ~Insured(c)
+predicates: Shave(p1, p2), InTown(p)
+h.  ∃p1∀p2 InTown(p2) & ~Shave(p2, p2) => Shave(p1, p2)
+constants:  ByBirth, ByDescent
+predicates: UKCitizen(p, c), UKResident(p), Parent(p1, p2)
+functions:  BornPlace(p)
+i.  ∀p1 BornPlace(p1) = UK & (∀p2 Parent(p2, p1) => (∃c UkCitizen(p2, c)) | UkResident(p2)) => UkCitizen(p1, ByBirth)
+j.  ∀p1 BornPlace(p1) != UK & (∃p2 Parent(p2, p1) & UkCitizen(p2, ByBirth)) => UkCitizen(p1, ByDescent)
+predicates: CanFool(p, f, t), People(f), Time(t)
+k.  (∃p,f∀t Time(t) => CanFool(p, f, t)) & (∃p,t∀f People(f) => CanFool(p, f, t)) &
+    ~(∃p∀f,t Time(t) & People(f) => CanFool(p, f, t))
+predicates: Speak(x, l), Greek(x)
+l.  ∀x,y Greek(x) & Greek(y) => ∃l Speak(x, l) & Speak(y, l)
+
+8.25
+constants:  Willington, Napoleon
+predicates: Heard(p, o)
+functions:  Death(p)
+axiom:
+    // if p1 heard about death of p2, p2 is dead upon p1's death, so p2 cannot hear about p1's death
+    ∀p1,p2 Heard(p1, Death(p2)) => ~Heard(p2, Death(p1))
+Heard(Willington, Death(Napoleon))
+~Heard(Napoleon, Death(Willington))
+
+8.26
+define Ad(a, b, c) as a function N2 * N2 * N2 => N2^2:
+    Ad1(a, b, c) = ((a + b + c) % 2, (a + b + c) / 2)
+n-bit addition is a function N2^n * N2^n => (N2^n, N2) defined as:
+    Adn([], []) = ([], 0)
+    Adn([h1|t1], [h2|t2]) = 
+        (s, c) <- Adn(t1, t2)
+        (s', c') <- Ad1(h1, h2, c)
+        ([s'|s], c')
+define the function (syntax sugar over Signal) SignalAll:
+    SignalAll(Out, c) = all output signals from a circult as a list
+    SignalAll(In, c) = all input signals from a circult as a list
+define a new circuit Add where
+    ∀c Circuit(c) & Type(c) = Add => Arity(c, 3, 2)
+    ∀c Circuit(c) & Type(c) = Add =>    (SignalAll(Out, c) = [0, 0] <=> SignalAll(In, c) = [0, 0, 0]) &
+                                        (SignalAll(Out, c) = [1, 0] <=> SignalAll(In, c) = [1, 0, 0] | SignalAll(In, c) = [0, 1, 0] | SignalAll(In, c) = [0, 0, 1]) &
+                                        (SignalAll(Out, c) = [0, 1] <=> SignalAll(In, c) = [1, 1, 0] | SignalAll(In, c) = [0, 1, 1] | SignalAll(In, c) = [1, 0, 1]) &
+                                        (SignalAll(Out, c) = [1, 1] <=> SignalAll(In, c) = [1, 1, 1])
+a 4-bit adder is defined as:
+    Circuit(Ad4) & Arity(Ad4, 8, 5)
+    Circult(Ad0) & Type(Ad1) = Add
+    Circult(Ad1) & Type(Ad1) = Add
+    Circult(Ad2) & Type(Ad1) = Add
+    Circult(Ad3) & Type(Ad1) = Add
+    Connected(Out(1, X0), In(1, Ad0))
+    Connected(Out(1, Y0), In(2, Ad0))
+    Connected(Out(1, X1), In(1, Ad1))
+    Connected(Out(1, Y1), In(2, Ad1))
+    Connected(Out(1, X2), In(1, Ad2))
+    Connected(Out(1, Y2), In(2, Ad2))
+    Connected(Out(1, X3), In(1, Ad3))
+    Connected(Out(1, Y3), In(2, Ad3))
+    Connected(Out(2, Ad0), In(3, Ad1))
+    Connected(Out(2, Ad1), In(3, Ad2))
+    Connected(Out(2, Ad2), In(3, Ad3))
+    Connected(Out(1, Ad0), In(1, Z0))
+    Connected(Out(1, Ad1), In(1, Z1))
+    Connected(Out(1, Ad2), In(1, Z2))
+    Connected(Out(1, Ad3), In(1, Z3))
+    Connected(Out(2, Ad3), In(1, Z4))
+for n = 4, there are (2^4)^2 = 256 different inputs, correctness of the function can be verified by enumeration
+
+8.27
+∀c CanApplyForPassport(c) <=> (∃p CanProveCitizenship(p, c)) & (∃p Photo(p) & Recognizable(p, c)) & CanPay(c, Fee)
+
+8.28
+a.  Wrote(Gershwin, TheManILove)
+b.  ~Wrote(Gershwin, EleanorRigby)
+c.  Wrote(Gershwin, TheManILove) | Wrote(McCartney, TheManILove)
+d.  ∃s Wrote(Joe, s)
+e.  ∃d Own(Joe, d) & CopyOf(d, Revolver)
+f.  ∀s Sings(McCartney, s, Revolver) => Wrote(McCartney, s)
+g.  ~∃s,p Sings(p, s, Revolver) & Wrote(Gershwin, s)
+h.  ∀s Wrote(Gershwin, s) => ∃p,a Sings(p, s, a)
+i.  ∃a∀s Wrote(Joe, s) => ∃p Sings(p, s, a)
+j.  ∃d,a CopyOf(d, a) & Own(Joe, d) & Sings(BHoliday, TheManILove, a)
+k.  ∀a∃d (∃s Sings(McCartney, s, a)) => Own(Joe, d) & CopyOf(d, a)
+l.  ∃d,a Own(Joe, d) & CopyOf(d, a) & (∀s,p Sings(p, s, a) => p = BHoliday)
