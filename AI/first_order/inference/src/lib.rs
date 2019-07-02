@@ -121,7 +121,13 @@ impl Term {
 
     pub fn subst(&self, unifier: &Unifier) -> Term {
         match self {
-            Variable(v) => unifier.get(v).cloned().unwrap_or_else(|| self.clone()),
+            Variable(v) => {
+                let mut t = unifier.get(v);
+                while let Some(Variable(v)) = t {
+                    t = unifier.get(v);
+                }
+                t.cloned().unwrap_or_else(|| build::var_t(*v))
+            }
             Function(name, args) => Function(
                 name.to_string(),
                 args.iter().map(|arg| arg.subst(unifier)).collect(),
