@@ -2221,10 +2221,11 @@ define the function (syntax sugar over Signal) SignalAll:
     SignalAll(In, c) = all input signals from a circult as a list
 define a new circuit Add where
     ∀c Circuit(c) & Type(c) = Add => Arity(c, 3, 2)
-    ∀c Circuit(c) & Type(c) = Add =>    (SignalAll(Out, c) = [0, 0] <=> SignalAll(In, c) = [0, 0, 0]) &
-                                        (SignalAll(Out, c) = [1, 0] <=> SignalAll(In, c) = [1, 0, 0] | SignalAll(In, c) = [0, 1, 0] | SignalAll(In, c) = [0, 0, 1]) &
-                                        (SignalAll(Out, c) = [0, 1] <=> SignalAll(In, c) = [1, 1, 0] | SignalAll(In, c) = [0, 1, 1] | SignalAll(In, c) = [1, 0, 1]) &
-                                        (SignalAll(Out, c) = [1, 1] <=> SignalAll(In, c) = [1, 1, 1])
+    ∀c Circuit(c) & Type(c) = Add =>    
+        (SignalAll(Out, c) = [0, 0] <=> SignalAll(In, c) = [0, 0, 0]) &
+        (SignalAll(Out, c) = [1, 0] <=> SignalAll(In, c) = [1, 0, 0] | SignalAll(In, c) = [0, 1, 0] | SignalAll(In, c) = [0, 0, 1]) &
+        (SignalAll(Out, c) = [0, 1] <=> SignalAll(In, c) = [1, 1, 0] | SignalAll(In, c) = [0, 1, 1] | SignalAll(In, c) = [1, 0, 1]) &
+        (SignalAll(Out, c) = [1, 1] <=> SignalAll(In, c) = [1, 1, 1])
 a 4-bit adder is defined as:
     Circuit(Ad4) & Arity(Ad4, 8, 5)
     Circult(Ad0) & Type(Ad1) = Add
@@ -2265,3 +2266,36 @@ i.  ∃a∀s Wrote(Joe, s) => ∃p Sings(p, s, a)
 j.  ∃d,a CopyOf(d, a) & Own(Joe, d) & Sings(BHoliday, TheManILove, a)
 k.  ∀a∃d (∃s Sings(McCartney, s, a)) => Own(Joe, d) & CopyOf(d, a)
 l.  ∃d,a Own(Joe, d) & CopyOf(d, a) & (∀s,p Sings(p, s, a) => p = BHoliday)
+
+9.1
+a.  assume ∀v a & ~SUBST({v/g}, a)
+    as g is a term, ~SUBST({v/g}, a) <=> SUBST({v/g}, ~a) => ∃v ~a
+    ~(∀v a & ~SUBST({v/g}, a)), therefore ∀v a |= SUBST({v/g}, a)
+b.  let kb be the original knowledge base, let kb' be kb after existential instantiation
+    =>: if kb & ~b is satisfiable, there is a model m in which ~b and kb are true
+        for a existential subsentence ∃v a in kb which is true in m
+        there must be at least one object C that SUBST({v/C}, a) is true
+        for ∃v a is false in m, assume the domain is not empty, ~(∃v a) <=> ∀v ~a
+        there must be an object C that SUBST({v/C}, ~a) <=> ~SUBST({v/C}, a) is true in m
+        bind new constants in kb' to these objects, kb' would also be true in model m, kb' & ~b is true in m
+    <=: if kb' & ~b is satisfiable, there is a model m in which ~b and kb' are true
+        for a subsentence a in kb' is true in m
+        if C is a constant in a, ∃v SUBST({C/v}, a) is true in m
+        for a is false in m, ~a is true, ∃v SUBST({C/v}, ~a) <=> ~∃v SUBST({C/v}, a) is true in m
+        existential quantifiers can be recovered without changing the satisfiability, kb & ~b => kb & ~b
+
+9.2
+a |= ∃v SUBST({k/v}, a) where k is a constant in a
+
+9.3
+a.  not legitimate, Everest is mentioned in the KB
+b.  legitimate
+c.  not legitimate but is entailed by KB, existential instantiation should only be applied once
+
+9.4
+a.  Some({'y': B, 'x': A, 'z': B})
+b.  None
+c.  Some({'x': John, 'y': x})
+d.  None
+
+9.5

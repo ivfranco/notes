@@ -124,6 +124,7 @@ impl std::fmt::Debug for CNFClause {
     }
 }
 
+#[derive(Clone)]
 pub struct CNF {
     clauses: Vec<CNFClause>,
 }
@@ -177,6 +178,13 @@ impl CNF {
     pub fn satisfiable(&self) -> bool {
         let mut model = Model::new(self);
         dpll(self, &mut model)
+    }
+
+    pub fn ask(&self, expr: &Expr) -> bool {
+        let mut clone = self.clone();
+        clone.clauses.extend(not(expr.clone()).to_cnf().clauses);
+        clone = clone.normalize();
+        !clone.satisfiable()
     }
 }
 
