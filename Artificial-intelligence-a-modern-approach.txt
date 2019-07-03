@@ -2293,9 +2293,189 @@ b.  legitimate
 c.  not legitimate but is entailed by KB, existential instantiation should only be applied once
 
 9.4
+./AI/first_order/inference
 a.  Some({'y': B, 'x': A, 'z': B})
 b.  None
 c.  Some({'x': John, 'y': x})
 d.  None
 
 9.5
+a.  Employs(x, y)
+    Employs(Mother(a), y) | Employs(x, Father(b))
+    Employs(Mother(John), y) | Employs(Mother(a), Father(b)) | Employs(x, Father(Richard))
+    Employs(Mother(John), Father(b)) | Employs(Mother(a), father(Richard))
+    Employs(Mother(John), Father(Richard))
+b.  Employs(x, y)
+    Employs(y, y)
+    Employs(IBM, y)
+c.  first find the sentences in KB which has the query in its subsumption lattice (by hashing)
+    let the sentences be a set S
+    FETCH(s) then returns unifiers from 2^S, the power set of S
+
+9.6
+a.  Horse(x) => Mammal(x)
+    Cow(x) => Mammal(x)
+    Pig(x) => Mammal(x)
+b.  Offspring(x, y) & Horse(y) => Horse(x)
+c.  True => Horse(Bluebeard)
+d.  True => Parent(Bluebeard, Charlie)
+e.  Offspring(x, y) <=> Parent(y, x)
+f.  Mammal(x) => Parent(F(x), x)
+
+9.7
+a.  Parent, everyone have parents, no one is parent of themself
+b.  ∀x∃y P(x, y) skolemizes to P(x, F(x))
+    ~∃q P(q, q) <=> ∀q ~P(q, q) <=> ~P(q, q)
+    without occur check, {q/x, x/F(x)} is a unifier, {} is entailed by KB
+c.  ∀x∃y P(x, y) skolemizes to P(x, Sk)
+    {x/Sk, q/Sk} is a unifier of P(x, Sk) and ~P(q, q), {} is entailed by KB
+d.  if θ = {Sk1/A} is a unifier between P(Sk1) and ~P(A)
+    SUBST(θ, P(Sk1)) and ~P(A) derives {}, P(Sk1) |= P(A) for arbitrary A
+
+9.8
+assume the first clause is (x1,1 | ~x1,2 | ~x1,3)
+    (True(x1,1) | False(x1,2) | False(x1,3)) & .. => SAT
+where x1,1 are variables to a domain of two objects: True and False
+1.  True(True)
+2.  False(False)
+3.  True(x) XOR False(x)
+
+9.9
+// + here is a function i.e. can be unified with variables
+a.  7 <= 3 + 9, unifies with only 8: 7 <= y & y <= 3 + 9
+    sub y <= 3 + 9, unifies with 7: w + t <= 3 + 9
+        y = w + t
+        sub w <= 3, unifies with 1 
+            w = 0
+        sub t <= 9, unifies with 2
+            t = 7
+    sub 7 <= y
+        7 <= 0 + 7, unifies with 8
+        sub y <= 0 + 7, unifies with 6
+            y = 7 + 0
+        sub 7 <= y
+            7 <= 7 + 0, true by 4
+b.  from 1, 2 and 7:
+    (1):    0 + 7 <= 3 + 9
+    from 6:
+    (2):    7 + 0 <= 0 + 7
+    from (1), (2) and 8:
+    (3):    7 + 0 <= 3 + 9
+    from 4:
+    (4):    7 <= 7 + 0
+    from (4), (3) and 9:
+            7 <= 3 + 9
+
+9.10
+sentences
+    ~∃x Brother(x, I) | Sister(x, I)
+    ∃x Son(x, Father(I)) & Father(Man) = x
+after skolemization:
+    1.  ∀x ~Brother(x, I) & ~Sister(x, I)
+    2.  Son(C, Father(I))
+    3.  Father(Man) = C
+assume 
+    4.  Father(Man) != I
+from 3, 4 and transitivity of equation:
+    (1):    C != I
+from (1), 2 and family domain rules Father(x) = y => Parent(y, x):
+    (2):    Parent(Father(I), C) & Parent(Father(I), I)
+from (1), (2) and rule Sibling(x, y) <=> x != y & ∃p Parent(p, x) & Parent(p, y):
+    (3):    Sibling(I, C)
+from (3), 1 and the obvious Sibling(x, y) <=> Sister(x, y) | Brother(x, y):
+    {}, contradiction
+therefore Father(Man) = I, Son(Man, I)
+the inference procedure have to understand transitivity of equations
+
+9.11
+S1: 
+    Q1: O(1), assuming SSN is unique
+    Q2: O(h), where h is the population of Houston
+    Q3: O(p), where p is the total numbre of people in the database
+    Q4: O(t) if ResidesIn(x, TinyTownUSA) is unified first, where t is the population of TinyTownUSA
+S2:
+    Q1: O(1)
+    Q2: O(n)
+    Q3: O(md) or O(n), where m is the number of mothers, d is the most children a mother may have in the database
+        O(md) if queried by first argument of Mother, O(n) is queried by Mother predicate
+    Q4: O(n)
+S3:
+    Q1: O(n)
+    Q2: O(n) if everyone has an entry in ResidesIn table
+    Q3: O(n) 
+    Q4: O(n^2) if both table are unsorted
+S4:
+    same to S2 (how can the first argument be indexed without predicates?)
+S5:
+    Q1: O(1)
+    Q2: O(h)
+    Q3: O(n)
+    Q4: O(t)
+
+9.12
+if a rule is applied multiple times during a proof and the variables are not standardized in place
+the rule may fail to apply as the same variable cannot have two substitution at the same time 
+e.g. in natural number domain
+    Nat(n) => Nat(S(n))
+to prove Nat(S(S(0))), the above rule must be applied twice
+after the first application, n/S(0) ∈ θ
+if sentences are standardized once and forall before inference, the second time will fail to unify
+
+9.13
+a.  ∃h Horse(h)
+    and Offspring(h, y) // Offspring of a horse rule
+        Parent(y, h) // Offspring definition
+        or  Parent(Bluebeard, Charlie)
+            y = Bluebeard, h = Charlie
+        or  Mammal(h)
+            Horse(h)
+            // infinite loop from here
+    and Horse(y) 
+        // infinite loop from here
+b.  the inference falls into an infinite loop from Horse(h) to Horse(h)
+c.  Bluebeard and Charlie
+d.  https://apps.dtic.mil/dtic/tr/fulltext/u2/a172502.pdf 4.1.4
+    "In general, it is not decidable whether or not a given portion of a recursive
+    search space is redundant. However, there are special cases where it is possible to
+    prove redundancy without completely exploring the space. For repeating inference,
+    a simple syntactic solution is possible. We can decide when to cut off inference by
+    keeping track of the answers produced with each additional level of repetition. For
+    divergent inference the problem is much harder. Here we must generate automatic
+    proofs that no answers exist in a portion of the search space. These proofs are
+    similar to proofs of program termination using well-founded sets."
+    some kind of meta-analysis (auto-prove the redundency of part of the proof tree)
+
+9.14
+// skipped, refer figure 9.7
+
+9.15
+a.  P(A, [2, 1, 3])
+    or  P(2, [2, 1, 3]), A = 2
+    or  P((A, [1, 3]))
+        or  P(1, [1, 3]), A = 1
+        or  P(A, [3])
+            or  P(3, [3]), A = 3
+            or  P(A, []), stuck
+    P(2, [1, A, 3])
+    P(2, [A, 3])
+    or  P(2, [2, 3]), A = 2
+    or  P(2, [3])
+        P(2, []), stuck
+b.  Find
+
+9.16
+a.  sorted([]).
+    sorted([_]).
+    sorted([X, Y|Z]) :- sorted([Y|Z]), X =< Y.
+b.  perm(X, Y) :- same_length(X, Y), contains(X, Y), contains(Y, X).
+    contains([], _).
+    contains([X|Z], Y) :- member(X, Y), contains(Z, Y).
+c.  sort(L, M) :- perm(L, M), sorted(M).
+d.  the algorithm filters all permutations of L by sorted, complexity is Ω(n! * n) 
+e.  isort([], []).
+    isort([X|Y], Z) :- isort(Y, I), insert(X, I, Z).
+    insert(X, [], [X]).
+    insert(X, [Y|Z], [X, Y|Z]) :- X =< Y.
+    insert(X, [Y|Z], [Y|I]) :- X > Y, insert(X, Z, I).
+
+9.17
