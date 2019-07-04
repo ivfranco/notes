@@ -1053,7 +1053,7 @@ Utility function:
     or 1/2 and 1/2 if end in a draw
 Evaluation function:
     a linear function of blocked / unblocked 3, 4, >= 5 pieces in a row for each color
-    where the constant of >= 5 pieces in a row is big enough to dominate any other factors
+    where the coefficient of >= 5 pieces in a row is big enough to dominate any other factors
 
 5.6
 even if the AI player can control exactly where to land its shots, in the absence of proper discretization
@@ -1439,6 +1439,7 @@ most constrained variable: smaller branching factor
 least constrained variable: more likely to be consistent, closer to a goal state
 
 6.10
+./AI/csp
 Sample size = 100
 n = 10, k = 3, average time: 45.803µs
 n = 10, k = 4, average time: 58.821µs
@@ -1597,7 +1598,8 @@ described an algorithm with time complexity O(E + VlgV)
 for common CSP graphs, the optimal cycle cutset is already large
 enumerating all the possible value assignments of S would be impractical
 
-7
+7.1
+// ./AI/propositional
 KB worlds:
   24: Pits: [(3, 1)], Wumpus: (1, 3)
 a2 worlds:
@@ -2461,9 +2463,10 @@ a.  P(A, [2, 1, 3])
     or  P(2, [2, 3]), A = 2
     or  P(2, [3])
         P(2, []), stuck
-b.  Find
+b.  Find / Member
 
 9.16
+// thanks https://swish.swi-prolog.org/
 a.  sorted([]).
     sorted([_]).
     sorted([X, Y|Z]) :- sorted([Y|Z]), X =< Y.
@@ -2479,3 +2482,105 @@ e.  isort([], []).
     insert(X, [Y|Z], [Y|I]) :- X > Y, insert(X, Z, I).
 
 9.17
+a.  ∀X,Y simplify(X, Y) <=> (rewrite(X, Y) | ∃s rewrite(X, s) & simplify(s, Y)) & primitive(Y)
+b.  x + y -> y + x
+    x * 0 -> 0
+    (x + y) + z -> x + (y + z)
+    ..
+c.  dx^n/dx -> nx^(n-1)
+    dc/dx -> 0
+    dy/dx -> 0
+    d(-u)/dx -> -du/dx
+    d(u + v)/dx -> du/dx + dv/dx
+    duv/dx -> udv/dx + vdu/dx
+    d(e^u)/dx -> e^u * du/dx
+    ..
+    // code skipped
+    
+9.18
+solve(X, [X]) :- goal(X).
+solve(X, [X|Y]) :- \+ goal(X), successor(X, Z), solve(Z, Y).
+have no idea how to describe an efficient priority queue in prolog
+
+9.19
+a.  i.  {y/John} in 1st iteration
+    ii. {y/John} in 2nd iteration
+    iii.{} in 3rd iteration
+    iv. never terminate
+b.  no, the KB didn't state how to disprove Ancestor(x, y)
+c.  no, exactly the same reason as above
+
+9.20
+a.  ∃p∀q S(p, q) <=> ~S(q, q)
+b.  skolemization:
+        ∃p S(p, q) <=> ~S(q, q)
+        S(P, q) <=> ~S(q, q)
+    1.  ~S(P, q) | ~S(q, q)
+    2.  S(q, q) | S(P, q)
+c.  SUBST({q/P}, 1):
+    (1):    S(P, P)
+    SUBST({q/P}, 2):
+    (2):    ~S(P, P)
+    from (1) and (2):
+            {}
+
+9.21
+let True be the empty KB
+True |= p <=> p is valid
+if p is unsatisfiable, ~p is valid, True |= ~p
+
+9.22
+P(x), ~P(A) | ~P(B)
+resolution gives ~P(A) or ~P(B)
+
+9.23
+a.  ∀x Horse(x) => Animal(x)
+    ∀x,h HeadOf(h, x) & Horse(x) => Headof(h, x) & Animal(x)
+b.  1.  ~Horse(x) | Animal(x) 
+        ~(~(HeadOf(h, x) & Horse(x)) | (HeadOf(h, x) & Animal(x)))
+        HeadOf(h, x) & Horse(x) & ~(HeadOf(h, x) & Animal(x))
+        HeadOf(h, x) & Horse(x) & (~HeadOf(h, x) | ~Animal(x))
+    2.  HeadOf(h, x)
+    3.  Horse(x)
+    4.  ~HeadOf(h, x) | ~Animal(h, x) 
+    from 1 and 3:
+    (1):    Animal(x)
+    from (1) and 4:
+    (2):    ~HeadOf(h, x)
+    from (2) and 2:
+            {}
+
+9.24
+a.  (A) for all natural numbers there is another natural number smaller than or equal to it
+    (B) there is a natural number which is smaller than or equal to all natural numbers
+b.  true, y = 0
+c.  true, y = 0
+d.  no, consider a domain with only ground facts n >= n for all natural number n
+    A is true in this domain but B is not
+e.  yes
+f.  =>: ∃y∀x x >= y
+        ~∀x∃y x >= y
+            ∃x∀y ~(x >= y)
+        skolemization:
+        1.  x >= C0
+        2.  ~(C1 >= y)
+        θ = {x/C1, y/C0}, 1 and 2 derives {}
+    <=: ∀x∃y x >= y
+        ~∃y∀x x >= y
+            ∀y∃x ~(x >= y)
+        skolemization:
+        1.  x >= F(x)
+        2.  ~(x >= G(x))
+        no unification
+g.  how is that possible
+
+9.25
+when there are only definite clauses, both afterward and backward chaining return a (generator of) single unifier
+in which no variable can be bind to two different ground terms
+
+9.26
+no, satisfication / validity in first order logic is undecidable
+hence any algorithm deciding True |= s for some first order sentence s will either:
+    be incorrect on some inputs, or
+    not terminate on some inputs
+
