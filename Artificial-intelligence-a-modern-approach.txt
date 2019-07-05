@@ -2579,8 +2579,7 @@ when there are only definite clauses, both afterward and backward chaining retur
 in which no variable can be bind to two different ground terms
 
 9.26
-no, satisfication / validity in first order logic is undecidable
+no, satisfication / validity of first order logic is undecidable
 hence any algorithm deciding True |= s for some first order sentence s will either:
     be incorrect on some inputs, or
     not terminate on some inputs
-

@@ -238,6 +238,24 @@ impl Sentence {
         }
     }
 
+    fn args(&self) -> Vec<&Self> {
+        match self {
+            Not(s) => vec![s],
+            Quantified(_, s) => vec![s],
+            And(lhs, rhs) | Or(lhs, rhs) | Imply(lhs, rhs) | Iff(lhs, rhs) => vec![lhs, rhs],
+            _ => vec![],
+        }
+    }
+
+    fn same_op(&self, other: &Self) -> bool {
+        use std::mem::discriminant;
+
+        match (self, other) {
+            (Predicate(n0, _), Predicate(n1, _)) => n0 == n1,
+            _ => discriminant(self) == discriminant(other),
+        }
+    }
+
     fn format(&self, parent: Precedence, f: &mut Formatter) -> fmt::Result {
         let binary = |lhs: &Self, rhs: &Self, op: &str, f: &mut Formatter| -> fmt::Result {
             lhs.format(self.precedence(), f)?;
@@ -364,14 +382,6 @@ fn unify_sentence(x: &Sentence, y: &Sentence, unifier: Unifier) -> Option<Unifie
             .try_fold(unifier, |unifier, (arg0, arg1)| {
                 unify_term(arg0, arg1, unifier)
             }),
-        (Not(s0), Not(s1)) => unify_sentence(s0, s1, unifier),
-        (And(l0, r0), And(l1, r1))
-        | (Or(l0, r0), Or(l1, r1))
-        | (Imply(l0, r0), Imply(l1, r1))
-        | (Iff(l0, r0), Iff(l1, r1)) => {
-            let left_unifier = unify_sentence(l0, l1, unifier)?;
-            unify_sentence(r0, r1, left_unifier)
-        }
         (Equal(l0, r0), Equal(l1, r1)) => {
             let left_unifier = unify_term(l0, l1, unifier)?;
             unify_term(r0, r1, left_unifier)
@@ -379,6 +389,13 @@ fn unify_sentence(x: &Sentence, y: &Sentence, unifier: Unifier) -> Option<Unifie
         (Quantified(..), _) | (_, Quantified(..)) => {
             unreachable!("unify_sentence: Only ground sentences may be unified")
         }
+        _ if x.same_op(y) => x
+            .args()
+            .into_iter()
+            .zip(y.args())
+            .try_fold(unifier, |unifier, (arg0, arg1)| {
+                unify_sentence(arg0, arg1, unifier)
+            }),
         _ => None,
     }
 }
