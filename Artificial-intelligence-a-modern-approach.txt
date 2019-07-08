@@ -2583,3 +2583,148 @@ no, satisfication / validity of first order logic is undecidable
 hence any algorithm deciding True |= s for some first order sentence s will either:
     be incorrect on some inputs, or
     not terminate on some inputs
+
+10.1
+the two concepts are equivalent
+every planning problem can be described as a finite searching problem
+each fninite searching problem can be described as a planning problem
+(treat atomic states as constants, actions as schemas on constants)
+
+10.2
+Fly(P1, JFK, JFK)
+Fly(P1, JFK, SFO)
+Fly(P2, SFO, SFO)
+Fly(P2, SFO, JFK)
+
+10.3
+a.  At(Monkey, A) & At(Bananas, B) & At(Box, C) & Height(Monkey, Low) & Height(Box, Low) & Height(Bananas, High) &
+    Place(A) & Place(B) & Place(C) & Small(Bananas)
+b.  Action(Go(from, to),
+        PRECOND:    Place(from) & Place(to) & At(Monkey, from) & Height(Monkey, Low),
+        EFFECT:     ~At(Monkey, from) & At(Monkey, to))
+    Action(Push(o, from, to),
+        PRECOND:    Place(from) & Place(to) & At(Monkey, from) & At(o, from) & Height(Monkey, Low) & Height(o, Low),
+        EFFECT:     ~At(Monkey, from) & At(Monkey, to) & ~At(o, from) & At(o, to))
+    Action(ClimbUp(p, o),
+        PRECOND:    Place(p) & At(o, p) & At(Monkey, p) & Height(Monkey, Low) & Height(o, Low)
+        EFFECT:     On(Monkey, o) & ~Height(Monkey, Low) & Height(Monkey, High))
+    Action(ClimbDown(p, o),
+        PRECOND:    On(Monkey, o),
+        EFFECT:     ~On(Monkey, o) & ~Height(Monkey, High) & Height(Monkey, Low))
+    Action(Grasp(o, p, h),
+        PRECOND:    At(Monkey, p) & At(o, p) & Height(Monkey, h) & Height(o, h) & Small(o),
+        /// an object hold by the monkey doesn't have At and Height properties
+        EFFECT:     Holding(o) & ~At(o, p) & ~Height(o, h))
+    Action(Ungrasp(o, p, h),
+        PRECOND:    At(Monkey, p) & Height(Monkey, h) & Holding(o),
+        /// ungrasping an object leaves it at where the monkey is
+        EFFECT:     ~Holding(o) & At(o, p) & Height(o, h))
+c.  Holding(Bananas, s) & ∃p At(Box, p, s0) & At(Box, p, s) & Following(s, s0)
+    Following(s', s) <=> ∃a (Poss(a, s) & s' = Result(a, s)) | (∃s'' Poss(a, s'') & Following(s'', s) & s' = Result(a, s''))
+d.  Action(Push(o, from, to),
+        PRECOND:    Place(from) & Place(to) & At(Monkey, from) & At(o, from) & Height(Monkey, Low) & Height(o, Low) & ~Heavy(o)
+        EFFECT:     ~At(Monkey, from) & At(Monkey, to) & ~At(o, from) & At(o, to))
+
+10.4
+a.  Action(Go(x, y, r),
+        PRECOND:    In(x, r) & In(y, r) & At(Shakey, x),
+        EFFECT:     ~At(Shakey, x) & At(Shakey, y))
+    Action(Push(b, x, y, r),
+        PRCOND:     Box(b) & In(x, r) & In(y, r) & In(b, r) & At(Shakey, x) & At(b, x),
+        EFFECT:     ~At(b, x) & ~At(Shakey, x) & At(b, y) & At(Shakey, y))
+    Action(ClimbUp(x, b),
+        PRECOND:    Box(b) & At(b, x) & At(Shakey, x) & On(Shakey, Floor),
+        EFFECT:     ~On(Shakey, Floor) & On(Shakey, b))
+    Action(ClimbDown(b, x),
+        PRECOND:    Box(b) & On(Shakey, b) & At(Shakey, x) & At(b, x),
+        EFFECT:     ~On(Shakey, b) & On(Shakey, Floor))
+    Action(TurnOn(x, s, b),
+        PRECOND:    Box(b) & At(Shakey, x) & At(b, x) & At(s, x) & On(Shakey, b) & ~SwitchOn(s)
+        EFFECT:     SwitchOn(s))
+    Action(TurnOff(x, s, b),
+        PRECOND:    Box(b) & At(Shakey, x) & At(b, x) & At(s, x) & On(Shakey, b) & SwitchOn(s)
+        EFFECT:     ~SwitchOn(s))
+    Init(
+        In(S4, Room4) & In(Door4, Room4) & 
+        In(S3, Room3) & In(Door3, Room3) & In(I0, Room3) &
+        In(S2, Room2) & In(Door2, Room2) & 
+        In(S1, Room1) & In(Door1, Room1) & In(B4, Room1) & In(B3, Room1) & In(B2, Room1) & In(B1, Room1) &
+        In(Door4, Corridor) & In(Door3, Corridor) & In(Door2, Corridor) & In(Door1, Corridor) &
+        At(Switch4, S4) & At(Switch3, S3) & At(Switch2, S2) & At(Switch1, S1) &
+        At(Box4, B4) & At(Box3, B3) & At(Box2, B2) & At(Box1, B1) & At(Shakey, I0) &
+        SwitchOn(Switch4) & ~SwitchOn(Switch3) & ~SwitchOn(Switch2) & SwitchOn(Switch1) &
+        On(Shakey, Floor) & 
+        In(R2, Room2)
+    )
+    [
+        Go(I0, Door3, Room3),
+        Go(Door3, Door1, Corridor),
+        Go(Door1, B2, Room1),
+        Push(Box2, B2, Door1, Room1),
+        Push(Box2, Door1, Door2, Corridor),
+    ]
+
+10.5
+State(s):
+    current state of the 
+Transition(s, v, s', v', d):
+    Turing machine on state s and input value v transits to state s', write v' to the cell, move to direction d 
+LeftOf(c, c'):
+    cell c is at left of cell c'
+ValueOf(c, v):
+    cell c has value v
+/// strictly speaking, each action should have 4 variants: with PRECOND v = v' or v != v', s = s' or s != s'
+/// otherwise the EFFECT may contain contradictions
+Action(Stay(c, s, v, s', v'),
+    PRECOND:    Pos(c) & State(s) & ValueOf(c, v) & Transition(s, v, s', v', S),
+    EFFECT:     ~State(s) & State(s') & ValueOf(c, v'))
+Action(Left(c, s, v, c', s', v'),
+    PRECOND:    Pos(c) & State(s) & ValueOf(c, v) & Transition(s, v, s', v', L) & LeftOf(c', c),
+    EFFECT:     ~State(s) & State(s') & ~ Value(c, v) & ValueOf(c, v') & ~Pos(c) & Pos(c'))
+Action(Right(c, s, v, c', s', v'),
+    PRECOND:    Pos(c) & State(s) & ValueOf(c, v) & Transition(s, v, s', v', R) & LeftOf(c, c'),
+    EFFECT:     ~State(s) & State(s') & ~ Value(c, v) & ValueOf(c, v') & ~Pos(c) & Pos(c'))
+Init(
+    /// All transitions
+    /// All tape cell values
+    /// All LeftOf relations between cells
+    /// Initial state of the machine
+)
+Goal(State(Sgoal)) for some state Sgoal
+
+10.6
+PDDL uses database semantics, a negative literal ~A in the goal requires the absence of A in the state
+let S' = RESULT(a, S) for some state S and action a
+let a' be a without negative literals in effects
+obviously the resulting state may only contain more literals, RESULT(a', S) ⊆ S'
+this conclusion can be easily generalized to sequence of actions by induction
+therefore any solution to the original problem is a solution to the relaxed problem
+consider a problem where:
+Init(A)
+Action(Move(),
+    PRECONDS:   A,
+    EFFECTS:    ~A & B)
+GOAL(A & B)
+the original problem has no solution, while the relaxed problem has a solution [Move()]
+by removing negative literals from effects, the relaxed problem has a proper superset of solutions
+
+10.7
+/// init state and actions described in Figure 10.3
+Goal(On(B, C) & On(A, B))
+/// solutions described in Figure 10.3
+it's impossible for an noninterleaving planner if the planner only explores optimal solutions to subgoals
+for subgoal On(B, C), the optimal solution is [Move(B, Table, C)]
+but then the other subgoal cannot be achieved without undoing the first subgoal and vice versa
+
+10.8
+forward classic planning is complete:
+    state space in classic planning is finite
+    a forward planning algorithm will eventually try each possible action from each possible states 
+    the state space is fully explored, a solution will be found if exists
+backward classic planning is as powerful as forward planning:
+    a state in backward planning is a believe state in forward planning
+    if there's a solution to a problem in forward planning
+    applying the actions in reverse order, along the path the believe state is never empty
+    backward planning is able to find the same solution
+
+10.9
