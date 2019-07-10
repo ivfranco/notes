@@ -2728,3 +2728,130 @@ backward classic planning is as powerful as forward planning:
     backward planning is able to find the same solution
 
 10.9
+/// skipped
+
+10.10
+a.  by definition of (parallel) planning graphs
+    level k of planning graph contains all literals that can be derived in at most k actions from initial state
+    basis, k = 0:
+        S0 = initial state, all literals in initial state can be derived in 0 steps 
+    induction:
+        Sk contains all literals which can be derived in at most k actions from initial state
+        by persistent actions, Sk ⊆ Sk+1 
+        if L ∈ S for some state S, S is the result of k+1 actions
+        S = RESULT(a, S') for some a and S', where S' is the result of k actions
+        hence S' ⊆ Sk is mutex free, L ∈ S ⊆ Sk+1
+    the let n be final level of planning graph, by definition Sn+i = Sn for all i >= 0
+    if a literal L ∉ Sn, L cannot be derived from initial state by finite actions
+b.  similar to a.
+    if there's a solution with length k, those actions are mutex free 
+    let goal state be Sg, Sg ⊆ Sk
+
+10.11
+it describes a relaxed problem where multiple non-mutually-exclusive actions can take place at the same time
+
+10.12
+a.  sounds promising, would be applicable if the branching factor in forward direction is small
+b.  same as above
+c.  maintain a DAG-like structure during the search, where nodes are states and edges are actions
+    let S be a state in the current DAG, if S satisfies all preconditions of action a
+    add the action and its result to the DAG, add constraint Before(a', a) for each action a' incoming S
+    it's still a partial-ordered planning algorithm, searching in a DAG instead of a tree
+    depends on implementation details, this algorithm may be able to update the middle of a sequence of actions
+    while forward / backward searching may only update end of an action sequence 
+
+10.13
+forward / backward searching maintains a set of linear sequences of plan and update the end of them
+
+10.14
+a.  when HaveArrow(t) is False, HaveArrow(t+1) <=> HaveArrow(t) & ~Shoot(t) is always False
+b.  yes, by part a, an illegal action will not affect the state
+    the plan, axioms and initial state still entails the goal
+c.  no, Poss(a, s) will not be satisfied
+
+10.15
+a.  Plane(p) & At(p, from, s) & Airport(from) & Airport(to) => Poss(Fly(p, from, to), s)
+b.  Poss(a, s) => (At(p, y, Result(a, s)) <=> a = Fly(p, x, y) & Airport(x) & Airport(y) & Plane(p) & At(p, x, s))
+c.  Plane(p) & At(p, from, s) & Airport(from) & Airport(to) & ~Warped(p, s) => Poss(Teleport(p, from, to), s)
+    Poss(a, s) =>   (At(p, y, Result(a, s)) <=> (a = Fly(p, x, y) | a = Teleport(p, x, y))) & 
+                    (Warped(p, Result(a, s)) <=>  Warped(p, s) | a = Teleport(p, x, y))
+d.  for all clauses ci in precondition of an action a:
+        c1' & .. & cn' => Poss(a, s)
+    where for ci = P(x1, .., xn), ci' = P(x1, .., xn, s)
+    Poss(a, s) => for all fluents X(..):
+        X(.., RESULT(a, s)) <=>
+            (X(.., s) & a = { actions which will leave X alone }) |
+            (a = { actions which will introduce X into the state })
+            
+10.16
+a.  if g(t) is satisfiable, g(0) | .. | g(Tmax) is satisfiable, so it will find a solution
+b.  it may find a plan where g(t) | g(t') can be proven satisfiable but not g(t) or g(t') alone
+c.  would be non-trivial as WALKSAT doesn't has the idea of length or cost built in
+
+11.1
+divide the planning problem to two subplans:
+    achievement: a plan to the goal
+    maintenance: a plan maintains both the goal state and the quantity of resources
+the cost of the whole plan is some linear combination of cost of the two plans, determined by the nature of the problem 
+the objective is to find a plan with accpectable cost
+for the chandelier suspending problem, the planner may find a solution which:
+    achievement: throw the chandelier in the air
+    maintenance: catch the chandelier and throw it again
+but the cost will be far higher than properly suspending the chandelier from the ceiling
+as the maintenance plan keeps both the state and resources, it can be repeated indifinitely
+
+11.2
+Action(Navigate(t, from, to),
+    PRECOND:    Truck(t) & Place(from) & Place(to) & At(t, from),
+    EFFECT:     ~At(t, from) & At(t, to))
+Action(Deliver(t, p, from, to),
+    PRECOND:    Truck(t) & Package(p) & Place(from) & Place(to) & At(t, from) & At(p, from),
+    EFFECT:     ~At(t, from) & ~At(p, from) & At(t, to) & At(p, to))
+Navigate and Deliver refines to a sequence of Forward(t), TurnLeft(t), TurnRight(t), ..
+Each truck may only deliver one package at a time
+
+11.3
+fn refine(actions: &[Action]) -> (State, State) {
+    let mut preconds = State::new();
+    let mut effects = State::new();
+    for action in actions {
+        let net_preconds = action.preconds() - effects;
+        /// union operations here removes a literal when both A and ~A presents
+        preconds = preconds ∪ net_preconds;
+        effects = effects ∪ actions.effects();
+    }
+    (preconds, effects)
+}
+
+11.4
+as stated in the text, no certain conclusion can be drawn from these two facts
+
+11.5
+/// assuming the sequence is legal, precondition check can be skipped
+/// otherwise both optimistic and pessimistic descriptions are undefined 
+fn angelic(descs: &[Description]) -> Description {
+    let mut opt = Optimistic::new();
+    let mut pes = Pessimistic::new();
+    for desc in descs {
+        for (flag, term) in desc.opt() {
+            /// optimistic descriptions are updated by bit or
+            /// each term is tagged by a bitflag describing whether the term may be added, removed or both
+            /// possible definition of Flag:
+            /// type Flag = u8;
+            /// const ADD = 0b01;
+            /// const REMOVE = 0b10;
+            opt[term] = opt[term] | flag;
+        }
+        for (sign, term) in desc.pes() {
+            /// pessimistic descriptions are updated by overwriting 
+            pes[term] = sign;
+        }
+    }
+    Description::new(opt, pes)
+}
+
+11.6
+if the nondeterminism is managed by believe states, these fields must be embedded into effects
+in certain scenarios e.g. risk of ruin these quantities can be treated as intervals instead of set of possible outcomes
+
+11.7
