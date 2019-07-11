@@ -2851,7 +2851,53 @@ fn angelic(descs: &[Description]) -> Description {
 }
 
 11.6
-if the nondeterminism is managed by believe states, these fields must be embedded into effects
+if the nondeterminism is managed by believe states or conditional effects, these fields must be embedded into effects
 in certain scenarios e.g. risk of ruin these quantities can be treated as intervals instead of set of possible outcomes
+in general, if the resources are only constrained by lower and upper bounds, they can be treated as intervals 
+otherwise the precise value of them matters and the planner must keep track of set of possible outcomes
 
 11.7
+a.  Action(Assign(a, b, va, vb),
+        PRECOND:    Variable(a) & Variable(b) & ValueOf(a, va), ValueOf(b, vb),
+        EFFECT:     ~ValueOf(a, va) & ValueOf(a, vb))
+b.  Action(Let(a, v),
+        PRECOND:    Symbol(a) & ~Variable(a), Value(v),
+        EFFECT:     Variable(a) & ValueOf(a, v))
+    Init(Variable(A) & Variable(B) & Value(VA) & Value(VB) & ValueOf(A, VA) & ValueOf(B, VB) & Symbol(C))
+    Goal(ValueOf(A, VB) & ValueOf(B, VA))
+    [
+        Let(C, VA),
+        Assign(A, B),
+        Assign(B, C),
+    ]
+
+11.8
+Action(Flip(v),
+    PRECOND:    Variable(v),
+    EFFECT:     when True(v): ~True(v), when ~True(v): True(v))
+if True(A) ∈ S, Result(Flip(A), S) = S - True(A)
+if True(A) ∉ S, Result(Flip(A), S) = S ∪ {True(A)}
+1-CNF is maintained
+
+11.9
+Action(Move(b, x, y),
+    PRECOND:    On(b, x) & Clear(b) & Clear(y),
+    EFFECT:     when y = Table: On(b, Table) & Clear(x) & ~On(b, x)
+                when y != Table: On(b, y) & Clear(x) & ~On(b, x) & ~Clear(y))
+
+11.10
+Action(Move(p),
+    PRECOND:    Place(p),
+    EFFECT:     At(p))
+Action(Suck(p),
+    PRECOND:    At(p),
+    EFFECT:     Clean(p))
+Init(At(Left | Right), Place(Left), Place(Right), Clean(Left)?, Clean(Right)?)
+Goal(Clean(Left), Clean(Right))
+
+10.11
+Suck a column, look for dirty spots on the column, suck these spots until they are clean, move to the next column
+a contigent plan with action monitoring
+
+10.12
+what medication problem?

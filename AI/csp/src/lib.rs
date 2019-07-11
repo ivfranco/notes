@@ -11,7 +11,7 @@ use std::{
 pub trait Constraint<V> {
     fn relation(&self, x: &V, y: &V) -> bool;
 
-    fn filter_forward(&self, x_set: &HashSet<V>, y_set: &HashSet<V>) -> HashSet<V>
+    fn filter_forward(&self, x_set: &Var<V>, y_set: &Var<V>) -> Var<V>
     where
         V: Clone + Eq + Hash,
     {
@@ -175,7 +175,9 @@ where
         let mut updated = variables.to_vec();
         updated[idx] = Some(value).into_iter().collect();
 
-        ac3(two_way_edges(NodeIndex::new(idx), csp), &mut updated, csp)?;
+        if ac3(two_way_edges(NodeIndex::new(idx), csp), &mut updated, csp).is_err() {
+            continue;
+        }
 
         if let Ok(assignment) = backtrack(updated, csp) {
             return Ok(assignment);
