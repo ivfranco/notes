@@ -2895,9 +2895,94 @@ Action(Suck(p),
 Init(At(Left | Right), Place(Left), Place(Right), Clean(Left)?, Clean(Right)?)
 Goal(Clean(Left), Clean(Right))
 
-10.11
+11.11
 Suck a column, look for dirty spots on the column, suck these spots until they are clean, move to the next column
 a contigent plan with action monitoring
 
-10.12
+11.12
 what medication problem?
+
+12.1
+constants:
+    Marks: X, O
+    Players: Po, Px
+    Squares: Q11 .. Q33
+    Initial state: S0
+functions:
+    Opponent(Px) = Po
+    Opponent(Po) = Px
+    MarkOf(Px) = X
+    MarkOf(Po) = O
+    TurnOf(S0) = Px
+    TurnOf(Result(a, s)) = Opponent(TurnOf(s))
+predicates:
+    Win(p, s) <=> ∃q1,q2,q3 MarkAt(MarkOf(p), q1, s) & MarkAt(MarkOf(p), q2, s) & MarkAt(MarkOf(p), q3, s) &
+        (
+            (q1 = Q11 & q2 = Q12 & q3 = Q13) |
+            ... /// winning positions
+        )
+    Empty(q, s) <=> ∀m ~MarkAt(m, q, s)
+    Reachable(r, s) <=> r = s | r = Result(a, t) & Poss(a, t) & Reachable(t, s)
+    Endgame(e, s) <=> Reachable(e, s) & ~∃a Poss(a, e)
+    ForcedWin(p, s) <=> ∀e Endgame(e, s) => Win(p, e)
+actions:
+    PlaceMark(p, q)
+situation calculus:
+    ∀m,q ~MarkAt(m, q, S0)
+    Square(q) & Player(p) & Empty(q, s) & ∀p ~Win(p, s) => Poss(PlaceMark(p, q), s)
+    Poss(a, s) => MarkAt(m, q, Result(a, s)) <=> 
+        (a = PlaceMark(p, q) & TurnOf(s) = p & MarkOf(p) = m) |
+        MarkAt(m, q, s)
+    
+12.2
+/// skipped
+
+12.3
+predicates:
+    Above(t, b, s)
+    Active(w, s)
+    Legal(t, l, b, r) <=> t < b & l < r
+    Focused(w, a) <=> a = Focus(w) | a = Create(w, ..) | a = Move(w, ..)
+functions:
+    /// order of N ∪ { None }: None is the new minimum
+    Top(w, S0) = None
+    Top(w, Result(Move(w, t, l, b, r), s)) = t
+    Top(w, Result(Destory(w), s)) = None
+    Top(w, Result(Create(w, t, l, b, r), s)) = t
+    Top(w, Result(a, s)) = Top(w, s)
+    Left(w, s) = .. // similar to Top
+    Bottom(w, s) = .. 
+    Right(w, s) = .. 
+    State(w, S0) = Nonexist
+    State(w, Result(Create(w, t, l, b, r), s)) = Displayed
+    State(w, Result(Minimize(w), s)) = Minimized
+    State(w, Result(Display(w), s)) = Displayed
+    State(w, Result(a, s)) = State(s)
+axioms:
+    ∀x,y,z Above(x, y, s) & Above(y, z, s) => Above(x, z, s)
+actions:
+    State(w, s) = Nonexist & Legal(t, l, b, r) => Poss(Create(w, t, l, b, r))
+    Exist(w, s) => Poss(Destory(w))
+    State(w, s) = Displayed & Legal(t, l, b, r) => Poss(Move(w, t, l, b, r))
+    State(w, s) = Displayed => Poss(Minimize(w))
+    State(w, s) = Minimized => Poss(Display(w))
+    Exist(w, s) => Poss(Bring(w))
+    Exist(w, s) => Focus(w)
+situation calculus:
+    Poss(a, s) =>
+        (Above(w, m, Result(a, s)) <=>
+            /// new window is on top
+            (Focused(w, a) & m != w & Exist(m, Result(a, s))) |
+            /// inherit from the last situation
+            (w != m & ~Focused(w, a) & ~Focused(m, a) & Exist(w, Result(a, s)) & Exist(m, Result(a, s)) & Above(w, m, s)) |
+            /// transitivity
+            (∃p Above(w, p, Result(a, s)) & Above(p, m, Result(a, s)))) & 
+        (Active(w, Result(a, s)) <=> 
+            Focused(w, a) |
+            ((∀w ~Focused(w, a)) & Active(w, s)))
+
+12.4
+a.  Above(W2, W1, S0) & Left(W1, S0) < Left(W2, S0) & Right(W1, S0) > Right(W2, S0)
+b.  State(w, s) = Displayed => Top(w, s) < Bottom(w, s)
+c.  State(w, Result(Create(w, ..), s)) = Displayed
+d.  State(w, s) = Displayed => Poss(Minimize(w))
