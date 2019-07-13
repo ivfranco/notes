@@ -2986,3 +2986,72 @@ a.  Above(W2, W1, S0) & Left(W1, S0) < Left(W2, S0) & Right(W1, S0) > Right(W2, 
 b.  State(w, s) = Displayed => Top(w, s) < Bottom(w, s)
 c.  State(w, Result(Create(w, ..), s)) = Displayed
 d.  State(w, s) = Displayed => Poss(Minimize(w))
+
+12.5 - 12.6
+/// skipped, the result would be either overly complicated or overly far-fetched
+
+12.7
+a.  ∀w w ∈ Water => FreezingPoint(w, KPa(100)) = Celsius(0) & BoilingPoint(w, KPa(100)) = Celsius(100)
+    Liquid(w, t, p) <=> FreezingPoint(w, p) < t < BoilingPoint(w, p)
+b.  ∀w w ∈ Water => BoilingPoint(w, KPa(100)) = Celsius(100)
+c.  ∀w w ∈ Water & In(w, JohnsWaterBottle) => Frozen(w)
+d.  Perrier ⊆ Water
+e.  ∃w w ∈ Perrier & In(w, JohnsWaterBottle)
+f.  ∀w (∃t,p Liquid(w, t, p)) => FreezingPoint(w, p) != None
+g.  ∀w,a w ∈ Water & a ∈ Alcohol & Volumn(w) = Liter(1) & Volumn(a) = Liter(1) => Weight(w) > Weight(a)
+
+12.8
+a.  ExhaustivePartDecomposition(s, c) <=> (∀i PartOf(i, c) <=> ∃p PartOf(i, p) & p ∈ s)
+b.  PartPartition(s, c) <=> ExhaustivePartDecomposition(s, c) & PairwiseDisjoint(s)
+c.  PairwiseDisjoint(s) <=> (∀c1,c2,p c1 != c2 => (PartOf(p, c1) => ~PartOf(p, c2)))
+
+12.9
+1.  it's not type safe
+    all unit functions map to real numbers, so one can compare Pound(Weight(A)) and Kilogram(Weight(A))
+    or even worse, Pound(Weight(A)) and Inch(Length(A))
+2.  there's no way to easily name an abstract quantity with unit as $(50)
+    only as $(v) = 50 for some value v
+3.  conversion between units looks like:
+        2.54 * Centimeter(l) = Inch(l)
+
+12.10
+/// plural and singular forms of a name describe the same category
+∀n,c Name(n, c) => Name(Plural(n), c) & Name(Singular(n), c)
+/// a name followed by its generalization forms a name of the same category
+/// yet it's hard to specify the definition of proper generalization
+/// "Laptop PC" is a proper name for Laptop, but "Laptop Thing" is not
+∀n,g,c,p Name(n, c) & Name(g, p) & ProperGeneralization(c, p) => Name(n + g, c)
+/// and rule, would be much more complicated as "Laptop and Laptop" is not a proper category name
+/// in reality this rule cannot be chained to arbitrary length
+/// a fifty-word string consisted of synonyms of laptop is not a proper name
+∀n1,n2,c Name(n1, c) & Name(n2, c) => Name(n1 + " and " + n2, c)
+
+12.11
+/// thanks solutions manual
+predicates:
+    Inbound(p) // position p is in the bound
+    InFrontOf(p, d, t) // t is in front of p by direction d
+functions:
+    Left(North) = West // and other four directions
+    Right(North) = East // and other four directions
+    Front(p, d) = .. // position in front of direction d from position p, may be out of bound
+Initiates(e, HaveArrow(a), t) <=> e = Start
+Terminates(e, HaveArrow(a), t) <=> e = Shoot(a)
+Initiates(Start, Facing(a, North), 0)
+/// the agent may only facing one direction at a time
+T(Facing(a, d), t) => ∀d' T(Facing(a, d'), t) => d = d'
+T(TurnLeft(a), i) <=> 
+    ∃h,d Meets(h, i) & T(Facing(a, d), h) => Clipped(Facing(a, d), i) & Restored(Facing(a, Left(d)), i)
+T(TurnRight(a), i) <=> 
+    ∃h,d Meets(h, i) & T(Facing(a, d), h) => Clipped(Facing(a, d), i) & Restored(Facing(a, Right(d)), i)
+T(Forward(a), i) <=>
+    ∃h,p Meets(h, i) & T(At(a, p), h) & T(Facing(a, d), h) & Inbound(Front(p, d)) => 
+    Clipped(At(a, p), i) & Restored(At(a, Front(p, d)), i)
+T(Grab(a), i) <=>
+    ∃h,p Meets(h, i) & T(At(a, p), h) & T(Gold(p), h) => 
+    Clipped(Gold(p), i) & Restored(HaveGold(a), i)
+T(Shoot(a), i) <=>
+    ∃h,p,t Meets(h, i) & T(At(a, p), h) & T(HaveArrow(a), t) & InFrontOf(p, d, t) & Wumpus(t) =>
+    Clipped(WumpusAlive, i) & Restored(WumpusDead, i)
+T(Climb(a), i) <=>
+    ∃h Meets(h, i) & T(At(a, S11), h) => Clipped(At(a, S11), i) & Restored(OutOfCave(a), i)
