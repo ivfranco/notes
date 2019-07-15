@@ -3055,3 +3055,126 @@ T(Shoot(a), i) <=>
     Clipped(WumpusAlive, i) & Restored(WumpusDead, i)
 T(Climb(a), i) <=>
     ∃h Meets(h, i) & T(At(a, S11), h) => Clipped(At(a, S11), i) & Restored(OutOfCave(a), i)
+
+12.12
+During(IK, LK)
+During(PK, LK)
+During(LK, LJ)
+Meet(LK, PJ)
+Overlap(LK, LO)
+Before(IK, PK)
+During(IK, LJ)
+Before(IK, PJ)
+Before(IK, LO)
+During(PK, LJ)
+Meet(PK, PJ)
+Overlap(PK, LO)
+During(PJ, LJ)
+Overlap(LJ, LO)
+During(PJ, LO)
+
+12.13
+Allen, J. and Ferguson, G. (1994): Actions and Events in Interval Temporal Logic
+http://www.cs.rochester.edu/u/james/Papers/AllenFerguson-events-actions.pdf
+Pelavin, R. (1992): Planning with simultaneous actions and external events, in Reasoning About Plans
+/// available on libgen
+an example of combinatoric axiom explosion:
+    say a set of actions mutually interfere
+    if encoded naively, precondition of each action in the set must mension all the other actions
+    resulting in axioms of length Ω(n^2)
+a solution is described in Pelavin (1992)
+
+12.14
+$(n, t), maps integer n and a time instance t to the domain of abstract value 
+
+12.15
+T(Fixed(Location(x)), (t1, t2)) <=> ∃p∀t t1 <= t <= t2 => Location(x) = p
+
+12.16
+T(Trade(a, b, p, q), i) <=> 
+    ∃h Meet(h, i) & T(Own(a, p), h) & T(Own(b, q), h) =>
+    Clipped(Own(a, p), i) & Clipped(Own(b, q), h) & Restore(Own(a, q), i) & Restore(Own(b, p), i)
+Buy(a, b, p, m) = Trade(a, b, p, $(m))
+
+12.17
+/// skipped
+
+12.18
+functions:
+    King(p): number of king in a pair p
+    Ace(p): number of ace in a pair p
+/// one may only have A-A, A-K or K-K pairs 
+1.  ∀a Ka(Has(a, A-A) | Has(a, A-K) | Has(a, K-K))
+/// 4 kings and 4 aces in total
+2.  ∀a,p1,p2,p3 Ka(Has(A, p1) & Has(B, p2) & Has(C, p3) =>
+    King(p1) + King(p2) + King(p3) = 4 & Ace(p1) + Ace(p2) + Ace(p3) = 4)
+/// Alice knows the pair of Bob and Carlos
+3.  ∀p1,p2 Has(B, p1) & Has(C, p2) => Ka(Has(B, p1) & Has(C, p2))
+/// similarly Bob and Carlos knows the pairs of others
+a.  A-K
+b.  ~∃p Ka(Has(A, p)) & Has(B, K-K)
+    if Has(C, K-K)
+    =>  Ka(Has(C, K-K) & Has(B, K-K)) // rule 3
+        Ka(Has(A, A-A)) // rule 2 
+    hence ~Has(C, K-K)
+    similarly, ~∃p Ka(Has(B, p)) => ~Has(C, A-A)
+    therefore Has(C, A-K) // rule 1
+c.  ~Has(C, K-K) // rule 2
+    if Has(C, A-A)
+        Kb(~∃p Ka(Has(a, p)) & Ka(Has(C, A-A)))
+        Kb(~Has(B, A-A))
+        Kb(~∃p Kc(Has(a, p)) & Ka(Has(A, K-K)))
+        Kb(~Has(B, K-K))
+        Kb(Has(B, A-K))
+    therefore Has(C, A-K)
+d.  if Has(C, A-A), this game is the same to Game 2, Alice should be able to answer at the beginning of the second round
+    if Has(C, K-K), this game is symmetric to Game 2, Alice should be able to answer
+    therefore Has(C, A-K)
+e.  lemma: if a game has a winner in some order (a permutation of [A, B, C]), it has a winner in any order
+        let the sequence of answers be a = [A, B, C, A, B, C, ..]
+        it's always possible to insert answers to the sequence, making it into another order
+        e.g. [C, B, A] can be achieved by insert C between (A, B), A between (B, C), ..
+        the extended sequence should still have a winner since:
+            1.  inserting answers only add knowledge to each player, never removes them
+            2.  at the end of the sequence, the player in turn has enough knowledge to answer the question
+    part b proved the existence of a winner of {A-A, A-A, K-K} and {A-A, K-K, A-K}
+    part c proved the existence of a winner of {A-K, A-K, K-K}
+    part c proved the existence of a winner of {A-K, A-K, A-K}
+    along with symmetric worlds (swap roles of A and K) and lemma above, these are all the possible worlds
+
+12.19
+a.  quite reasonable whenever with limited number of states (e.g. 52 cards in bridge)
+b.  just as the text described, if logical omniscience is reasonable,
+    these moves (complicating the situation) would never be advantageous
+c.  quite reasonable: knowledge base is limited by cost & moderate in size and complexity
+d.  if an agent can derive discrete logarithm from axioms immediately
+    DH key exchange protocol or RSA makes no sense
+
+12.20
+∀m 
+    (∃s1,s2,s3 s1 != s2 & s1 != s3 & s2 != s3 & Son(s1, m) & Son(s2, m) & Son(s3, m)) &
+    (∃d1,d2∀d3 Daughter(d3, m) => d3 = d1 | d3 = d2) &
+    (∀s Sone(s, m) => Unemployed(s) & Married(s) & ∀p Spouse(s, p) => Doctor(p)) &
+    (∀d Daughter(d, m) => Professor(d) & (Department(d, Physics) | Department(Math, d)))
+it's rather inconvenient to express AtLeast in first order logic
+
+12.21
+a.  ∀x Brand(x, Dodge) & Year(x, 1973) & Model(x, Vans) => Worth(x, 575) 
+    ∀x Brand(x, Ford) & Year(x, 2010) & Model(x, F150) => Worth(x, 16500)
+    ∀x Brand(x, Honda) & Year(x, 2017) & Model(x, Civic) => Worth(x, 13999)
+    in worst case all such rules will be unified before the result is emitted
+b.  backward chaining will have linear complexity
+    while complexity of inheritance depends on the depth of inheritance heirarchy and usually is O(1)
+c.  if predicates are properly indexed by all combination of predicates and arguments
+    given the three facts about the car (Brand, Year and Model), the price can be queried in nearly O(1)
+d.  if price of the car depends on non-uniform aspects of the car
+    (e.g. not only Brand, Year and Model but also tens of exceptional conditions)
+    there may not be an efficient indexing scheme 
+e.  assuming the 3-tuple Year, Brand and Model completely defines Worth
+    a hash table keyed by all the three predicates can give Worth of a car in average O(1) time
+
+12.22
+Subset(A, B) does not mean ∀x,y x ∈ A & y ∈ B => Subset(x, y)
+x and y may not even be sets
+
+12.23
