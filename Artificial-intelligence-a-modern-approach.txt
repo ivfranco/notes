@@ -3177,4 +3177,92 @@ e.  assuming the 3-tuple Year, Brand and Model completely defines Worth
 Subset(A, B) does not mean ∀x,y x ∈ A & y ∈ B => Subset(x, y)
 x and y may not even be sets
 
-12.23
+12.23 - 12.25
+/// skipped
+
+
+13.1
+P(a | b && a)    = P(a && b && a) / P(b && a)
+                = P(a && b) / P(a && b)
+                = 1
+
+13.2
+given by equation 13.1
+all possible values of a random variable forms the sample space of possible worlds
+
+13.3
+a.  P(a | b && c) = P(b | a && c)
+    =>  P(a && b && c) / P(b && c) = P(a && b && c) / P(a && c)
+    =>  P(b && c) = P(a && c)
+    =>  P(b && c) / P(c) = P(a && c) / P(c)
+    =>  P(b | c) = P(a | c)
+b.  a = "It's rainy in Bucharest today"
+    b = "Jack has toothache"
+    c = "Jack has cavity"
+c.  let the domain be t ∈ N * N
+    a = "t = (x, y) && x + y is even"
+    b = "t = (0, _)"
+    c = "t = (_, 0)"
+    P(a | b) = 1/2
+    P(a | c) = 1/2
+    P(a | b && c) = 1
+
+13.4
+P(a || b) = P(a) + P(b) - P(a && b)
+0.5 = 0.7 - P(a && b), P(a && b) = 0.2
+if P(a || b) = 0.7, P(a && b) = 0
+how rational it is depends on the believe of the agent
+both 0.5 and 0.7 may be justified by the knowledge base
+
+13.5
+a.  if s1 and s2 are two distinct atomic events 
+    there exists at least one boolean variable xi that xi ∈ s1 and ~xi ∈ s2
+    s1 || s2 by resolution derives {}, hence s1 || s2 is unsatisfiable
+b.  for an arbitrary assignment, there is a corresponding proposition in the disjunction
+    therefore the disjunction is true for any possible model / assignment
+    the disjunction is true in all models => true |= disjunction
+    as p |= true for all proposition p, true <=> disjunction
+c.  same to b but in a subset of all possible worlds in which the proposition is true
+
+13.6
+P(a && b) + P(a && ~b) + P(~a && b) + P(~a && ~b) = 1 // 13.1
+P(a || b)   = 1 - P(~(a || b)) // 13.2
+            = 1 - P(~a && ~b)
+            = P(a && b) + P(a && ~b) + P(~a && b)
+
+13.7
+a.  C(52, 5) = 2_598_960
+b.  1 / 2_598_960
+c.  royal stright flush: 
+        4 atomic events
+        4 / C(52, 5)
+    four of a kind:
+        13 * (52 - 4) = 624 atomic events
+        624 / C(52, 5)
+
+13.8
+a.  0.108 + 0.012 + 0.016 + 0.064 = 0.2
+b.  0.108 + 0.012 + 0.072 + 0.008 = 0.2
+c.  0.108 + 0.012 = 0.12
+d.  0.108 + 0.012 + 0.072 = 0.192
+
+13.9
+winning chance of player E:
+    E ~ NB(7 - 2, 0.5), E >= 3
+    P(E >= 3) = 1 - Σ(k ∈ {0,1,2})P(E = k) = 0.7734375
+winning chance of player O:
+    1 - P(E <= 7) = 0.2265625
+the pot of money should be divided by their winning chance
+
+13.10
+a.  0.25^3 * (20 + 15 + 5 + 3) + // three in a row
+    0.25^2 * (1 - 0.25) * 2 + // two cherries
+    0.25 * ((1 - 0.25)^2 + (1 - 0.25) * 0.25)  // one cherry
+    = 0.953125
+b.  3 * 0.25^3 + 0.25^2 * (1 - 0.25)
+    = 0.109375
+c.  ./AI/uncertainty
+    median <= 21
+    mean = 216
+
+13.11
