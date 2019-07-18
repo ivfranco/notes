@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 fn main() {
     exercise_13_10();
+    exercise_13_11();
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -15,6 +16,8 @@ const FEE: i32 = 1;
 type Outcomes = HashMap<Outcome, f64>;
 
 fn exercise_13_10() {
+    println!("13.10");
+
     let paybacks = paybacks();
 
     println!("mean payback: {}", mean_of(paybacks.iter().cloned()));
@@ -116,4 +119,19 @@ where
     I: IntoIterator<Item = (i32, f64)>,
 {
     outcomes.into_iter().map(|(c, p)| f64::from(c) * p).sum()
+}
+
+fn exercise_13_11() {
+    println!("13.11");
+
+    const E: f64 = 0.001;
+    const D: f64 = 0.01;
+
+    let max_n = (0 ..)
+        .find(|&n| {
+            (1.0 - E).powi(n + 1) + E * (1.0 - E).powi(n) * f64::from(n + 1) < 1.0 - D
+        })
+        .unwrap() - 1;
+    
+    println!("{}", max_n);
 }

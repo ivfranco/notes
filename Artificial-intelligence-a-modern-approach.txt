@@ -1,3 +1,5 @@
+/// errata: http://aima.cs.berkeley.edu/errata.html
+
 1.1
 a.  ability to act rationally based on knowledge
 b.  intelligence originates not in biomass but in artifacts
@@ -3266,3 +3268,201 @@ c.  ./AI/uncertainty
     mean = 216
 
 13.11
+./AI/uncertainty
+(1 - ε)^(n + 1) + ε(n+1)(1 - ε)^n >= 1 - δ
+n = 147
+
+13.12
+P(a | b) = P(a)
+=>  P(a & b) / P(b) = P(a)
+=>  P(a & b) / P(a) = P(b)
+=>  P(b | a) = P(b)
+P(b | a) = P(b)
+=>  P(a & b) / P(a) = P(b)
+    P(a & b) = P(a)P(b)
+P(a & b) = P(a)P(b)
+if P(b) != 0
+=>  P(a & b) / P(b) = P(a)
+=>  P(a | b) = P(a)
+if P(b) = 0
+P(a & b) = P(a)P(b) = 0
+P(a | b) is not well defined
+
+13.13
+P(a)    = P(a & (b || ~b))
+        = P((a & b) || (a & ~b))
+        = P(a & b) + P(a & ~b) // exclusive
+        = P(a | b)P(b) + P(a | ~b)P(b)
+P(a_pos)    = P(a_pos | virus)P(virus) + P(a_pos | ~virus)P(~virus)
+            = 0.95 * 0.01 + 0.1 * 0.99
+            = 0.1085
+P(virus | a_pos)    = P(a_pos | virus)P(virus) / P(a_pos)
+                    = 0.95 * 0.01 / 0.1085
+                    = 0.0875576
+P(b_pos)    = P(b_pos | virus)P(virus) + P(a_pos | ~virus)P(~virus)
+            = 0.9 * 0.01 + 0.05 * 0.99
+            = 0.0585
+P(virus | b_pos)    = P(b_pos | virus)P(virus) / P(b_pos)
+                    = 0.1538462
+B is more indicative
+
+13.14
+with x fixed, P(Toss1 = Head & Toss2 = Head | x) = x^2 = P(Toss1 = Head | x)Poss(Toss2 = Head | x)
+when x is unknown, the posterior distribution of Toss is dependent on obvervations so far
+the next toss is dependent on all tosses before
+
+13.15
+P(disease | pos)    = P(pos | disease)P(disease) / P(pos)
+                    = P(pos | disease)P(disease) / (P(pos | disease)P(disease) + P(pos | ~disease)P(~disease))
+                    = αP(disease) / (αP(disease) + (1 - α)(1 - P(disease)))
+                    = α / (α + (1 - α)(1 / P(disease) - 1))
+hence P(disease | pos) is monotonically decreasing function in P(disease)
+
+13.16
+/// it's unclear how to translate rules from and to bold P notations
+/// the operations on bold P notations (divide, multiply, etc.) are not defined yet
+/// P(X) op P(Y) applies op to the cartisan product of two vector, indexed by particular values of X and Y
+/// e.g. P(X)P(Y), P(X)/P(Y), P(X) + P(Y)
+/// fixing one variable slices a hyperplane from the value space
+/// most arithmetic rules should hold in this domin, to name a few:
+///     P(X)P(Y) / P(Y) = P(X)
+///     (P(X)P(Y))P(Z) = P(X)(P(Y)P(Z))
+let E be some random variable, e ∈ E
+a.  P(X, Y | E) = P(X, Y, E) / P(E)
+                = (P(X, Y, E) / P(Y, E)) * (P(Y, E) / P(E))
+                = P(X | Y, E)P(Y | E)
+    fixing E = e, P(X, Y | e) = P(X | Y, e)P(Y | e)
+b.  P(Y | X, e) = P(X, Y | e) / P(X | e)
+                = P(X | Y, e)P(Y | e) / P(X | e)
+
+13.17
+errata:
+    P(B | X, Z) = P(Y | Z) => P(Y | X, Z) = P(Y | Z)
+P(X, Y | Z) = P(X | Z)P(Y | Z)
+=>  P(X | Y, Z)P(Y | Z) = P(X | Z)P(Y | Z)
+=>  P(X | Y, Z) = P(X | Z)
+P(X | Y, Z) = P(X | Z)
+=>  P(X, Y | Z) / P(Y | Z) = P(X | Z)
+=>  P(X, Y | Z) / P(X | Z) = P(Y | Z)
+=>  P(Y | X, Z) = P(Y | Z)
+P(Y | X, Z) = P(Y | Z)
+=>  P(X, Y | Z) = P(X | Z)P(Y | Z)
+
+13.18
+a.  P(head) = P(head | fake)P(fake) + P(head | ~fake)P(~fake)
+            = 1/n + 1/2 * (n-1)/n
+            = (n+1)/2n
+    P(fake | head)  = P(head | fake)P(fake) / P(head)
+                    = 1/n / ((n+1)/2n)
+                    = 2 / (n + 1)
+b.  P(k_head)   = P(k_head | fake)P(fake) + P(k_head | ~fake)P(~fake)
+                = 1/n + (1/2)^k(n-1)/n
+                = ((n-1)(1/2)^k + 1) / n
+    P(fake | k_head)    = P(k_head | fake)P(fake) / P(k_head)
+                        = 1 / ((n-1)(1/2)^k + 1)
+c.  error = (~k_head & fake) || (k_head & ~fake)
+    P(error)    = P((~k_head & fake) || (k_head & ~fake))
+                = P(~k_head & fake) + P(k_head & ~fake) // exclusive
+                = P(~k_head | fake)P(fake) + P(k_head | ~fake)P(~fake)
+                = 0 + (1/2)^k * (n-1)/n
+                = 1/2^k * (n-1) / n
+
+13.19
+P(s | ~m)P(~m) + P(s | m)P(m) = P(s)
+P(s | ~m)   = (0.01 - 0.7 * 0.00002) / 0.99998
+            ~= 0.001
+P(m | s) + P(~m | s) = 1
+P(~m | s)   = P(s | ~m)P(~m) / P(s)
+            = p * (49999 / 50000) / P(s)
+            // α = 1/P(s)
+            = α(0.99998 * 0.001)
+            ~= α(0.0001)
+P(m | s)    = P(s | m)P(m) / P(s)
+            = α(0.000014)
+0.000114α = 1
+α ~= 8771.9298
+P(~m | s) = 0.8772
+P(m | s) = 0.1228
+
+13.20
+name the probability of atomic events by binary numbers 
+i.e. 010 = P(~x & y & ~z)
+    a = 000
+    b = 001
+    c = 010
+    d = 011
+    e = 100
+    f = 101
+    g = 110
+    h = 111
+P(X, Y | Z) = P(X | Z)P(Y | Z)
+P(X, Y, Z) = P(X, Z)P(Y, Z) / P(Z)
+a = (a + c)(a + e) / (a + c + e + g)
+    a^2 + ac + ae + ag = a^2 + ae + ac + ce
+    ag = ce
+b = (b + d)(b + f) / (b + d + f + h)
+    b^2 + bd + bf + bh = b^2 + bf + bd + df
+    bh = df
+all other equations are redundant by symmetry
+
+13.21
+a.  P(blue | looks_blue)    = P(looks_blue | blue)P(blue) / P(looks_blue)
+                            = 0.75P(blue) / P(looks_blue)
+                            = 0.75P(blue) / (P(looks_blue | blue)P(blue) + P(looks_blue | ~blue)P(blue))
+                            = 0.75P(blue) / (0.75P(blue) + 0.25(1 - P(blue)))
+                            = 0.75 / (0.75 + 0.25 / P(blue) - 0.25)
+    the result is dependent on P(blue)
+b.  P(blue) = 0.1
+    P(blue | looks_blue) = 0.25
+    P(~blue | looks_blue) = 0.75
+    the taxi is most likely to be green
+
+13.22
+a.  from the trainning set, the prior probabilities
+        P(Category)
+        P(Wi | Category) and P(Wi) // Wi is a binary random variable for each word wi in documentations
+        P(W1, .., Wn | Category) // from P(Wi | Category) since Wi are mutually independent
+        P(W1, .., Wn, Category) // from above and P(Category)
+    can be computed
+b.  if W1 and W2 are independent
+    P(Category | W1, .., Wn) can be computed from 
+        P(Category, W1, .., Wn) / P(W1, .., Wn)
+        = P(Category, W1, .., Wn) / ΠP(Wi)
+c.  in most case the assumption is not reasonable
+    e.g. there are clear dependency among the words Bayes and models, rules or probability
+
+13.23
+Pij and Pkl are no longer independent, e.g. if N = 1, P(Pij | Pkl = true) = 0
+P(P11, .., P44) now have C(16, 3) atomic events with probability 1/C(N, N/5) each
+other 2^16 - C(16, 3) atomic events have probability 0
+there are five cases of frontier consistent with known & b:
+    case a: all P13, P22, P31 = true, 1 atomic event
+    case b: P13 = P31 = true, P22 = false, C(16 - 6, 1) = 10 atomic events
+    case c: P22 = true, P13 = P31 = false, C(16 - 6, 2) = 45 atomic events
+    case d: P13 = P22 = true, P31 = false, C(16 - 6, 1) = 10 atomic events
+    case e: P31 = P22 = true, P13 = false, C(16 - 6, 1) = 10 atomic events
+76 atomic events in total
+P(P13 = true) = P(a | kb) + P(b | kb) + P(d | kb) = (1 + 10 + 10) / 56 = 21/76
+P(P22 = true) = 1 - P(b | kb) = 66 / 76
+
+/// to avoid ambiguity, from now on P(A) indicates bold P notation, p(a) indicates probability of event a
+13.24
+P(P13 | known, b) = αP(P13)Σp(b | known, P13, frontier)p(frontier)
+for P13 = true, there are three cases of frontier with p(b | known, frontier, P13) = 1:
+    P22 = P31 = true, with p = 0.00001
+    P22 = true, P31 = false, with p = 0.0099
+    P22 = false, P31 = true, with p = 0.0099
+    0.0199 in total
+for P13 = false, there are two cases of frontier with p(b | known, frontier, P13) = 1:
+    P22 = true, P31 = false, p = 0.0099
+    P22 = P31 = true, p = 0.0001
+    0.01 in total
+P(P13) = α<0.01 * 0.0199, 0.99 * 0.01> = α<0.000199, 0.0099> = <0.0197, 0.9803>
+for P22 = true, any frontier is consistent with known & b, Σp(b | known, P13, frontier)p(frontier) = 1
+for P22 = false, it must have P13 = P31 = true, p = 0.01^2
+P(P22) = α<0.01, 0.99 * 0.01^2> = α<0.01, 0.000099> = <0.99, 0.01>
+P22 is true with almost certainty, while a pure logical agent will try P13, P22 or P31 for random
+
+13.25
+/// skipped
+
