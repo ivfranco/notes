@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 petgraph = "^0.4"
 fixedbitset = "^0.1"
+rand = "^0.7"

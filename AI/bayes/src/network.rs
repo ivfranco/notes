@@ -1,23 +1,27 @@
 use petgraph::{
-    prelude::*,
     algo::toposort,
+    prelude::*,
+    visit::{Topo, Walker},
 };
 
-use std::collections::HashMap;
 use cpt::*;
+use rand::prelude::*;
+use std::collections::HashMap;
 
 pub type Prob = f64;
-pub type Evidence = HashMap<NodeIndex, bool>;
+pub type Value = usize;
+pub type Evidence = HashMap<NodeIndex, Value>;
+pub type Event = Evidence;
 
 pub mod cpt {
     use super::*;
-    use fixedbitset::FixedBitSet;
+    use std::borrow::Borrow;
 
     pub struct Full {
         /// mapping NodeIndex of
         causes: HashMap<NodeIndex, usize>,
         /// probability of p(X = true) given a set of evidences
-        probs: HashMap<FixedBitSet, Prob>,
+        probs: HashMap<Vec<Value>, Vec<Prob>>,
     }
 
     impl Full {
@@ -38,67 +42,133 @@ pub mod cpt {
             }
         }
 
-        pub fn single_parent(parent: NodeIndex, p_true: Prob, p_false: Prob) -> Self {
-            let mut full = Full::new(&[parent]);
-            full.insert_prob(&[parent], p_true);
-            full.insert_prob(&[], p_false);
-            full
-        }
-
-        fn truth_set<'a, I>(&self, truths: I) -> FixedBitSet 
+        fn to_key<I, P>(&self, iter: I) -> Vec<Value> 
         where
-            I: IntoIterator<Item = &'a NodeIndex>,
+            I: IntoIterator<Item = P>,
+            P: Borrow<(NodeIndex, Value)>,
         {
-            truths
-                .into_iter()
-                .filter_map(|n| self.causes.get(n))
-                .cloned()
-                .collect()
+            let mut key = vec![0; self.causes.len()];
+
+            for p in iter.into_iter() {
+                let (n, v) = p.borrow();
+                if let Some(p) = self.causes.get(n) {
+                    key[*p] = *v;
+                }
+            }
+
+            key
         }
 
-        pub fn insert_prob(&mut self, truths: &[NodeIndex], prob: Prob) {
-            let set = self.truth_set(truths);
-            self.probs.insert(set, prob);
+        fn query_row(&self, evidence: &Evidence) -> &[Prob] {
+            assert!(
+                self.causes.keys().all(|n| evidence.contains_key(n)),
+                "Full::query: unspecified parent"
+            );
+
+            let key = self.to_key(evidence.iter().map(|(k, v)| (*k, *v)));
+            self.probs.get(&key)
+                .expect("Full::query: Full CPT must be complete")
         }
 
-        fn get_prob(&self, evidence: &Evidence) -> Prob {
-            let set = self.truth_set(evidence.iter().filter(|(_, t)| **t).map(|(n, _)| n));
-            *self
-                .probs
-                .get(&set)
-                .expect("Full::get_prob: conditional probability table should be complete")
+        pub fn insert_row(&mut self, truths: &[(NodeIndex, Value)], probs: &[Prob]) {
+            let key = self.to_key(truths);
+            self.probs.insert(key, probs.to_vec());
+        }
+
+        fn query(&self, evidence: &Evidence, value: Value) -> Prob {
+            *self.query_row(evidence)
+                .get(value)
+                .expect("Full::query: Categorical value out of bound")
+        }
+
+        fn random_sample(&self, evidence: &Evidence) -> Value {
+            let row = self.query_row(evidence);
+            random_idx_sample(row)
         }
     }
 
     pub enum CPT {
-        Const(Prob),
+        Const(Vec<Prob>),
         Full(Full),
     }
 
     use CPT::*;
 
     impl CPT {
-        pub fn new_const(prob: Prob) -> Self {
-            Const(prob)
+        pub fn new_const(probs: Vec<Prob>) -> Self {
+            Const(probs)
         }
 
         pub fn new_full(parents: &[NodeIndex]) -> Self {
             Full(Full::new(parents))
         }
 
-        pub fn get_prob(&self, evidence: &Evidence) -> Prob {
+        fn query(&self, value: Value, evidence: &Evidence) -> Prob {
             match self {
-                Full(full) => full.get_prob(evidence),
-                Const(prob) => *prob,
+                Full(full) => full.query(evidence, value),
+                Const(probs) => *probs.get(value).expect("CPT::get_prob: Categorical value out of bound")
             }
+        }
+
+        fn random_sample(&self, evidence: &Evidence) -> Value {
+            match self {
+                Const(probs) => random_idx_sample(probs),
+                Full(full) => full.random_sample(evidence)
+            }
+        }
+    }
+
+    fn random_idx_sample(probs: &[Prob]) -> Value {
+        let mut rng = thread_rng();
+        let indices: Vec<_> = (0 .. probs.len()).collect();
+        *indices.choose_weighted(&mut rng, |&i| probs[i]).expect("probability table rows should be nonempty")
+    }
+
+    pub struct Variable {
+        cpt: CPT,
+        values: usize,
+    }
+
+    impl Variable {
+        pub fn new(cpt: CPT, values: usize) -> Self {
+            Variable {
+                cpt, values
+            }
+        }
+
+        pub fn new_const(probs: Vec<Prob>) -> Self {
+            Variable {
+                values: probs.len(),
+                cpt: CPT::new_const(probs),
+            }
+        }
+
+        pub fn binary_single_parent(parent: NodeIndex, p_true: Prob, p_false: Prob) -> Self {
+            let mut cpt = Full::new(&[parent]);
+            cpt.insert_row(&[(parent, 0)], &[1.0 - p_false, p_false]);
+            cpt.insert_row(&[(parent, 1)], &[1.0 - p_true, p_true]);
+            Variable::new(CPT::Full(cpt), 2)
+        }
+
+        pub fn values(&self) -> usize {
+            self.values
+        }
+
+        pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
+            assert!(value < self.values, "Variable::query: Categorical value out of bound");
+            self.cpt.query(value, evidence)
+        }
+
+        pub fn random_sample(&self, evidence: &Evidence) -> Value {
+            self.cpt.random_sample(evidence)
         }
     }
 }
 
-/// binary-valued Bayesian network
+/// Bayesian network with discrete variables
 #[derive(Default)]
 pub struct Network {
-    graph: Graph<CPT, (), Directed>,
+    graph: Graph<Variable, (), Directed>,
 }
 
 impl Network {
@@ -106,86 +176,164 @@ impl Network {
         Network::default()
     }
 
-    pub fn add_node(&mut self, cpt: CPT) -> NodeIndex {
-        self.graph.add_node(cpt)
+    pub fn add_node(&mut self, var: Variable) -> NodeIndex {
+        self.graph.add_node(var)
     }
 
     pub fn add_edge(&mut self, parent: NodeIndex, child: NodeIndex) {
         self.graph.add_edge(parent, child, ());
     }
 
-    fn get_prob(&self, var: NodeIndex, evidence: &Evidence) -> Prob {
-        self.graph.node_weight(var).expect("Network::get_prob: NodeIndex out of bound")
-            .get_prob(evidence)
+    fn get(&self, x: NodeIndex) -> &Variable {
+        self.graph.node_weight(x).expect("Network::query: NodeIndex out of bound")
+    }
+
+    fn query_cpt(&self, var: NodeIndex, value: Value, evidence: &Evidence) -> Prob {
+        self.graph
+            .node_weight(var)
+            .expect("Network::get_prob: NodeIndex out of bound")
+            .query(value, evidence)
     }
 
     /// return P(x = true | evidence)
-    pub fn query(&self, x: NodeIndex, mut evidence: Evidence) -> Prob {
-        let vars = toposort(&self.graph, None).expect("Network::query: Bayesian network should be acyclic");
-        evidence.insert(x, true);
-        let p_true = self.enumerate_all(&vars, &mut evidence);
-        evidence.insert(x, false);
-        let p_false = self.enumerate_all(&vars, &mut evidence);
+    pub fn query(&self, x: NodeIndex, mut evidence: Evidence) -> Vec<Prob> {
+        let topo = toposort(&self.graph, None)
+            .expect("Network::query: Bayesian network should be acyclic");
+        let var = self.get(x);
+        let mut dist = vec![];
 
-        normalize(p_true, p_false)
+        for v in 0 .. var.values() {
+            evidence.insert(x, v);
+            dist.push(self.enumerate_all(&topo, &mut evidence));
+            evidence.remove(&x);
+        }
+        
+        normalize(dist)
     }
 
     fn enumerate_all(&self, vars: &[NodeIndex], evidence: &mut Evidence) -> Prob {
-        let var = if let Some(var) = vars.first() {
+        let x = if let Some(var) = vars.first() {
             *var
         } else {
             return 1.0;
         };
 
         let rest = &vars[1..];
-        let p_true = self.get_prob(var, evidence);
-        let p_false = 1.0 - p_true;
 
-        match evidence.get(&var) {
-            Some(true) => p_true * self.enumerate_all(rest, evidence),
-            Some(false) => p_false * self.enumerate_all(rest, evidence),
+        match evidence.get(&x) {
+            Some(v) => {
+                self.query_cpt(x, *v, evidence) * self.enumerate_all(rest, evidence)
+            },
             None => {
-                evidence.insert(var, true);
-                let mut p = p_true * self.enumerate_all(rest, evidence);
-                evidence.insert(var, false);
-                p += p_false * self.enumerate_all(rest, evidence);
-                evidence.remove(&var);
-                p
+                let var = self.get(x);
+                let mut sum = 0.0;
+                for v in 0 .. var.values() {
+                    let p = self.query_cpt(x, v, evidence);
+                    evidence.insert(x, v);
+                    sum += p * self.enumerate_all(rest, evidence);
+                    evidence.remove(&x);
+                }
+                sum
             }
         }
     }
+
+    /// returns an estimate of P(X = value | evidence)
+    pub fn likelihood_weighting(&self, x: NodeIndex, value: Value, evidence: &Evidence, n: u32) -> Prob {
+        let var = self.get(x);
+        let mut dist = vec![0.0; var.values()];
+
+        for _ in 0..n {
+            let (event, w) = self.weighted_sample(evidence);
+            let &v = event.get(&x).expect("Network::likelihood_weighting: Event must be complete");
+            dist[v] += w;
+        }
+
+        normalize(dist)[value]
+    }
+
+    fn weighted_sample(&self, evidence: &Evidence) -> (Event, Prob) {
+        let mut w = 1.0;
+        let mut event = evidence.clone();
+
+        for x in Topo::new(&self.graph).iter(&self.graph) {
+            match event.get(&x) {
+                Some(v) => w *= self.query_cpt(x, *v, &event),
+                None => {
+                    let var = self.get(x);
+                    event.insert(x, var.random_sample(&event));
+                }
+            }
+        }
+
+        (event, w)
+    }
 }
 
-fn normalize(p_true: Prob, p_false: Prob) -> Prob {
-    p_true / (p_true + p_false)
+fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
+    let sum: Prob = probs.iter().sum();
+    for p in probs.iter_mut() {
+        *p /= sum;
+    }
+    probs
 }
 
-#[test]
-fn burglary_test() {
+#[cfg(test)]
+const T: Value = 1;
+#[cfg(test)]
+const F: Value = 0;
+
+#[cfg(test)]
+fn burglary_network() -> (Network, [NodeIndex; 5]) {
     let mut network = Network::new();
-    let burglary = network.add_node(CPT::new_const(0.001));
-    let earthquake = network.add_node(CPT::new_const(0.002));
+    let burglary = network.add_node(Variable::new_const(vec![1.0 - 0.001, 0.001]));
+    let earthquake = network.add_node(Variable::new_const(vec![1.0 - 0.002, 0.002]));
 
     let mut alarm_cpt = Full::new(&[burglary, earthquake]);
-    alarm_cpt.insert_prob(&[burglary, earthquake], 0.95);
-    alarm_cpt.insert_prob(&[burglary], 0.94);
-    alarm_cpt.insert_prob(&[earthquake], 0.29);
-    alarm_cpt.insert_prob(&[], 0.001);
-    let alarm = network.add_node(CPT::Full(alarm_cpt));
+    alarm_cpt.insert_row(&[(burglary, T), (earthquake, T)], &[1.0 - 0.95, 0.95]);
+    alarm_cpt.insert_row(&[(burglary, T), (earthquake, F)], &[1.0 - 0.94, 0.94]);
+    alarm_cpt.insert_row(&[(burglary, F), (earthquake, T)], &[1.0 - 0.29, 0.29]);
+    alarm_cpt.insert_row(&[(burglary, F), (earthquake, F)], &[1.0 - 0.001, 0.001]);
+    let alarm = network.add_node(Variable::new(CPT::Full(alarm_cpt), 2));
 
-    let john_calls_cpt = Full::single_parent(alarm, 0.9, 0.05);
-    let john_calls = network.add_node(CPT::Full(john_calls_cpt));
-    let mary_calls_cpt = Full::single_parent(alarm, 0.7, 0.01);
-    let mary_calls = network.add_node(CPT::Full(mary_calls_cpt));
+    let john_calls = network.add_node(Variable::binary_single_parent(alarm, 0.9, 0.05));
+    let mary_calls = network.add_node(Variable::binary_single_parent(alarm, 0.7, 0.01));
 
     network.add_edge(burglary, alarm);
     network.add_edge(earthquake, alarm);
     network.add_edge(alarm, john_calls);
     network.add_edge(alarm, mary_calls);
 
-    let evidence = [(john_calls, true), (mary_calls, true)].iter()
+    (
+        network,
+        [burglary, earthquake, alarm, john_calls, mary_calls],
+    )
+}
+
+#[test]
+fn burglary_test() {
+    let (network, nodes) = burglary_network();
+    let [burglary, _, _, john_calls, mary_calls] = nodes;
+
+    let evidence = [(john_calls, T), (mary_calls, T)]
+        .iter()
         .cloned()
         .collect();
 
-    assert!((0.284 - network.query(burglary, evidence)).abs() <= 0.001);
+    let dist = network.query(burglary, evidence);
+    assert!((0.284 - dist[T]).abs() <= 0.001);
+}
+
+#[test]
+fn sampling_test() {
+    let (network, nodes) = burglary_network();
+    let [burglary, _, _, john_calls, mary_calls] = nodes;
+
+    let evidence = [(john_calls, T), (mary_calls, T)]
+        .iter()
+        .cloned()
+        .collect();
+
+    let estimate = network.likelihood_weighting(burglary, T, &evidence, 100_000);
+    assert!((estimate - 0.284).abs() <= 0.05);
 }
