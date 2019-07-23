@@ -3466,3 +3466,44 @@ P22 is true with almost certainty, while a pure logical agent will try P13, P22 
 13.25
 /// skipped
 
+14.1
+a.  ./AI/bayes
+b.  [0.10526315789473688, 0.4736842105263158, 0.42105263157894735]
+
+14.2
+a.  P(z | y)    = P(y, z) / P(y)
+                = Σx P(x, y, z) / Σx,z P(x, y, z)
+b.  Σx P(x, y, z) = Σx θ(z | y)θ(y | x)θ(x)
+    Σx,z P(x, y, z) = Σx,z θ(z | y)θ(y | x)θ(x)
+                    = Σx(θ(y | x)θ(x)Σz(θ(z | y)))
+                    = Σx θ(y | x)θ(x)
+c.  (θ(z | y)θ(y | x)θ(x) + θ(z | y)θ(y | ~x)θ(~x)) / 
+    (θ(y | x)θ(x) + θ(y | ~x)θ(~x))
+    = θ(z | y)
+d.  lemma: 
+        let A be the set of ancestors of Xi, including Xi
+        p(A = a) 
+        = Σ(U - A) Πθ(x | Parents(X))
+        let B = U - A, as long as B != ∅,
+        there must be an Xi ∈ B where Xi is not a parent of any other variables in B (otherwise the network is cyclic)
+        = Σ(B - {Xi}) Π(U - {Xi})(x | Parents(X)) Σxi θ(xi | Parents(Xi))
+        = Σ(B - {Xi}) Π(U - {Xi})(x | Parents(X)) // sum to 1
+        repeat until B = ∅, U - B = A
+        p(A = a) = Π(x ∈ A)θ(x | Parents(X))
+    for all Xi = xi, Parents(Xi) = parents,
+    let A be the set of ancestors of Xi
+    let other be A - {xi} - parents
+    p(xi | parents) = p(xi, parents) / p(parents)
+    = Σother p(xi, parents, other) / Σxi,other p(xi, parents, other)
+    = Σother Π(x ∈ a)θ(x | Parents(X)) / Σxi,other Π(x ∈ A)θ(x | Parents(X))
+    by definition of A, there's no Y ∈ A where X ∈ Parents(Y)
+    Σxi,other Π(x ∈ a)θ(x | Parents(X))
+    = Σother Π(x ∈ a - {xi})θ(x | Parents(X)) Σxi θ(xi | Parents(Xi))
+    = Σother Π(x ∈ a - {xi})θ(x | Parents(X))
+    Σother Π(x ∈ a)θ(x | Parents(X)) / Σxi,other Π(x ∈ a)θ(x | Parents(X))
+    = θ(xi | parents)Σother Π(x ∈ a - {xi})θ(x | Parents(X)) / Σother Π(x ∈ a - {xi})θ(x | Parents(X))
+    = θ(xi | parents)
+    since above holds for arbitrary value of Xi and Parents(Xi),
+    P(Xi | Parents(Xi)) = θ(Xi | Parents(Xi))
+
+14.3

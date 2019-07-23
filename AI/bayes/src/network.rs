@@ -4,7 +4,7 @@ use petgraph::{
     visit::{Topo, Walker},
 };
 
-use cpt::*;
+pub use cpt::*;
 use rand::prelude::*;
 use std::collections::HashMap;
 
@@ -17,10 +17,12 @@ pub mod cpt {
     use super::*;
     use std::borrow::Borrow;
 
+    #[derive(Clone)]
+    /// a fully specified CPT table
     pub struct Full {
-        /// mapping NodeIndex of
+        /// mapping NodeIndex of parents to indices in conditioned probability
         causes: HashMap<NodeIndex, usize>,
-        /// probability of p(X = true) given a set of evidences
+        /// P(X | Parents(X)) for each combination of parents
         probs: HashMap<Vec<Value>, Vec<Prob>>,
     }
 
@@ -42,7 +44,7 @@ pub mod cpt {
             }
         }
 
-        fn to_key<I, P>(&self, iter: I) -> Vec<Value> 
+        fn to_key<I, P>(&self, iter: I) -> Vec<Value>
         where
             I: IntoIterator<Item = P>,
             P: Borrow<(NodeIndex, Value)>,
@@ -62,21 +64,29 @@ pub mod cpt {
         fn query_row(&self, evidence: &Evidence) -> &[Prob] {
             assert!(
                 self.causes.keys().all(|n| evidence.contains_key(n)),
-                "Full::query: unspecified parent"
+                "Full::query_row: unspecified parent"
             );
 
             let key = self.to_key(evidence.iter().map(|(k, v)| (*k, *v)));
-            self.probs.get(&key)
-                .expect("Full::query: Full CPT must be complete")
+            self.probs
+                .get(&key)
+                .expect("Full::query_row: Full CPT must be complete")
         }
 
-        pub fn insert_row(&mut self, truths: &[(NodeIndex, Value)], probs: &[Prob]) {
-            let key = self.to_key(truths);
+        /// insert P(X | parents) to the CPT
+        pub fn insert_row(&mut self, parents: &[(NodeIndex, Value)], probs: &[Prob]) {
+            let key = self.to_key(parents);
             self.probs.insert(key, probs.to_vec());
         }
 
+        /// p_one would be the p(X = 1 | parents), for whatever 1 stands for in the context
+        pub fn insert_binary_row(&mut self, parents: &[(NodeIndex, Value)], p_one: Prob) {
+            self.insert_row(parents, &[1.0 - p_one, p_one])
+        }
+
         fn query(&self, evidence: &Evidence, value: Value) -> Prob {
-            *self.query_row(evidence)
+            *self
+                .query_row(evidence)
                 .get(value)
                 .expect("Full::query: Categorical value out of bound")
         }
@@ -87,6 +97,7 @@ pub mod cpt {
         }
     }
 
+    #[derive(Clone)]
     pub enum CPT {
         Const(Vec<Prob>),
         Full(Full),
@@ -103,65 +114,75 @@ pub mod cpt {
             Full(Full::new(parents))
         }
 
-        fn query(&self, value: Value, evidence: &Evidence) -> Prob {
+        pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
             match self {
                 Full(full) => full.query(evidence, value),
-                Const(probs) => *probs.get(value).expect("CPT::get_prob: Categorical value out of bound")
+                Const(probs) => *probs
+                    .get(value)
+                    .expect("CPT::get_prob: Categorical value out of bound"),
             }
         }
 
-        fn random_sample(&self, evidence: &Evidence) -> Value {
+        pub fn random_sample(&self, evidence: &Evidence) -> Value {
             match self {
                 Const(probs) => random_idx_sample(probs),
-                Full(full) => full.random_sample(evidence)
+                Full(full) => full.random_sample(evidence),
             }
         }
     }
 
     fn random_idx_sample(probs: &[Prob]) -> Value {
         let mut rng = thread_rng();
-        let indices: Vec<_> = (0 .. probs.len()).collect();
-        *indices.choose_weighted(&mut rng, |&i| probs[i]).expect("probability table rows should be nonempty")
+        let indices: Vec<_> = (0..probs.len()).collect();
+        *indices
+            .choose_weighted(&mut rng, |&i| probs[i])
+            .expect("random_idx_sample: probability table rows should be nonempty")
+    }
+}
+
+/// a discrete random variable with constant probability distribution or fully specified CPT
+pub struct Variable {
+    cpt: CPT,
+    values: usize,
+}
+
+impl Variable {
+    pub fn new(cpt: CPT, values: usize) -> Self {
+        Variable { cpt, values }
     }
 
-    pub struct Variable {
-        cpt: CPT,
-        values: usize,
+    pub fn new_const(probs: Vec<Prob>) -> Self {
+        Variable {
+            values: probs.len(),
+            cpt: CPT::new_const(probs),
+        }
     }
 
-    impl Variable {
-        pub fn new(cpt: CPT, values: usize) -> Self {
-            Variable {
-                cpt, values
-            }
-        }
+    pub fn new_binary_const(p_true: Prob) -> Self {
+        Variable::new_const(vec![1.0 - p_true, p_true])
+    }
 
-        pub fn new_const(probs: Vec<Prob>) -> Self {
-            Variable {
-                values: probs.len(),
-                cpt: CPT::new_const(probs),
-            }
-        }
+    pub fn binary_single_parent(parent: NodeIndex, p_true: Prob, p_false: Prob) -> Self {
+        let mut cpt = Full::new(&[parent]);
+        cpt.insert_row(&[(parent, 0)], &[1.0 - p_false, p_false]);
+        cpt.insert_row(&[(parent, 1)], &[1.0 - p_true, p_true]);
+        Variable::new(CPT::Full(cpt), 2)
+    }
 
-        pub fn binary_single_parent(parent: NodeIndex, p_true: Prob, p_false: Prob) -> Self {
-            let mut cpt = Full::new(&[parent]);
-            cpt.insert_row(&[(parent, 0)], &[1.0 - p_false, p_false]);
-            cpt.insert_row(&[(parent, 1)], &[1.0 - p_true, p_true]);
-            Variable::new(CPT::Full(cpt), 2)
-        }
+    pub fn values(&self) -> usize {
+        self.values
+    }
 
-        pub fn values(&self) -> usize {
-            self.values
-        }
+    pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
+        assert!(
+            value < self.values,
+            "Variable::query: Categorical value out of bound"
+        );
+        self.cpt.query(value, evidence)
+    }
 
-        pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
-            assert!(value < self.values, "Variable::query: Categorical value out of bound");
-            self.cpt.query(value, evidence)
-        }
-
-        pub fn random_sample(&self, evidence: &Evidence) -> Value {
-            self.cpt.random_sample(evidence)
-        }
+    pub fn random_sample(&self, evidence: &Evidence) -> Value {
+        self.cpt.random_sample(evidence)
     }
 }
 
@@ -185,7 +206,9 @@ impl Network {
     }
 
     fn get(&self, x: NodeIndex) -> &Variable {
-        self.graph.node_weight(x).expect("Network::query: NodeIndex out of bound")
+        self.graph
+            .node_weight(x)
+            .expect("Network::query: NodeIndex out of bound")
     }
 
     fn query_cpt(&self, var: NodeIndex, value: Value, evidence: &Evidence) -> Prob {
@@ -195,19 +218,19 @@ impl Network {
             .query(value, evidence)
     }
 
-    /// return P(x = true | evidence)
+    /// calculates P(X | evidence) from the Bayesian network
     pub fn query(&self, x: NodeIndex, mut evidence: Evidence) -> Vec<Prob> {
         let topo = toposort(&self.graph, None)
             .expect("Network::query: Bayesian network should be acyclic");
         let var = self.get(x);
         let mut dist = vec![];
 
-        for v in 0 .. var.values() {
+        for v in 0..var.values() {
             evidence.insert(x, v);
             dist.push(self.enumerate_all(&topo, &mut evidence));
             evidence.remove(&x);
         }
-        
+
         normalize(dist)
     }
 
@@ -221,13 +244,11 @@ impl Network {
         let rest = &vars[1..];
 
         match evidence.get(&x) {
-            Some(v) => {
-                self.query_cpt(x, *v, evidence) * self.enumerate_all(rest, evidence)
-            },
+            Some(v) => self.query_cpt(x, *v, evidence) * self.enumerate_all(rest, evidence),
             None => {
                 let var = self.get(x);
                 let mut sum = 0.0;
-                for v in 0 .. var.values() {
+                for v in 0..var.values() {
                     let p = self.query_cpt(x, v, evidence);
                     evidence.insert(x, v);
                     sum += p * self.enumerate_all(rest, evidence);
@@ -238,14 +259,22 @@ impl Network {
         }
     }
 
-    /// returns an estimate of P(X = value | evidence)
-    pub fn likelihood_weighting(&self, x: NodeIndex, value: Value, evidence: &Evidence, n: u32) -> Prob {
+    /// returns an estimate of P(X = value | evidence) calculated from n samples
+    pub fn likelihood_weighting(
+        &self,
+        x: NodeIndex,
+        value: Value,
+        evidence: &Evidence,
+        n: u32,
+    ) -> Prob {
         let var = self.get(x);
         let mut dist = vec![0.0; var.values()];
 
         for _ in 0..n {
             let (event, w) = self.weighted_sample(evidence);
-            let &v = event.get(&x).expect("Network::likelihood_weighting: Event must be complete");
+            let &v = event
+                .get(&x)
+                .expect("Network::likelihood_weighting: Event must be complete");
             dist[v] += w;
         }
 
@@ -279,61 +308,57 @@ fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
 }
 
 #[cfg(test)]
-const T: Value = 1;
-#[cfg(test)]
-const F: Value = 0;
+mod test {
+    use super::{cpt::Full, *};
 
-#[cfg(test)]
-fn burglary_network() -> (Network, [NodeIndex; 5]) {
-    let mut network = Network::new();
-    let burglary = network.add_node(Variable::new_const(vec![1.0 - 0.001, 0.001]));
-    let earthquake = network.add_node(Variable::new_const(vec![1.0 - 0.002, 0.002]));
+    const T: Value = 1;
+    const F: Value = 0;
 
-    let mut alarm_cpt = Full::new(&[burglary, earthquake]);
-    alarm_cpt.insert_row(&[(burglary, T), (earthquake, T)], &[1.0 - 0.95, 0.95]);
-    alarm_cpt.insert_row(&[(burglary, T), (earthquake, F)], &[1.0 - 0.94, 0.94]);
-    alarm_cpt.insert_row(&[(burglary, F), (earthquake, T)], &[1.0 - 0.29, 0.29]);
-    alarm_cpt.insert_row(&[(burglary, F), (earthquake, F)], &[1.0 - 0.001, 0.001]);
-    let alarm = network.add_node(Variable::new(CPT::Full(alarm_cpt), 2));
+    fn burglary_network() -> (Network, [NodeIndex; 5]) {
+        let mut network = Network::new();
+        let burglary = network.add_node(Variable::new_const(vec![1.0 - 0.001, 0.001]));
+        let earthquake = network.add_node(Variable::new_const(vec![1.0 - 0.002, 0.002]));
 
-    let john_calls = network.add_node(Variable::binary_single_parent(alarm, 0.9, 0.05));
-    let mary_calls = network.add_node(Variable::binary_single_parent(alarm, 0.7, 0.01));
+        let mut alarm_cpt = Full::new(&[burglary, earthquake]);
+        alarm_cpt.insert_row(&[(burglary, T), (earthquake, T)], &[1.0 - 0.95, 0.95]);
+        alarm_cpt.insert_row(&[(burglary, T), (earthquake, F)], &[1.0 - 0.94, 0.94]);
+        alarm_cpt.insert_row(&[(burglary, F), (earthquake, T)], &[1.0 - 0.29, 0.29]);
+        alarm_cpt.insert_row(&[(burglary, F), (earthquake, F)], &[1.0 - 0.001, 0.001]);
+        let alarm = network.add_node(Variable::new(CPT::Full(alarm_cpt), 2));
 
-    network.add_edge(burglary, alarm);
-    network.add_edge(earthquake, alarm);
-    network.add_edge(alarm, john_calls);
-    network.add_edge(alarm, mary_calls);
+        let john_calls = network.add_node(Variable::binary_single_parent(alarm, 0.9, 0.05));
+        let mary_calls = network.add_node(Variable::binary_single_parent(alarm, 0.7, 0.01));
 
-    (
-        network,
-        [burglary, earthquake, alarm, john_calls, mary_calls],
-    )
-}
+        network.add_edge(burglary, alarm);
+        network.add_edge(earthquake, alarm);
+        network.add_edge(alarm, john_calls);
+        network.add_edge(alarm, mary_calls);
 
-#[test]
-fn burglary_test() {
-    let (network, nodes) = burglary_network();
-    let [burglary, _, _, john_calls, mary_calls] = nodes;
+        (
+            network,
+            [burglary, earthquake, alarm, john_calls, mary_calls],
+        )
+    }
 
-    let evidence = [(john_calls, T), (mary_calls, T)]
-        .iter()
-        .cloned()
-        .collect();
+    #[test]
+    fn burglary_test() {
+        let (network, nodes) = burglary_network();
+        let [burglary, _, _, john_calls, mary_calls] = nodes;
 
-    let dist = network.query(burglary, evidence);
-    assert!((0.284 - dist[T]).abs() <= 0.001);
-}
+        let evidence = [(john_calls, T), (mary_calls, T)].iter().cloned().collect();
 
-#[test]
-fn sampling_test() {
-    let (network, nodes) = burglary_network();
-    let [burglary, _, _, john_calls, mary_calls] = nodes;
+        let dist = network.query(burglary, evidence);
+        assert!((0.284 - dist[T]).abs() <= 0.001);
+    }
 
-    let evidence = [(john_calls, T), (mary_calls, T)]
-        .iter()
-        .cloned()
-        .collect();
+    #[test]
+    fn sampling_test() {
+        let (network, nodes) = burglary_network();
+        let [burglary, _, _, john_calls, mary_calls] = nodes;
 
-    let estimate = network.likelihood_weighting(burglary, T, &evidence, 100_000);
-    assert!((estimate - 0.284).abs() <= 0.05);
+        let evidence = [(john_calls, T), (mary_calls, T)].iter().cloned().collect();
+
+        let estimate = network.likelihood_weighting(burglary, T, &evidence, 100_000);
+        assert!((estimate - 0.284).abs() <= 0.05);
+    }
 }
