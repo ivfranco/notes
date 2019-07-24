@@ -3494,6 +3494,7 @@ d.  lemma:
     let A be the set of ancestors of Xi
     let other be A - {xi} - parents
     p(xi | parents) = p(xi, parents) / p(parents)
+    = p(xi, parents | a)p(a) / p(parents | a)p(a)
     = Σother p(xi, parents, other) / Σxi,other p(xi, parents, other)
     = Σother Π(x ∈ a)θ(x | Parents(X)) / Σxi,other Π(x ∈ A)θ(x | Parents(X))
     by definition of A, there's no Y ∈ A where X ∈ Parents(Y)
@@ -3507,3 +3508,133 @@ d.  lemma:
     P(Xi | Parents(Xi)) = θ(Xi | Parents(Xi))
 
 14.3
+a.  let PX = Parents(X), PY = Parents(Y) before arc reversal
+    after arc reversal:
+        Parents(X) = PX ∪ (PY - {X}) ∪ {Y}
+        Parents(Y) = PX ∪ (PY - {X})
+        size(X) = k^(|Parents(X)| + 1)
+        size(Y) = k^(|Parents(Y)| + 1)
+        if PY - {X} ⊂ PX:
+            |Parents(X)| = |PX ∪ {Y}| > |PX|
+            |Parents(Y)| = |PX| >= |PY|
+        if PX ⊂ PY - {X}:
+            |Parents(X)| = |PY| 
+            |Parents(Y)| = |PY| - 1 > |PX|
+        if PX = PY - {X}:
+            |Parents(X)| = |PX| + 1 = |PY|
+            |Parents(Y)| = |PY| - 1 = |PX|
+            size swapped
+        otherwise, PX ^ (PY - {X}) != ∅:
+            |Parents(X)| > |PX|
+            |Parents(Y)| >= |PY|
+    total size of CPTs will not decrease
+b.  by part a, only when Parents(X) = Parents(Y) - {X}
+c.  Pnew(Y | U, V, W)Pnew(X | U, V, W, Y)
+    = (Σx P(Y | V, W, x)P(x | U, V)) P(Y | X, V, W)P(X | U, V) / P(Y | U, V, W)
+    = (Σx P(Y | V, W, x)P(x | U, V) / P(Y | U, V, W)) P(Y | X, V, W)P(X | U, V)
+    // thanks solutions manual
+    // given Parents(Y) = V ∪ W ∪ {X}, Y is conditionally independent of non-descendents U
+    = (Σx P(Y | U, V, W, x)P(x | U, V) / P(Y | U, V, W)) P(Y | X, V, W)P(X | U, V)
+    = (Σx P(Y, U, V, W, x)P(U, V, x)P(U, V, W) / P(Y, U, V, W)P(U, V, W, x)P(U, V)) P(Y | X, V, W)P(X | U, V)
+    = (Σx P(x | Y, U, V, W)P(x | U, V) / P(x | U, V, W)) P(Y | X, V, W)P(X | U, V)
+    // given Parents(X) = U ∪ V, X is conditionally independent of non-descendents W
+    = (Σx P(x | Y, U, V, W)) P(Y | X, V, W)P(X | U, V)
+    = P(Y | Parents(Y))P(X | Parents(X))
+    as Parents(Xi) for Xi != X or Y will not change by arc reversal of (X, Y)
+    P(Xi .. Xn) = ΠP(Xi | Parents(Xi)) is the same before and after 
+
+14.4
+a.  by lemma of 14.2.d, P(Burglary) and P(Earthquake) are a sequence of constant, 
+    independent to all other random variables
+b.  no
+    ./AI/bayes
+    // probability is listed in order [False, True] 
+    P(Earthquake | alarm, burglary) = [0.9979787664092253, 0.0020212335907746643]
+    P(Earthquake | alarm, ~burglary) = [0.632446134347275, 0.36755386565272496]
+    P(Burglary | alarm, earthquake) = [0.996731576412303, 0.0032684235876969656]
+    P(Burglary | alarm, ~earthquake) = [0.515214027849407, 0.48478597215059305]
+
+14.5
+a.  let 
+        Other = U - MB(Y) - {Y}
+        C = children of Y
+        PP = Parents(C) - {Y}
+    by conditional independency between P(Other | MB(Y)) and P(Y | MB(Y)),
+        P(Other | Y, MB(Y)) = P(Other | MB(Y))
+    where for any specific MB(Y) = mb(Y)
+        P(Other | mb(Y))
+        = P(Other, mb(Y)) / P(mb(Y))
+        = αP(Other, mb(Y))
+        = αΣy P(Other, mb(Y), y)
+        = αΣy Π(X ∈ Other)θ(X | Parents(X)) Π(x ∈ mb(Y) ∪ y)θ(x | Parents(X))
+        = αΠ(X ∈ Other ∪ PP)θ(X | Parents(X)) Σy Π(x ∈ mb(Y) ∪ {Y} - PP)θ(x | Parents(X))
+        // the summation results in a constant
+        = α'Π(X ∈ Other ∪ PP)θ(X | Parents(X))
+    independent of the CPT of Y
+b.  rejection sampling:
+        works fine as P(Other, Y | mb(Y)) = P(Other | mb(Y))P(Y | mb(Y)) = αP(Other | mb(Y))
+        sampling Other, Y or Other alone won't change the normalized distribution of Other
+    likelihood weighting:
+        again P(Other, Y | mb(Y)) = αP(Other | mb(Y))
+        the additional weight factor P(Y | mb(Y)) is will be normalized out anyway
+
+14.6
+a.  figure (c)
+b.  figure (a), handedness is independent to everything except gene of the same person
+c.  figure (a)
+d.  when Gmother = Gfather = l, Gchild may only be r through a mutation with p = m
+    when Gmother = l, Gfather = r, Gchild = l either:
+        inherit from mother with p = 1/2, avoid a mutation with p = (1 - m), p = 1/2(1 - m)
+        inherit from father with p = 1/2, mutation with p = m, 1/2m
+        1/2(1 - m + m) = 1/2 in total
+    other cases are symmetric
+    P(Gchild | Gmother = l, Gfather = l) = <1 - m, m>
+    P(Gchild | Gmother = l, Gfather = r) = <1/2, 1/2>
+    P(Gchild | Gmother = r, Gfather = l) = <1/2, 1/2>
+    P(Gchild | Gmother = r, Gfather = r) = <m, 1 - m>
+e.  P(Gchild)   = ΣGmother,Gfather P(Gchild | Gmother, Gfather)P(Gmother)P(Gfather)
+                = q^2<1 - m, m> + 
+                    q(1-q)<1/2, 1/2> +
+                    q(1-q)<1/2, 1/2> +
+                    (1-q)^2<m, 1 - m>
+                = <(1-m)q^2 + q(1-q) + m(1-q)^2, mq^2 + q(1-q) + (1-m)(1-q)^2>
+                = <q + m - 2mq, 1 - q - m + 2mq>
+f.  when m is negligible, q = q + m - 2mq, m = 2mq, q = 1/2
+    only 10% of global population is left-handed, the hypothesis must be wrong
+
+14.7
+let 
+    Other = U - MB(Y) - {Y}
+    C = children of Y
+    PP = Parents(C) - {Y}
+P(Other | xi, mb(Xi))
+= P(Other, xi, mb(Xi)) / P(xi, mb(Xi))
+= αΠP(X | Parents(X))
+= αΠ(X ∈ Other ∪ PP)P(X | Parents(X)) Π(X ∈ {Y} ∪ C)P(x | parents(X))
+= α'Π(X ∈ Other ∪ PP)P(X | Parents(X))
+P(Other | mb(Xi))
+= P(Other, mb(Xi)) / P(mb(Xi))
+= βΣxi ΠP(X | Parents(Xi))
+= βΠ(X ∈ Other ∪ PP)P(X | Parents(X)) Σxi ΠP(X ∈ {Y} ∪ C)(x | parents(Xi))
+= β'Π(X ∈ Other ∪ PP)P(X | Parents(X))
+the two expressions are equivalent after normalization
+hence P(Other | mb(Xi)) = P(Other | xi, mb(Xi)), Other and Xi are conditionally independent
+
+14.8
+a.  IcyWeather: a parent of Start with no parents
+    StarterMotor: a parent of Start, with a sole parent Battery
+b.  no idea
+c.  2^8 - 1 = 255
+d.  a boolean variable with k parents contains 2^k independent values
+    3(2^0) + 4(2^1) + 2^4 = 27
+e.  for a noisy-AND node, P(xi | Parents(Xi)) will be almost zero unless Xj = true for all Xj ∈ Parents(Xj)
+    each parent has an associated probability qj
+        qj = p(xi | ~xj, parents(Xi) - {xj})
+    which indicates the probability that Xi holds eventhough Xj failed, then
+        P(xi | Parents(Xi)) = Π(xj = F)qi
+    by swapping the role of T and F, the same model can be expressed with a noisy-Or node
+
+14.9
+/// skipped
+
+14.10

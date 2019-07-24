@@ -84,7 +84,7 @@ pub mod cpt {
             self.insert_row(parents, &[1.0 - p_one, p_one])
         }
 
-        fn query(&self, evidence: &Evidence, value: Value) -> Prob {
+        fn query(&self, value: Value, evidence: &Evidence) -> Prob {
             *self
                 .query_row(evidence)
                 .get(value)
@@ -98,35 +98,80 @@ pub mod cpt {
     }
 
     #[derive(Clone)]
+    pub struct NoisyOr {
+        causes: HashMap<NodeIndex, Prob>,
+    }
+
+    impl NoisyOr {
+        const T: Value = 1;
+        const F: Value = 0;
+
+        fn new(parents: &[(NodeIndex, Prob)]) -> Self {
+            let causes = parents.iter().cloned().collect();
+            NoisyOr { causes }
+        }
+
+        fn query(&self, value: Value, evidence: &Evidence) -> Prob {
+            let p_false = evidence.iter()
+                .filter_map(|(n, v)| {
+                    if *v == Self::T {
+                        self.causes.get(n)
+                    } else {
+                        None
+                    }
+                })
+                .product();
+            
+            if value == Self::T {
+                1.0 - p_false
+            } else {
+                p_false
+            }
+        }
+
+        fn random_sample(&self, evidence: &Evidence) -> Value {
+            let p_true = self.query(Self::T, evidence);
+            if random::<f64>() <= p_true {
+                Self::T
+            } else {
+                Self::F
+            }
+        }
+    }
+
+    #[derive(Clone)]
     pub enum CPT {
         Const(Vec<Prob>),
         Full(Full),
+        NoisyOr(NoisyOr),
     }
 
     use CPT::*;
 
     impl CPT {
-        pub fn new_const(probs: Vec<Prob>) -> Self {
+        pub(super) fn new_const(probs: Vec<Prob>) -> Self {
             Const(probs)
         }
 
-        pub fn new_full(parents: &[NodeIndex]) -> Self {
-            Full(Full::new(parents))
+        pub(super) fn new_noisy_or(parents: &[(NodeIndex, Prob)]) -> Self {
+            NoisyOr(NoisyOr::new(parents))
         }
 
-        pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
+        pub(super) fn query(&self, value: Value, evidence: &Evidence) -> Prob {
             match self {
-                Full(full) => full.query(evidence, value),
+                Full(full) => full.query(value, evidence),
                 Const(probs) => *probs
                     .get(value)
                     .expect("CPT::get_prob: Categorical value out of bound"),
+                NoisyOr(or) => or.query(value, evidence),
             }
         }
 
-        pub fn random_sample(&self, evidence: &Evidence) -> Value {
+        pub(super) fn random_sample(&self, evidence: &Evidence) -> Value {
             match self {
                 Const(probs) => random_idx_sample(probs),
                 Full(full) => full.random_sample(evidence),
+                NoisyOr(or) => or.random_sample(evidence),
             }
         }
     }
@@ -155,6 +200,13 @@ impl Variable {
         Variable {
             values: probs.len(),
             cpt: CPT::new_const(probs),
+        }
+    }
+
+    pub fn new_noisy_or(parents: &[(NodeIndex, Prob)]) -> Self {
+        Variable {
+            values: 2,
+            cpt: CPT::new_noisy_or(parents)
         }
     }
 
@@ -223,15 +275,22 @@ impl Network {
         let topo = toposort(&self.graph, None)
             .expect("Network::query: Bayesian network should be acyclic");
         let var = self.get(x);
-        let mut dist = vec![];
 
-        for v in 0..var.values() {
-            evidence.insert(x, v);
-            dist.push(self.enumerate_all(&topo, &mut evidence));
-            evidence.remove(&x);
+        if let Some(v) = evidence.get(&x) {
+            let mut dist = vec![0.0; var.values()];
+            dist[*v] = 1.0;
+            dist
+        } else {
+            let mut dist = Vec::with_capacity(var.values());
+
+            for v in 0..var.values() {
+                evidence.insert(x, v);
+                dist.push(self.enumerate_all(&topo, &mut evidence));
+                evidence.remove(&x);
+            }
+
+            normalize(dist)
         }
-
-        normalize(dist)
     }
 
     fn enumerate_all(&self, vars: &[NodeIndex], evidence: &mut Evidence) -> Prob {
@@ -307,38 +366,10 @@ fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
     probs
 }
 
+
 #[cfg(test)]
 mod test {
-    use super::{cpt::Full, *};
-
-    const T: Value = 1;
-    const F: Value = 0;
-
-    fn burglary_network() -> (Network, [NodeIndex; 5]) {
-        let mut network = Network::new();
-        let burglary = network.add_node(Variable::new_const(vec![1.0 - 0.001, 0.001]));
-        let earthquake = network.add_node(Variable::new_const(vec![1.0 - 0.002, 0.002]));
-
-        let mut alarm_cpt = Full::new(&[burglary, earthquake]);
-        alarm_cpt.insert_row(&[(burglary, T), (earthquake, T)], &[1.0 - 0.95, 0.95]);
-        alarm_cpt.insert_row(&[(burglary, T), (earthquake, F)], &[1.0 - 0.94, 0.94]);
-        alarm_cpt.insert_row(&[(burglary, F), (earthquake, T)], &[1.0 - 0.29, 0.29]);
-        alarm_cpt.insert_row(&[(burglary, F), (earthquake, F)], &[1.0 - 0.001, 0.001]);
-        let alarm = network.add_node(Variable::new(CPT::Full(alarm_cpt), 2));
-
-        let john_calls = network.add_node(Variable::binary_single_parent(alarm, 0.9, 0.05));
-        let mary_calls = network.add_node(Variable::binary_single_parent(alarm, 0.7, 0.01));
-
-        network.add_edge(burglary, alarm);
-        network.add_edge(earthquake, alarm);
-        network.add_edge(alarm, john_calls);
-        network.add_edge(alarm, mary_calls);
-
-        (
-            network,
-            [burglary, earthquake, alarm, john_calls, mary_calls],
-        )
-    }
+    use crate::examples::burglary::*;
 
     #[test]
     fn burglary_test() {
@@ -349,6 +380,9 @@ mod test {
 
         let dist = network.query(burglary, evidence);
         assert!((0.284 - dist[T]).abs() <= 0.001);
+
+        let evidence = [(burglary, T)].iter().cloned().collect();
+        assert_eq!(network.query(burglary, evidence), &[0.0, 1.0]);
     }
 
     #[test]
