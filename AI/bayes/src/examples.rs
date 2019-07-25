@@ -24,11 +24,6 @@ pub mod burglary {
         let john_calls = network.add_node(Variable::binary_single_parent(alarm, 0.9, 0.05));
         let mary_calls = network.add_node(Variable::binary_single_parent(alarm, 0.7, 0.01));
 
-        network.add_edge(burglary, alarm);
-        network.add_edge(earthquake, alarm);
-        network.add_edge(alarm, john_calls);
-        network.add_edge(alarm, mary_calls);
-
         (
             network,
             [burglary, earthquake, alarm, john_calls, mary_calls],

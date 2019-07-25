@@ -6,7 +6,8 @@ use petgraph::{
 
 pub use cpt::*;
 use rand::prelude::*;
-use std::collections::HashMap;
+
+use std::{borrow::Borrow, collections::HashMap};
 
 pub type Prob = f64;
 pub type Value = usize;
@@ -16,6 +17,9 @@ pub type Event = Evidence;
 pub mod cpt {
     use super::*;
     use std::borrow::Borrow;
+
+    pub const T: Value = 1;
+    pub const F: Value = 0;
 
     #[derive(Clone)]
     /// a fully specified CPT table
@@ -42,6 +46,10 @@ pub mod cpt {
                 causes,
                 probs: HashMap::new(),
             }
+        }
+
+        fn causes(&self) -> Vec<NodeIndex> {
+            self.causes.keys().cloned().collect()
         }
 
         fn to_key<I, P>(&self, iter: I) -> Vec<Value>
@@ -84,6 +92,31 @@ pub mod cpt {
             self.insert_row(parents, &[1.0 - p_one, p_one])
         }
 
+        /// insert cpt rows in increasing binary number order
+        ///
+        /// i.e. for a binary node with 3 binary parents, insert probabilities in order:
+        ///
+        /// P(X = True | Parents(X) = [F, F, F]) = probs[0]
+        ///
+        /// P(X = True | Parents(X) = [F, F, T]) = probs[1]
+        ///
+        /// P(X = True | Parents(X) = [F, T, F]) = probs[2]
+        ///
+        /// P(X = True | Parents(X) = [F, T, T]) = probs[3]
+        ///
+        /// ...
+        ///
+        /// P(X = True | Parents(X) = [T, T, T]) = probs[7]
+        pub fn insert_in_binary_order(&mut self, probs: &[Prob]) {
+            assert_eq!(probs.len(), 2usize.pow(self.causes.len() as u32));
+
+            let mut key = vec![F; self.causes.len()];
+            for &p in probs {
+                self.probs.insert(key.clone(), vec![1.0 - p, p]);
+                increment(&mut key);
+            }
+        }
+
         fn query(&self, value: Value, evidence: &Evidence) -> Prob {
             *self
                 .query_row(evidence)
@@ -97,32 +130,42 @@ pub mod cpt {
         }
     }
 
+    fn increment(key: &mut [Value]) {
+        let mut carry = true;
+        for bit in key.iter_mut().rev() {
+            if carry {
+                if *bit == 0 {
+                    *bit = 1;
+                    carry = false;
+                } else {
+                    *bit = 0;
+                }
+            }
+        }
+    }
+
     #[derive(Clone)]
     pub struct NoisyOr {
         causes: HashMap<NodeIndex, Prob>,
     }
 
     impl NoisyOr {
-        const T: Value = 1;
-        const F: Value = 0;
-
         fn new(parents: &[(NodeIndex, Prob)]) -> Self {
             let causes = parents.iter().cloned().collect();
             NoisyOr { causes }
         }
 
+        fn causes(&self) -> Vec<NodeIndex> {
+            self.causes.keys().cloned().collect()
+        }
+
         fn query(&self, value: Value, evidence: &Evidence) -> Prob {
-            let p_false = evidence.iter()
-                .filter_map(|(n, v)| {
-                    if *v == Self::T {
-                        self.causes.get(n)
-                    } else {
-                        None
-                    }
-                })
+            let p_false = evidence
+                .iter()
+                .filter_map(|(n, v)| if *v == T { self.causes.get(n) } else { None })
                 .product();
-            
-            if value == Self::T {
+
+            if value == T {
                 1.0 - p_false
             } else {
                 p_false
@@ -130,11 +173,11 @@ pub mod cpt {
         }
 
         fn random_sample(&self, evidence: &Evidence) -> Value {
-            let p_true = self.query(Self::T, evidence);
+            let p_true = self.query(T, evidence);
             if random::<f64>() <= p_true {
-                Self::T
+                T
             } else {
-                Self::F
+                F
             }
         }
     }
@@ -174,6 +217,20 @@ pub mod cpt {
                 NoisyOr(or) => or.random_sample(evidence),
             }
         }
+
+        pub(super) fn causes(&self) -> Vec<NodeIndex> {
+            match self {
+                Const(..) => vec![],
+                Full(full) => full.causes(),
+                NoisyOr(or) => or.causes(),
+            }
+        }
+    }
+
+    impl From<Full> for CPT {
+        fn from(full: Full) -> Self {
+            CPT::Full(full)
+        }
     }
 
     fn random_idx_sample(probs: &[Prob]) -> Value {
@@ -182,6 +239,22 @@ pub mod cpt {
         *indices
             .choose_weighted(&mut rng, |&i| probs[i])
             .expect("random_idx_sample: probability table rows should be nonempty")
+    }
+
+    #[test]
+    fn noisy_or_test() {
+        let (cold, flu, malaria) = (NodeIndex::from(0), NodeIndex::from(1), NodeIndex::from(2));
+        let fever = CPT::new_noisy_or(&[(cold, 0.6), (flu, 0.2), (malaria, 0.1)]);
+        const E: Prob = 0.0001;
+
+        let evidence = evidence_from([(cold, F), (flu, F), (malaria, F)].iter());
+        assert!((fever.query(T, &evidence) - 0.0).abs() <= E);
+        let evidence = evidence_from([(cold, F), (flu, F), (malaria, T)].iter());
+        assert!((fever.query(T, &evidence) - 0.9).abs() <= E);
+        let evidence = evidence_from([(cold, T), (flu, F), (malaria, T)].iter());
+        assert!((fever.query(T, &evidence) - 0.94).abs() <= E);
+        let evidence = evidence_from([(cold, T), (flu, T), (malaria, T)].iter());
+        assert!((fever.query(T, &evidence) - 0.988).abs() <= E);
     }
 }
 
@@ -206,7 +279,7 @@ impl Variable {
     pub fn new_noisy_or(parents: &[(NodeIndex, Prob)]) -> Self {
         Variable {
             values: 2,
-            cpt: CPT::new_noisy_or(parents)
+            cpt: CPT::new_noisy_or(parents),
         }
     }
 
@@ -223,6 +296,10 @@ impl Variable {
 
     pub fn values(&self) -> usize {
         self.values
+    }
+
+    pub fn causes(&self) -> Vec<NodeIndex> {
+        self.cpt.causes()
     }
 
     pub fn query(&self, value: Value, evidence: &Evidence) -> Prob {
@@ -250,12 +327,17 @@ impl Network {
     }
 
     pub fn add_node(&mut self, var: Variable) -> NodeIndex {
-        self.graph.add_node(var)
+        let causes = var.causes();
+        let node = self.graph.add_node(var);
+        for parent in causes {
+            self.graph.add_edge(parent, node, ());
+        }
+        node
     }
 
-    pub fn add_edge(&mut self, parent: NodeIndex, child: NodeIndex) {
-        self.graph.add_edge(parent, child, ());
-    }
+    // pub fn add_edge(&mut self, parent: NodeIndex, child: NodeIndex) {
+    //     self.graph.add_edge(parent, child, ());
+    // }
 
     fn get(&self, x: NodeIndex) -> &Variable {
         self.graph
@@ -366,6 +448,13 @@ fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
     probs
 }
 
+pub fn evidence_from<I, P>(iter: I) -> Evidence
+where
+    I: IntoIterator<Item = P>,
+    P: Borrow<(NodeIndex, Value)>,
+{
+    iter.into_iter().map(|p| *p.borrow()).collect()
+}
 
 #[cfg(test)]
 mod test {

@@ -3635,6 +3635,164 @@ e.  for a noisy-AND node, P(xi | Parents(Xi)) will be almost zero unless Xj = tr
     by swapping the role of T and F, the same model can be expressed with a noisy-Or node
 
 14.9
-/// skipped
+let 1/(2π)^(1/2) = α
+a.  p(x1) = α/σ1 e^(-(x1 - μ1)^2 / 2σ1^2)
+    p(x2 | x1) = α/σ2 e^(-(x2 - (a + bx1))^2 / 2σ2^2)
+    p(x1, x2) 
+    = p(x2 | x1)p(x1)
+    = α^2 / σ1σ2 e^(-(x1 - μ1)^2 / 2σ1^2 - (x2 - (ax1 + b))^2 / 2σ2^2))
+    = α^2 / σ1σ2 e^(-(x1 - μ1)^2 / 2σ1^2 - (x2 - (a + bx1)^2 / 2σ2^2))
+    = α^2 / σ1σ2 e^(-(σ2^2(x1 - μ1)^2 + σ1^2(x2 - (ax1 + b))^2) / 2σ1^2σ2^2)
+    /// skipped, derive Σ from the expression above
+b.  p(x1, .., xn+1) = p(xn+1 | x1, .., xn)p(x1, .., xn)
+    the induction holds if product of a linear Gaussian and a multivariate Gaussian is again a multivariate Gaussian 
+    /// details skipped
 
 14.10
+a.  by a linear combination of these threshold functions
+b.  sorted:
+        from the lowest possible value x0
+        define a threshold function to assign probability for X = x0 and X > x0
+        when X > x0 use a second threshold function to assign probability for X = x1 and X > x1
+        repeat until the greatest value
+    unsorted:
+        no obvious way to assign probabilities to each possible value 
+
+14.11
+a.  T -> Fg
+    Fg, T -> G
+    Fa, G -> A
+b.  not a polytree, two different paths T -> G
+c.  order of probability: <low, high>
+    P(G | T = high, Fg = F) = <1 - x, x>
+    P(G | T = normal, Fg = F) = <x, 1 - x>
+    P(G | T = high, Fg = T) = <1 - y, y>
+    P(G | T = normal, Fg = T) = <y, 1 - y>
+d.  order of probability: <slient, sound>
+    P(A | G = normal, Fa = F) = <1, 0>
+    P(A | G = high, Fa = F) = <0, 1>
+    P(A | G = normal, Fa = T) = <1, 0>
+    P(A | G = high, Fa = T) = <1, 0>
+e.  P(T | A = sound, Fa = F, Fg = F)
+    = αP(T, A = sound, Fa = F, Fg = F)
+    = αΣg P(T, G = g, A = sound, Fa = F, Fg = F)
+    = αΣt,g P(T = t, G = g, A = sound, Fa = F, Fg = F)
+    = α(P(T = low)P(Fg = F | T = low)(1-x)P(Fa = F) + P(T = high)P(Fg = F | T = high)xP(Fa = F))
+
+14.12
+a.  (ii) and (iii), M should not be independent to N given F
+b.  (ii), fewer dependencies
+c.  P(M1 | N = 1) = (1-e)(1-f)<0, 1, 0, 0, 0>
+        + e(1-f)<1/2, 0, 1/2, 0, 0>
+        + f<1, 0, 0, 0, 0>
+    = <e + 3f/2 - 3ef/2, 1 - e - f + ef, e - ef, 0, 0>
+    P(M1 | N = 2) = (1-e)(1-f)<0, 0, 1, 0, 0>
+        + e(1-f)<0, 1/2, 0, 1/2, 0>
+        + f<1, 0, 0, 0, 0>
+    = <f, (e - ef)/2, 1 - e - f + ef, (e - ef)/2, 0>
+    P(M1 | N = 3) = (1-e)(1-f)<0, 0, 0, 1, 0>
+        + e(1-f)<0, 0, 1/2, 0, 1/2>
+        + (1-e)f<1, 0, 0, 0, 0>
+        + ef<1/2, 1/2, 0, 0, 0>
+    = <f - ef/2, ef/2, (e - ef)/2, 1 - e - f + ef, (e - ef)/2>
+d.  N ∈ {M - 1 .. M + 4}
+    2 <= N <= 5
+e.  prior P(N) and the precise number of e and f, then query P(N | M1 = 1, M3 = 3)
+
+14.13
+cannot compute: prior P(N) is not given
+
+14.14
+a.  (ii): Parents(J) = G, J is conditionally independent to I given G
+    (iii): MB(M) = {G, B, I}, M and J are conditionally independent given MB(M)
+b.  p(b, i, ~m, g, j) 
+    = Πp(x | parents(x))
+    = 0.9 * 0.5 * (1 - 0.1) * 0.8 * 0.9
+    = 0.2916
+c.  ./AI/bayes
+    P(J | b, i, m) = [0.19, 0.81]
+d.  between G and M given I = false
+e.  from wikipedia:
+        A pardon is an executive order granting clemency for a conviction. It may be granted 
+        "at any point after the ... commission" of the crime.[6] As per Justice Department regulations, 
+        convicted persons may only apply five or more years eir sentence has been completed.[7] 
+        However, the President's power to pardon is not restricted 
+        by any temporal constraints except that the crime must have been committed. Its practical effect is 
+        the restoration of civil rights and statutory disabilities (i.e., firearm rights, occupational licensing) 
+        associated with a past criminal conviction.[7] In rarer cases, such as the pardon of Richard Nixon, 
+        a pardon can also halt criminal proceedings and prevent an indictment.
+    PresidentialPardon should be a parent of I, G and J
+
+14.15
+a.  /// thanks https://www.wolframalpha.com
+    P(B | j, m) 
+    = αP(B) Σe p(e) Σa P(a | B, e)p(j | a)p(m | a)
+    = αP(B) Σa,e p(e)P(a | B, e)p(j | a)p(m | a)
+    = α[0.001, 0.999](
+        0.002 * [0.95, 0.29] * 0.9 * 0.7 + 
+        0.998 * [0.94, 0.001] * 0.9 * 0.7 +
+        0.002 * [0.05, 0.71] * 0.05 * 0.01 + 
+        0.998 * [0.06, 0.999] * 0.05 * 0.01
+    )
+    = α[0.001, 0.999][0.592243, 0.00149335]
+    = α[0.000592, 0.00149]
+    = [0.284, 0.716]
+b.  if f1(A) x f2(B) = f3(C), C is a vector of k variables
+    the computation requires 2^k productions
+    summing over a variable from f(A) performs 2^|A| / 2 summations
+    f6(B, E)    = Σa f3(A, B, E) x f4(A) x f5(A)
+                = Σa f3(A, B, E) x f4'(A) // 2 multiplications
+                = Σa f3'(A, B, E) // 8 multiplications
+                = f6(B, E) // 4 summations, 14 in total
+    f7(B)   = Σe f2(E) x f6(B, E)
+            = Σe f6'(B, E) // 4 multiplications
+            = f7(B) // 2 summations, 6 in total
+    P(B | j, m) = αf1(B) x f7(B) // 2 multiplications
+    22 operations in total
+    assume the enumeration algorithm is performed in the order of figure 14.8
+    16 operations in total
+c.  enumeration: 
+        basis: Xn node, 1 multiplication, 1 = 2^1 - 1
+        induction: Xi node, computes two Xi+1 node, then one summation
+            2(2^(n-1) - 1) = 2^n - 2 + 1 = 2^n - 1
+        two values have to be computed, 2^(n+1) - 2
+    variable elimination:
+        each step is 
+        1.  a pointwise production f1(A, B) x f2(B), 4 production
+        2.  summation over a, 2 summations, 6 operations in total
+        6(n-1) in total
+d.  induct on length of the expression        
+    basis: n = 1, the expression is either:
+        P(Q | Parents(Q)) where Q is the variable queried, a column of its CPT
+        P(x | Parents(X)) where the only unspecified variable in Parents(X) is Q, a row from its CPT
+        Σx P(x | Parents(X)), the summation can be performed in time linear in size of its CPT
+    induction: all expression of length k can be computed in time linear of CPTs, the expression of length k+1 is:
+        P(X | Parents(X)) Ek, where Ek is an expression of length k
+            as a subgraph of a polytree is still a polytree
+            Ek can be computed in time linear in size of CPTs of variables in Ek
+            the resulting factor may not have more than one demension (in Q), O(|Q|) multiplications performed
+        Σx P(x | Parents(X)) Ek, the additional summation takes time linear in size of CPT of X
+
+14.16
+a.  for each symbol xi in the 3-CNF, define a random variable Xi that:
+        P(Xi) = <0.5, 0.5>
+    for each clause ci in the 3-CNF with symbols X1, X2, X3, define a random variable Ci that:
+        P(Ci | X1, X2, X3)  = <1, 0> if disjunction of literals is true
+                            = <0, 1> if disjunction of literals is false
+    define a binary node Con that:
+        P(Con | C1 .. Ck)   = <1, 0> if conjunction of clauses is true
+                            = <0, 1> if conjunction of clauses is false
+    query P(Con), the 3-CNF if satisfiable iff P(Con) > 0
+    Con may require special structure (Noisy-AND), otherwise its CPT will have exponential size
+b.  define node Con with k values, where k is the number of clauses
+        P(Con = i | C1 .. Ck)   = 1 if i in k clauses is true
+                                = 0 otherwise
+    again query P(Con), the largest i that P(Con = i) > 0 is the maximum satisfiable clauses
+
+14.17
+a.  by scanning over P(X), add last entry to the current one on the way
+    sampling can be done in O(lgk) by binary search
+b.  
+c.  let f(x) be the pdf, F(x) be the cdf
+    F^-1(x) then is a transformation from uniform [0, 1] to that distribution
+
