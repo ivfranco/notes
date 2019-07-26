@@ -3680,7 +3680,7 @@ e.  P(T | A = sound, Fa = F, Fg = F)
     = α(P(T = low)P(Fg = F | T = low)(1-x)P(Fa = F) + P(T = high)P(Fg = F | T = high)xP(Fa = F))
 
 14.12
-a.  (ii) and (iii), M should not be independent to N given F
+a.  (ii) and (iii), N should not be independent to F given M
 b.  (ii), fewer dependencies
 c.  P(M1 | N = 1) = (1-e)(1-f)<0, 1, 0, 0, 0>
         + e(1-f)<1/2, 0, 1/2, 0, 0>
@@ -3700,7 +3700,11 @@ d.  N ∈ {M - 1 .. M + 4}
 e.  prior P(N) and the precise number of e and f, then query P(N | M1 = 1, M3 = 3)
 
 14.13
-cannot compute: prior P(N) is not given
+P(N | M1 = 2, M2 = 2)   = Σf1,f2,n θP(X | Parents(X))
+                        // the only non-zero case is F1 = F2 = false
+                        = αP(N)P(M1 = 2 | N, F1 = false, F2 = false)P(M)>P(M2 = 2) | N, F1 = false, F2 = false
+                        = αP(N)(P(M1 = 2 | N, F1 = false, F2 = false)^2)
+                        = αP(N)<e/2, 1-e, e/2>
 
 14.14
 a.  (ii): Parents(J) = G, J is conditionally independent to I given G
@@ -3792,7 +3796,70 @@ b.  define node Con with k values, where k is the number of clauses
 14.17
 a.  by scanning over P(X), add last entry to the current one on the way
     sampling can be done in O(lgk) by binary search
-b.  
+b.  /// no idea, solution on the solutions manual doesn't sound quite right
 c.  let f(x) be the pdf, F(x) be the cdf
     F^-1(x) then is a transformation from uniform [0, 1] to that distribution
+d.  the value P(Xi = xi | Parents(Xi)) will be 0
+    instead of a particular value of Xi, a small range may have to be sampled instead
+    there's no obvious way to do this, generating a distribution of range from range of parameters is non-trivial
+    
+14.18
+a.  |Cloudy| * |Rain| = 4
+b.  ./AI/bayes
+    value order: [F, T]
+    P(Cloudy | rain, sprinker, wet_grass) = [0.5555555555555555, 0.4444444444444444]
+    P(Cloudy | ~rain, sprinker, wet_grass) = [0.9523809523809523, 0.04761904761904761]
+    P(Rain | cloudy, sprinker, wet_grass) = [0.18518518518518515, 0.8148148148148148]
+    P(Rain | ~cloudy, sprinker, wet_grass) = [0.7843137254901961, 0.2156862745098039]
+c.  Q^2 is the transition matrix of 2 transitions in a row
+d.  if lim(n -> ∞)Q^n is defined, it's the equilibrium matrix
+    a stationary distribution can be derived from the equilibrium matrix and detailed balance
+e.  as stationary distribution is unique in ergodic transition matrix, P(x | e) can be computed from Q^n
+    but even when Q^n can be computed efficiently, the martix is of size (Π|Xk|)^2, nearly always impractical
+
+14.19
+a.  let q = [α, q1; 1-α, q2]
+    π(x)q(x -> x')  = π(x)(αq1(x -> x') + (1 - α)q2(x -> x'))
+                    = απ(x)q1(x -> x') + (1 - α)π(x)q2(x -> x')
+                    = απ(x')q1(x' -> x) + (1 - α)π(x')q2(x' -> x)
+                    = π(x')q(x' -> x)
+b.  π(x)q(x -> x')  = Σy π(x)q1(x -> y)q2(y -> x')
+                    = Σy π(y)q1(y -> x)q2(y -> x')
+                    = Σy π(x')q2(x' -> y)q1(y -> x)
+                    = π(x') Σy q2(x' -> y)q1(y -> x)
+                    = π(x')q(x' -> x)
+
+14.20
+a.  α(x' | x)   = min(1, π(x')q(x | x') / π(x)q(x' | x))
+                = min(1, π(x')q(x' -> x) / π(x)q(x -> x'))
+                = min(1, 1)
+                = 1
+b.  when x != x' and α(x' | x) < 1,
+        π(x)q(x -> x')  = π(x)q(x' | x)α(x' | x)
+                        = π(x')q(x | x')
+                        // if min(1, p) < 1, p < 1, min(1, 1/p) = 1
+                        = π(x')q(x' -> x)
+    when x != x' and α(x' | x) >= 1,
+        symmetric
+    when x = x',
+        π(x)q(x -> x') = π(x) = π(x') = π(x')q(x' -> x)
+
+14.21
+a.  A = B = C = <1/4, 1/4, 1/4, 1/4>
+    given A = a, B = b, let d = a - b,
+    p(draw) = 1 - (|d| + 3 / 7)
+    p(win) = (1 - p(draw))(4 + d) / 8
+    p(lose) = (1 - p(draw))(4 - d) / 8
+    MAB = <p(win), p(draw), p(lose)>
+b.  ./AI/bayes
+c.  P(MBC | MAB = win, MAC = draw) = [0.25931259600614437, 0.38556067588325654, 0.35512672811059903]
+d.  if evaluated in topological order, all team qualities must be summed over 
+    time complexity will be exponential by enumeration
+    as the network is a polytree, time complexity will be linear in nodes by variable elimination
+e.  it depends on the values assigned to CPTs of team qualities and match results
+    with too biased values the MCMC algorithm may stuck in a state for very long, emit a sequence of biased samples
+    in my case the sampling result usually converges with ε = 0.01 in a single digit of samples
+    the Gibbs sampling algorithm may occationally break down if 
+    the event is initiated to an impossible case (i.e. contradicting conditions)
+    either the CPTs should not contain 0 entries or the algorithm has to be adjusted
 

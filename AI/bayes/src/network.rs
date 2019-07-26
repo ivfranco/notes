@@ -1,7 +1,7 @@
 use petgraph::{
     algo::toposort,
     prelude::*,
-    visit::{Topo, Walker},
+    visit::{IntoNodeReferences, Topo, Walker},
 };
 
 pub use cpt::*;
@@ -233,13 +233,6 @@ pub mod cpt {
         }
     }
 
-    fn random_idx_sample(probs: &[Prob]) -> Value {
-        let mut rng = thread_rng();
-        let indices: Vec<_> = (0..probs.len()).collect();
-        *indices
-            .choose_weighted(&mut rng, |&i| probs[i])
-            .expect("random_idx_sample: probability table rows should be nonempty")
-    }
 
     #[test]
     fn noisy_or_test() {
@@ -353,7 +346,7 @@ impl Network {
     }
 
     /// calculates P(X | evidence) from the Bayesian network
-    pub fn query(&self, x: NodeIndex, mut evidence: Evidence) -> Vec<Prob> {
+    pub fn query(&self, x: NodeIndex, evidence: &Evidence) -> Vec<Prob> {
         let topo = toposort(&self.graph, None)
             .expect("Network::query: Bayesian network should be acyclic");
         let var = self.get(x);
@@ -364,11 +357,12 @@ impl Network {
             dist
         } else {
             let mut dist = Vec::with_capacity(var.values());
+            let mut event = evidence.clone();
 
             for v in 0..var.values() {
-                evidence.insert(x, v);
-                dist.push(self.enumerate_all(&topo, &mut evidence));
-                evidence.remove(&x);
+                event.insert(x, v);
+                dist.push(self.enumerate_all(&topo, &mut event));
+                event.remove(&x);
             }
 
             normalize(dist)
@@ -438,6 +432,47 @@ impl Network {
 
         (event, w)
     }
+
+    pub fn gibbs_sampling(
+        &self,
+        x: NodeIndex,
+        value: Value,
+        evidence: &Evidence,
+        samples: u32,
+    ) -> Prob {
+        let mut rng = thread_rng();
+
+        let mut event = evidence.clone();
+        for (n, var) in self.graph.node_references() {
+            event
+                .entry(n)
+                .or_insert_with(|| (0..var.values()).choose(&mut rng).unwrap());
+        }
+
+        let mut non_evidence: Vec<_> = self
+            .graph
+            .node_indices()
+            .filter(|n| !evidence.contains_key(&n))
+            .collect();
+        non_evidence.shuffle(&mut rng);
+        let mut non_evidence_iter = non_evidence.into_iter().cycle();
+
+        let mut hits = 0;
+        for _ in 0 .. samples {
+            let node = non_evidence_iter.next().unwrap();
+            event.remove(&node);
+            let dist = self.query(node, &event);
+            let v = random_idx_sample(&dist);
+            event.insert(node, v);
+
+
+            if event.get(&x) == Some(&value) {
+                hits += 1;
+            }
+        }
+
+        f64::from(hits) / f64::from(samples)
+    }
 }
 
 fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
@@ -456,6 +491,14 @@ where
     iter.into_iter().map(|p| *p.borrow()).collect()
 }
 
+fn random_idx_sample(probs: &[Prob]) -> Value {
+    let mut rng = thread_rng();
+    let indices: Vec<_> = (0..probs.len()).collect();
+    *indices
+        .choose_weighted(&mut rng, |&i| probs[i])
+        .expect("random_idx_sample: probability table rows should be nonempty")
+}
+
 #[cfg(test)]
 mod test {
     use crate::examples::burglary::*;
@@ -467,11 +510,11 @@ mod test {
 
         let evidence = [(john_calls, T), (mary_calls, T)].iter().cloned().collect();
 
-        let dist = network.query(burglary, evidence);
+        let dist = network.query(burglary, &evidence);
         assert!((0.284 - dist[T]).abs() <= 0.001);
 
         let evidence = [(burglary, T)].iter().cloned().collect();
-        assert_eq!(network.query(burglary, evidence), &[0.0, 1.0]);
+        assert_eq!(network.query(burglary, &evidence), &[0.0, 1.0]);
     }
 
     #[test]
@@ -482,6 +525,9 @@ mod test {
         let evidence = [(john_calls, T), (mary_calls, T)].iter().cloned().collect();
 
         let estimate = network.likelihood_weighting(burglary, T, &evidence, 100_000);
-        assert!((estimate - 0.284).abs() <= 0.05);
+        assert!((estimate - 0.284).abs() <= 0.05, "{}", estimate);
+
+        let estimate = network.gibbs_sampling(burglary, T, &evidence, 10000);
+        assert!((estimate - 0.284).abs() <= 0.02, "{}", estimate);
     }
 }
