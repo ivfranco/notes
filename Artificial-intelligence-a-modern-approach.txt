@@ -3765,7 +3765,22 @@ c.  enumeration:
         1.  a pointwise production f1(A, B) x f2(B), 4 production
         2.  summation over a, 2 summations, 6 operations in total
         6(n-1) in total
-d.  // unsolved
+d.  // thanks https://ermongroup.github.io/cs228-notes/inference/ve/
+    induct on the number of nodes
+    basis: trivial
+    induction: eliminate a leaf of the polytree
+        since polytree is an undirected tree, the polytree must have a leaf
+        let the leaf be Xi, the only node connected to it is Xj
+        if the edge is of direction Xi -> Xj:
+            Parents(Xj) = {Xi}, Xi and Xj are the only two nodes involving Xi
+            factor of Xi is fi(Xi), factor of Xj is fj(Xj, Parents(Xj))
+            the pointwise production has entries Xj, Parents(Xj), can be computed in time linear to size of CPT of Xj
+            similarly summing out Xi takes time linear in size of CPT of Xj
+        if the edge is of direction Xj -> Xi:
+            symmetric
+        the resulting sub network is again a polytree
+    the running time of variable elimination will be linear in n * max{size of CPT}
+
 
 14.16
 a.  for each symbol xi in the 3-CNF, define a random variable Xi that:
