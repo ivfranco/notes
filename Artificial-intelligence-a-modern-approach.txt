@@ -3765,17 +3765,7 @@ c.  enumeration:
         1.  a pointwise production f1(A, B) x f2(B), 4 production
         2.  summation over a, 2 summations, 6 operations in total
         6(n-1) in total
-d.  induct on length of the expression        
-    basis: n = 1, the expression is either:
-        P(Q | Parents(Q)) where Q is the variable queried, a column of its CPT
-        P(x | Parents(X)) where the only unspecified variable in Parents(X) is Q, a row from its CPT
-        Σx P(x | Parents(X)), the summation can be performed in time linear in size of its CPT
-    induction: all expression of length k can be computed in time linear of CPTs, the expression of length k+1 is:
-        P(X | Parents(X)) Ek, where Ek is an expression of length k
-            as a subgraph of a polytree is still a polytree
-            Ek can be computed in time linear in size of CPTs of variables in Ek
-            the resulting factor may not have more than one demension (in Q), O(|Q|) multiplications performed
-        Σx P(x | Parents(X)) Ek, the additional summation takes time linear in size of CPT of X
+d.  // unsolved
 
 14.16
 a.  for each symbol xi in the 3-CNF, define a random variable Xi that:
@@ -3856,10 +3846,11 @@ c.  P(MBC | MAB = win, MAC = draw) = [0.25931259600614437, 0.38556067588325654, 
 d.  if evaluated in topological order, all team qualities must be summed over 
     time complexity will be exponential by enumeration
     as the network is a polytree, time complexity will be linear in nodes by variable elimination
-e.  it depends on the values assigned to CPTs of team qualities and match results
+e.  it depends on the number of nodes the values assigned to CPTs of team qualities and match results
     with too biased values the MCMC algorithm may stuck in a state for very long, emit a sequence of biased samples
-    in my case the sampling result usually converges with ε = 0.01 in a single digit of samples
+    in this case the markov branket of a team quality is the entire network
+    the sampling result usually converges with ε = 0.01 in a single digit of samples
     the Gibbs sampling algorithm may occationally break down if 
     the event is initiated to an impossible case (i.e. contradicting conditions)
     either the CPTs should not contain 0 entries or the algorithm has to be adjusted
-
+    
