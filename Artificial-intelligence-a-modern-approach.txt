@@ -3869,3 +3869,36 @@ e.  it depends on the number of nodes the values assigned to CPTs of team qualit
     the event is initiated to an impossible case (i.e. contradicting conditions)
     either the CPTs should not contain 0 entries or the algorithm has to be adjusted
     
+15.1
+define another (set of) variable X', where X'i+1 = Xi
+Xi fully determines X'i+1, given Xi, X'i+1 is conditionally independent to all other variables
+P(Xi+2, X'i+2 | Xi, X'i, Xi+1, X'i+1)
+= P(Xi+2, X'i+2 | X'i+1, X'i, Xi+1)
+// given X'i+1 = Xi, Xi+1, Xi+2 and X'i+2 are conditionally independent to X'i
+= P(Xi+2, X'i+2 | X'i+1, Xi+1)
+transition model of X' requires no CPTs
+transition model of X has the same CPT model but different parents
+the no more parameters are required
+
+15.2
+value order: <false, true>
+a.  P(Xt+1 | e1:t+1)
+    = αP(et+1 | Xt+1)Σxt P(Xt+1 | xt)p(xt | e1:t)
+    let P(Xt+1 | e1:t+1) = <1-a, a>, P(Xt | e1:t) = <1-b, b>
+    <1-a, a>
+    = α<0.2, 0.9> ((1-b)<0.7, 0.3> + b<0.3, 0.7>)
+    = α<0.2, 0.9> <0.7 - 0.4b, 0.3 + 0.4b>
+    = α<0.14 - 0.08b, 0.27 + 0.36b>
+    a = (0.27 + 0.36b) / (0.41 + 0.28b) is monotonically increasing when b <= 0.897
+    b starts with p(rain) = 1/2
+    the limit is a = b = 0.897
+b.  P(Xt+k+1 | e1:t) = Σxt+k P(Xt+k+1 | xt+k) P(xt+k | e1:t)
+    let P(Xt+k+1 | e1:t) = <1-a, a>, P(Xt+k | e1:t) = <1-b, b>
+    <1-a, a>
+    = (1-b)<0.7, 0.3> + b<0.3, 0.7>
+    = <0.7 - 0.4b, 0.3 + 0.4b>
+    a = 0.3 + 0.4b, b starts as p(r2 | u1, u2) = 0.883
+    when b >= 0.5, a <= b
+    the limit is a = b = 0.5
+
+15.3
