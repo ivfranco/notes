@@ -3902,3 +3902,37 @@ b.  P(Xt+k+1 | e1:t) = Σxt+k P(Xt+k+1 | xt+k) P(xt+k | e1:t)
     the limit is a = b = 0.5
 
 15.3
+a.  P(Xk | e1:t) = αf1:k x bk+1:t
+    where 
+        f1:k can be computed from αFORWARD(f1:k-1, ek), ultimately f1:0 and e1:h
+        bk+1:t can be computed from BACKWARD(bk+2:t, ek+1), ultimately bh+1:t and e1:h
+b.  similar to part a
+    given f1:h, bt+1:t and e1:t, P(Xk | e1:t) can be computed for h+1 <= k <= t
+c.  FORWARD-BACKWARD(s, k, f1:s, bk+1:t)
+        // mutable capture: p
+        if s = k:
+            p[s] <- αf1:s x bk+1:t
+        else:
+            h <- (t - s + 1) / 2
+            compute f1:h, f1:h+1, bh:t, bh+1:t
+            p[h] <- αf1:h x bh+1:t
+            FORWARD-BACKWARD(s, h-1, f1:s, bh:t);
+            FORWARD-BACKWARD(h+1, k, f1:h+1, bk+1:t);
+d.  time complexity:
+    f(n)    = 2f(n/2) + O(n)
+            = O(nlgn)
+    space complexity:
+    f(n)    = f(n/2) + O(1)
+            = f(lgn)
+
+15.4
+Xk is assigned the value xk given the highst p(Xk = xk | e1:t)
+if for some Xk, xk, Xk+1 and xk+1, P(Xk+1 = xk+1 | Xk = xk) = 0
+but max{p(Xk+1 = xk+1 | e1:t)} = xk+1
+p(x1:t | e1:t)
+= αp(et | xt)p(xt | xt-1)p(x1:t-1 | e1:t-1)
+= αΠp(ek | xk)p(xk | xk-1)
+= 0
+
+15.5
+
