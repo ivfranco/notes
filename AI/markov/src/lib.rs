@@ -1,8 +1,9 @@
 /// self reminder: be careful not to expose types from ndarray to the public interface
 use ndarray::prelude::*;
 
-type Prob = f64;
-type Observation = usize;
+pub type Prob = f64;
+pub type Observation = usize;
+pub type State = usize;
 
 /// first order HMM with sensor Markov assumption.
 #[derive(Debug)]
@@ -14,15 +15,13 @@ pub struct HMM {
     /// S[i]jj = P(Et = ei | Xt = j)\
     /// S[i]jk = 0 when j != k
     sensor: Vec<Array2<Prob>>,
-    /// the first forward message, the prior distribution P(X0)
-    prior: Array1<Prob>,
 }
 
 impl HMM {
     /// expected inputs:\
     /// trans: transition model in row major\
-    /// sensor_model: |E| x |X| sensor model in row major
-    pub fn new(trans: Vec<Prob>, sensor_model: Vec<Prob>, prior: Vec<Prob>) -> Self {
+    /// sensor_model: |E| x |X| sensor model in observation major
+    pub fn new(trans: Vec<Prob>, sensor_model: Vec<Prob>) -> Self {
         let n = (trans.len() as Prob).sqrt().round() as usize;
         assert_eq!(
             n * n,
@@ -30,14 +29,8 @@ impl HMM {
             "HMM::new: Transition model must be complete"
         );
         assert_eq!(
-            n,
-            prior.len(),
-            "HMM::new: the prior distribution must the same number of entries as states"
-        );
-        let e = sensor_model.len() / n;
-        assert_eq!(
-            n * e,
-            sensor_model.len(),
+            sensor_model.len() % n,
+            0,
             "HMM::new: sensor model must be complete"
         );
 
@@ -57,12 +50,9 @@ impl HMM {
             })
             .collect();
 
-        let prior = Array1::from_shape_vec(n, prior).unwrap();
-
         HMM {
             transition,
             sensor,
-            prior,
         }
     }
 
@@ -89,10 +79,14 @@ pub struct HMMContext<'a> {
 }
 
 impl<'a> HMMContext<'a> {
-    pub fn new(hmm: &'a HMM) -> Self {
+    pub fn new(hmm: &'a HMM, prior: Vec<f64>) -> Self {
+        assert_eq!(prior.len(), hmm.states());
+
+        let first_message = Array1::from_shape_vec(hmm.states(), prior).unwrap();
+
         HMMContext {
             hmm,
-            forward: vec![hmm.prior.clone()],
+            forward: vec![first_message],
             // a dummy observation at t = 0
             observations: vec![0],
         }
@@ -163,12 +157,12 @@ fn rain_test() {
 
     let prior = vec![0.5, 0.5];
 
-    let hmm = HMM::new(trans, sensor_model, prior);
+    let hmm = HMM::new(trans, sensor_model);
     assert_eq!(hmm.transition.shape(), &[2, 2]);
     assert_eq!(hmm.sensor.len(), 2);
     assert!(hmm.sensor.iter().all(|s| s.shape() == [2, 2]));
 
-    let mut context = HMMContext::new(&hmm);
+    let mut context = HMMContext::new(&hmm, prior);
     context.observe(UMBRELLA);
     context.observe(UMBRELLA);
 

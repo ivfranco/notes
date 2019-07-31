@@ -3935,4 +3935,24 @@ p(x1:t | e1:t)
 = 0
 
 15.5
+P(et+1 | Xt+1)Σxt P(Xt+1 | xt)p(xt, e1:t)
+// first order Markov assumption
+= P(et+1 | Xt+1)Σxt P(Xt+1 | xt, e1:t)p(xt, e1:t)
+= P(et+1 | Xt+1)Σxt P(Xt+1, xt, e1:t)
+= P(et+1 | Xt+1)P(Xt+1, e1:t)
+// sensor Markov assumption
+= P(et+1 | Xt+1, e1:t)P(Xt+1, e1:t)
+= P(Xt+1, e1:t+1)
+where l1:0 = P(X0, e1:0) = P(X0)
 
+15.6
+// thanks solutions manual
+if |NEIGHBORS(s)| = k for all s, probability of reaching two locations at time t could differ by a factor of Ω(k^t):
+    assume except a single path, all other paths of length t leads to a location m
+    P(Xt != m) = (1/k)^t
+    P(Xt = m) = 1 - (1/k)^t
+    P(Xt = m) / P(Xt != m) = k^t - 1 = Ω(k^t)
+for any given ε and l, there may be a map and location m where ε >> 1 / k^t hence P(Xt = m | e1:t) > P(Xt = l | e1:t)
+the map may be nonintuitive, containing one way passes and self loops
+
+15.7
