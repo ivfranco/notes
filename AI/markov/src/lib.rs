@@ -50,10 +50,7 @@ impl HMM {
             })
             .collect();
 
-        HMM {
-            transition,
-            sensor,
-        }
+        HMM { transition, sensor }
     }
 
     pub fn states(&self) -> usize {
@@ -92,6 +89,20 @@ impl<'a> HMMContext<'a> {
         }
     }
 
+    fn prior(&self) -> ArrayView1<Prob> {
+        self.forward.first().unwrap().view()
+    }
+
+    fn t(&self) -> usize {
+        self.observations.len() - 1
+    }
+
+    /// reset all observations
+    pub fn clear(&mut self) {
+        self.forward.resize_with(1, || unreachable!());
+        self.observations.resize(1, 0);
+    }
+
     /// Compute a new forward message given new observation.
     pub fn observe(&mut self, o: Observation) {
         let obv = self.hmm.get_sensor(o);
@@ -99,7 +110,7 @@ impl<'a> HMMContext<'a> {
         let last = self.forward.last().unwrap();
 
         let mut fwd = obv.dot(&trs).dot(last);
-        normalize(&mut fwd);
+        normalize_vector(&mut fwd);
         self.forward.push(fwd);
         self.observations.push(o);
     }
@@ -119,7 +130,7 @@ impl<'a> HMMContext<'a> {
 
         for (k, fwd) in self.forward.iter().enumerate().rev() {
             let mut s = fwd * &bak;
-            normalize(&mut s);
+            normalize_vector(&mut s);
             smoothing.push(s.to_vec());
 
             // compute bk:t from bk+1:t
@@ -131,23 +142,89 @@ impl<'a> HMMContext<'a> {
         smoothing.reverse();
         smoothing
     }
+
+    /// return a sequence of states x1:t with maximum probability given observations e1:t so far
+    pub fn viterbi(&self) -> Vec<State> {
+        let n = self.hmm.states();
+        // m1:0 = P(X0)
+        let mut msg = self.prior().to_owned();
+        // recorded choices for Xt given Xt+1 that maximizes path probability
+        let mut choices: Vec<Vec<State>> = Vec::with_capacity(self.t());
+
+        for &o in self.observations.iter().skip(1) {
+            let mut next_msg = Array1::zeros(n);
+            let mut choice = Vec::with_capacity(n);
+
+            for (y, col) in self.hmm.transition().gencolumns().into_iter().enumerate() {
+                // a column in transition matrix is P(Xt+1 | Xt = y) for some y
+                // product = max(x1:t-1){ P(Xt + 1 | Xt = y)P(x1:t-1, Xt | e1:t) }
+                let product = &col * &msg;
+                let (x, p) = max_pair(&product);
+                choice.push(x);
+                next_msg[y] = p;
+            }
+
+            next_msg = self.hmm.get_sensor(o).dot(&next_msg);
+            normalize_vector(&mut next_msg);
+            choices.push(choice);
+            msg = next_msg;
+        }
+
+        let (mut x, _) = max_pair(&msg);
+        let mut path = vec![x];
+
+        // skips the prior distribution
+        for choice in choices.into_iter().skip(1).rev() {
+            x = choice[x];
+            path.push(x);
+        }
+
+        path.reverse();
+        path
+    }
 }
 
 #[allow(clippy::float_cmp)]
-fn normalize(vector: &mut Array1<Prob>) {
+fn normalize_vector(vector: &mut Array1<Prob>) {
     let sum = vector.sum();
     assert_ne!(
         sum, 0.0,
         "normalize: the sum of probabilities should not be zero"
     );
-    *vector /= sum;
+
+    vector.map_inplace(|p| *p /= sum);
+}
+
+#[allow(clippy::float_cmp)]
+pub fn normalize(slice: &mut [Prob]) {
+    let sum = slice.iter().sum::<Prob>();
+    assert_ne!(
+        sum, 0.0,
+        "normalize: the sum of probabilities should not be zero"
+    );
+
+    for p in slice.iter_mut() {
+        *p /= sum;
+    }
+}
+
+fn max_pair(vector: &Array1<Prob>) -> (State, Prob) {
+    assert!(!vector.is_empty());
+    let (x, &p) = vector
+        .indexed_iter()
+        .max_by(|(_, pa), (_, pb)| pa.partial_cmp(&pb).unwrap())
+        .unwrap();
+
+    (x, p)
 }
 
 #[test]
 fn rain_test() {
     const E: Prob = 0.001;
-    // const BAREHAND: Observation = 0;
+    const BAREHAND: Observation = 0;
     const UMBRELLA: Observation = 1;
+    const DRY: State = 0;
+    const RAIN: State = 1;
 
     // ~rain = 0, rain = 1
     let trans = vec![0.7, 0.3, 0.3, 0.7];
@@ -173,4 +250,11 @@ fn rain_test() {
     let s1 = &smoothing[1];
     assert!((s1[0] - 0.117).abs() <= E);
     assert!((s1[1] - 0.883).abs() <= E);
+
+    context.observe(BAREHAND);
+    context.observe(UMBRELLA);
+    context.observe(UMBRELLA);
+
+    let path = context.viterbi();
+    assert_eq!(path, &[RAIN, RAIN, DRY, RAIN, RAIN]);
 }

@@ -3956,3 +3956,17 @@ for any given ε and l, there may be a map and location m where ε >> 1 / k^t he
 the map may be nonintuitive, containing one way passes and self loops
 
 15.7
+./AI/markov
+localization error at ε = 0.01: 0.015237257310423948
+localization error at ε = 0.05: 0.005521138181048611
+localization error at ε = 0.1: 0.02440621890172354
+localization error at ε = 0.2: 0.49024219817702674
+at t = 100, most of the time the localization error (in term of weighted manhattan distance) is small
+
+15.8
+/// code skipped
+the error may be greater as the consequence of a sensor failure is now more severe
+vitabi algorithm can only derive valid paths, if the room is empty enough,
+a sensor failure may drive the estimation far away from the real path
+
+15.9
