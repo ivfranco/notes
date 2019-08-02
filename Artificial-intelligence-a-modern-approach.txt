@@ -3970,3 +3970,118 @@ vitabi algorithm can only derive valid paths, if the room is empty enough,
 a sensor failure may drive the estimation far away from the real path
 
 15.9
+/// code skipped
+if the room is huge and the robot starts somewhere in the middle
+the filtered distribution will dissolve in a huge area over time (just like repeatedly applying gaussian blur)
+weighted error may be huge
+if the robot starts on the side or in a corner, the error may be constrained
+
+15.10
+a.  P(X1)   = Σs0 int(x0) P(X1 | x0, s0)p(x0)p(s0)
+            = Σs0p(s0) int(x0) p(x0)P(X1 | x0, s0)
+    by 15.4.1, int(x0) p(x0)P(X1 | x0, s0) is multivariate Gaussian
+    int(x1)p(x1)    = int(x1) Σs0p(s0) int(x0)p(x0) p(x1 | x0, s0)
+                    = Σs0p(s0) int(x0)p(x0) int(x1) p(x1 | x0, s0)
+                    = Σs0p(s0) int(x0)p(x0)
+                    = Σs0p(s0) = 1
+    the sum of weights = Σs0p(s0) = 1
+b.  P(Xt+1, St+1 | e1:t+1)
+    = αP(et+1 | Xt+1, St+1)P(Xt+1, St+1 | e1:t)
+    // sensor Markov assumption
+    = αP(et+1 | Xt+1)Σst int(xt) P(Xt+1, St+1 | xt, st)p(xt, st | e1:t)
+    = αP(et+1 | Xt+1)Σst int(xt) P(Xt+1, St+1 | xt, st)p(xt, st | e1:t)
+    // conditional independency from Bayesian network
+    = αP(et+1 | Xt+1)Σst P(St+1 | st) int(xt) P(Xt+1 | xt, st)p(xt, st | e1:t)
+    // xt and st are d-connected by e1:t
+    // but the solutions manual claims p(xt, st | e1:t) = p(xt | e1:t)p(st| e1:t)
+    // will follow solutions manual here
+    = αP(et+1 | Xt+1)Σst P(St+1 | st)p(st | e1:t) int(xt) p(xt | e1:t)P(Xt+1 | xt, st)
+    as p(xt | e1:t) is m mixture Gaussian, P(Xt+1 | xt, st) linear Gaussian
+    int(xt) p(xt | e1:t)P(Xt+1 | xt, st) is still a m mixture Gaussian
+    multiply p(st | e1:t) for each st and sum over them, the result is a km mixtrue Gaussian
+    αP(et+1 | Xt+1) rebalances the factors to weight 1
+c.  each weighted Gaussian distribution in the mixture corresponds to a possible sequence of s1:t
+    the factor is the posibility of that sequence
+
+15.11
+(z1 - x1)^2 / σz^2 + (x1 - μ0)^2 / (σ0^2 + σx^2)
+= ((σ0^2 + σx^2)(x1^2 - 2x1z1 + z1^2) + σz^2(x1^2 - 2x1μ0 + μ0^2)) / σz^2(σ0^2 + σx^2)
+= ((σ0^2 + σx^2 + σz^2)x1^2 + (-2(σ0^2 + σx^2)z1 -2σz^2μ0)x1 + (σ0^2 + σx^2)z1^2 + σz^2μ0^2) / σz^2(σ0^2 + σx^2)
+where a = σ0^2 + σx^2 + σz^2, b = -2(σ0^2 + σx^2)z1 - 2σz^2μ0, c = (σ0^2 + σx^2)z1^2 + σz^2μ0^2 
+-b / 2a = ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2)
+= (σ0^2 + σx^2 + σz^2)(x1 - ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2))^2 / σz^2(σ0^2 + σx^2) + α
+= (x1 - ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2))^2 / (σz^2(σ0^2 + σx^2) / (σ0^2 + σx^2 + σz^2)) + α
+where e^α is a costant
+
+15.12
+./AI/markov
+a.  // given factors in Figure 15.10
+    σ0^2 = 1
+    σ1^2 = 0.8333333333333334
+    σ2^2 = 0.8285714285714285
+    σ3^2 = 0.8284313725490196
+    σ4^2 = 0.8284272497897393
+    σ5^2 = 0.8284271284271284
+    σ6^2 = 0.8284271248545468
+    σ7^2 = 0.8284271247493799
+    σ8^2 = 0.828427124746284
+    σ9^2 = 0.8284271247461928
+    σ10^2 = 0.8284271247461902
+b.  let σt^2 = st, σx^2 = sx, σz^2 = sz
+    st+1 = (s + sx)sz / (s + sx + sz) = st
+    szs + sxsz = s^2 + (sx + sz)s
+    s^2 + sxs - sxsz = 0
+    s = (-sx + (sx^2 + 4sxsz)^(1/2)) / 2
+    when st < s, st < st+1 < s
+c.  σx^2 -> 0, st+1 = stsz / (st + sz)
+    s = (-sx + (sx^2 + 4sxsz)^(1/2)) / 2 -> 0
+    when the transition model is precise, the filter result will eventually be precise
+    σz^2 -> 0, st+1 = 0 
+    when the sensor model is precise, the filter result will be precise immediately after a single observation
+
+15.13
+dynamic BN:
+    S = enough sleep
+    Z = sleep on class
+    R = red eyes
+    P(S0) = <0.3, 0.7>
+    P(St+1 | st) = <0.2, 0.8>
+    P(St+1 | ~st) = <0.7, 0.3>
+    P(Rt | st) = <0.8, 0.2>
+    P(Rt | ~st) = <0.3, 0.7>
+    P(Zt | st) = <0.9, 0.1>
+    P(Zt | ~st) = <0.7, 0.3>
+HMM:
+    T = [
+        0.7, 0.3,
+        0.2, 0.8,
+    ]
+    O = [
+        // ~rt, ~zt
+        0.3 * 0.7, 0.8 * 0.9,
+        // rt, ~zt
+        0.7 * 0.7, 0.2 * 0.9,
+        // ~rt, zt
+        0.3 * 0.3, 0.8 * 0.1,
+        // rt, zt
+        0.7 * 0.3, 0.2 * 0.1,
+    ]
+
+15.14
+./AI/markov
+a.  P(EnoughSleep1 | e1:1) = [0.13573407202216067, 0.8642659279778394]
+    P(EnoughSleep2 | e1:2) = [0.4989942816222079, 0.5010057183777922]
+    P(EnoughSleep3 | e1:3) = [0.8955446712328069, 0.10445532876719311]
+b.  P(EnoughSleep1 | e1:3) = [0.2722518408882662, 0.7277481591117337]
+    P(EnoughSleep2 | e1:3) = [0.7243159107237754, 0.2756840892762246]
+    P(EnoughSleep3 | e1:3) = [0.8955446712328069, 0.10445532876719311]
+c.  evidence from day 3 increased the probability of ~EnoughSleep1 and 2
+
+15.15
+α<0.21, 0.02> Σst P(St+1 | st) <p, 1-p> = <p, 1-p>
+α<0.21, 0.02> (<0.7, 0.3>p + <0.2, 0.8>(1-p)) = <p, 1-p>
+α<0.21, 0.02> <0.2 + 0.5p, 0.8 - 0.5p> = <p, 1-p>
+α<0.042 + 0.105p, 0.016 - 0.01p> = <p, 1-p>
+p = 0.956802
+
+15.16

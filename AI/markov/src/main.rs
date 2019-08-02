@@ -1,9 +1,15 @@
+use bitflags::bitflags;
 use markov::{normalize, HMMContext, Observation, Prob, State, HMM};
 use rand::prelude::*;
 
+fn main() {
+    exercise_15_7();
+    exercise_15_12();
+    exercise_15_14();
+}
+
 pub mod vaccum_world {
     use super::*;
-    use bitflags::bitflags;
 
     #[derive(Clone, Copy, PartialEq)]
     enum Square {
@@ -273,10 +279,6 @@ pub mod vaccum_world {
 
 use vaccum_world::*;
 
-fn main() {
-    exercise_15_7();
-}
-
 fn manhattan((y0, x0): Pos, (y1, x1): Pos) -> isize {
     (y1 - y0).abs() + (x1 - x0).abs()
 }
@@ -320,5 +322,82 @@ fn exercise_15_7() {
             "localization error at ε = {}: {}",
             error, weighted_estimate_error
         );
+    }
+}
+
+fn exercise_15_12() {
+    println!("15.12");
+
+    let mut sig_t = 1f64.powi(2);
+    let sig_x = 2f64.powi(2);
+    let sig_z = 1f64.powi(2);
+
+    for t in 0..20 {
+        println!("σ{}^2 = {}", t, sig_t);
+        sig_t = (sig_t + sig_x) * sig_z / (sig_t + sig_x + sig_z);
+    }
+}
+
+fn exercise_15_14() {
+    bitflags! {
+        struct Class: usize {
+            const RED = 0b01;
+            const SLEEP = 0b10;
+        }
+    }
+
+    println!("15.14");
+
+    #[rustfmt::skip]
+    let trans = vec![
+        0.7, 0.3,
+        0.2, 0.8,
+    ];
+
+    let p_red = [0.7, 0.2];
+    let p_sleep = [0.3, 0.1];
+
+    let mut sensor = vec![];
+
+    for b in 0..=Class::all().bits() {
+        let o = Class::from_bits_truncate(b);
+        let (f_red, t_red) = if o.contains(Class::RED) {
+            (p_red[0], p_red[1])
+        } else {
+            (1.0 - p_red[0], 1.0 - p_red[1])
+        };
+        let (f_sleep, t_sleep) = if o.contains(Class::SLEEP) {
+            (p_sleep[0], p_sleep[1])
+        } else {
+            (1.0 - p_sleep[0], 1.0 - p_sleep[1])
+        };
+
+        sensor.push(f_red * f_sleep);
+        sensor.push(t_red * t_sleep);
+    }
+
+    let hmm = HMM::new(trans, sensor);
+    let mut context = HMMContext::new(&hmm, vec![0.3, 0.7]);
+    context.observe(Class::empty().bits());
+    context.observe(Class::RED.bits());
+    context.observe(Class::all().bits());
+
+    let smooth = context.smooth();
+    #[allow(clippy::needless_range_loop)]
+    for t in 1..=3 {
+        println!(
+            "P(EnoughSleep{0} | e1:{0}) = {1:?}",
+            t,
+            context.filter(t).unwrap()
+        );
+    }
+    for (t, s) in smooth.iter().enumerate().skip(1) {
+        println!("P(EnoughSleep{} | e1:3) = {:?}", t, s);
+    }
+
+    context.clear();
+    for t in 1..=50 {
+        context.observe(Class::all().bits());
+        println!("{:?}", context.filter(t).unwrap());
     }
 }

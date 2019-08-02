@@ -34,10 +34,7 @@ impl HMM {
             "HMM::new: sensor model must be complete"
         );
 
-        // transpose the matrix as Array2::from_shape_vec expects inputs in column major
-        let transition = Array2::from_shape_vec((n, n), trans)
-            .unwrap()
-            .reversed_axes();
+        let transition = Array2::from_shape_vec((n, n), trans).unwrap();
 
         let sensor: Vec<_> = sensor_model
             .chunks_exact(n)
@@ -69,6 +66,7 @@ impl HMM {
     }
 }
 
+/// Context for forward-backward HMM algorithms.
 pub struct HMMContext<'a> {
     hmm: &'a HMM,
     forward: Vec<Array1<Prob>>,
@@ -93,11 +91,12 @@ impl<'a> HMMContext<'a> {
         self.forward.first().unwrap().view()
     }
 
+    /// Number of actual observations.
     fn t(&self) -> usize {
         self.observations.len() - 1
     }
 
-    /// reset all observations
+    /// Reset all observations.
     pub fn clear(&mut self) {
         self.forward.resize_with(1, || unreachable!());
         self.observations.resize(1, 0);
@@ -108,6 +107,9 @@ impl<'a> HMMContext<'a> {
         let obv = self.hmm.get_sensor(o);
         let trs = self.hmm.transition().reversed_axes();
         let last = self.forward.last().unwrap();
+
+        let mut uncond = trs.dot(last);
+        normalize_vector(&mut uncond);
 
         let mut fwd = obv.dot(&trs).dot(last);
         normalize_vector(&mut fwd);
@@ -143,7 +145,7 @@ impl<'a> HMMContext<'a> {
         smoothing
     }
 
-    /// return a sequence of states x1:t with maximum probability given observations e1:t so far
+    /// return a sequence of states x1:t with maximum probability given observations e1:t
     pub fn viterbi(&self) -> Vec<State> {
         let n = self.hmm.states();
         // m1:0 = P(X0)
@@ -165,6 +167,7 @@ impl<'a> HMMContext<'a> {
             }
 
             next_msg = self.hmm.get_sensor(o).dot(&next_msg);
+            // unnecessary in theory, prevents some underflow in practice
             normalize_vector(&mut next_msg);
             choices.push(choice);
             msg = next_msg;
@@ -226,12 +229,8 @@ fn rain_test() {
     const DRY: State = 0;
     const RAIN: State = 1;
 
-    // ~rain = 0, rain = 1
     let trans = vec![0.7, 0.3, 0.3, 0.7];
-
-    // ~umbrella = 0, umbrella = 1
     let sensor_model = vec![0.8, 0.1, 0.2, 0.9];
-
     let prior = vec![0.5, 0.5];
 
     let hmm = HMM::new(trans, sensor_model);
