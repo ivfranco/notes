@@ -4085,3 +4085,22 @@ c.  evidence from day 3 increased the probability of ~EnoughSleep1 and 2
 p = 0.956802
 
 15.16
+a.  P(BatteryBrokent) -> <0, 1>
+    and the observations have less and less impact on the model
+    E(Batteryt) will eventually reach 0
+b.  BMBrokent has an extra continuous parent Temperaturet
+    p(bmbrokent+1 | ~bmbrokent, temperaturet) now depends on temperature
+c.  it may infer the current temperature by filtering 
+    by infering continuous value from (indirect) binary discrete observation 
+    precision of the inference would be inacceptable
+
+15.17
+each evidence variable has fixed value
+reduced forward:
+    Ri is a 1-d factor with no parent
+    Ri+1 is a 2-d factor with a sole parent Ri
+    pointwise production results in a 2-d factor, then Ri is summed out
+reduced backward:
+    Ri is a 2-d factor with a sole parent Ri-1
+    Ri+1 is a 2-d factor with a sole parent Ri
+    by picking corresponding rows from both factors, Ri can be eliminated in O(n^2) time
