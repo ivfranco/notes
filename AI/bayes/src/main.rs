@@ -1,7 +1,7 @@
 use bayes::{
     examples,
     network::cpt::{Full, CPT, F, T},
-    network::{evidence_from, Network, Value, Variable, Prob},
+    network::{evidence_from, Network, Prob, Value, Variable},
 };
 
 fn main() {
@@ -10,6 +10,7 @@ fn main() {
     exercise_14_14();
     exercise_14_18();
     exercise_14_21();
+    exercise_16_5();
 }
 
 fn exercise_14_1() {
@@ -171,10 +172,7 @@ fn exercise_14_21() {
 
     let evidence = evidence_from(&[(mab, WIN), (mac, DRAW)]);
     let dist = network.query(mbc, &evidence);
-    println!(
-        "P(MBC | MAB = win, MAC = draw) = {:?}",
-        dist,
-    );
+    println!("P(MBC | MAB = win, MAC = draw) = {:?}", dist,);
 
     let mut samples = 2;
     const E: Prob = 0.01;
@@ -182,4 +180,29 @@ fn exercise_14_21() {
         samples *= 2;
     }
     println!("Converged with {} samples", samples);
+}
+
+fn exercise_16_5() {
+    println!("16.5");
+
+    const ROUND: Value = 0;
+    // const SQUARE: Value = 1;
+    const RED: Value = 0;
+    // const BROWN: Value = 1;
+    const STRAWBERRY: Value = 0;
+    // const ANCHOVY: Value = 1;
+
+    let mut network = Network::new();
+    let flavor = network.add_node(Variable::new_const(vec![0.7, 0.3]));
+    let wrapper = network.add_node(Variable::binary_single_parent(flavor, 0.9, 0.2));
+    let shape = network.add_node(Variable::binary_single_parent(flavor, 0.9, 0.2));
+
+    println!(
+        "p(red) = {}",
+        network.query(wrapper, &evidence_from(&[]))[RED]
+    );
+    println!(
+        "p(strawberry | round, red) = {}",
+        network.query(flavor, &evidence_from(&[(shape, ROUND), (wrapper, RED)]))[STRAWBERRY]
+    );
 }

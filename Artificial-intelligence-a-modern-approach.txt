@@ -4104,3 +4104,75 @@ reduced backward:
     Ri is a 2-d factor with a sole parent Ri-1
     Ri+1 is a 2-d factor with a sole parent Ri
     by picking corresponding rows from both factors, Ri can be eliminated in O(n^2) time
+
+16.1
+/// skipped
+
+16.2
+Pat is more likely to have a better car
+Pat is more likely to be disappointed
+
+16.3
+let X be the number of tosses until the first head
+a.  E[2^X]  = Σx 2^xP(X = x)
+            = Σx 2^x(1/2)^x
+            = Σx 2^x(1/2)^x
+            = Σx 1 = ∞
+b.  if a single game charges more than 2^k, with p > 1 - (1/2)^(k-1) the player will lose
+    a risk-averse person will not pay more than 2^10 
+c.  let the player's initial wealth be $k, the cost of a single play be $c
+    E(k - c + 2^X)  = Σx U(k - c + 2^x)P(X = x)
+                    = Σx (alog2(k - c + 2^x) + b)(1/2)^x
+d.  the maximum amount to pay is given by
+        U(k) = U(k - c + 2^x)
+        alog2(k) + b = Σx (alog2(k - c + 2^x) + b)(1/2)^x
+
+16.4
+/// simple binary search, code skipped
+
+16.5
+./AI/bayes
+a.  (ii) and (iii) can correctly represent the joint probability
+    (i) implies that Wrapper is independent to Shape but 
+        P(Wrapper | round)  = Σflavor P(Wrapper, flavor | round)
+                            = Σflavor p(flavor | round)p(Wrapper | flavor, round)
+                            = αΣflavor p(round | flavor)p(flavor)P(Wrapper | flavor, round)
+                            = α(0.8 * 0.7 * <0.8, 0.2> + 0.1 * 0.3 * <0.1, 0.9>)
+                            = α<0.451, 0.139>
+        P(Wrapper | square) = αΣflavor p(square | flavor)p(flavor)P(Wrapper | flavor, square)
+                            = α(0.2 * 0.7 * [0.8, 0.2] + 0.9 * 0.3 * [0.1, 0.9])
+                            = α[0.139, 0.271]
+b.  (iii), least size of CPTs, prior of Wrapper and Shape is not given directly
+c.  yes and it's incorrect
+d.  p(red)  = Σflavor p(red | flavor)p(flavor)
+            = 0.8 * 0.7 + 0.1 * 0.3 = 0.59 
+e.  p(strawberry | round, red) = 0.9933481152993348
+f.  0.7s + 0.3a
+g.  the value should not change
+    P(Flavor) is still <0.7, 0.3> given an unopened box
+
+16.6
+B > A:
+    U([1.0, 3000; 0.0, 0]) > U([0.8, 4000; 0.2, 0])
+C > D:
+    U([0.2, 4000; 0.8, 0]) > U([0.25, 3000; 0.75, 0]) 
+    U([0.25, A; 0.75, 0]) > U([0.25, B;  0.75, 0])
+    but by axiom if substitution,
+    U([0.25, A; 0.75, 0]) < U([0.25, B; 0.75, 0])
+
+16.7
+a problem for the agent
+as descripted in the text, an irrational agent violates some axiom of utility
+which in turn makes it exploitable for some adversary in certain situations
+
+16.8
+E[L]    = 1/50 * 10 + 1/2_000_000 * 1_000_000 - 1
+        = 1/5 + 1/2 - 1
+        = -0.3
+given the utility of money in Figure 16.2.b
+it's rational to buy only when the player is in deep bet
+
+16.9
+/// skipped
+
+16.10

@@ -233,7 +233,6 @@ pub mod cpt {
         }
     }
 
-
     #[test]
     fn noisy_or_test() {
         let (cold, flu, malaria) = (NodeIndex::from(0), NodeIndex::from(1), NodeIndex::from(2));
@@ -280,10 +279,10 @@ impl Variable {
         Variable::new_const(vec![1.0 - p_true, p_true])
     }
 
-    pub fn binary_single_parent(parent: NodeIndex, p_true: Prob, p_false: Prob) -> Self {
+    pub fn binary_single_parent(parent: NodeIndex, p_one_one: Prob, p_zero_one: Prob) -> Self {
         let mut cpt = Full::new(&[parent]);
-        cpt.insert_row(&[(parent, 0)], &[1.0 - p_false, p_false]);
-        cpt.insert_row(&[(parent, 1)], &[1.0 - p_true, p_true]);
+        cpt.insert_row(&[(parent, 0)], &[1.0 - p_zero_one, p_zero_one]);
+        cpt.insert_row(&[(parent, 1)], &[1.0 - p_one_one, p_one_one]);
         Variable::new(CPT::Full(cpt), 2)
     }
 
@@ -458,13 +457,12 @@ impl Network {
         let mut non_evidence_iter = non_evidence.into_iter().cycle();
 
         let mut hits = 0;
-        for _ in 0 .. samples {
+        for _ in 0..samples {
             let node = non_evidence_iter.next().unwrap();
             event.remove(&node);
             let dist = self.query(node, &event);
             let v = random_idx_sample(&dist);
             event.insert(node, v);
-
 
             if event.get(&x) == Some(&value) {
                 hits += 1;
