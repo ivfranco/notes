@@ -4111,6 +4111,9 @@ reduced backward:
 16.2
 Pat is more likely to have a better car
 Pat is more likely to be disappointed
+the calculation involves some M = max{X1 .. Xk}, Xi ~ N(0, 1)
+the value E[M] is hard to bound
+by a simple simulation, mean of max{X1 .. X10} is nearly 150% of max{X1 .. X4}
 
 16.3
 let X be the number of tosses until the first head
@@ -4176,3 +4179,96 @@ it's rational to buy only when the player is in deep bet
 /// skipped
 
 16.10
+how much would one pay for a car equipment that eliminates all possibility of death from car accidents in a year
+how much would one request for working in area farther from hospital
+
+16.11
+let M = max{X1 .. Xk}
+F'(m)   = P(M <= m)
+        = ΠP(Xi <= m)
+        = F(m)^k
+f'(m)   = dF'(m) / dm
+        = dF(m)^k / dm
+        = kF(m)^k-1 dF(m)/dm
+        = kf(m)F(m)^k-1
+
+16.12
+errata:
+    U(x) = -e^(-x/R)
+a.  assume Mary has no initial fund
+    U(500) = -e^-1 = -0.368
+    U([0.6, 5000; 0.4, 0]) = -0.6e^-10 - 0.4 = -0.4
+    Mary would choose $500 for certain
+b.  // thanks https://www.wolframalpha.com
+    e^(-100 / R) = 0.5 * e^(-500 / R) + 0.5
+    R = 152.38
+
+16.13
+/// skipped
+
+16.14
+/// skipped
+
+16.15
+./AI/bayes
+a.  Parents(M) = {B}
+    Parents(P) = {B, M}
+    Parents(U) = {B, P}
+b.  EU(~b) = 1300
+    EU(b) = 1620
+c.  he should by the book
+
+16.16
+a.  /// skipped, no idea for any value in that graph
+b.  /// a possible way to solve decision problems by bayesian network libraries:
+    /// define decision nodes D as parent-free nodes with arbitrary prior distribution
+    /// define utility node with n parents {P1 .. Pn} as as a node with Π|Pk| value
+    /// each row of its CPT (corresponds to a unique combination of its parents) has 1 in one entry and 0 in others
+    /// query the utility node with d ∈ D (thus prior of decision nodes doesn't matter)
+    /// multiply the result with utility function
+c.  the node Noise now has a different CPT with regard to its parent AirTraffic
+d.  the factor of noise now has a greater weight in the utility function
+e.  /// VPIe(Ej) can be calculated by query with evidence {d, ej}
+
+16.17
+./AI/bayes
+a.  Parents(T) = Q
+    Parents(U) = Q
+b.  0.7 * 2000 + 0.3 * 1300 - 1500 = 290
+c.  /// value order: [fail, pass]
+    P(Test) = [0.335, 0.665]
+    /// value order: [bad, good]
+    P(Quality | pass) = [0.15789473684210528, 0.8421052631578948]
+    P(Quality | fail) = [0.5820895522388061, 0.41791044776119396]
+d.  EU(c | pass) = 389.47368421052636
+    EU(c | fail) = 92.53731343283576
+    either case the optimal decision is to buy
+e.  VPI(Test) = 0
+    the test is meaningless
+
+16.18
+a.  VPIe(Ej) = (Σk p(Ej = ejk | e)EU(αejk | e, Ej = ejk)) - EU(α | e)
+    where 
+        EU(aejk | e, Ej = ejk) = max(a){U(a | e, Ej = ejk)}
+        EU(a | e) = max(a){U(a | e)}
+    by common sense, EU(aejk | e, Ej = ejk) >= EU(a | e) for all ejk
+    therefore VPIe(Ej) >= 0
+    /// the definition of VPIe(Ej, Ek) = VPIe(Ej) + VPIe,ej(Ek)
+    /// is questionable as the value of ej is unspecified in the context
+    /// a possibly more accurate definition is used here
+    VPIe(Ej, Ek)    = (Σej p(ej | e)(EU(α | e, ej) + VPIe,ej(Ek) - EU(α | e, ej))) - EU(α | e)
+                    = (Σej p(ej | e)VPIe,ej(Ek)) - EU(α | e)
+                    = (Σej p(ej | e)Σek p(ek | ej, e)EU(α | e, ej, ek)) - EU(α | e)
+                    = (Σej,ek p(ej | e)p(ek | ej, e)EU(α | e, ej, ek)) - EU(α | e)
+                    = (Σej,ek p(ek, ej | e)EU(α | e, ej, ek)) - EU(α | e)
+                    = (Σek p(ek | e)(EU(α | e, ek) + VPIe,ek(Ej) - EU(α | e, ek))) - EU(α | e)
+b.  they don't want to ruin the event of birth
+    by their utility function, the combined value of 
+        knowing the sex of their child + attending childbirth few months later
+    is smaller than 
+        the two events at once
+c.  assume in a decision network, knowing only Ej will not change the optimal action
+    but knowing both Ej and Ek will improve the optimal action
+    let A = {}, B = {ej}, x = ek, then
+        f(A ∪ {x}) - f(A) = 0
+        f(B ∪ {x}) - f(B) > 0

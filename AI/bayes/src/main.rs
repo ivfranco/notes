@@ -11,6 +11,8 @@ fn main() {
     exercise_14_18();
     exercise_14_21();
     exercise_16_5();
+    exercise_16_15();
+    exercise_16_17();
 }
 
 fn exercise_14_1() {
@@ -205,4 +207,52 @@ fn exercise_16_5() {
         "p(strawberry | round, red) = {}",
         network.query(flavor, &evidence_from(&[(shape, ROUND), (wrapper, RED)]))[STRAWBERRY]
     );
+}
+
+fn exercise_16_15() {
+    println!("16.15");
+    
+    let mut network = Network::new();
+    let b = network.add_node(Variable::new_const(vec![0.5, 0.5]));
+    let m = network.add_node(Variable::binary_single_parent(b, 0.9, 0.7));
+    let mut p_cpt = Full::new(&[b, m]);
+    p_cpt.insert_in_binary_order(&[0.3, 0.8, 0.5, 0.9]);
+    let p = network.add_node(Variable::new(p_cpt.into(), 2));
+
+    let no_buy_pass = network.query(p, &evidence_from(&[(b, F)]));
+    println!("EU(~b) = {}", no_buy_pass[T] * 2000.0);
+    let buy_pass = network.query(p, &evidence_from(&[(b, T)]));
+    println!("EU(b) = {}", buy_pass[T] * 2000.0 - 100.0);
+}
+
+fn exercise_16_17() {
+    println!("16.17");
+
+    const GOOD_GAIN: f64 = 2000.0 - 1500.0;
+    const BAD_GAIN: f64 = GOOD_GAIN - 700.0;
+    const FAIL: Value = 0;
+    const PASS: Value = 1;
+
+    fn utility(q_dist: &[f64]) -> f64 {
+        q_dist[F] * BAD_GAIN + q_dist[T] * GOOD_GAIN
+    }
+
+    let mut network = Network::new();
+    let q = network.add_node(Variable::new_const(vec![0.3, 0.7]));
+    let t = network.add_node(Variable::binary_single_parent(q, 0.8, 0.35));
+
+    let eu = utility(&network.query(q, &evidence_from(&[])));
+    println!("EU(c) = {}", eu);
+
+    let pt = network.query(t, &evidence_from(&[]));
+    println!("P(Test) = {:?}", pt);
+    println!("P(Quality | pass) = {:?}", network.query(q, &evidence_from(&[(t, T)])));
+    println!("P(Quality | fail) = {:?}", network.query(q, &evidence_from(&[(t, F)])));
+
+    let pass_q = network.query(q, &evidence_from(&[(t, T)]));
+    println!("EU(c | pass) = {}", utility(&pass_q));
+    let fail_q = network.query(q, &evidence_from(&[(t, F)]));
+    println!("EU(c | fail) = {}", utility(&fail_q));
+
+    println!("VPI(Test) = {}", utility(&pass_q) * pt[PASS] + utility(&fail_q) * pt[FAIL] - eu);
 }
