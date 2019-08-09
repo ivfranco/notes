@@ -4272,3 +4272,83 @@ c.  assume in a decision network, knowing only Ej will not change the optimal ac
     let A = {}, B = {ej}, x = ek, then
         f(A ∪ {x}) - f(A) = 0
         f(B ∪ {x}) - f(B) > 0
+
+17.1
+./AI/mdp
+P(X = (0, 0)) = 0.02462000000000001
+P(X = (1, 0)) = 0.02824000000000001
+P(X = (2, 0)) = 0.026270000000000016
+P(X = (3, 0)) = 0.08688000000000001
+P(X = (0, 1)) = 0.18054000000000006
+P(X = (1, 1)) = 0
+P(X = (2, 1)) = 0.04443000000000001
+P(X = (3, 1)) = 0.013680000000000005
+P(X = (0, 2)) = 0.02524000000000001
+P(X = (1, 2)) = 0.06224000000000002
+P(X = (2, 2)) = 0.17994000000000007
+P(X = (3, 2)) = 0.3279200000000001
+the calculation is similar to prediction in a sensorless model
+
+17.2
+./AI/mdp
+/// by simulation, go Left whenever possible
+P(X = (0, 0)) = 0.3333333333333347
+P(X = (1, 0)) = 0
+P(X = (2, 0)) = 0
+P(X = (3, 0)) = 0
+P(X = (0, 1)) = 0.3333333333333346
+P(X = (1, 1)) = 0
+P(X = (2, 1)) = 0
+P(X = (3, 1)) = 0
+P(X = (0, 2)) = 0.3333333333333342
+P(X = (1, 2)) = 0
+P(X = (2, 2)) = 0
+P(X = (3, 2)) = 0
+
+17.3
+the optimal action now also depends on the history of states
+if the state with maximum reward is reached, all actions later are indifferent to the agent
+on infinite horizon it may still be possible to define MEU utilities
+which should lead the agent to the reachable state with maximum reward
+but there's no longer intuitive algorithms to calculate such an utility
+
+17.4
+a.  U(s) = max(a) {R(s, a) + γΣs' P(s' | s, a)U(s')}
+    U(s) = max(a) {Σs' P(s' | s, a)(γU(s') + R(s, a, s'))}
+b.  /// thanks solutions manual
+    define a new MDP where:
+        γ' = γ^(1/2)
+        define a new state r(s, a, s') for all triple (s, a, s') where P(s' | s, a) > 0
+        define a new action a(s, a) for all r(s, a, s') that
+        ACTION(r(s, a, s')) = { a(s, a) }
+        P'(r(s, a, s') | s, a) = P(s' | s, a)
+        P(s' | r(s, a, s'), a(s, a)) = 1.0
+        R'(r(s, a, s'), a(s, a)) = R(s, a, s') / γ'
+        R'(s, a) = 0
+    let U' be an optimal utility of the new MDP,
+        U'(r(s, a, s')) = max(a) {R'(s, a) + γΣs' P'(s' | r(s, a, s'), a)U'(s')}
+                        = R(s, a, s') / γ' + γ'U'(s')
+        U'(s)           = max(a) {R'(s, a) + γ'Σs' P'(s' | s, a)U'(s')}
+                        = max(a) {γ'Σs' P'(r(s, a, s') | s, a)U'(r(s, a, s'))}
+                        = max(a) {γ'Σs' P(s' | s, a)(R(s, a, s') / γ' + γ'U'(s'))
+                        = max(a) {Σs' P(s' | s, a)(γU'(s) + R(s, a, s'))}
+    therefore the proper subset of U'(s) is also an optimal utility of the original MDP
+c.  define a new MDP where:
+        γ' = γ^(1/2)
+        define a new state r(s, a) for all a ∈ ACTION(s)
+        define a new action a(s, a) for all r(s, a)
+        ACTION(r(s, a)) = { a(s, a) }
+        P'(r(s, a) | s, a) = 1
+        P'(s' | r(s, a), a(s, a)) = P(s' | s, a)
+        R'(r(s, a)) = R(s, a) / γ'
+        R'(s) = 0
+    let U' be an optimal utility of the new MDP,
+        U'(r(s, a)) = R'(r(s, a)) + γ'max(a) {Σs' P'(s' | r(s, a), a)U'(s')}
+                    = R(s, a) + γ'Σs' P(s' | s, a)U'(s')
+        U'(s)       = R'(s) + γ'max(a) {Σs' P'(s' | s, a)U'(s)}
+                    = γ'max(a) U'(r(s, a))
+                    = γ'max(a) { R(s, a) / γ' + γ'Σs' P(s' | s, a)U'(s') }
+                    = max(a) {R(s, a) + γΣs' P(s' | s, a)U'(s')}
+    therefore the proper subset of U'(s) is also an optimal utility of the original MDP
+
+17.5
