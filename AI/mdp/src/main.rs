@@ -1,14 +1,18 @@
-use mdp::{
-    Prob, Util, State, MDP, value_iteration, policy_from,
-    worlds::two_terminals::*,
-};
+#![allow(dead_code)]
+
+use mdp::{policy_iteration, worlds, zero_sum_value_iteration, Player, Prob, SoloMDP, Util, MDP};
 
 fn main() {
     exercise_17_1();
     exercise_17_2();
+    // takes a few seconds
+    // exercise_17_5();
+    exercise_17_7();
 }
 
 fn report_map_dist(dist: &[Prob]) {
+    use worlds::two_terminals::*;
+
     for (i, p) in dist.iter().enumerate() {
         let pos = Pos::from_usize(i);
         println!("P(X = {:?}) = {}", pos, p);
@@ -16,8 +20,10 @@ fn report_map_dist(dist: &[Prob]) {
 }
 
 fn exercise_17_1() {
-    println!("\n17.1");
+    use worlds::two_terminals::*;
     use Dir::*;
+
+    println!("\n17.1");
 
     let map = Map::new(0.0);
     let mut dist = vec![0.0; map.states()];
@@ -38,6 +44,7 @@ fn exercise_17_1() {
 }
 
 fn exercise_17_2() {
+    use worlds::two_terminals::*;
     use Dir::*;
 
     println!("\n17.2");
@@ -53,7 +60,7 @@ fn exercise_17_2() {
     let mut dist = vec![0.0; map.states()];
     dist[Pos::new(0, 0).to_usize()] = 1.0;
 
-    for _ in 0 .. 1000 {
+    for _ in 0..1000 {
         let mut next_dist = vec![0.0; map.states()];
         for (i, p) in dist.into_iter().enumerate() {
             let state = Pos::from_usize(i);
@@ -69,4 +76,48 @@ fn exercise_17_2() {
     }
 
     report_map_dist(&dist);
+}
+
+fn exercise_17_5() {
+    use worlds::two_terminals::*;
+
+    println!("\n17.5");
+
+    let mut start = -2.0;
+    let mut policy = policy_iteration(&Map::new(start));
+    let mut end = start;
+
+    while end < 0.0 {
+        end += 0.001;
+        let next_policy = policy_iteration(&Map::new(end));
+        if policy != next_policy {
+            println!("[{}, {}]", start, end - 0.001);
+            start = end;
+            policy = next_policy;
+        }
+    }
+}
+
+fn exercise_17_7() {
+    use worlds::simple_game::*;
+
+    println!("\n17.7");
+
+    fn report_board_utils(board: &Board, player: Player, utils: &[Util]) {
+        let tag = if player == Player::Maxer { "A" } else { "B" };
+
+        for (i, u) in utils.iter().enumerate() {
+            let state = board.decode(i);
+            if board.valid(state) {
+                println!("U{}{:?} = {}", tag, state, u);
+            }
+        }
+    }
+
+    let board = Board::default();
+    let (ua, ub) = zero_sum_value_iteration(&board, 0.001);
+    println!("Utility of Player A:");
+    report_board_utils(&board, Player::Maxer, &ua);
+    println!("Utility of Player B:");
+    report_board_utils(&board, Player::Miner, &ub);
 }

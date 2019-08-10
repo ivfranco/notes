@@ -4352,3 +4352,63 @@ c.  define a new MDP where:
     therefore the proper subset of U'(s) is also an optimal utility of the original MDP
 
 17.5
+./AI/mdp
+[-2, -1.6500000000000385]
+[-1.6490000000000387, -1.565000000000048]
+[-1.564000000000048, -0.7320000000001099]
+[-0.7310000000001099, -0.45300000000010965]
+[-0.45200000000010965, -0.08500000000010932]
+[-0.08400000000010932, -0.045000000000109286]
+[-0.044000000000109285, -0.02800000000010927]
+[-0.02700000000010927, -0.023000000000109266]
+[-0.022000000000109265, -0.00000000000010925288451701931]
+
+17.6
+a.  let argmax(a){f(a)} = a*, argmax(a){g(a)} = b*
+    assume max(a){f(a)} - max(a){g(a)} >= 0 (otherwise symmetric)
+    |max(a){f(a)} - max(a){g(a)}|
+    = f(a*) - g(b*)
+    <= f(a*) - g(a*)
+    <= max(a){ f(a) - g(a) }
+    = max(a){ |f(a) - g(a)| }
+b.  |(BUi - BUi')(s)|
+    = |γmax(a)Σs'{P(s' | s, a)Ui(s')} - γmax(a)Σs'{P(s' | s, a)Ui'(s')}
+    <= max(a){|γΣs'P(s' | s, a)Ui(s') - γΣs'P(s' | s, a)Ui'(s')|}
+    = γmax(a){|Σs'P(s' | s, a)(Ui(s') - Ui'(s'))|}
+    <= γmax(a,s'){|Ui(s') - Ui'(s')|}
+    = γmax(s'){|Ui(s') - Ui'(s')|}
+    = γmax(s){|Ui(s) - Ui'(s)|}
+    = γ||Ui - Ui'||
+    hence ||BUi - BUi'|| = max(s)|(BUi - BUi')(s)| <= γ||Ui - Ui'||
+
+17.7
+a.  UA(s) = R(s) + max(a){P(s' | a, s)UB(s')}
+    UB(s) = R(s) + min(a){P(s' | a, s)UA(s')}
+b.  similar to one player value iteration, but UAi+1 is calculated from UBi and vice versa
+c.  ./AI/mdp/src/worlds#simple_game
+d.  Utility of Player A:
+    UA(0, 1) = -1
+    UA(0, 2) = -1
+    UA(0, 3) = 1
+    UA(1, 0) = -1
+    UA(1, 2) = 1
+    UA(1, 3) = 1
+    UA(2, 0) = -1
+    UA(2, 1) = 1
+    UA(2, 3) = 1
+    UA(3, 1) = 1
+    UA(3, 2) = 1
+    Utility of Player B:
+    UB(0, 1) = -1
+    UB(0, 2) = -1
+    UB(0, 3) = -1
+    UB(1, 0) = -1
+    UB(1, 2) = -1
+    UB(1, 3) = 1
+    UB(2, 0) = -1
+    UB(2, 1) = -1
+    UB(2, 3) = 1
+    UB(3, 1) = 1
+    UB(3, 2) = 1
+
+17.8
