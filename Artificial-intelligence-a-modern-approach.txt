@@ -4386,7 +4386,8 @@ a.  UA(s) = R(s) + max(a){P(s' | a, s)UB(s')}
     UB(s) = R(s) + min(a){P(s' | a, s)UA(s')}
 b.  similar to one player value iteration, but UAi+1 is calculated from UBi and vice versa
 c.  ./AI/mdp/src/worlds#simple_game
-d.  Utility of Player A:
+d.  ./AI/mdp
+    Utility of Player A:
     UA(0, 1) = -1
     UA(0, 2) = -1
     UA(0, 3) = 1
@@ -4412,3 +4413,204 @@ d.  Utility of Player A:
     UB(3, 2) = 1
 
 17.8
+./AI/mdp
+a.  r = 100
+    [Some(W), Some(W), None]
+    [Some(N), Some(W), Some(S)]
+    [Some(N), Some(W), Some(W)]
+    (0, 2) is not terminal and has positive reward
+    agent will try reach (0, 2) and stay there
+b.  r = -3
+    [Some(E), Some(E), None]
+    [Some(E), Some(E), Some(N)]
+    [Some(E), Some(E), Some(N)]
+    (0, 2) has lower than average negative reward
+    agent will head to (2, 2) ASAP and avoid (0, 2)
+c.  r = 0
+    [Some(E), Some(E), None]
+    [Some(N), Some(N), Some(N)]
+    [Some(N), Some(N), Some(N)]
+    agent will head to (2, 2) ASAP, but will not avoid (0, 2)
+d.  r = 3
+    [Some(W), Some(W), None]
+    [Some(N), Some(W), Some(S)]
+    [Some(N), Some(W), Some(W)]
+    same to a.
+
+17.9
+U(Up) = γ(50 - Σ(1 <= k <= 100) γ^k)
+U(Down) = γ(-50 + Σ(1 <= k <= 100) γ^k)
+approximately when γ > 0.9844, U(Down) > U(Up)
+
+17.10
+./AI/mdp
+a.  state 1 and 2 have negative rewards
+    agent in state 1 and 2 will head to state 3 ASAP
+b.  Init = [B, B, _]: [Some(B), Some(A), None]
+c.  Init = [A, A, _], discount = 1.0: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.9: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.8: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.7: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.6: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.5: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.4: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.3: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.2: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.1: [Some(B), Some(A), None]
+    Init = [A, A, _], discount = 0.0: [Some(B), Some(A), None]
+    discount will not affect the result of policy iteration
+
+17.11
+a.  ./AI/mdp/src/worlds#two_terminals
+b.  // skipped
+    // would be easy with ./AI/mdp
+c.  // skipped
+
+17.12
+errata:
+    value determination -> policy evaluation
+run the policy evaluation with estimated model P on the real utility
+
+17.13
+./AI/mdp
+believe state at t = 1:
+P(X = (0, 0)) = 0.06569
+P(X = (1, 0)) = 0.03650
+P(X = (2, 0)) = 0.32847
+P(X = (3, 0)) = 0.00365
+P(X = (0, 1)) = 0.03650
+P(X = (1, 1)) = 0.00000
+P(X = (2, 1)) = 0.32847
+P(X = (3, 1)) = 0.03285
+P(X = (0, 2)) = 0.06569
+P(X = (1, 2)) = 0.03650
+P(X = (2, 2)) = 0.06569
+P(X = (3, 2)) = 0.00000
+believe state at t = 2:
+P(X = (0, 0)) = 0.02022
+P(X = (1, 0)) = 0.05939
+P(X = (2, 0)) = 0.13579
+P(X = (3, 0)) = 0.00008
+P(X = (0, 1)) = 0.00931
+P(X = (1, 1)) = 0.00000
+P(X = (2, 1)) = 0.59807
+P(X = (3, 1)) = 0.06573
+P(X = (0, 2)) = 0.02022
+P(X = (1, 2)) = 0.01316
+P(X = (2, 2)) = 0.07801
+P(X = (3, 2)) = 0.00000
+
+17.14
+each action generates a new believe state
+at depth d there are at most |A|^d different states
+each utility can be computed in |A||S|
+time complexity is O(|S||A|^(d+1))
+
+17.15
+for all believe state, 
+p(S = 0 | E = 0)
+= p(E = 0 | S = 0)p(S = 0) / p(E = 0)
+= 0.9p(S = 0) / p(E = 0)
+= 0.9(1 - p(S = 1)) / p(E = 0)
+= (0.9 - 0.9p(S = 1)) / p(E = 0)
+p(S = 1 | E = 0)
+= p(E = 0 | S = 1)p(S = 1) / p(E = 0)
+= 0.5p(S = 1) / p(E = 0)
+when E = 0 and
+    0.9 - 0.9p(S = 1) > 0.5p(S = 1)
+    0.9 > 1.4p(S = 1)
+    p(S = 1) < 9/14
+the agent is more likely in state 0 and should Go
+similarly
+p(S = 0 | E = 1)
+= p(E = 1 | S = 0)p(S = 0) / p(E = 1)
+= 0.1(1 - p(S = 1)) / p(E = 1)
+p(S = 1 | E = 1)
+= p(E = 1 | S = 1)p(S = 1) / p(E = 1)
+= 0.5p(S = 1) / p(E = 1)
+when E = 1 and
+    0.1 - 0.1p(S = 1) > 0.5p(S = 1)
+    p(S = 1) < 1/6
+the agent is more likely in state 0 and should Go
+
+17.16
+dominant strategy is better to any other strategy whether the other players switch strategies or not
+Nash equilibrium only requires the strategy to be optimal assuming other players have fixed strategies
+dominant strategy equilibrium is a stronger condition than Nash equilibrium
+
+17.17
+            rock    paper   scissors    fire    water
+rock        0       -1      1           -1      1
+paper       1       0       -1          -1      1
+scissors    -1      1       0           -1      1
+fire        1       1       1           0       -1
+water       -1      -1      -1          0       1
+the game is symmetric, the best expected outcome is 0
+the mixed strategy P = [1/9, rock; 1/9, paper; 1/9, scissors; 1/3, fire; 1/3, water] is optimal because:
+    for the five pure strategies,
+    E[O | rock, P] = -1/9 + 1/9 - 1/3 + 1/3 = 0
+    E[O | paper, P] = -1/9 + 1/9 - 1/3 + 1/3 = 0
+    E[O | scissors, P] = -1/9 + 1/9 - 1/3 + 1/3 = 0
+    E[O | fire, P] = 3/9 + -1/3 = 0
+    E[O | water, P] = -3/9 + 1/3 = 0
+any mixed strategy of O will have expected outcome 0
+
+17.18
+Fed: do nothing dominates Fed: expand
+Pol: do nothing dominates Pol: contract
+among the remaining pure strategies, (Fed: contract, Pol: expand) is a nash equilibrium
+it is not pareto-optimal: (Fed: do nothing, Pol: do nothing) has better outcomes for both parties
+
+17.19
+/// thanks solutions manual
+let bi(v) be the bidding function on the private value of player i
+let Wi(b) be the winning chance of player i bidding b, Wi is non-decreasing
+given bidding functions and prior private value distributions of other players
+the outcome of player i is vi - b
+and the expected outcome is int(0, vi, Qi(b)), where Qi(vi, b) = Wi(b)(vi - b)
+the condition of Nash equilibrium is:
+    ∀i,b Qi(vi, bi(vi)) >= Qi(vi, b)
+let v and v' be two different private values, b = bi(v), b' = bi(v')
+    Qi(v, b) >= Qi(v, b')
+        Wi(b)(v - b) >= Wi(b')(v - b')
+        v(Wi(b) - Wi(b')) >= bWi(b) - b'Wi(b')
+    Qi(v', b') >= Qi(v', b)
+        v'(Wi(b') - Wi(b)) >= b'Wi(b') - bWi(b)
+adding two equations
+    (v' - v)(Wi(b') - Wi(b)) >= 0
+if v' > v, Wi(b') >= Wi(b)
+    if W(b') > W(b), b' > b
+    if W(b') = W(b) = p, b' and b has the same winning probability
+    a rational bidding function will have b' = b = min(b) {Wi(b) = p}
+therefore bi(v) is non-decreasing
+if all the players have the identical bidding function, the auction is effective
+
+17.20
+bidding b in this auction is equivalent to bidding b/2 in a normal auction
+the normal auction ends in a bidding b where b - d <= vi < b, b <= vi + d
+where vi is the second highest private value
+this auction ends in a bidding (b' - d) / 2 <= vi < b'/2, b' <= 2vi + d, b'/2 = vi + d/2
+the revenue in the worst case is d/2 lower
+
+17.21
+a.  it's not a zero-sum game before or after
+b.  home:
+        2p + 0.22(2q + (0.9 - q) + 0.1)
+        = 2p + 0.22q + 0.22
+    visiting:
+        2(1-p) + 0.22(q + 2(0.9-q) + 0.1)
+        = 2 - 2p + 0.22(1.9 - q)
+        = -2p - 0.22q + 2.418
+c.  home with pact:
+        2q + (0.9 - q) + 0.1
+        = 1 + q
+    visiting with pact:
+        q + 2(0.9 - q) + 0.1
+        = 1.9 - q
+    when 1 + q > 2p + 0.22q + 0.22
+        0.78q > (2p - 0.78)
+    and 1.9 - q > -2p - 0.22q + 2.418
+        0.78q < 2p - 0.518
+    pact is a dominate strategy for both parties
+d.  the new rule encouraged some teams into a pact 
+

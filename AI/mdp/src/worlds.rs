@@ -1,8 +1,9 @@
 pub mod two_terminals {
     use crate::*;
+    use std::collections::HashSet;
 
     /// (0, 0) is at bottom-left
-    #[derive(Clone, Copy, PartialEq, Eq)]
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Pos {
         x: isize,
         y: isize,
@@ -13,13 +14,22 @@ pub mod two_terminals {
             Pos { x, y }
         }
 
-        pub fn to_usize(self) -> usize {
-            (self.x + self.y * WIDTH) as usize
+        pub fn to_usize(self, width: usize) -> usize {
+            (self.x + self.y * width as isize) as usize
         }
 
-        pub fn from_usize(i: usize) -> Self {
-            let i = i as isize;
-            Pos::new(i % WIDTH, i / WIDTH)
+        pub fn from_usize(i: usize, width: usize) -> Self {
+            Pos::new((i % width) as isize, (i / width) as isize)
+        }
+
+        fn neighbors(self) -> [Pos; 4] {
+            let (x, y) = (self.x, self.y);
+            [
+                Pos::new(x - 1, y),
+                Pos::new(x + 1, y),
+                Pos::new(x, y - 1),
+                Pos::new(x, y + 1),
+            ]
         }
     }
 
@@ -80,8 +90,8 @@ pub mod two_terminals {
         }
     }
 
-    const WIDTH: isize = 4;
-    const HEIGHT: isize = 3;
+    pub const DEFAULT_WIDTH: usize = 4;
+    pub const DEFAULT_HEIGHT: usize = 3;
 
     const BLOCK: Pos = Pos::new(1, 1);
     const POS_FINAL: Pos = Pos::new(3, 2);
@@ -91,26 +101,97 @@ pub mod two_terminals {
     const P_SIDEWAY: Prob = 0.1;
 
     pub struct Map {
-        penalty: Util,
+        discount: f64,
+        width: usize,
+        rewards: Vec<Util>,
+        blocks: HashSet<Pos>,
+        terminals: HashSet<Pos>,
     }
 
     impl Map {
+        pub fn full(
+            discount: f64,
+            width: usize,
+            rewards: Vec<Util>,
+            blocks: &[Pos],
+            terminals: &[Pos],
+        ) -> Self {
+            assert_eq!(
+                rewards.len() % width,
+                0,
+                "Map::full: rewards must be complete"
+            );
+            let blocks = blocks.iter().cloned().collect();
+
+            let terminals = terminals.iter().cloned().collect();
+
+            Map {
+                discount,
+                width,
+                rewards,
+                blocks,
+                terminals,
+            }
+        }
+
         pub fn new(penalty: Util) -> Self {
-            Map { penalty }
+            let mut rewards = vec![penalty; DEFAULT_WIDTH * DEFAULT_HEIGHT];
+            rewards[POS_FINAL.to_usize(DEFAULT_WIDTH)] = 1.0;
+            rewards[NEG_FINAL.to_usize(DEFAULT_WIDTH)] = -1.0;
+            rewards[BLOCK.to_usize(DEFAULT_WIDTH)] = 0.0;
+
+            Self::full(
+                1.0,
+                DEFAULT_WIDTH,
+                rewards,
+                &[BLOCK],
+                &[POS_FINAL, NEG_FINAL],
+            )
+        }
+
+        pub fn width(&self) -> usize {
+            self.width
+        }
+
+        pub fn height(&self) -> usize {
+            self.rewards.len() / self.width()
         }
 
         fn in_bound(&self, pos: Pos) -> bool {
-            pos.x >= 0 && pos.x < WIDTH &&
-            pos.y >= 0 && pos.y < HEIGHT &&
-            // (1, 1) is blocked
-            pos != BLOCK
+            pos.x >= 0
+                && pos.x < self.width() as isize
+                && pos.y >= 0
+                && pos.y < self.height() as isize
+                && !self.blocked(pos)
         }
 
-        fn terminal(&self, pos: Pos) -> bool {
-            match pos {
-                POS_FINAL | NEG_FINAL | BLOCK => true,
-                _ => false,
+        pub fn blocked(&self, pos: Pos) -> bool {
+            self.blocks.contains(&pos)
+        }
+
+        pub fn walls(&self, pos: Pos) -> usize {
+            if !self.in_bound(pos) {
+                0
+            } else {
+                4 - pos.neighbors()
+                    .iter()
+                    .filter(|&&n| self.in_bound(n))
+                    .count()
             }
+        }
+
+        pub fn terminal(&self, pos: Pos) -> bool {
+            self.terminals.contains(&pos)
+        }
+
+        pub fn trap(&self, pos: Pos) -> bool {
+            self.blocked(pos) || self.terminal(pos)
+        }
+    }
+
+    impl Default for Map {
+        fn default() -> Self {
+            Self::new(-0.04)
         }
     }
 
@@ -119,32 +200,28 @@ pub mod two_terminals {
         type Action = Dir;
 
         fn states(&self) -> usize {
-            (WIDTH * HEIGHT) as usize
+            self.width() * self.height()
         }
 
-        fn discount(&self) -> Util {
-            1.0
+        fn discount(&self) -> f64 {
+            self.discount
         }
 
         fn encode(&self, state: &Pos) -> usize {
-            state.to_usize()
+            state.to_usize(self.width())
         }
 
         fn decode(&self, i: usize) -> Pos {
-            Pos::from_usize(i)
+            Pos::from_usize(i, self.width())
         }
 
         fn reward(&self, state: &Pos) -> Util {
-            match *state {
-                POS_FINAL => 1.0,
-                NEG_FINAL => -1.0,
-                BLOCK => 0.0,
-                _ => self.penalty,
-            }
+            self.rewards[self.encode(state)]
         }
 
         fn apply(&self, pos: &Pos, dir: &Dir) -> Vec<(Prob, Pos)> {
-            if self.terminal(*pos) {
+            if self.trap(*pos) {
+                // illegal, result is assumed to be meaningless
                 return vec![];
             }
 
@@ -176,7 +253,7 @@ pub mod two_terminals {
 
     impl SoloMDP for Map {
         fn actions(&self, state: &Pos) -> Vec<Dir> {
-            if self.terminal(*state) {
+            if self.trap(*state) {
                 vec![]
             } else {
                 vec![N, S, W, E]
@@ -193,7 +270,7 @@ pub mod two_terminals {
 
         for i in 0..map.states() {
             let state = map.decode(i);
-            assert_eq!(state.to_usize(), i);
+            assert_eq!(map.encode(&state), i);
 
             for action in map.actions(&state) {
                 let p_sum: Prob = map.apply(&state, &action).into_iter().map(|(p, _)| p).sum();
@@ -279,7 +356,6 @@ pub mod simple_game {
         pub fn valid(&self, players: Players) -> bool {
             let (a, b) = (players.player_a, players.player_b);
             a != b && !(a == self.width - 1 && b == 0)
-
         }
 
         fn reward(&self, players: Players) -> Util {
@@ -301,6 +377,7 @@ pub mod simple_game {
 
         fn actions(&self, state: Players, player: Player) -> Vec<Goto> {
             if self.terminal(state) || !self.valid(state) {
+                // illegal, result is assumed to be meaningless
                 return vec![];
             }
 
@@ -315,7 +392,6 @@ pub mod simple_game {
 
             if let Some(left) = (0..pm).rev().find(|&i| i != ps) {
                 gotos.push(Goto(player, left));
-
             }
             if let Some(right) = (pm + 1..self.width).find(|&i| i != ps) {
                 gotos.push(Goto(player, right));
@@ -374,5 +450,102 @@ pub mod simple_game {
             self.actions(*state, player)
         }
     }
+}
 
+pub mod three_states {
+    use crate::*;
+
+    #[derive(Clone, Copy, PartialEq)]
+    pub enum OTT {
+        One,
+        Two,
+        Three,
+    }
+
+    use OTT::*;
+
+    #[derive(Debug, Clone, Copy, PartialEq)]
+    pub enum Move {
+        A,
+        B,
+    }
+
+    use Move::*;
+
+    impl OTT {
+        fn to_usize(self) -> usize {
+            match self {
+                One => 0,
+                Two => 1,
+                Three => 2,
+            }
+        }
+
+        fn from_usize(code: usize) -> Self {
+            match code {
+                0 => One,
+                1 => Two,
+                2 => Three,
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    pub struct Context {
+        discount: f64,
+    }
+
+    impl Context {
+        pub fn new(discount: f64) -> Self {
+            Context { discount }
+        }
+    }
+
+    impl MDP for Context {
+        type State = OTT;
+        type Action = Move;
+
+        fn states(&self) -> usize {
+            3
+        }
+
+        fn discount(&self) -> f64 {
+            self.discount
+        }
+
+        fn reward(&self, state: &Self::State) -> Util {
+            match state {
+                One => -1.0,
+                Two => -2.0,
+                Three => 0.0,
+            }
+        }
+
+        fn encode(&self, state: &Self::State) -> usize {
+            state.to_usize()
+        }
+
+        fn decode(&self, code: usize) -> Self::State {
+            Self::State::from_usize(code)
+        }
+
+        fn apply(&self, state: &Self::State, action: &Self::Action) -> Vec<(Prob, Self::State)> {
+            match (state, action) {
+                // should be illegal
+                (Three, _) => vec![(1.0, Three)],
+                (One, A) => vec![(0.8, Two), (0.2, One)],
+                (Two, A) => vec![(0.8, One), (0.2, Two)],
+                (ott, B) => vec![(0.1, Three), (0.9, *ott)],
+            }
+        }
+    }
+
+    impl SoloMDP for Context {
+        fn actions(&self, state: &Self::State) -> Vec<Self::Action> {
+            match state {
+                One | Two => vec![A, B],
+                _ => vec![],
+            }
+        }
+    }
 }

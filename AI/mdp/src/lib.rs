@@ -122,20 +122,12 @@ where
 
 const REPEAT: usize = 100;
 
-pub fn policy_iteration<M>(mdp: &M) -> Policy<M>
+pub fn policy_iteration_with_init<M>(mdp: &M, mut policy: Policy<M>) -> Policy<M>
 where
     M: SoloMDP,
-    M::Action: PartialEq + std::fmt::Debug,
+    M::Action: PartialEq,
 {
-    let mut rng = thread_rng();
-    let mut policy: Policy<M> = (0..mdp.states())
-        .map(|i| {
-            let state = mdp.decode(i);
-            mdp.actions(&state).into_iter().choose(&mut rng)
-        })
-        .collect();
     let mut utils = vec![0.0; mdp.states()];
-
     loop {
         utils = policy_evaluation(mdp, &policy, &utils, REPEAT);
         let mut next_policy = vec![];
@@ -151,6 +143,22 @@ where
             policy = next_policy;
         }
     }
+}
+
+pub fn policy_iteration<M>(mdp: &M) -> Policy<M>
+where
+    M: SoloMDP,
+    M::Action: PartialEq,
+{
+    let mut rng = thread_rng();
+    let random_policy: Policy<M> = (0..mdp.states())
+        .map(|i| {
+            let state = mdp.decode(i);
+            mdp.actions(&state).into_iter().choose(&mut rng)
+        })
+        .collect();
+
+    policy_iteration_with_init(mdp, random_policy)
 }
 
 fn policy_evaluation<M>(
