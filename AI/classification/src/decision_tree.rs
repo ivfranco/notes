@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use super::*;
 use indextree::{Arena, NodeId};
 use rand::prelude::*;
@@ -8,6 +10,15 @@ enum Class {
     True,
     False,
     Plural(Attr),
+}
+
+impl Class {
+    fn attr(self) -> Option<Attr> {
+        match self {
+            Class::Plural(attr) => Some(attr),
+            _ => None,
+        }
+    }
 }
 
 impl From<bool> for Class {
@@ -29,6 +40,12 @@ impl Tag {
     fn new(value: Value, class: Class) -> Self {
         Tag { value, class }
     }
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub enum TrainOption {
+    Full,
+    X2Prune,
 }
 
 pub struct Trainer<'a> {
@@ -61,15 +78,7 @@ impl<'a> Trainer<'a> {
     }
 
     fn output_count(&self, examples: &HashSet<usize>) -> (usize, usize) {
-        let (mut t, mut f) = (0, 0);
-        for example in self.select_examples(examples) {
-            if example.output {
-                t += 1;
-            } else {
-                f += 1;
-            }
-        }
-        (t, f)
+        class_count(self.select_examples(examples))
     }
 
     fn uniform_class(&self, examples: &HashSet<usize>) -> Option<Class> {
@@ -161,6 +170,9 @@ impl<'a> Trainer<'a> {
                     .collect();
 
                 let child = if filtered.is_empty() {
+                    // the path of values to this leaf node filtered out all examples
+                    // the only rational decision here is to return the majority of classification
+                    // among examples of its parent
                     let c = self.plurality_value(examples);
                     self.new_leaf(value, c)
                 } else {
@@ -172,19 +184,39 @@ impl<'a> Trainer<'a> {
             node_id
         } else {
             // all attributes are examined but the examples are not classified yet
-            // select the majority of classification in the remaining examples
+            // select the majority of classification among the remaining examples
             let c = self.plurality_value(examples);
             self.new_leaf(value, c)
         }
     }
 
-    pub fn train(mut self) -> DecisionTree {
+    // return None only when the leaf is root
+    fn parent_attr(&self, leaf: NodeId) -> Option<Attr> {
+        let parent_id = parent_id(&self.arena, leaf)?;
+        let parent = self.arena.get(parent_id)?;
+        parent.get().class.attr()
+    }
+
+    fn prune(&mut self) {
+        unimplemented!()
+    }
+
+    pub fn train(mut self, option: TrainOption) -> DecisionTree {
+        // χ^2 threshold of 1%
         let root = self.train_root();
+        if option == TrainOption::X2Prune {
+            self.prune();
+        }
         DecisionTree {
             arena: self.arena,
             root,
         }
     }
+}
+
+fn parent_id<T>(arena: &Arena<T>, node_id: NodeId) -> Option<NodeId> {
+    let node = arena.get(node_id)?;
+    node.parent()
 }
 
 pub struct DecisionTree {
@@ -224,100 +256,16 @@ impl DecisionTree {
 #[cfg(test)]
 mod test {
     use super::*;
-    use regex::Regex;
-
-    const DATA: &str = "\
-x1 Yes No No Yes Some $$$ No Yes French 0–10 y1 = Yes
-x2 Yes No No Yes Full $ No No Thai 30–60 y2 = No
-x3 No Yes No No Some $ No No Burger 0–10 y3 = Yes
-x4 Yes No Yes Yes Full $ Yes No Thai 10–30 y4 = Yes
-x5 Yes No Yes No Full $$$ No Yes French >60 y5 = No
-x6 No Yes No Yes Some $$ Yes Yes Italian 0–10 y6 = Yes
-x7 No Yes No No None $ Yes No Burger 0–10 y7 = No
-x8 No No No Yes Some $$ Yes Yes Thai 0–10 y8 = Yes
-x9 No Yes Yes No Full $ Yes No Burger >60 y9 = No
-x10 Yes Yes Yes Yes Full $$$ No Yes Italian 10–30 y10 = No
-x11 No No No No None $ No No Thai 0–10 y11 = No
-x12 Yes Yes Yes Yes Full $ No No Burger 30–60 y12 = Yes";
-
-    fn yes_no(s: &str) -> Value {
-        match s {
-            "Yes" => 1,
-            "No" => 0,
-            _ => unreachable!(),
-        }
-    }
-
-    fn parse_examples(data: &str) -> Vec<Example> {
-        let regex = Regex::new(
-            r"(?x)
-            x\d+\s
-            (?P<alt>Yes|No)\s
-            (?P<bar>Yes|No)\s
-            (?P<fri>Yes|No)\s
-            (?P<hun>Yes|No)\s
-            (?P<pat>None|Some|Full)\s
-            (?P<price>\$|\$\$|\$\$\$)\s
-            (?P<rain>Yes|No)\s
-            (?P<res>Yes|No)\s
-            (?P<type>French|Thai|Burger|Italian)\s
-            (?P<est>0–10|10–30|30–60|>60)\s
-            y\d+\s=\s
-            (?P<willwait>Yes|No)
-        ",
-        )
-        .unwrap();
-
-        data.lines()
-            .map(|line| {
-                let cap = regex.captures(line).unwrap();
-                let mut input = vec![];
-                input.push(yes_no(&cap["alt"]));
-                input.push(yes_no(&cap["bar"]));
-                input.push(yes_no(&cap["fri"]));
-                input.push(yes_no(&cap["hun"]));
-                input.push(match &cap["pat"] {
-                    "None" => 0,
-                    "Some" => 1,
-                    "Full" => 2,
-                    _ => unreachable!(),
-                });
-                input.push(match &cap["price"] {
-                    "$" => 0,
-                    "$$" => 1,
-                    "$$$" => 2,
-                    _ => unreachable!(),
-                });
-                input.push(yes_no(&cap["rain"]));
-                input.push(yes_no(&cap["res"]));
-                input.push(match &cap["type"] {
-                    "French" => 0,
-                    "Thai" => 1,
-                    "Burger" => 2,
-                    "Italian" => 3,
-                    _ => unreachable!(),
-                });
-                input.push(match &cap["est"] {
-                    "0–10" => 0,
-                    "10–30" => 1,
-                    "30–60" => 2,
-                    ">60" => 3,
-                    _ => unreachable!(),
-                });
-                let output = yes_no(&cap["willwait"]) != 0;
-
-                (input, output).into()
-            })
-            .collect()
-    }
+    use crate::test::*;
 
     #[test]
-    fn train_test() {
-        let input_scheme = vec![2, 2, 2, 2, 3, 3, 2, 2, 4, 4];
+    fn consistency_test() {
+        let input_scheme = INPUT_SCHEME.to_vec();
         let examples = parse_examples(DATA);
         let trainer = Trainer::new(input_scheme, &examples);
-        let tree = trainer.train();
+        let tree = trainer.train(TrainOption::Full);
 
+        // as long as the training set is free of noise and error
         // trained decision tree should be consistent to the training set
         for example in examples {
             assert_eq!(tree.classify(&example.input), example.output);
