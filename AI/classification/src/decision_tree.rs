@@ -123,11 +123,9 @@ impl<'a> Trainer<'a> {
                 } else {
                     let p = f64::from(p);
                     let n = f64::from(n);
-                    println!("{}, {}", p, n);
                     binary_entropy(p / (p + n)) * (p + n) / examples.len() as f64
                 }
             })
-            .inspect(|e| println!("{}", e))
             .sum()
     }
 
@@ -160,6 +158,18 @@ impl<'a> Trainer<'a> {
             let i1 = self.remainder(a1, examples);
             i0.partial_cmp(&i1).expect("Trainer::train_recur: NaN")
         }) {
+            // println!(
+            //     "In examples {:?}",
+            //     examples
+            //         .iter()
+            //         .map(|x| format!("x{}", x + 1))
+            //         .collect::<Vec<_>>()
+            // );
+            // println!(
+            //     "Attribute A{} has minimum remaining entropy {}",
+            //     attr + 1,
+            //     self.remainder(attr, examples)
+            // );
             let node_id = self.arena.new_node(Tag::new(value, Class::Plural(attr)));
             attrs.remove(&attr);
             for value in 0..self.input_scheme[attr] {

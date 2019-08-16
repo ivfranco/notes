@@ -4614,3 +4614,93 @@ c.  home with pact:
     pact is a dominate strategy for both parties
 d.  the new rule encouraged some teams into a pact 
 
+18.1
+typical reinforced learning
+improvement:
+    the ability to recognize and speak words in a language
+    (the whold idea of "learning a language" is too complicated)
+prior knowledge:
+    none
+data representation:
+    visual and sound input
+    e.g. the spoken word "firehydron" and a real firehydron in front of it
+output and feedback:
+    a certain viberation pattern of vocal folds
+    mental/physical rewards and punishment from trainers
+
+18.2
+reinforced learning when learning tennis from immediate matches
+supervised learning when learning tennis from a coach 
+improvement:
+    tennis skill (mainly performance in a match)
+prior knowledge:
+    none
+data representation:
+    in matches: visual, sense of movement
+    in coaching: the same
+output and feedbacks:
+    in matches: match outcome
+    in coaching: reward/punishment from coach
+
+18.3
+since the training data is generated from the decision tree
+it's consistent with the decision tree and error-free
+when the training-set size goes to infinity, each possible combination of input attributes are generated 
+the trained tree will be consistent with all the input data, hence equivalent to the original decision tree
+
+18.4
+a.  at a leaf node it has to return Positive or Negative
+    the error rate is (1 - C) / (p + n), where C = p or n
+    the minimum error rate is min(p / (p + n), n / (p + n)) = min(p, n) / (p + n) = 1 - max(p, n) / (p + n)
+    by choosing to return the majority, C = max(p, n), error rate = (1 - max(p, n)) / (p + n) is minimized
+b.  let a be the fixed output
+    L2  = Σ(yk - a)^2
+        = (p(1 - a)^2 + na^2) / (p + n)
+    dL2/da  = (-2p(1 - a) + 2na) / (p + n)
+            = (2pa - 2p + 2na) / (p + n)
+            = 0
+    dL2/da is non-decreasing => L2 has a global minimum
+    (2p + 2n)a = 2p
+    a = p / (p + n) minimizes L2
+
+18.5
+dB(p)/dp = lg(p/(1-p)) / ln2
+Gain    = B(p/(p + n)) - Σ(pk + nk)B(pk / (pk + nk)) / (p + n)
+subject to Σpk = p, Σnk = n, the Lagrange function is 
+L = B(p/(p + n)) - Σ(pk + nk)B(pk / (pk + nk))/(p + n) - λ1(Σpk - p) - λ2(Σnk - n)
+dL/dpk  = -(1/(p + n))d(pk + nk)B(pk / (pk + nk))/dpk - λ1 = 0
+-B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * d(pk/(pk + nk))/dpk = λ1(p + n)
+1.  -B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * nk/(pk + nk)^2 = λ1(p + n)
+dL/dpk  = -(1/(p + n))d(pk + nk)B(pk / (pk + nk))/dnk - λ2 = 0
+-B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * d(pk / (pk + nk))/dnk = λ2(p + n)
+2.  -B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * (-pk/(nk + pk)^2) = λ2(p + n)
+substract 1. and 2.
+-(pk + nk)lg(pk/nk)/ln2 * (pk + nk)/(pk + nk)^2 = (λ1 - λ2)(p + n)
+-lg(pk/nk) = ln2(λ1 - λ2)(p + n)
+the right side of the equation are independent to nk
+therefore on stationary points pi/ni = pj/nj for all i,j
+for fixed set of sk = pk + nk, pk/nk = p/n for all k is the only stationary point
+on which Σ(pk+nk)/(p+n)B(pk / (pk + nk)) = B(p/(p+n)), Gain = 0
+assume p > 0 && n > 0, all subsets have uniform classification, Gain = B(p(p + n)) - 0 > 0
+therefore pk/nk = p/n is a global minimum, all other points have positive Gain
+
+18.6
+./AI/classification
+In examples ["x2", "x3", "x5", "x1", "x4"]
+Attribute A2 has minimum remaining entropy 0.5509775004326938
+In examples ["x3", "x5", "x4"]
+Attribute A1 has minimum remaining entropy 0
+
+18.7
+a.  an n-bit XOR decision tree must have 2^n nodes:
+        XOR cannot be decided without evaluating all bits, each path from root to leaf must has length >= n
+        every bit may affect the final XOR, each node must have two children
+b.  an n-bit XOR decision graph may have only n+1 nodes, where the last node has all other nodes as parents
+        XOR cannot be decided without evaluating all bits, each path from root to leaf must has length >= n
+        a node with all other nodes as parents can compute XOR of the string
+    
+18.8
+a.  truth table of 2-bit XOR
+    top-down X^2 pruning will return a constant tree with error rate 50%
+    bottom-up X^2 pruning will not remove any node
+b.  

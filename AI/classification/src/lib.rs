@@ -12,10 +12,16 @@ pub struct Example {
     output: bool,
 }
 
-impl From<(Vec<Value>, bool)> for Example {
-    fn from((input, output): (Vec<Value>, bool)) -> Self {
+impl<V, C> From<(V, C)> for Example
+where
+    V: Into<Vec<Value>>,
+    C: Into<bool>,
+{
+    fn from((input, output): (V, C)) -> Self {
         Example {
-            input, output }
+            input: input.into(),
+            output: output.into(),
+        }
     }
 }
 
@@ -56,11 +62,11 @@ where
 }
 
 #[cfg(test)]
-mod test {
+pub(crate) mod test {
     use super::*;
     use regex::Regex;
 
-    pub(crate) const DATA: &str = "\
+    pub const DATA: &str = "\
 x1 Yes No No Yes Some $$$ No Yes French 0–10 y1 = Yes
 x2 Yes No No Yes Full $ No No Thai 30–60 y2 = No
 x3 No Yes No No Some $ No No Burger 0–10 y3 = Yes
@@ -82,7 +88,7 @@ x12 Yes Yes Yes Yes Full $ No No Burger 30–60 y12 = Yes";
         }
     }
 
-    pub(crate) fn parse_examples(data: &str) -> Vec<Example> {
+    pub fn parse_examples(data: &str) -> Vec<Example> {
         let regex = Regex::new(
             r"(?x)
             x\d+\s
@@ -145,7 +151,7 @@ x12 Yes Yes Yes Yes Full $ No No Burger 30–60 y12 = Yes";
             .collect()
     }
 
-    pub(crate) const INPUT_SCHEME: [Value; 10] = [
+    pub const INPUT_SCHEME: [Value; 10] = [
         2, // Yes, No
         2, // Yes, No
         2, // Yes, No
