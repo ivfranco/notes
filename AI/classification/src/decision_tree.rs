@@ -1,8 +1,7 @@
-#![allow(dead_code)]
-
 use super::*;
 use indextree::{Arena, NodeId};
 use rand::prelude::*;
+use statrs::distribution::{ChiSquared, Univariate};
 use std::collections::HashSet;
 
 #[derive(Clone, Copy)]
@@ -52,7 +51,6 @@ pub struct Trainer<'a> {
     arena: Arena<Tag>,
     input_scheme: Vec<Value>,
     examples: &'a [Example],
-    leaves: Vec<NodeId>,
 }
 
 impl<'a> Trainer<'a> {
@@ -66,7 +64,6 @@ impl<'a> Trainer<'a> {
             arena: Arena::new(),
             input_scheme,
             examples,
-            leaves: vec![],
         }
     }
 
@@ -103,7 +100,7 @@ impl<'a> Trainer<'a> {
         }
     }
 
-    fn remainder(&self, attr: Attr, examples: &HashSet<usize>) -> f64 {
+    fn subsets(&self, attr: Attr, examples: &HashSet<usize>) -> Vec<(u32, u32)> {
         let mut values = vec![(0, 0); self.input_scheme[attr] as usize];
         for example in self.select_examples(examples) {
             let v = example.input[attr] as usize;
@@ -114,8 +111,11 @@ impl<'a> Trainer<'a> {
                 *n += 1;
             }
         }
-
         values
+    }
+
+    fn remainder(&self, attr: Attr, examples: &HashSet<usize>) -> f64 {
+        self.subsets(attr, examples)
             .into_iter()
             .map(|(p, n)| {
                 if p + n == 0 {
@@ -130,9 +130,7 @@ impl<'a> Trainer<'a> {
     }
 
     fn new_leaf(&mut self, value: Value, class: Class) -> NodeId {
-        let node_id = self.arena.new_node(Tag::new(value, class));
-        self.leaves.push(node_id);
-        node_id
+        self.arena.new_node(Tag::new(value, class))
     }
 
     fn train_root(&mut self) -> NodeId {
@@ -152,10 +150,13 @@ impl<'a> Trainer<'a> {
             return self.new_leaf(value, c);
         }
 
+        let (p, n) = class_count(self.select_examples(examples));
+        let entropy = binary_entropy(p as f64 / (p + n) as f64);
+
         // select the attribute that minimizes the remaining entropy
-        if let Some(attr) = attrs.iter().cloned().min_by(|&a0, &a1| {
-            let i0 = self.remainder(a0, examples);
-            let i1 = self.remainder(a1, examples);
+        if let Some(attr) = attrs.iter().copied().max_by(|&a0, &a1| {
+            let i0 = gain_ratio(entropy, self.remainder(a0, examples), self.input_scheme[a0]);
+            let i1 = gain_ratio(entropy, self.remainder(a1, examples), self.input_scheme[a1]);
             i0.partial_cmp(&i1).expect("Trainer::train_recur: NaN")
         }) {
             // println!(
@@ -175,7 +176,7 @@ impl<'a> Trainer<'a> {
             for value in 0..self.input_scheme[attr] {
                 let filtered: HashSet<usize> = examples
                     .iter()
-                    .cloned()
+                    .copied()
                     .filter(|&i| self.examples[i].input[attr] == value)
                     .collect();
 
@@ -200,22 +201,71 @@ impl<'a> Trainer<'a> {
         }
     }
 
-    // return None only when the leaf is root
-    fn parent_attr(&self, leaf: NodeId) -> Option<Attr> {
-        let parent_id = parent_id(&self.arena, leaf)?;
-        let parent = self.arena.get(parent_id)?;
-        parent.get().class.attr()
+    fn significance(&self, attr: Attr, examples: &HashSet<usize>) -> f64 {
+        let (p, n) = class_count(self.select_examples(examples));
+        let (p, n) = (p as f64, n as f64);
+        self.subsets(attr, examples)
+            .into_iter()
+            .map(|(pk, nk)| {
+                let pk = f64::from(pk);
+                let nk = f64::from(nk);
+                let epk = p * (pk + nk) / (p + n);
+                let enk = n * (pk + nk) / (p + n);
+                if epk == 0.0 || enk == 0.0 {
+                    0.0
+                } else {
+                    (pk - epk).powi(2) / epk + (nk - enk).powi(2) / enk
+                }
+            })
+            // .inspect(|delta| assert!(!delta.is_nan()))
+            .sum()
     }
 
-    fn prune(&mut self) {
-        unimplemented!()
+    fn prune(&mut self, node_id: NodeId, examples: &HashSet<usize>) {
+        const CONFIDENCE_LEVEL: f64 = 0.95;
+
+        let attr = if let Some(attr) = self.arena[node_id].get().class.attr() {
+            attr
+        } else {
+            // nothing to do with leaf nodes
+            return;
+        };
+
+        let children: Vec<_> = node_id.children(&self.arena).collect();
+        for &child_id in children.iter() {
+            // recursively prune children
+            let value = self.arena[child_id].get().value;
+            let filtered = examples
+                .iter()
+                .copied()
+                .filter(|&i| self.examples[i].input[attr] == value)
+                .collect();
+            self.prune(child_id, &filtered);
+        }
+
+        if children
+            .iter()
+            .all(|&child_id| is_leaf(&self.arena, child_id))
+        {
+            // degree of freedom = possible values - 1
+            let freedom = f64::from(self.input_scheme[attr] - 1);
+            let dist =
+                ChiSquared::new(freedom).expect("Trainer::prune: degree of freedom is nonpositive");
+            if dist.cdf(self.significance(attr, examples)) <= CONFIDENCE_LEVEL {
+                for child_id in children {
+                    child_id.remove(&mut self.arena);
+                }
+                // after pruning, node becomes a leaf returning majority of output among examples
+                let c = self.plurality_value(examples);
+                self.arena[node_id].get_mut().class = c;
+            }
+        }
     }
 
     pub fn train(mut self, option: TrainOption) -> DecisionTree {
-        // χ^2 threshold of 1%
         let root = self.train_root();
         if option == TrainOption::X2Prune {
-            self.prune();
+            self.prune(root, &(0..self.examples.len()).collect());
         }
         DecisionTree {
             arena: self.arena,
@@ -224,9 +274,13 @@ impl<'a> Trainer<'a> {
     }
 }
 
-fn parent_id<T>(arena: &Arena<T>, node_id: NodeId) -> Option<NodeId> {
-    let node = arena.get(node_id)?;
-    node.parent()
+fn gain_ratio(entropy: f64, remainder: f64, values: Value) -> f64 {
+    assert!(values > 1);
+    (entropy - remainder) / f64::from(values).log2()
+}
+
+fn is_leaf<T>(arena: &Arena<T>, node_id: NodeId) -> bool {
+    node_id.children(arena).count() == 0
 }
 
 pub struct DecisionTree {
@@ -270,9 +324,8 @@ mod test {
 
     #[test]
     fn consistency_test() {
-        let input_scheme = INPUT_SCHEME.to_vec();
         let examples = parse_examples(DATA);
-        let trainer = Trainer::new(input_scheme, &examples);
+        let trainer = Trainer::new(INPUT_SCHEME.to_vec(), &examples);
         let tree = trainer.train(TrainOption::Full);
 
         // as long as the training set is free of noise and error
@@ -280,5 +333,18 @@ mod test {
         for example in examples {
             assert_eq!(tree.classify(&example.input), example.output);
         }
+    }
+
+    #[test]
+    fn pruning_test() {
+        let examples = parse_examples(DATA);
+        let trainer = Trainer::new(INPUT_SCHEME.to_vec(), &examples);
+        let tree = trainer.train(TrainOption::X2Prune);
+        let error = examples
+            .iter()
+            .filter(|example| tree.classify(&example.input) != example.output)
+            .count();
+
+        assert!(error <= 2);
     }
 }

@@ -56,7 +56,7 @@ impl<'a> Trainer<'a> {
                     filtered
                         .iter()
                         .filter(|example| example.input[attr] == value)
-                        .cloned(),
+                        .copied(),
                 );
                 if t > 0 && f == 0 {
                     Some((attr, value, true))

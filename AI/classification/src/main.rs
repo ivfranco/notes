@@ -1,4 +1,4 @@
-use classification::decision_tree::*;
+use classification::{decision_tree::*};
 
 fn main() {
     exercise_18_6();

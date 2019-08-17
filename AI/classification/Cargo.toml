@@ -9,6 +9,7 @@ edition = "2018"
 [dependencies]
 indextree = "^4.0"
 rand = "^0.7"
+statrs = "^0.11"
 
 [dev-dependencies]
 regex = "^1.2"

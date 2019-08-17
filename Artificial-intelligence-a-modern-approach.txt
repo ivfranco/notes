@@ -4664,6 +4664,8 @@ b.  let a be the fixed output
     a = p / (p + n) minimizes L2
 
 18.5
+/// thanks solutions manual
+/// the calculation on solutions manual is somehow incorrect 
 dB(p)/dp = lg(p/(1-p)) / ln2
 Gain    = B(p/(p + n)) - Σ(pk + nk)B(pk / (pk + nk)) / (p + n)
 subject to Σpk = p, Σnk = n, the Lagrange function is 
@@ -4677,9 +4679,9 @@ dL/dpk  = -(1/(p + n))d(pk + nk)B(pk / (pk + nk))/dnk - λ2 = 0
 substract 1. and 2.
 -(pk + nk)lg(pk/nk)/ln2 * (pk + nk)/(pk + nk)^2 = (λ1 - λ2)(p + n)
 -lg(pk/nk) = ln2(λ1 - λ2)(p + n)
-the right side of the equation are independent to nk
+the right side of the equation are independent to k
 therefore on stationary points pi/ni = pj/nj for all i,j
-for fixed set of sk = pk + nk, pk/nk = p/n for all k is the only stationary point
+for fixed sequence of sk = pk + nk, pk/nk = p/n for all k is the only stationary point of Lagrange function
 on which Σ(pk+nk)/(p+n)B(pk / (pk + nk)) = B(p/(p+n)), Gain = 0
 assume p > 0 && n > 0, all subsets have uniform classification, Gain = B(p(p + n)) - 0 > 0
 therefore pk/nk = p/n is a global minimum, all other points have positive Gain
@@ -4703,4 +4705,111 @@ b.  an n-bit XOR decision graph may have only n+1 nodes, where the last node has
 a.  truth table of 2-bit XOR
     top-down X^2 pruning will return a constant tree with error rate 50%
     bottom-up X^2 pruning will not remove any node
-b.  
+b.  ./AI/classification/src/decision_tree.rs
+
+18.9
+a.  // code skipped
+    // each node now keeps a dictionary of weights of attributes
+    // calculated from examples filtered along the path
+b.  simply calculate the Gain(A) after filtering out all missing values 
+
+18.10
+information content: lg(|A|)
+GainRatio(A) = Gain(A) / lg(|A|)
+./AI/classification/src/decision_tree.rs
+
+18.11
+in leave-one-out cross-validation, if the chosen test example is positive:
+    the training set contains 99 positive example and 100 negative example
+    the majority classifier will return Negative, fail on the only test example
+if the chosen test example is negative:
+    symmetric
+
+18.12
+A1 = 1 => Output = 1
+A3 = 1 & A4 = 0 => Output = 0
+A2 = 0 => Output = 1
+Output = ~A4
+
+18.13
+each path from root to a leave represents a sequence of (attribute, value) pairs
+create a node in decision list for each leaf in the tree with the corresponding sequence of pairs
+return the classification of the leaf or move to the next node
+for an arbitrary input I, the decision tree returns output O
+there is a unique path of (attribute, value) pairs the input traversed in the tree
+any other paths to another leaf will have different pairs
+so only the test in the corresponding node in the decision list will match I, returning the same output O
+example: 2-bit XOR
+    a minimal decision tree has 4 leaves
+    a minimal decision list has 2 test nodes (A1 = A2 = 0 and A1 = A2 = 1)
+
+18.14
+a.  enumerate each row of the truth table
+    2^n test nodes
+b.  the same to 18.13
+    length of the sequence of pairs is limited by the depth k
+
+18.15
+L1:
+    7, sort than take the 4th value
+    if there are even number of values, anything between n/2th and n/2+1th value is correct
+    median
+L2:
+    dΣ(yi - m)^2/dm = -Σ2(yi - m) = 2nm - 2Σyi = 0
+    m = Σyi / n is the only stationary point
+    as 2nm - 2Σyi is non-decreasing, m = Σyi / n is a global minimum
+    mean
+
+18.16
+a.  (x1 - a)^2 + (x2 - b)^2 - r^2 = 0
+    x1^2 - 2ax1 + a^2 + x2^2 - 2bx2 + b^2 - r^2 = 0
+    -2ax1 - 2bx2 + x1^2 + x2^2 = r^2 - a^2 - b^2
+    hence for -2ax1 - 2bx2 + x1^2 + x2^2 <= r^2 - a^2 - b^2, point (x, y) are in the circle
+    with w = [-2a, -2b, 1, 1], input is mapped to a 1-d space with a clear boundary r^2 - a^2 - b^2
+b.  c(x1 - a)^2 + d(x2 - b)^2 - 1 = 0
+    cx1^2 - 2cax1 + ca^2 + dx2^2 - 2dbx2 + db^2 - 1 = 0
+    -2cax1 - 2dbx2 + cx1^2 + dx2^2 = 1 - ca^2 - db^2
+    w = [-2ca, -2db, c, d, 0]
+    4-demension will suffice
+
+18.17
+[1, 1]      => [1, 1], 0
+[1, -1]     => [1, -1], 1
+[-1, 1]     => [-1, -1], 1
+[-1, -1]    => [-1, 1], 0
+maximal margin seperator: x1x2 = 0
+margin is 2
+in the original input space, the seperator is the x and y axes
+
+18.18
+more than K/2 + 1 hypothesis must be wrong
+ε' = ε^(K/2 + 1)
+/// calculation omitted
+if the ensemble hypothesis has error rate ε' 
+the minimum average error rate of K hypotheses is ε'(K/2 + 1) / K < ε'
+one possible way to achieve this lower bound is a group of hypothesis where 
+among a total K inputs, either all hypotheses return the correct output
+or exactly K/2 + 1 hypotheses return the wrong output, and the error is evenly distributed among hypotheses
+
+18.19
+a single NN node can do linear seperable classification
+both AND and OR are linear seperable
+given input x1 and x2,
+    define a node n1 computing x1 & x2
+    define a node n2 computing x1 | x2
+    define a node n3 computing ~n1 & n2
+output of n3 should be the XOR function
+
+18.20
+/// refer Rojas, R. (1996). Neural Networks: A Systematic Introduction.
+2Σi C(2^n - 1, i)
+
+18.21
+p = 1 / (1 + e^(-Σwixi))
+dlogp/dwi   = -dlog(1/p)/dwi
+            = -p d(1 + e^(-Σwixi))/dwi
+            = p * e^(-Σwixi) * xi
+            = xie^(-Σwixi) / (1 + e^(-Σwixi))
+dlog(1-p)/dwi   = dlog(e^(-Σwixi) / (1 + e^(-Σwixi)))/dwi
+                = (1 + 1 / e^-Σwixi)
+
