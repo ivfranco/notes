@@ -4805,11 +4805,85 @@ output of n3 should be the XOR function
 2Σi C(2^n - 1, i)
 
 18.21
-p = 1 / (1 + e^(-Σwixi))
+p = 1 / (1 + e^-Σwx)
 dlogp/dwi   = -dlog(1/p)/dwi
-            = -p d(1 + e^(-Σwixi))/dwi
-            = p * e^(-Σwixi) * xi
-            = xie^(-Σwixi) / (1 + e^(-Σwixi))
-dlog(1-p)/dwi   = dlog(e^(-Σwixi) / (1 + e^(-Σwixi)))/dwi
-                = (1 + 1 / e^-Σwixi)
+            = -p d(1 + e^-Σwx)/dwi
+            = p * e^-Σwx * xi
+            = xi * e^-Σwx / (1 + e^-Σwx)
+            = xi(1 - p)
+dlog(1-p)/dwi   = dlog(e^-Σwx / (1 + e^-Σwx))/dwi
+                = (1 + 1 / e^-Σwx)d(1-p)/dwi
+                = -(1 + 1 / e^-Σwx)(1 / (1 + e^-Σwx)^2)d(e^-Σwx)/dwi
+                = (1 + 1 / e^-Σwx)(1 / (1 + e^-Σwx)^2)e^-Σwx * xi
+                = xi(1 + e^-Σwx)(1 / (1 + e^-Σwx)^2)
+                = xi(1 / (1 + e^-Σwx))
+                = xip
+/// thanks solutions manual
+/// negative-log-likelihood is treated as posibility here
+negative-log-likelihood for a positive example is 
+    -log(1 - p)
+for a negative example is
+    -logp
+assuming there k positive examples, the total loss is 
+    L   = -ylogp - (1-y)log(1-p)
+    dL/dwi  = -yxi(1-p) + (1-y)xip
+            = xi(-y + yp + p - yp)
+            = xi(p - y)
+            = -xi(y - p)
+which is similar to linear gradient decendent
+
+18.22
+a.  assume nodes in the hidden layer have weights wi = [wk,i] and constant ci
+    for each output node j, let ai be the input from ith node in the hidden layer
+    let wi,j be the weight of ai
+    output of the node j is
+        gj(Σi wi,jai)
+        = cj(Σi wi,jai)
+        = cjΣi wi,jgi(wix)
+        = cjΣi wi,j * ciwix
+        = cjΣi wi,j * ciΣk wk,i * xk
+        = cjΣi,k ci * wi,j * wk,i * xk
+        = cjΣk (Σi ci * wi,j * wk,i) * xk
+    the output node is equivalent to a node that
+        takes input directly from input nodes
+        has weights wk,j = Σi ci * wi,j * wk,i
+b.  the same to part a
+    inductively, each transformation will eliminate the first hidden layer
+c.  before: 
+        h hidden nodes each has n weights
+        n output nodes each has h weights
+        2nh in total
+    after:
+        n output nodes each has n weights
+        n^2 in total
+    when h << n, the number of weights is almost quadratic after the transformation
+
+18.23
+assume the only output node has weights wj,k and inputs aj
+assume L2 loss function
+Errk    = 0.8(1 - hw)^2 + 0.2hw^2
+        = 0.8hw^2 - 1.6hw + 0.8 + 0.2hw^2
+        = hw^2 - 1.6hw + 0.8
+Errk is convex
+at global optimum, hw must minimize the Errk on the same input
+dErrk/dhw = 2hw - 1.6 = 0
+hw = 0.8
+
+18.24
+/// skipped
+
+18.25
+a.  if the three points are not colinear, they form a triangle on the plane
+    if one is positive and the other two are negative (or vice versa):
+        connecting mid points of two sides of the triangle
+        there is a line seperating any one of them from the other two
+    if all three of them are positive / negative:
+        there is a line having all three of the points on one side
+b.  XOR function
+c.  if the four points are not coplanar, they form a tetrahedron
+    any one or two vertices can be seperated from other three by a plane
+d.  a tetrahedron with positive vertices, and a negative point inside it
+    any planar seperating the point inside and a vertex 
+    must have some other vertices on the same side with the negative point
+e.  /// skipped
 
