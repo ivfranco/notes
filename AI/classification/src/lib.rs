@@ -1,5 +1,6 @@
 pub mod decision_list;
 pub mod decision_tree;
+pub mod logistic_regression;
 
 use std::borrow::Borrow;
 
