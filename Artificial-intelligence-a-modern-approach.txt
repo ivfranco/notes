@@ -4887,3 +4887,52 @@ d.  a tetrahedron with positive vertices, and a negative point inside it
     must have some other vertices on the same side with the negative point
 e.  /// skipped
 
+19.1
+Nationality(x, n) & Nationality(y, n) & Language(x, l) => Language(y, l)
+~Nationality(x, n) | ~Nationality(y, n) | ~Language(x, l) | Language(y, l) {x/Fernando, n/Brazil, l/Portuguese}
+Nationality(Fernando, Brazil) & Language(Fernando, Portuguese)
+=>  ~Nationality(y, Brazil) | Language(y, Portuguese)
+=>  Nationality(y, Brazil) => Language(y, Portuguese)
+=>  Nationality(x, Brazil) => Language(x, Portuguese)
+
+19.2
+a.  false: the coin may be a fake with the same design and denomination but different material / weight
+b.  false: the program may be random or has side effects
+c.  false: human body is still a black box to modern medical science
+d.  false: no evidence
+
+19.3
+Isn't that just Bayesian network
+
+19.4
+a.  C1 = ~P(x, y) | Q(x, y)
+    exist no C1, C2 => C
+b.  C1 = P(A, B) | ~Q(A, B), C2 = Q(A, B)
+c.  C = ~P(x, y) | P(x, f(y))
+    C1 = ~P(x, y) | P(x, f(y)) | Q(x, y)
+    C2 = ~P(x, y) | P(x, f(y)) | ~Q(x, y)
+
+19.5
+/// thanks solutions manual
+/// this problem is asking the behavior of a prolog program
+/// skipped
+
+19.6
+a.  with previously mentioned variables only:
+        5^2 = 25
+    with one new variable (the other must be one of the 5 variables):
+        5 + 5 = 10
+    35 * 2 = 70 in total with negation
+b.  at most r - 1 new variables may be introduced by the literal
+    each parameter of the predicate may be one of the (n + r - 1) variables
+        (n + r - 1)^r
+    exclude the cases where the new literal contains no old variables 
+        (r - 1)^r
+    2((n + r - 1)^r - (r - 1)^r) in total
+c.  if the literal has anything to do with the definition of the new predicate
+    there must be some combination of legal additions that connects it to the variables mentioned in the new predicate
+    otherwise it's irrelavent and should not be considered
+
+19.7
+/// skipped, FOIL is abandonware now
+
