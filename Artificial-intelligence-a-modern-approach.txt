@@ -4819,17 +4819,15 @@ dlog(1-p)/dwi   = dlog(e^-Σwx / (1 + e^-Σwx))/dwi
                 = xi(1 / (1 + e^-Σwx))
                 = xip
 /// thanks solutions manual
-/// negative-log-likelihood is treated as posibility here
-negative-log-likelihood for a positive example is 
-    -log(1 - p)
-for a negative example is
-    -logp
-assuming there k positive examples, the total loss is 
-    L   = -ylogp - (1-y)log(1-p)
-    dL/dwi  = -yxi(1-p) + (1-y)xip
-            = xi(-y + yp + p - yp)
-            = xi(p - y)
-            = -xi(y - p)
+when y = 1, the positive likelihood is included, p^y = p
+when y = 0, p^y = 1, the positive likelihood is ignored
+similarly for negative likelihood
+L   = log(p^y * (1-p)^(1-y))
+    = -ylogp - (1-y)log(1-p)
+dL/dwi  = -yxi(1-p) + (1-y)xip
+        = xi(-y + yp + p - yp)
+        = xi(p - y)
+        = -xi(y - p)
 which is similar to linear gradient decendent
 
 18.22
@@ -4936,3 +4934,301 @@ c.  if the literal has anything to do with the definition of the new predicate
 19.7
 /// skipped, FOIL is abandonware now
 
+20.1
+Hypothesis: p(cherry) = 1.00, p(lime) = 0.00
+P(hi | d1, .., dN)
+⡁       ⡠⠔⠒⠒⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
+⠄     ⡔⠉
+⠂    ⡜
+⡁   ⡔⠁
+⠄  ⢸
+⠂  ⡎
+⡁ ⢠⠃
+⠄ ⢸
+⠂ ⡇
+⣹⣀⡇
+⡼⡼⠘⡄
+⣇⠷⡀⢱
+⣿ ⡇ ⠑⡄
+⣿ ⠸⡀ ⠘⢄
+⡟⠤⡀⠱⣀⡀ ⠉⠢⢄⣀⣀
+⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+P(DN+1 = lime | d1, .., dN)
+⡇                                                             0.5
+⡇
+⡇
+⡇
+⢧
+⢺
+⣹
+⠄⡇
+⠂⢸
+⡁ ⡇
+⠄ ⢣
+⠂ ⠘⡄
+⡁  ⢣
+⠄   ⠑⡄
+⠂    ⠈⠢⠤⣀⣀
+⠁         ⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+Hypothesis: p(cherry) = 0.75, p(lime) = 0.25
+P(hi | d1, .., dN)
+⣱⡇      ⢀⠤⠒⠒⠒⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
+⢼⡇     ⡠⠃
+⢺⡇   ⡀⡸
+⣹⡇  ⡜⣇⠇
+⢼⡇ ⢰⠁⢿
+⡞⡇ ⡜
+⡇⣇⡄⡇
+⡇⢻⢹
+⡇⣸⡸⡄
+⣿⣿⡇⢇
+⡽⢿⠃⢸ ⣴
+⡇⢸  ⢇⡟⡄
+⡇⢸  ⠈⠃⢣
+⣧⢸⡄   ⠈⠢⡀
+⡟⢾⠱⡀    ⠑⠤⣀⣀⣀
+⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+P(DN+1 = lime | d1, .., dN)
+⡇                                                             0.5
+⡇
+⡇
+⡇⢠⡆
+⡇⢸⡇
+⡇⢸⢇
+⡇⢸⢸
+⡇⢸⢸
+⡇⡸ ⡇
+⣹⡇ ⢇
+⢼⡇ ⢸ ⣴
+⢺⡇  ⢣⡟⡄
+⣹⡇   ⠁⢣
+⠼⡇    ⠈⠢⡀
+⠂       ⠑⠤⣀⣀⣀
+⠁            ⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.2
+0.0                                                      100.0
+Hypothesis: p(cherry) = 0.50, p(lime) = 0.50
+P(hi | d1, .., dN)
+⣿ ⣾         ⢀⠤⠤⠤⣀ ⡠⣀⡠⣀⠤⣀⣄⠤⡔⠔⠒⠒⠊⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠒⠒⠊⠉⠒⠔⠒⢤⠢⠒⠒⠒⠉⠉⠁ 1.0
+⣿ ⣿     ⢀⡔⠢⡎⠃    ⠻  ⠁⠈ ⠙⠈
+⣿ ⣿   ⢀⢠⠃
+⣿ ⣿ ⢀⢤⡟⠇
+⣿⢰⢹⡠⠎⠈⠃
+⣿⢸⢸⡇
+⣿⡧⣼⡇
+⣿⠇⠙⡇
+⢻  ⡇
+⣹  ⡇
+⢼  ⢸ ⡀
+⢺⡀ ⢸⡸⣧⡆   ⢀⡄     ⣴
+⣿⢇ ⢸⢧⡟⢷⢇⢰⡇⡎⣧⡆   ⢀⢿  ⡀⣠ ⣴
+⣿⠘⡄⡇⠈⢻⣴⠈⡎⠻ ⠙⢣  ⢠⠃ ⣇⠎⢧⠻⡠⠛⢾⢀⡄⡀                         ⣠⢀
+⣿ ⠙   ⠉⠊⠘⠴⣀⣀⣈⣢⣤⠃  ⠈      ⠁⠙⠣⣀⠴⣀⣀⣀⣀         ⣀⣀⣀⣀⠴⣀⣀⠔⠣⠒⠉⠛⠤⡠⢆⣀⢀⡀
+⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+P(DN+1 = lime | d1, .., dN)
+⡁    ⢰⡇⡀                                                      0.6
+⠄  ⢀⡄⢸⣿⢇
+⠂  ⢸⢇⡎⠙⠸⡀
+⡁  ⢸⢸⡇  ⡇     ⡀
+⣷⡇ ⡎ ⠁  ⢸⣾ ⢀⡰⠉⠘⢄  ⣠ ⢀ ⣀ ⡀⣀⡠⡠⠒⠢⠒⠒⠒⠒⠒⠒⠒⠉⠉⠊⠉⠒⠒⠒⠒⠒⠒⠤⠒⠒⠢⠔⠤⣀⢄⠤⠒⠔⠒⠒⠂
+⣿⡇ ⡇    ⠈⠃⠣⡏⠃   ⠑⣤⠃⠉⠃⠻ ⠻⠙ ⠁                          ⠈
+⣿⢸ ⡇             ⠈
+⣿⢸⢀⠇
+⣿ ⣿
+⣿ ⣿
+⣿ ⣿
+⣿ ⠙
+⣿
+⣿
+⣿
+⠉                                                             0.3
+0.0                                                      100.0
+Hypothesis: p(cherry) = 0.25, p(lime) = 0.75
+P(hi | d1, .., dN)
+⡇       ⣾        ⡠⠒⠒⠢⠔⠤⢆⠔⠒⠒⠒⠉⠊⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
+⡇       ⣿   ⣴ ⡀⡰⠉
+⡇     ⣠ ⡏⡆ ⢰⠙⠎⣧⠃
+⡇    ⢀⢿ ⡇⡇ ⡇  ⠈
+⡇  ⣰⡇⢸⠘⣴⠁⢇⡜
+⣷  ⣿⢱⡇ ⢿ ⢸⠁
+⣿ ⢸⢸⢸⡇ ⡾⡀⣸
+⣿⡄⡎⢸⡇⢱ ⡇⡇⡇⡇
+⣿⢇⡇⢸⡇⢸⢰⠁⣷⠁⢸
+⣿⣸⡀⢸ ⠈⣾ ⠻  ⡇
+⣿⠇⡟⣼  ⢿    ⢇  ⣾
+⣿ ⢇⢹       ⢸⢰⢇⡟⡄
+⡏⡇⢸⢸        ⢿⠈⠃⢣
+⡇⢸ ⣿           ⠈⠢⡀
+⡇ ⢇⢸⣀⢄  ⣀⡀       ⠑⢄⣀⠎⠢⠒⠎⠢⣀⡠⣀⣀⣀
+⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+P(DN+1 = lime | d1, .., dN)
+⡁  ⣾                                                          0.9
+⠄ ⢰⢹
+⠂ ⡸⢸
+⡁ ⡇⢸
+⠄⢠⠃⢸
+⠂⡸ ⢸
+⡁⡇ ⢸        ⢀  ⢀⠤⠔⠊⠉⠒⠊⠒⠢⠒⠉⠑⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁
+⢼  ⢸  ⣠    ⡰⠙⠔⢧⠊
+⢺  ⠈⡆⢠⠻⡀  ⡠⠃
+⡹   ⠸⡎ ⢣ ⢰⠁
+⡇       ⡇⡇
+⡇       ⢿
+⡇
+⡇
+⡇
+⠁                                                             0.5
+0.0                                                      100.0
+Hypothesis: p(cherry) = 0.00, p(lime) = 1.00
+P(hi | d1, .., dN)
+⣿       ⡠⠔⠒⠒⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
+⣿ ⡀  ⢀⠔⠉
+⣿⠉⢣  ⡎
+⣿⡄⢸⢀⠎
+⡇⡇ ⡿
+⡇⢱ ⣧
+⡇⢸⢸⢸
+⣧ ⡏⠈⡆
+⣿ ⡇ ⠸⡀
+⣿⡸⡇  ⡇
+⣿⠇⢸  ⢱
+⣿ ⢸  ⠈⡆
+⡏⡇ ⡇  ⠸⡀
+⡇⢸ ⢱   ⠈⢆
+⡇ ⢇ ⠑⢄⡀  ⠑⠤⢄⣀⣀
+⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      100.0
+P(DN+1 = lime | d1, .., dN)
+⡁     ⡠⠤⠒⠒⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
+⠄   ⢀⠎
+⠂  ⡰⠁
+⡁ ⢀⠇
+⠄ ⡸
+⠂ ⡇
+⡁⢰⠁
+⠄⡎
+⢲⠁
+⣹
+⡼
+⡇
+⡇
+⡇
+⡇
+⠁                                                             0.5
+0.0                                                      100.0
+
+20.2
+/// thanks solutions manual
+assume there are N candies in the bag & Bob is aware of the content of all the unwrapped candies just like Ann
+a state (C, L) is determined by the numbers of unwrapped candies with cherry flavor (C) and lime flavor (L)
+H, posterior distribution of hypotheses is determined by (C, L)
+UB, value of the remaining bag of candy to Bob is determined by H and N - (C + L)
+by conditional independence UB can be computed from C, L, UB = UB(C, L)
+UA involves one more parameter: the decision A made at state (C, L)
+let QA(C, L, D) be the expected utility of A with decision D
+    QA(C, L, unwrap) = (caP(cherry | H)P(H | C, L) + UA(C+1, L)) + (la(lime | H)P(H | C, L) + UA(C, L+1))
+    QA(C, L, sell) = UB(C, L)
+and UA = max(D){ QA(C, L, D) }
+it's a dynamic programming problem with boundary conditions QA(C, L) = 0 where C + L = N
+
+20.3
+before research:
+    the first statistician will take both drugs
+    the second statistician will take only the drug for disease B
+after research:
+    the first statistician will take both drugs
+    the second statistician will take only the drug for disease A
+
+20.4
+when computing the posterior distribution of C,
+    P(C | x) = αP(C)Πxi P(xi | C)
+by associate P(xi | C) with a weight wi, iteration step of boosting method can be performed on naive Bayes learning
+with K posterior distributions of P(C | x), the ensemble can be computed as a normalized weighted sum of them
+
+20.5
+L = Σi -log(2π)/2 - logσ - (yi - (θ1xi + θ2))^2 / 2σ^2)
+dL/dθ1 = d-(yi - (θ1xi + θ2))^2/dθ1 = 0
+dL/dθ2 = d-(yi - (θ1xi + θ2))^2/dθ2 = 0
+maximizing L on θ1, θ2 is just linear regression on (yi, xi)
+    θ1 = (NΣxiyi - ΣxiΣyi) / NΣxi^2 - (Σxi)^2
+    θ2 = (Σyi - θ1Σxi) / N
+dL/dσ is the same to univariate Gaussian distribution
+    σ = (Σ(xi - Σxi / N)^2 / N)^(1/2)
+
+20.6
+let yi and xij take values {0, 1}
+p(fever | xi) = 1 - Πj qj^xij
+P(y | x)    = Πp(fever | xi)^yip(~fever | xi)^(1 - yi)
+            = Π(1 - Πj qj^xij)^yi(Πj qj^xij)^(1 - yi)
+L   = log(P(y | x))
+    = Σ(yilog(1 - Πj qj^xij) + (1 - yi)Σxijlogqj)
+dL/dqj  = Σ(yi * xij/(1 - Πj qj^xij) * qj(xij - 1) + (1 - yi)xij/qj) = 0 for all j
+
+20.7
+/// thanks wolframAlpha
+a.  beta[a, b](θ) = αθ^(a - 1)(1 - θ)^(b - 1)
+    int(0, 1, beta[a, b](θ)) = Γ(a)Γ(b) / Γ(a + b)
+    α = 1 / int(0, 1, beta[a, b](θ)) = Γ(a + b) / Γ(a)Γ(b)
+b.  E[beta[a, b](θ)]
+    = int(0, 1, θbeta[a, b](θ))
+    = αΓ(a + 1)Γ(b) / Γ(a + b + 1)
+    = αaΓ(a)Γ(b) / (a + b)Γ(a + b)
+    = a / (a + b)
+c.  d(beta[a, b](θ))/dθ
+    = α((a-1) * θ^(a-2) * (1-θ)^(b-1) - (b-1) * θ^(a-1) * (1-θ)^(b-2))
+    = αθ^(a-2)(1-θ)^(b-2)((a-1) * (1-θ) - (b-1) * θ)
+    = 0
+    a - θa - 1 + θ - θb + θ = 0
+    a - 1 = θ(a + b - 2)
+    θ = (a - 1) / (a + b - 2)
+d.  beta[ε, ε](θ)   = αθ^(ε - 1)(1 - θ)^(ε - 1)
+                    ≒ α/θ(1-θ)
+    ⣹                                                          ⡎  120.4
+    ⢼                                                          ⡇
+    ⢺                                                          ⡇
+    ⣹                                                          ⡇
+    ⢼                                                          ⡇
+    ⢺                                                          ⡇
+    ⣹                                                          ⡇
+    ⠼⡀                                                         ⡇
+    ⠂⡇                                                        ⢸
+    ⡁⡇                                                        ⢸
+    ⠄⢱                                                        ⡜
+    ⠂⠘⡄                                                      ⢀⠇
+    ⡁ ⠱⡀                                                     ⡜
+    ⠄  ⠑⢄⡀                                                 ⣀⠜
+    ⠂    ⠈⠑⠒⠤⠤⠤⣀⣀⣀⣀⣀⣀                          ⢀⣀⣀⣀⣀⣀⡠⠤⠤⠔⠒⠉
+    ⠁                ⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁                  4.0
+    0.0                                                      1.0
+    the distribution is almost concentrated around 0.0 and 1.0
+    after an update, the distribution collapses to one side
+    ⡁                                                          ⡎  119.4
+    ⠄                                                          ⡇
+    ⠂                                                          ⡇
+    ⡁                                                          ⡇
+    ⠄                                                          ⡇
+    ⠂                                                          ⡇
+    ⡁                                                          ⡇
+    ⠄                                                         ⢀⠇
+    ⠂                                                         ⢸
+    ⡁                                                         ⢸
+    ⠄                                                         ⡎
+    ⠂                                                        ⢠⠃
+    ⡁                                                       ⢀⠎
+    ⠄                                                     ⣀⠤⠊
+    ⠂                             ⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⣀⠤⠤⠤⠤⠤⠒⠒⠊⠉
+    ⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉                                1.0
+    0.0                                                      1.0
+
+20.8
+by adding a link between node X and its new parent Yi
+the CPT of X now contains a new entry 
+by setting P(X | Y, Yi = yi) = P(X | Y) for all yi, the new network is equivalent to the old network
+the maximum likelihood of the old network is a feasible likelihood of the new network
+the maximum likelihood of the new network therefore is equal or greater than the maximum likelihood of the old network
+
+20.9
