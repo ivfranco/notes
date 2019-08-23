@@ -279,10 +279,17 @@ impl Variable {
         Variable::new_const(vec![1.0 - p_true, p_true])
     }
 
-    pub fn binary_single_parent(parent: NodeIndex, p_one_one: Prob, p_zero_one: Prob) -> Self {
+    pub fn binary_single_parent(
+        parent: NodeIndex,
+        p_one_parent_zero: Prob,
+        p_one_parent_one: Prob,
+    ) -> Self {
         let mut cpt = Full::new(&[parent]);
-        cpt.insert_row(&[(parent, 0)], &[1.0 - p_zero_one, p_zero_one]);
-        cpt.insert_row(&[(parent, 1)], &[1.0 - p_one_one, p_one_one]);
+        cpt.insert_row(
+            &[(parent, 0)],
+            &[1.0 - p_one_parent_zero, p_one_parent_zero],
+        );
+        cpt.insert_row(&[(parent, 1)], &[1.0 - p_one_parent_one, p_one_parent_one]);
         Variable::new(CPT::Full(cpt), 2)
     }
 
@@ -473,7 +480,7 @@ impl Network {
     }
 }
 
-fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
+pub fn normalize(mut probs: Vec<Prob>) -> Vec<Prob> {
     let sum: Prob = probs.iter().sum();
     for p in probs.iter_mut() {
         *p /= sum;

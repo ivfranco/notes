@@ -13,6 +13,7 @@ fn main() {
     exercise_16_5();
     exercise_16_15();
     exercise_16_17();
+    exercise_20_10();
 }
 
 fn exercise_14_1() {
@@ -196,8 +197,8 @@ fn exercise_16_5() {
 
     let mut network = Network::new();
     let flavor = network.add_node(Variable::new_const(vec![0.7, 0.3]));
-    let wrapper = network.add_node(Variable::binary_single_parent(flavor, 0.9, 0.2));
-    let shape = network.add_node(Variable::binary_single_parent(flavor, 0.9, 0.2));
+    let wrapper = network.add_node(Variable::binary_single_parent(flavor, 0.2, 0.9));
+    let shape = network.add_node(Variable::binary_single_parent(flavor, 0.2, 0.9));
 
     println!(
         "p(red) = {}",
@@ -211,10 +212,10 @@ fn exercise_16_5() {
 
 fn exercise_16_15() {
     println!("16.15");
-    
+
     let mut network = Network::new();
     let b = network.add_node(Variable::new_const(vec![0.5, 0.5]));
-    let m = network.add_node(Variable::binary_single_parent(b, 0.9, 0.7));
+    let m = network.add_node(Variable::binary_single_parent(b, 0.7, 0.9));
     let mut p_cpt = Full::new(&[b, m]);
     p_cpt.insert_in_binary_order(&[0.3, 0.8, 0.5, 0.9]);
     let p = network.add_node(Variable::new(p_cpt.into(), 2));
@@ -239,20 +240,139 @@ fn exercise_16_17() {
 
     let mut network = Network::new();
     let q = network.add_node(Variable::new_const(vec![0.3, 0.7]));
-    let t = network.add_node(Variable::binary_single_parent(q, 0.8, 0.35));
+    let t = network.add_node(Variable::binary_single_parent(q, 0.35, 0.8));
 
     let eu = utility(&network.query(q, &evidence_from(&[])));
     println!("EU(c) = {}", eu);
 
     let pt = network.query(t, &evidence_from(&[]));
     println!("P(Test) = {:?}", pt);
-    println!("P(Quality | pass) = {:?}", network.query(q, &evidence_from(&[(t, T)])));
-    println!("P(Quality | fail) = {:?}", network.query(q, &evidence_from(&[(t, F)])));
+    println!(
+        "P(Quality | pass) = {:?}",
+        network.query(q, &evidence_from(&[(t, T)]))
+    );
+    println!(
+        "P(Quality | fail) = {:?}",
+        network.query(q, &evidence_from(&[(t, F)]))
+    );
 
     let pass_q = network.query(q, &evidence_from(&[(t, T)]));
     println!("EU(c | pass) = {}", utility(&pass_q));
     let fail_q = network.query(q, &evidence_from(&[(t, F)]));
     println!("EU(c | fail) = {}", utility(&fail_q));
 
-    println!("VPI(Test) = {}", utility(&pass_q) * pt[PASS] + utility(&fail_q) * pt[FAIL] - eu);
+    println!(
+        "VPI(Test) = {}",
+        utility(&pass_q) * pt[PASS] + utility(&fail_q) * pt[FAIL] - eu
+    );
+}
+
+mod candy {
+    use super::*;
+    use petgraph::prelude::*;
+
+    // value order:
+    // Bag = [1, 2]
+    // Flavor = [cherry, lime]
+    // Wrapper = [red, green]
+    // Hold = [no, has]
+
+    pub type Nodes = [NodeIndex; 4];
+    pub type Params = [Prob; 7];
+    pub type Sample = [[[usize; 2]; 2]; 2];
+
+    pub const CHERRY: Value = 0;
+    pub const LIME: Value = 1;
+    pub const RED: Value = 0;
+    pub const GREEN: Value = 1;
+    pub const NOHOLE: Value = 0;
+    pub const HASHOLE: Value = 1;
+
+    pub fn candy_network([theta, f1, w1, h1, f2, w2, h2]: Params) -> (Network, Nodes) {
+        let mut network = Network::new();
+        let bag = network.add_node(Variable::new_const(vec![theta, 1.0 - theta]));
+        let flavor = network.add_node(Variable::binary_single_parent(bag, 1.0 - f1, 1.0 - f2));
+        let wrapper = network.add_node(Variable::binary_single_parent(bag, 1.0 - w1, 1.0 - w2));
+        let hole = network.add_node(Variable::binary_single_parent(bag, h1, h2));
+
+        (network, [bag, flavor, wrapper, hole])
+    }
+
+    pub fn update_on_sample(
+        network: &Network,
+        [bag, flavor, wrapper, hole]: Nodes,
+        sample: &Sample,
+    ) -> Params {
+        let mut bag_1 = 0.0;
+        let (mut f1, mut w1, mut h1) = (0.0, 0.0, 0.0);
+        let (mut f2, mut w2, mut h2) = (0.0, 0.0, 0.0);
+
+        for &f in [CHERRY, LIME].iter() {
+            for &w in [RED, GREEN].iter() {
+                for &h in [NOHOLE, HASHOLE].iter() {
+                    let b =
+                        network.query(bag, &evidence_from(&[(flavor, f), (wrapper, w), (hole, h)]));
+                    let cnt = sample[f][w][h] as f64;
+                    let bag_one_weight = b[0] * cnt;
+                    let bag_two_weight = b[1] * cnt;
+                    bag_1 += bag_one_weight;
+                    if f == CHERRY {
+                        f1 += bag_one_weight;
+                        f2 += bag_two_weight;
+                    }
+                    if w == RED {
+                        w1 += bag_one_weight;
+                        w2 += bag_two_weight;
+                    }
+                    if h == HASHOLE {
+                        h1 += bag_one_weight;
+                        h2 += bag_two_weight;
+                    }
+                }
+            }
+        }
+
+        let sample_cnt = sample
+            .iter()
+            .flat_map(|wrappers| wrappers.iter())
+            .flat_map(|holes| holes.iter())
+            .sum::<usize>() as f64;
+
+        let bag_2 = sample_cnt - bag_1;
+        [
+            bag_1 / sample_cnt,
+            f1 / bag_1,
+            w1 / bag_1,
+            h1 / bag_1,
+            f2 / bag_2,
+            w2 / bag_2,
+            h2 / bag_2,
+        ]
+    }
+}
+
+fn exercise_20_10() {
+    use candy::*;
+
+    println!("\n20.10");
+
+    const SAMPLE: Sample = [[[93, 273], [90, 104]], [[100, 79], [167, 94]]];
+
+    let (network, nodes) = candy_network([0.6, 0.6, 0.6, 0.6, 0.4, 0.4, 0.4]);
+    let [theta, f1, w1, h1, f2, w2, h2] = update_on_sample(&network, nodes, &SAMPLE);
+
+    println!("θ(1) = {}", theta);
+    println!("θF1(1) = {}", f1);
+    println!("θW1(1) = {}", w1);
+    println!("θH1(1) = {}", h1);
+    println!("θF2(1) = {}", f2);
+    println!("θW2(1) = {}", w2);
+    println!("θH2(1) = {}", h2);
+
+    let mut params = [0.6; 7];
+    for _ in 0..10 {
+        println!("{:?}", params);
+        let (network, nodes) = candy_network(params);
+        params = update_on_sample(&network, nodes, &SAMPLE);
+    }
 }

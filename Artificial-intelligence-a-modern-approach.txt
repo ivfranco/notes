@@ -5232,3 +5232,49 @@ the maximum likelihood of the old network is a feasible likelihood of the new ne
 the maximum likelihood of the new network therefore is equal or greater than the maximum likelihood of the old network
 
 20.9
+a.  D = π^p * (1-π)^n
+b.  L = plogπ + nlog(1-π)
+    dL/dπ = p/π - n/(1-π) = 0
+    p(1-π) - nπ = 0
+    π(p + n) = p
+    π = p / (p + n)
+c.  the naive Bayes model: attributes are leaves and the class is the only root, reverse to the causal relation
+d.  P(Xk, Yk)   = P(Xk | Yk)P(Yk)
+                = ΠP(Xki | Yk)P(Yk)
+    if Yk = 0,
+                = (1-π)ΠP(Xki | Yk = 0)
+                = (1-π)Π(Xki = 0)(1 - αi)Π(Xki = 1)αi
+    if Yk = 1,
+                = πΠP(Xki | Yk = 1)
+                = πΠ(Xki = 0)(1 - βi)Π(Xki = 1)βi
+    D   = ΠP(Xk, Yk)
+        = π^p * (1-π)^n * Π(αi^pi+ * (1-αi)^ni+ * βi^pi- * (1-βi)^ni-
+e.  L   = plogπ + nlog(1-π) + Σ(pi+logαi + ni+log(1-αi) + pi-logβi + ni-log(1-βi))
+    dL/dπ didn't change, L is still maximized at π = p / (p + n)
+    dL/dαi  = pi+/αi - ni+/(1-αi) = 0
+    αi = pi+ / (pi+ + ni+)
+    dL/dβi  = pi+/βi - ni+/(1-βi) = 0
+    βi = pi+ / (pi+ + ni+)
+f.  (p, n) = (2, 2)
+    (p1+, n1+, p1-, n1-) = (1, 1, 1, 1)
+    (p2+, n2+, p2-, n2-) = (1, 1, 1, 1)
+    π = 1/2
+    (α1, β1) = (1/2, 1/2)
+    (α2, β2) = (1/2, 1/2)
+g.  P(Y = true| x1, x2) = 1/2 for each example
+
+20.10
+a.  /// thanks solutions manual
+    with two observable attributes, the data has 4 categories and 3 degree of freedom
+    there are 5 free parameters in the model, which cannot be recovered from data with 3 degree of freedom
+b.  ./AI/bayes
+    θ(1) = 0.6124306106264775
+    θF1(1) = 0.6684082742546456
+    θF2(1) = 0.38869507391681696
+    θW1(1) = 0.6483118060276541
+    θW2(1) = 0.38174842702950806
+    θH1(1) = 0.6558479816127738
+    θH2(1) = 0.3827408051562639
+c.  ./AI/bayes
+    parameters are fixed starting from the first iteration
+d.  /// skipped
