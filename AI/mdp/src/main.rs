@@ -192,7 +192,7 @@ fn exercise_17_13() {
     }
     normalize(&mut dist);
 
-    let sensor: Vec<Prob> = (0 .. map.states())
+    let sensor: Vec<Prob> = (0..map.states())
         .map(|i| {
             let pos = map.decode(i);
             let walls = map.walls(pos);
@@ -204,7 +204,7 @@ fn exercise_17_13() {
         })
         .collect();
 
-    for b in 0 .. 2 {
+    for b in 0..2 {
         let mut next_dist = vec![0.0; map.states()];
         for (i, p) in dist.into_iter().enumerate() {
             let pos = map.decode(i);

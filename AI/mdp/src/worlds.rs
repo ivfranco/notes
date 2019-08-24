@@ -1,5 +1,9 @@
 pub mod two_terminals {
-    use crate::*;
+    use crate::{
+        *,
+        learn::*,
+    };
+
     use std::collections::HashSet;
 
     /// (0, 0) is at bottom-left
@@ -173,7 +177,8 @@ pub mod two_terminals {
             if !self.in_bound(pos) {
                 0
             } else {
-                4 - pos.neighbors()
+                4 - pos
+                    .neighbors()
                     .iter()
                     .filter(|&&n| self.in_bound(n))
                     .count()
@@ -257,6 +262,20 @@ pub mod two_terminals {
                 vec![]
             } else {
                 vec![N, S, W, E]
+            }
+        }
+    }
+
+    impl Simulate for Map {
+        fn start(&self) -> Pos {
+            let mut rng = thread_rng();
+            loop {
+                let x = rng.gen_range(0, self.width() as isize);
+                let y = rng.gen_range(0, self.height() as isize);
+                let pos = Pos::new(x, y);
+                if !self.trap(pos) {
+                    return pos;
+                }
             }
         }
     }

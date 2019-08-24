@@ -4935,6 +4935,7 @@ c.  if the literal has anything to do with the definition of the new predicate
 /// skipped, FOIL is abandonware now
 
 20.1
+./AI/stat_learn
 Hypothesis: p(cherry) = 1.00, p(lime) = 0.00
 P(hi | d1, .., dN)
 ⡁       ⡠⠔⠒⠒⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 1.0
@@ -5187,6 +5188,7 @@ c.  d(beta[a, b](θ))/dθ
     θ = (a - 1) / (a + b - 2)
 d.  beta[ε, ε](θ)   = αθ^(ε - 1)(1 - θ)^(ε - 1)
                     ≒ α/θ(1-θ)
+    ./AI/stat_learn
     ⣹                                                          ⡎  120.4
     ⢼                                                          ⡇
     ⢺                                                          ⡇

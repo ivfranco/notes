@@ -1,3 +1,4 @@
+pub mod learn;
 pub mod worlds;
 
 use rand::prelude::*;
