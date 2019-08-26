@@ -1,3 +1,5 @@
+#![allow(clippy::ptr_arg)]
+
 pub mod learn;
 pub mod worlds;
 
@@ -90,6 +92,7 @@ where
     })
 }
 
+/// Maximum L1 difference between two slices.
 fn max_norm(utils: &[Util], next_utils: &[Util]) -> Util {
     utils
         .iter()
@@ -169,7 +172,7 @@ fn policy_evaluation<M>(
     k: usize,
 ) -> Vec<Util>
 where
-    M: SoloMDP,
+    M: MDP,
 {
     let mut utils = utils.to_vec();
 
@@ -177,9 +180,9 @@ where
         let next_utils = policy
             .iter()
             .enumerate()
-            .map(|(i, paction)| {
+            .map(|(i, action)| {
                 let state = mdp.decode(i);
-                let mut u = match paction {
+                let mut u = match action {
                     Some(action) => expected_util(mdp, &state, action, &utils),
                     _ => 0.0,
                 };

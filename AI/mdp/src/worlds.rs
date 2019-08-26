@@ -1,8 +1,5 @@
 pub mod two_terminals {
-    use crate::{
-        *,
-        learn::*,
-    };
+    use crate::{learn::*, *};
 
     use std::collections::HashSet;
 
@@ -43,7 +40,7 @@ pub mod two_terminals {
         }
     }
 
-    #[derive(Debug, Clone, Copy, PartialEq)]
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
     pub enum Dir {
         N,
         S,
