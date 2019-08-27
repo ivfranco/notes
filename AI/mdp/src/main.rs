@@ -1,4 +1,4 @@
-use mdp::*;
+use mdp::{learn::*, *};
 
 fn main() {
     exercise_17_1();
@@ -9,6 +9,8 @@ fn main() {
     exercise_17_8();
     exercise_17_10();
     exercise_17_13();
+    exercise_21_5();
+    exercise_21_8();
 }
 
 fn report_map_dist(map: &worlds::two_terminals::Map, dist: &[Prob]) {
@@ -225,5 +227,133 @@ fn exercise_17_13() {
         dist = next_dist;
         println!("believe state at t = {}:", b + 1);
         report_map_dist(&map, &dist);
+    }
+}
+
+fn print_map_util(utils: &[Util], width: usize) {
+    for row in utils.chunks_exact(width).rev() {
+        for util in row {
+            print!("{:<8.3}", util);
+        }
+        println!();
+    }
+}
+
+fn exercise_21_5() {
+    use mdp::worlds::two_terminals::*;
+
+    println!("\n21.5");
+
+    fn single_terminal(width: usize, height: usize, (tx, ty): (usize, usize)) -> Map {
+        let mut rewards = vec![-0.04; width * height];
+        let terminal = tx + ty * width;
+        rewards[terminal] = 1.0;
+        Map::full(1.0, width, rewards, &[], &[Pos::from_usize(terminal, width)])
+    }
+
+    for map in &[
+        Map::default(),
+        single_terminal(10, 10, (9, 9)),
+        single_terminal(10, 10, (4, 4)),
+    ] {
+        let utils = value_iteration(map, 1e-5);
+        let policy = policy_from(map, &utils);
+        let tp = temporal_difference(map, &policy, 10000);
+        // length of a trial will be propotional to the area of the map
+        let linear = linear_temporal_difference(map, &policy, 100);
+
+        println!("exact utils:");
+        print_map_util(&utils, map.width());
+        println!("tp utils:");
+        print_map_util(&tp, map.width());
+        println!("linear tp utils:");
+        print_map_util(&linear, map.width());
+    }
+}
+
+fn exercise_21_8() {
+    use mdp::worlds::two_terminals::*;
+    use rand::prelude::*;
+
+    println!("\n21.8");
+
+    let mut rng = thread_rng();
+
+    fn single_terminal(pos_terms: &[Pos], neg_terms: &[Pos], blocks: &[Pos]) -> Map {
+        let mut rewards = vec![-0.04; 100];
+        for Pos { x, y } in pos_terms {
+            rewards[(x + y * 10) as usize] = 1.0;
+        }
+        for Pos { x, y } in neg_terms {
+            rewards[(x + y * 10) as usize] = -1.0;
+        }
+        for Pos { x, y } in blocks {
+            rewards[(x + y * 10) as usize] = 0.0;
+        }
+
+        let mut terminals = pos_terms.to_vec();
+        terminals.extend(neg_terms.iter().cloned());
+        Map::full(1.0, 10, rewards, blocks, &terminals)
+    }
+
+    let mut maps = vec![];
+    let pos_term = Pos::new(9, 9);
+    let neg_term = Pos::new(9, 1);
+    maps.push(single_terminal(&[pos_term], &[], &[]));
+    maps.push(single_terminal(&[pos_term], &[neg_term], &[]));
+
+    let mut blocks = vec![]; 
+    for _ in 0 .. 10 {
+        let pos = Pos::new(rng.gen_range(0, 10), rng.gen_range(0, 10));
+        if pos != pos_term && pos != neg_term {
+            blocks.push(pos);
+        }
+    }
+    maps.push(single_terminal(&[pos_term], &[neg_term], &blocks));
+
+    let blocks: Vec<_> = (1 ..= 8).map(|y| Pos::new(4, y)).collect();
+    maps.push(single_terminal(&[pos_term], &[neg_term], &blocks));
+    
+    maps.push(single_terminal(&[Pos::new(4, 4)], &[], &[]));
+
+    for (i, map) in maps.into_iter().enumerate() {
+        println!("Environment {}", i + 1);
+        let utils = value_iteration(&map, 1e-5);
+        print_map_util(&utils, 10);
+
+        let mut x_mean = 0.0;
+        let mut y_mean = 0.0;
+        let mut u_mean = 0.0;
+        let mut xx = 0.0;
+        let mut xy = 0.0;
+        let mut yy = 0.0;
+        let mut xu = 0.0;
+        let mut yu = 0.0;
+
+        for (y, row) in utils.chunks_exact(10).enumerate() {
+            for (x, &util) in row.iter().enumerate() {
+                let y = y as f64;
+                let x = x as f64;
+
+                x_mean += x;
+                y_mean += y;
+                u_mean += util;
+                xx += x * x;
+                yy += y * y;
+                xy += x * y;
+                xu += x * util;
+                yu += y * util;
+            }
+        }
+
+        x_mean /= 100.0;
+        y_mean /= 100.0;
+        u_mean /= 100.0;
+
+        let theta_1 = (yy * xu - xy * yu) / (xx * yy - xy.powi(2));
+        let theta_2 = (xx * yu - xy * xu) / (xx * yy - xy.powi(2));
+        let theta_0 = u_mean - theta_1 * x_mean - theta_2 * y_mean;
+
+        println!("U(x, y) = {:.4} + {:.4}x + {:.4}y", theta_0, theta_1, theta_2);
     }
 }

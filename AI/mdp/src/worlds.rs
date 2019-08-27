@@ -6,8 +6,8 @@ pub mod two_terminals {
     /// (0, 0) is at bottom-left
     #[derive(Clone, Copy, PartialEq, Eq, Hash)]
     pub struct Pos {
-        x: isize,
-        y: isize,
+        pub x: isize,
+        pub y: isize,
     }
 
     impl Pos {
@@ -122,8 +122,8 @@ pub mod two_terminals {
                 0,
                 "Map::full: rewards must be complete"
             );
-            let blocks = blocks.iter().cloned().collect();
 
+            let blocks = blocks.iter().cloned().collect();
             let terminals = terminals.iter().cloned().collect();
 
             Map {
@@ -275,6 +275,45 @@ pub mod two_terminals {
                 }
             }
         }
+    }
+
+    pub fn linear_temporal_difference(world: &Map, policy: &Policy<Map>, n: u32) -> Vec<Util> {
+        let mut simulator = Simulator::new(world);
+
+        let mut theta_0 = 0.0;
+        let mut theta_1 = 0.0;
+        let mut theta_2 = 0.0;
+        let mut cnt = 0;
+
+        let mut simu_mut = &mut simulator;
+        for _ in 0..n {
+            let mut trials = trials(simu_mut, policy);
+            let trial_seq: Vec<_> = (&mut trials).collect();
+            let mut util = 0.0;
+            for (pos, reward) in trial_seq.into_iter().rev() {
+                util += reward;
+                let x = pos.x as f64;
+                let y = pos.y as f64;
+                cnt += 1;
+
+                let l1 =
+                    learn_factor(cnt) * (util - (theta_0 + theta_1 * x + theta_2 * y));
+                theta_0 += l1;
+                theta_1 += l1 * x;
+                theta_2 += l1 * y;
+            }
+            // dbg!(theta_0, theta_1, theta_2);
+
+            simu_mut = trials.into_inner();
+            simu_mut.restart();
+        }
+
+        (0..world.states())
+            .map(|code| {
+                let Pos { x, y } = world.decode(code);
+                theta_0 + theta_1 * x as f64 + theta_2 * y as f64
+            })
+            .collect()
     }
 
     #[cfg(test)]

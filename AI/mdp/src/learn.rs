@@ -73,7 +73,7 @@ where
     }
 }
 
-struct Trials<'a, M>
+pub struct Trials<'a, M>
 where
     M: Simulate,
 {
@@ -86,7 +86,7 @@ impl<'a, M> Trials<'a, M>
 where
     M: Simulate,
 {
-    fn into_inner(self) -> &'a mut Simulator<'a, M> {
+    pub fn into_inner(self) -> &'a mut Simulator<'a, M> {
         self.simulator
     }
 }
@@ -112,7 +112,7 @@ where
     }
 }
 
-fn trials<'a, M>(simulator: &'a mut Simulator<'a, M>, policy: &'a Policy<M>) -> Trials<'a, M>
+pub fn trials<'a, M>(simulator: &'a mut Simulator<'a, M>, policy: &'a Policy<M>) -> Trials<'a, M>
 where
     M: Simulate,
 {
@@ -160,7 +160,7 @@ where
     utils
 }
 
-fn learn_factor(n: u32) -> f64 {
+pub fn learn_factor(n: u32) -> f64 {
     1.0 / f64::from(n).sqrt()
 }
 
@@ -173,17 +173,17 @@ where
     let mut util_cnt = vec![0; mdp.states()];
 
     for _ in 0..n {
-        let code = simulator.state_code();
-        let reward = simulator.reward();
+        let prev_code = simulator.state_code();
+        let prev_reward = simulator.reward();
 
-        if util_cnt[code] == 0 {
-            utils[code] = reward;
+        if util_cnt[prev_code] == 0 {
+            utils[prev_code] = prev_reward;
         }
 
         if simulator.trial_on_policy(policy).is_err() {
             simulator.restart();
         } else {
-            util_cnt[code] += 1;
+            util_cnt[prev_code] += 1;
             let succ_code = simulator.state_code();
             let succ_reward = simulator.reward();
 
@@ -191,8 +191,8 @@ where
                 utils[succ_code] = succ_reward;
             }
 
-            utils[code] += learn_factor(util_cnt[code])
-                * (reward + mdp.discount() * utils[succ_code] - utils[code]);
+            utils[prev_code] += learn_factor(util_cnt[prev_code])
+                * (prev_reward + mdp.discount() * utils[succ_code] - utils[prev_code]);
         }
     }
 
@@ -338,10 +338,10 @@ mod test {
         let map = Map::default();
         let utils = value_iteration(&map, 1e-5);
         let policy = policy_from(&map, &utils);
-        let estimated = temporal_difference(&map, &policy, 1_000_000);
+        let estimated = temporal_difference(&map, &policy, 100_000);
         // println!("{:?}", utils);
         // println!("{:?}", estimated);
-        assert!(max_norm(&utils, &estimated) <= 0.05);
+        assert!(max_norm(&utils, &estimated) <= 0.1);
     }
 
     #[test]
@@ -352,6 +352,6 @@ mod test {
         let estimated = adaptive_dynamic_program(&map, &policy, 100_000);
         // println!("{:?}", utils);
         // println!("{:?}", estimated);
-        assert!(max_norm(&utils, &estimated) <= 0.05);
+        assert!(max_norm(&utils, &estimated) <= 0.1);
     }
 }
