@@ -5444,3 +5444,35 @@ U(x, y) = 0.1360 + 0.0665x + 0.0665y
 It's not a proper model for evolution as species has no control over parameters of themselves
 the reward signal itself is generated randomly in the process
 
+22.1
+./AI/nlp/trigram
+Unigram
+, to there And her . the had Sir we and , . party weary and only . overgrown I the seen , account , thing father in
+morrow fur to hand cravat roof . I a again yet their side be Handel him have nobody looked as his when that window and ,
+he poring food said given ? It April my swollen , a of for expedition him and as the ha'porth of want was would smoking
+give duration took my we neck such stairs he you and is now looked some , Clean for could , with thrush face , , mine in
+her I'm you full , garden with that I ? prolonged she , from I come Drummle . away old face by everything after . you ,
+Trabb man Do went , that , Glasgow for the , with have I to in much as temper his victim Halloa read All to little
+stepping augmented it way dead said too hair of fresh like , quite knees alive you there since had to lost and for him
+passed a done a to water He not What looked town , , as Expectations , I
+Bigram
+of that they pulled his food and cross examined his trousers , wet , into a hush , and there were a secluded life . Come
+? Why must be the chance of Joe , Pip , he wrote in with inconceivable rapidity followed where we went down my being the
+sense nor , working himself , Mr . Whether I saw the wall there remains of these appliances extracted one to excuse into
+the sermon he were the month of rejecting four horse of her , and a highly sympathetic of precious appearance . No , if
+that she stood still in possession of ours eating biscuit into his Sunday to be helped from the existing state to get
+nothing wrong , there were an approving air as Wemmick before the direction far as submissive to buy 'em . Haven't you
+see the staircase alone . The person , while my eyes , and over number of this same tone of gentlefolks and swept us as
+ask me , that this letter in a large household . Therefore we may be done on the death close , which would admit that
+time to see me by the sofa ,
+Trigram
+know best she was waiting for them . Always holding tight by the light wind strewed it with the side of my being
+disabled could now be able to say it , until the tide was high , shrill , monotonous acquaintances of my bright fortunes
+, should propose an expedition . We had an old father , and seemed to my awakened conscience something of a malignant
+nature , did at last , when I could , and put in execution , I assure you , 'Here , at first . But , when you go on ,
+and almost any companionship on the very grain of hope that Joe and Biddy stopped in his solitude . As often as I told
+you so . What is detestable in a state of congelation when I ticked an entry was quite in vain , and melancholy . I had
+forgotten that , sir ! It was midnight before I knew that he has risked on your account , and see her regularly and
+report how I speak of these was the last degree ? Murder . Then , Herbert , after looking at me , for it or no ,
+
+22.2
