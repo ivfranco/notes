@@ -1,11 +1,15 @@
 pub mod ngram;
+pub mod perplexity;
 
-pub const EXAMPLE_TEXT: &str = "./text/Great_Expections.txt";
+pub const GREAT_EXPECTIONS: &str = "./text/Great_Expections.txt";
+pub const MOBY_DICK: &str = "./text/Moby_Dick.txt";
 
 use std::{
     io::{self, Read},
     mem,
 };
+
+const PUNCUATIONS: &[u8] = b".,?!";
 
 pub struct Tokenizer<R> {
     token: String,
@@ -43,7 +47,7 @@ where
                 Ok(None)
             }
             // meaningful puncuation
-            b'.' | b'?' | b'!' | b',' => {
+            _ if PUNCUATIONS.contains(&byte) => {
                 let word = self.emit();
                 self.token.push(char::from(byte));
                 Ok(word)
@@ -87,12 +91,23 @@ where
     Tokenizer::new(reader)
 }
 
+pub fn words<R>(reader: R) -> impl Iterator<Item = String>
+where
+    R: Read,
+{
+    tokenize(reader).filter(|word| {
+        PUNCUATIONS
+            .iter()
+            .all(|&p| !word.starts_with(char::from(p)))
+    })
+}
+
 #[test]
 fn tokenize_test() -> io::Result<()> {
     use std::fs::File;
     use std::io::BufReader;
 
-    let text_file = File::open(EXAMPLE_TEXT)?;
+    let text_file = File::open(GREAT_EXPECTIONS)?;
     let reader = BufReader::new(text_file);
     for _word in tokenize(reader).take(100) {
         // println!("{}", _word);

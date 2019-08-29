@@ -1,6 +1,6 @@
 use indexmap::{IndexMap, IndexSet};
 use random_fast_rng::{local_rng, Random};
-use std::{hash::Hash};
+use std::hash::Hash;
 
 type Index = usize;
 
@@ -55,9 +55,11 @@ pub type Unigram = ();
 /// unigram is ndependent of prefixes
 impl NGram for Unigram {
     fn start() -> Self {}
+
     fn len() -> usize {
         0
     }
+
     fn update(&mut self, _token: Token) {}
 }
 
@@ -190,7 +192,7 @@ where
         let (history, _) = self.random_state();
         Generator {
             markov: self,
-            history
+            history,
         }
     }
 }
@@ -225,7 +227,7 @@ mod test {
     #[test]
     fn generate_test() -> io::Result<()> {
         let mut trainer: Trainer<Trigram> = Trainer::new();
-        let text_file = File::open(EXAMPLE_TEXT)?;
+        let text_file = File::open(GREAT_EXPECTIONS)?;
         let reader = BufReader::new(text_file);
 
         for word in tokenize(reader) {

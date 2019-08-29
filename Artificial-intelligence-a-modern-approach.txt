@@ -5342,7 +5342,7 @@ b.  exact utils:
     -0.355  -0.169  -0.046  0.097   0.216   0.322   0.428   0.500   0.487   0.537
     -0.233  -0.170  -0.085  0.041   0.174   0.271   0.355   0.428   0.351   0.239
     linear tp utils:
-    // didn't converge, there must must be some design mistake in my implementation
+    // didn't converge, there must must be some mistake in my implementation
 c.  exact utils:
     0.554   0.592   0.636   0.680   0.705   0.680   0.636   0.592   0.547   0.502
     0.599   0.638   0.686   0.732   0.761   0.732   0.686   0.636   0.587   0.547
@@ -5476,3 +5476,9 @@ forgotten that , sir ! It was midnight before I knew that he has risked on your 
 report how I speak of these was the last degree ? Murder . Then , Herbert , after looking at me , for it or no ,
 
 22.2
+/// no idea how to normalize probability between words of different lengths
+
+22.3
+./AI/nlp/trigram
+
+22.4
