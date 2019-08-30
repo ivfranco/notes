@@ -5482,3 +5482,67 @@ report how I speak of these was the last degree ? Murder . Then , Herbert , afte
 ./AI/nlp/trigram
 
 22.4
+/// skipped
+
+22.5
+/// will do five queries instead of ten
+Artificial intelligence:
+    Google: 10 / 10
+    Bing: 10 / 10 (first 4 entries are ads but relevant)
+    Yandex: 10 / 10
+Monte Carlo tree search:
+    Google: 10 / 10
+    Bing: 10 / 10
+    Yandex: 10 / 10
+Randomness:
+    Google: 10 / 10
+    Bing: 7 / 10
+        1st: game site
+        5th: video clip
+        7th: youtube channel
+    Yandex: 6 / 10
+        3rd: game site
+        4th: game wiki
+        5th: youtube channel
+        9th: instagram profile 
+エビチリ (stir-fried shrimp in chilli sauce)
+    Google: 10 / 10
+    Bing: 10 / 10
+    Yandex: 2 / 10
+        3rd: porn site
+        4th: google.ru
+        5th: porn site
+        6th: video site
+        7th: online store
+        8th: porn site
+        9th: instagram profile
+        10th: chrome web store
+Quien sera:
+    Google: 10 / 10
+    Bing: 10 / 10
+    Yandex: 10 / 10
+Google is perfect on precision (maybe by tracking one's online activities across its services)
+Bing is medicore
+Yandex cannot handle Japanese
+
+22.6
+Google:
+    case folding, stemming, synonyms (as related searches, not implicitly included), spelling correction
+Bing:
+    case folding, stemming, synonyms (as related searches, not implicitly included), spelling correction
+Yandex:
+    case folding, stemming, synonyms (as related searches, not implicitly included), spelling correction
+
+22.7
+/// skipped
+/// anything in title case may be a company name, which is indistinguishable from name of a person 
+
+22.8
+a.  recall of the first twenty documents
+b.  1 / rank of the first relevant document
+c.  recall
+d.  binary measure of "first 100 results contains relevant document"
+e.  assume there are N search results, M relevant documents
+    (B * precision - A)N - CM(1 - recall)
+f.  a markov chain model with parameters yet to be decided
+
