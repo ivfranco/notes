@@ -5477,6 +5477,9 @@ report how I speak of these was the last degree ? Murder . Then , Herbert , afte
 
 22.2
 /// no idea how to normalize probability between words of different lengths
+/// with a trigram model, properly segmented string has perplexity lower than under or over segmented strings
+/// a recursive algorithm may be derived from this fact, insert space at the position where lowers perplexity most
+/// having no idea how to describe the significance of perplexity difference
 
 22.3
 ./AI/nlp/trigram
@@ -5546,3 +5549,67 @@ e.  assume there are N search results, M relevant documents
     (B * precision - A)N - CM(1 - recall)
 f.  a markov chain model with parameters yet to be decided
 
+23.1
+///
+
+23.2
+define a Non terminal symbol N
+if p(N0 = A) > 0, there is a rule N -> A' [p(n)]
+if p(Ni+1 = B | Ni = A) > 0, there is a rule A' -> AB' [p(Ni+1 = B | Ni = A)]
+if p(w | A) = p > 0, there is a rule A -> w [p(w | A)]
+
+23.3
+a.  i.  VP -> VP Adverb -> VP Adverb Adverb -> VP Adverb Adverb Adverb
+        -> Verb the Noun Adverb Adverb Adverb -> Shoots the duck well well well
+    ii. impossible
+    iii.impossible
+b.  is well well -> Verb Adverb Adverb -> VP Adverb -> VP, p = 1/8 * 1/5 * 1/5 = 1/200
+    is well well -> Copula Adjective Adverb -> VP Adverb -> VP, p = 1/5 * 1/5 * 1/5 = 1/125
+    1/200 + 1/125 in total
+    both is and the first well are ambiguous in this model
+c.  lexical and syntactic ambiguity
+d.  if the PCFG contains no rules generating empty string
+    otherwise there may be infinitely many ways to generate sentence of length 10
+
+23.4
+grammar and syntax:
+    Java has well specified grammar agreed by any programmer, English has none among all English speakers
+semantics:
+    A valid Java program has specified unambiguous semantic, English has none
+pragmatics, compositionality and context-dependence:
+    Java is CFG, English is undecidable
+ambiguity:
+    valid Java program is unambiguous, English is not
+reference finding:
+    each variable name in a valid Java program points to a specific object / primitive value at any point of execution
+    English is ambiguous
+background knowledge:
+    Java program must specify dependencies explicitly
+    English sentences may refer to background knowledge implicitly
+understand:
+    in Java: correctly interpret a program
+    in English: correctly interpret the meaning of a sentence with repect to the writer / speaker
+
+23.5
+a.  A -> aAb | ε
+b.  A -> aAa | bAb | .. | a | b | .. | ε
+c.  // thanks solutions manual 
+    // an alphabet with two terminal symbols a and b
+    // generator symbol F and midpoint marker M
+    S -> F M
+    // F generates a, b and the pairing nonterminal
+    F -> F a A
+    F -> F b B
+    F -> ε
+    // nonterminals are moved to the right, but never across another nonterminal other than M
+    A a -> a A
+    A b -> b A
+    B a -> a B
+    B b -> b B
+    // nonterminals transferred to terminals going across M, in order they are generated
+    A M -> M a
+    B M -> M b
+    // M must disappear after all As and Bs
+    M -> ε
+
+23.6
