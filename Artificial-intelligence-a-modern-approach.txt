@@ -5613,3 +5613,201 @@ c.  // thanks solutions manual
     M -> ε
 
 23.6
+./AI/nlp/grammar
+parse tree with Grammar B:
+(S
+  (NP (Pronoun someone))
+  (VP
+    (Verb walked)
+    (Vmod
+      (Adv slowly)
+      (Vmod
+        (Adv
+          (PP (Prep to) (NP (Article the) (NP (Noun supermarket)))))))))
+parse tree with Grammar C:
+(S
+  (NP (Pronoun someone))
+  (VP
+    (Verb walked)
+    (Adv
+      (Adv slowly)
+      (Adv (PP (Prep to) (NP (Article the) (NP (Noun supermarket))))))))
+Grammar A:
+    someone walked
+    someone walked to someone
+    someone walked to supermarket
+    someone walked to the supermarket
+    someone walked to supermarket to someone
+    someone walked to supermarket to supermarket
+    someone walked to supermarket to the supermarket
+Grammar B:
+    someone walked slowly
+    someone walked to someone
+    someone walked to supermarket
+    someone walked to the the someone
+    someone walked to the the supermarket
+    someone walked to the the the someone
+Grammar C:
+    someone walked slowly
+    someone walked to someone
+    someone walked to supermarket
+    someone walked to the the supermarket
+    someone walked to the the the someone
+    someone walked to the the the supermarket
+Grammar A allows an indefinitely long suffix of Prep PP (to someone / supermarket)
+    VP -> VP PP should be VP -> PP?
+Grammar B and C both allows indefinitely long prefix of Articles (the the the)
+    NP -> Article NP should be NP -> Article Noun?
+
+23.7
+Time -> Period | Digital | OClock | Hour
+Period -> "morning" | "noon" | "afternoon" | "night" | "midnight"
+Digital -> DHour ":" DMinute
+DHour -> 00 .. 23
+DMinute -> 00 .. 59
+OClock -> FirstHalfHour "o'clock"
+FirstHalfHour -> "one" | .. | "twelve"
+SecondHalfHour -> "thirteen" | .. | "twenty four"
+Hour -> ("half ("past" | "to"))? (FirstHalfHour | SecondHalfHour)
+
+23.8
+/// skipped, refer both Automata and Computability and Sipser
+
+23.9
+S -> NP(Sbj, type, personal) VP(type, personal)
+NP(case, type, personal) -> Pronoun(case, type, personal) | Article(type, sound) Noun(type, sound)
+VP(type, personal) -> Verb(type, personal) | VP(type, personal) NP(Obj, type, personal)
+Pronoun(Sbj, S, 1)  -> I
+Pronoun(Sbj, P, 1)  -> we
+Pronoun(Obj, S, 1)  -> me
+Pronoun(Obj, P, 1)  -> us
+Pronoun(Sbj, S, 2)  -> You
+Pronoun(Sbj, P, 2)  -> You
+Pronoun(Obj, S, 2)  -> You
+Pronoun(Obj, P, 2)  -> You
+Pronoun(Sbj, S, 3)  -> he | she | it
+Pronoun(Sbj, P, 3)  -> they
+Pronoun(Obj, S, 3)  -> him | her | it
+Pronoun(Obj, P, 3)  -> them
+Verb(S, 1) => smell
+Verb(P, 1) => smell
+Verb(S, 2) => smell
+Verb(P, 2) => smell
+Verb(S, 3) => smells
+Verb(P, 3) => smell
+Artical(S, Vow) => the | an
+Artical(S, Con) => the | a
+Artical(P, _) => the
+Noun(S, Con) => wumpus
+Noun(P, Con) => wumpuses
+
+23.10
+tree A:
+(S (NP (Pronoun I))
+   (VP (Verb can)
+       (NP (Noun fish))))
+p(A) = 0.4 * 0.4 * 0.8 * 0.01 * 0.6 * 0.3 = 0.0002304
+tree B:
+(S (NP (Pronoun I))
+   (VP (Modal can)
+       (Verb fish)))
+p(B) = 0.4 * 0.4 * 0.2 * 0.3 * 0.1 = 0.00096
+p(A | S) = p(A) / (p(A) + p(B)) = 0.19354838709677416
+p(B | S) = p(B) / (p(A) + p(B)) = 0.8064516129032258
+
+23.11
+A(0) = ε
+A(n+1) = a A(n)
+B(0) = ε
+B(n+1) = b B(n)
+C(0) = ε
+C(n+1) = c C(n)
+
+23.12
+see 23.9
+
+23.13
+a.  Banks, businesses, companies
+b.  "of money" may describe either "depriving" or "companies"
+    subject of "and hiring" may be "companies" or "Banks"
+c.  "Banks struggling"
+d.  the subject of "and hiring"
+
+23.14
+a.  can recollect only three
+    arrange into different groups; arbstract something; arrange again
+b.  no idea
+c.  no idea
+d.  overdoing things
+e.  too few is better, no reason provided
+
+23.15
+// will do four instead of five
+// Google translate
+Case 1:
+    But most of the time the language we hear seems unambiguous.
+    しかし、ほとんどの場合、私たちが聞く言語は曖昧ではないようです。
+        the phrase 私たちが聞く言語 (the language we hear) would have low probability in the language model
+        otherwise perfect
+    But in most cases, the language we hear seems unambiguous.
+        almost perfect
+    しかし、ほとんどの場合、私たちが聞く言語は曖昧ではないようです。
+        the same to round 1, the sentence is sample and unambiguous
+    But in most cases, the language we hear seems unambiguous.
+        same input, same output
+Case 2:
+    Banks struggling to recover from multibillion-dollar loans on real estate are curtailing loans to American
+    businesses, depriving even healthy companies of money for expansion and hiring.
+    不動産に対する数十億ドルの融資からの回復に苦労している銀行は、アメリカ企業への融資を削減しており、健全な企業でさえも
+    拡大と雇用のためのお金を奪っている。
+        the main problem here is the subject of "deprived of" is changed from banks to companies
+    Banks struggling to recover from multi-billion dollar loans to real estate are reducing lending to US companies, and
+    even healthy companies are depriving money for expansion and employment. 
+        the mistranslation is translated to English precisely
+        the plural form of banks are recovered from Japanese text, in which plural form can be implicit
+    不動産への数十億ドルの融資からの回復に苦労している銀行は、米国企業への貸付を減らしており、健全な企業でさえ、拡大と雇
+    用のためにお金を奪っている。
+        sentence has strange puncuations, otherwise similar to the last round
+    Banks struggling to recover from billions of dollars in real estate are reducing lending to US companies, and even
+    healthy companies are losing money for expansion and employment.    
+        billions of dollars in real estate [loans], while the word loans were present in Japanese text
+        magically "companies" becomes the object of "deprive of" 
+Case 3:
+    Squad helps dog bite victim.
+    Escuadra ayuda a las víctimas de mordedura de perro.
+        escuadrón or escuadra militar may be better words than escuadra, which also have meaning "set square"
+        mordedura (bite) should have an article? victims are now plural for some reason
+        but the correct parse is chosen
+    Squad helps victims of dog bites.
+        precise
+    El escuadrón ayuda a las víctimas de las mordeduras de perro.
+        this time escuadrón is chosen and bites are now plural with an article
+    The squad helps victims of dog bites.    
+        precise
+Case 4:
+    love her, love her, love her! If she favors you, love her. If she wounds you, love her. If she tears your heart to
+    pieces -- and as it gets older and stronger it will tear deeper -- love her, love her, love her!
+    爱她，爱她，爱她！ 如果她喜欢你，爱她。 如果她伤害了你，爱她。 如果她把你的心撕成碎片 - 随着它变得越来越强壮，它会撕
+    裂得更深 - 爱她，爱她，爱她！
+        "older" is missing, the sentence between -- have meaning unclear without context, so is translated literally
+        otherwise precise
+    Love her, love her, love her! If she likes you, love her. If she hurts you, love her. If she tears your heart into
+    pieces - as it gets stronger and stronger, it will tear deeper - love her, love her, love her!
+        "older" is missing as well
+    爱她，爱她，爱她！ 如果她喜欢你，就爱她。 如果她伤害你，爱她。 如果她把你的心撕成碎片 - 随着它越来越强壮，它会撕裂得
+    更深 - 爱她，爱她，爱她！
+        almost nothing changed
+    Love her, love her, love her! If she likes you, love her. If she hurts you, love her. If she tears your heart into
+    pieces - as it gets stronger, it will tear deeper - love her, love her, love her!
+        precise
+even Google translate has problem associating verbs long away from their subjects
+not precise in single / plural forms, should be prevented by DCG (they are not using one?)
+their learning corpus of Spanish may be dated
+the quality is consistent over a few languages
+
+23.16
+Σdi = ΣStart(fi) - End(fi) - 1
+    = Start(n) - End(f0) + Σ(Start(fi) - End(fi)) - n
+not always true if phrases have variable lengths
+
+23.17
