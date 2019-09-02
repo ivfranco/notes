@@ -5760,17 +5760,17 @@ Case 2:
     businesses, depriving even healthy companies of money for expansion and hiring.
     不動産に対する数十億ドルの融資からの回復に苦労している銀行は、アメリカ企業への融資を削減しており、健全な企業でさえも
     拡大と雇用のためのお金を奪っている。
-        the main problem here is the subject of "deprived of" is changed from banks to companies
+        the main problem here is the subject of "deprive of" is changed from banks to companies
     Banks struggling to recover from multi-billion dollar loans to real estate are reducing lending to US companies, and
     even healthy companies are depriving money for expansion and employment. 
         the mistranslation is translated to English precisely
         the plural form of banks are recovered from Japanese text, in which plural form can be implicit
     不動産への数十億ドルの融資からの回復に苦労している銀行は、米国企業への貸付を減らしており、健全な企業でさえ、拡大と雇
     用のためにお金を奪っている。
-        sentence has strange puncuations, otherwise similar to the last round
+        sentence has strange punctuations, otherwise similar to the last round
     Banks struggling to recover from billions of dollars in real estate are reducing lending to US companies, and even
     healthy companies are losing money for expansion and employment.    
-        billions of dollars in real estate [loans], while the word loans were present in Japanese text
+        billions of dollars in real estate [loans], while the word loans was present in Japanese text
         magically "companies" becomes the object of "deprive of" 
 Case 3:
     Squad helps dog bite victim.
@@ -5811,3 +5811,24 @@ the quality is consistent over a few languages
 not always true if phrases have variable lengths
 
 23.17
+a.  I have never seen a better programming language
+b.  john loves mary | mary loves john
+c.  ?
+d.  we hold these truths to be self-evident that all men are created equal
+permutation may be ambiguous
+a complicated sentence with all kind of adj. and nouns cannot be effectively recovered from words
+/// code skipped
+
+23.18
+./AI/markov
+[O, O, M, M, M, E, E]
+p = 0.3 * 0.3 * 0.7 * 0.9 * 0.9 * 0.1 * 0.4
+  = 0.0020412
+
+23.19
+a.  sort the clothes into piles
+b.  actually wash the clothes
+c.  clothes
+d.  color may onto white clothes
+e.  fewer is better, the washing machine may malfunction with too much clothes
+physical and concrete things are easier to memorize than abstract concepts

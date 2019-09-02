@@ -6,6 +6,7 @@ fn main() {
     exercise_15_7();
     exercise_15_12();
     exercise_15_14();
+    exercise_23_18();
 }
 
 pub mod vaccum_world {
@@ -400,4 +401,35 @@ fn exercise_15_14() {
         context.observe(Class::all().bits());
         println!("{:?}", context.filter(t).unwrap());
     }
+}
+
+fn exercise_23_18() {
+    println!("\n23.18");
+
+    #[rustfmt::skip]
+    let trans = vec![
+        0.3, 0.7, 0.0, // Onset
+        0.0, 0.9, 0.1, // Mid
+        0.0, 0.0, 1.0, // End
+    ];
+
+    #[rustfmt::skip]
+    let sensor_model = vec![
+        0.5, 0.0, 0.0, // C1
+        0.2, 0.0, 0.0, // C2
+        0.3, 0.2, 0.0, // C3
+        0.0, 0.7, 0.1, // C4
+        0.0, 0.1, 0.0, // C5
+        0.0, 0.0, 0.5, // C6
+        0.0, 0.0, 0.4, // C7
+    ];
+
+    let hmm = HMM::new(trans, sensor_model);
+    let mut context = HMMContext::new(&hmm, vec![1.0, 0.0, 0.0]);
+
+    for &obv in [0, 1, 2, 3, 3, 5, 6].iter() {
+        context.observe(obv);
+    }
+
+    println!("{:?}", context.viterbi());
 }

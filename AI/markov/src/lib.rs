@@ -108,9 +108,6 @@ impl<'a> HMMContext<'a> {
         let trs = self.hmm.transition().reversed_axes();
         let last = self.forward.last().unwrap();
 
-        let mut uncond = trs.dot(last);
-        normalize_vector(&mut uncond);
-
         let mut fwd = obv.dot(&trs).dot(last);
         normalize_vector(&mut fwd);
         self.forward.push(fwd);
@@ -190,11 +187,10 @@ impl<'a> HMMContext<'a> {
 #[allow(clippy::float_cmp)]
 fn normalize_vector(vector: &mut Array1<Prob>) {
     let sum = vector.sum();
-    assert_ne!(
-        sum, 0.0,
-        "normalize: the sum of probabilities should not be zero"
+    assert!(
+        sum != 0.0,
+        "normalize_vector: probabilities sums to zero"
     );
-
     vector.map_inplace(|p| *p /= sum);
 }
 
