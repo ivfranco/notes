@@ -5832,3 +5832,57 @@ c.  clothes
 d.  color may onto white clothes
 e.  fewer is better, the washing machine may malfunction with too much clothes
 physical and concrete things are easier to memorize than abstract concepts
+
+24.1
+With dense and leafy canopy, the gaps between leaves are small enough that they act as pinholes.
+THe light spots are upside-down images of the sun.
+    
+24.2
+If a strong enough light source is anywhere but immediately in front of or behind sphere (wrt. the camera), 
+one side of the sphere may be shaded to a degree that's not distinguishable from the background,
+leaving the luminated part of the sphere looks like an ellipse or an oval
+
+24.3
+I = ρI0cosθ
+the half of the cylinder on negative x subspace will be black
+the other half will have brightness as a function of θ
+being a cosine function, the contour of equal brightness will not be uniformly spaced
+
+24.4
+a.  lip of the bowl
+    edge of the spoon
+    edges of whatever they are in the bowl
+b.  texture of the bowl
+    between lip of the bowl and the body of the bowl
+    between the bottom of the bowl and the table
+c.  texture of the table
+d.  shadow casted by the bowl
+    shadow casted by the spoon, both on table and itself
+    shadow casted by whatever they are in the bowl to each other
+
+24.5
+a.  tanθ = 16m / (1m / 2) = 32
+    d = 2 * 16cm / tanθ = 1cm, or 51.2 pixels
+b.  25.1pixel < d/2 < 26.1pixel
+    0.490cm < d/2 < 0.510cm
+    0.490cm < 16cm / tanθ < 0.510cm
+    32.653 > tanθ > 31.373
+    32.653 > Z / 0.5m > 31.373
+    16.327 > Z > 15.687
+c.  d = 1pixel = 0.01953125cm
+    2 * 16cm / tanθ = 0.01953125cm
+    tanθ = 1638.4 = Z / 0.5m
+    Z = 819.2m
+
+24.6
+a.  false, calculation is the easiest
+    finding corresponding points may be hard if features in one image is occluded in another
+b.  maybe? if effect of interrelection can be ignored
+c.  false, depends on depth and angle
+d.  false, may be two strigh lines on different depth, one occludes another
+
+24.7
+from disparity, one can tell that B is closer than A and C
+D and E are occluded by the object, means they must be farther away than A, B and C
+
+
