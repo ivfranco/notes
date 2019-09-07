@@ -1,5 +1,5 @@
-use markov::{HMM, HMMContext, Observation, Prob, State, normalize};
 use itertools::Itertools;
+use markov::{normalize, HMMContext, Observation, Prob, State, HMM};
 
 fn main() {
     exercise_25_1();
@@ -32,9 +32,9 @@ fn exercise_25_1() {
 
     println!("P(X | N = ∞) = {:?}", posterior);
 
-    for n in 1 ..= 10 {
+    for n in 1..=10 {
         let mut dist = [0.0; X];
-        let meta = vec![0usize ..= 3usize; n];
+        let meta = vec![0usize..=3usize; n];
         // iterate through all the possible samples
         for sample in meta.into_iter().multi_cartesian_product() {
             let mut weights = vec![0.0; n];
@@ -55,10 +55,12 @@ fn exercise_25_1() {
 fn kl_divergence(p: &[Prob], q: &[Prob]) -> f64 {
     p.iter()
         .zip(q)
-        .map(|(&px, &qx)| if px == 0.0 || qx == 0.0 {
-            0.0
-        } else {
-            px * (px / qx).ln()
+        .map(|(&px, &qx)| {
+            if px == 0.0 || qx == 0.0 {
+                0.0
+            } else {
+                px * (px / qx).ln()
+            }
         })
         .sum()
 }

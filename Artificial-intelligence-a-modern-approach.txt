@@ -5921,3 +5921,18 @@ c.  /// thanks solutions manual
 /// where is the data set?
 
 25.3
+when x in [-2, 2], y cannot be in the same range [-2, 2] or the two blocks collides
+symmetrically when y in [-2, 2], x cannot be in [-2, 2]
+the excluded zone is bounded by [-2, -2] and [2, 2]
+all but the excluded zone in [-10, -10], [10, 10] is free area
+
+25.4
+a.  fix A,
+    d(D(B, goal)^2 + 1/D(A, B)^2) / dB
+    = d((B - -7)^2 + 1/(B - 1)^2) / dB
+    = 2(B + 7) - 2/(B - 1)^3 = 0
+    B = 1.4902 is a local minimum (thanks wolframalpha)
+    moving A a little will increase D(A, goal)^2 and 1/D(A, B)^2 will not change
+b.  add a term 1/DC(A, B)^2, where DC(A, B) is the distance between center of A and B
+
+25.5

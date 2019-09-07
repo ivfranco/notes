@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 markov = {path = "../markov"}
 itertools = "^0.8"
+rand = "^0.7"
+image = "^0.22"
