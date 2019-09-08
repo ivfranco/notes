@@ -5936,3 +5936,73 @@ a.  fix A,
 b.  add a term 1/DC(A, B)^2, where DC(A, B) is the distance between center of A and B
 
 25.5
+(elb_x, elb_y)  = (shou_x, shou_y) + 40cm * (cosφshou, sinφshou)
+                = (0, 60cm) + 40cm * (cosφs, sinφs)
+(hand_x, hand_y) = (elb_x, elb_y) + 40cm * (cosφ, sinφ)
+where 
+    φ = π/2 - (π/2 - φshou) + (π/2 - φelb) = φshou + φelb - π/2
+    cosφ = sin(φs + φe)
+    sinφ = -cos(φs + φe)
+(hand_x, hand_y) = (0, 60) + 40(cosφs, sinφs) + 40(sin(φs + φe), -cos(φs + φe))
+the solution is unique when effector location is on a circle centered at (0, 60) with radius 80
+i.e. φe = π/2 otherwise the robot arm cannot reach a point 80cms away
+
+25.6
+by k-means clustering
+./AI/localization
+ workflow:
+    1. load image in greyscale
+    2. calculate k centroids of all the dark pixels
+    3. blend each pixel with some color based on their nearest centroid
+    4. save to output path
+sample result: https://ibb.co/sbcXqKX
+
+25.7
+/// skipped
+
+25.8
+a.  <cos60' + 2cos85', sin60' + 2sin85', 85'>
+b.  x: [cos70' + 2cos105', cos50' + 2cos65']
+    y: [sin50' + 2sin65', sin70' + sin90']
+    θ: [65', 105']
+c.  if θ follows a Gaussian distribution, neither sinθ nor cosθ will
+    particularly both x and y are bounded by minimum and maximum value, while Gaussian distribution is not bounded
+
+25.9
+a.  similar to the mapping wumpus world agent: follow A* path to the goal
+    recalculate path everytime a new obstacle is find on the old path
+b.  /// thanks solutions manual
+    first the robot go stright forward towards the goal (by moving to the neighboring square minimizes the distance)
+    if the robot is blocked by an obstacle, follow the edge of the obstacle 
+    until reached a local minimum of distance to the goal, then go back to go-to-goal mode
+    problem is the supposed detection of failure will not work with no memory
+    so the robot will loop forever when the goal is not reachable
+c.  deliberate:
+        continuous space: partically solved by discretization
+        noise in perception: may report false failure e.g. goal surrounded by spurious obstacles
+        noise in motion: will be fine, can replan route
+        noise in perception and motion: may report false failure e.g. current location inside obstacles
+        unknown goal: will not work, have to be redesigned
+        moving obstacles: same to noise in perception
+    reactive:
+        continuous space: the underlying algorithm can easily be transformed to continuous space 
+        noise in perception: without memory the robot cannot even detect this noise
+            will switch between go-to-goal and boundary-following mode
+        noise in motion: same to above
+        noise in perception and motion: same to above
+        unknown goal: will not work, have to be redesigned
+        moving obstacles: cannot detect, may cause infinite loop of movements 
+
+25.10
+assign labels to legs:
+    0   1
+    2   3
+    4   5
+let group A = {0, 3, 4}, group B = {1, 2, 5}
+move group A and B in turns
+only switch to another group when all the legs in the current have successfully moved forward
+at any time there are at least three non-colinear legs on the ground, the robot is always stable on motion
+
+25.11
+/// skipped
+

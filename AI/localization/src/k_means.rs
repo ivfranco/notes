@@ -73,14 +73,19 @@ fn update_centroids(k: usize, points: &[Point], assignment: &[usize]) -> Vec<Poi
     centroids
 }
 
-pub fn reassign_points(centroids: &[Point], points: &[Point], assignment: &mut [usize]) {
+pub fn assign_centroid(centroids: &[Point], point: Point) -> usize {
+    centroids
+        .iter()
+        .enumerate()
+        .min_by(|(_, &c0), (_, &c1)| cmp_f64(distance(c0, point), distance(c1, point)))
+        .map(|(i, _)| i)
+        .expect("reassign_points: Nonempty vector of centroids")
+
+}
+
+fn reassign_points(centroids: &[Point], points: &[Point], assignment: &mut [usize]) {
     for (&p, a) in points.iter().zip(assignment.iter_mut()) {
-        *a = centroids
-            .iter()
-            .enumerate()
-            .min_by(|(_, &c0), (_, &c1)| cmp_f64(distance(c0, p), distance(c1, p)))
-            .map(|(i, _)| i)
-            .expect("reassign_points: Nonempty vector of centroids");
+        *a = assign_centroid(centroids, p);
     }
 }
 

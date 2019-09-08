@@ -1,8 +1,10 @@
 use itertools::Itertools;
 use markov::{normalize, HMMContext, Observation, Prob, State, HMM};
+use localization::diagram::blend_io;
 
 fn main() {
     exercise_25_1();
+    exercise_25_6();
 }
 
 fn exercise_25_1() {
@@ -63,4 +65,10 @@ fn kl_divergence(p: &[Prob], q: &[Prob]) -> f64 {
             }
         })
         .sum()
+}
+
+fn exercise_25_6() {
+    if let Err(e) = blend_io(3, "./image/sample.jpg", "./image/blended.jpg") {
+        eprintln!("blend failed: {:?}", e);
+    }
 }
