@@ -6006,3 +6006,60 @@ at any time there are at least three non-colinear legs on the ground, the robot 
 25.11
 /// skipped
 
+26.1
+achieved:
+    be kind, tell right from wrong, resourceful, beautiful, friendly, have initiative
+    make mistakes, make someone fall in love with it, learn from experience, use words properly,
+    do something really new
+achievable:
+    have a sense of humor, enjoy strawberries and cream, have as much diversity of behavior as man
+problematic:
+    fall in love, be the subject of its own thought
+     
+26.2
+https://mindmatters.ai/2018/09/meaningful-information-vs-artificial-intelligence/
+the core of the arguemnt
+    A defining aspect of the human mind is its ability to create mutual information
+is rather vague: not only is the "definiing aspect" unheard-of, the example given in the article is not true:
+with enough training data a program can certainly learn the mutual information between road and road signs
+also with proper utility function a program can be trained to design road signs from road conditions
+after all it's not clear what is the third factor beside randomness and determinism in human mind
+
+26.3
+the single-neuron operations may not be possible at all in either direction: 
+neuron may hold some unknown property that breaks once removed from the network
+the far-fetched assumption of this experiment may render it meaningless
+
+26.4
+wide content:
+    a computer running prolog program with input
+narrow content:
+    transistors, electrons, bits, memory read and write
+
+26.5
+AI can do better than human in more and more fields, but it's still far away from being a lifeform
+Even if they do have the capability to carry out any human cognitive tasks, there's no guarantee that
+their view of the world will be anything close to human's
+
+26.6
+AI had only minimum impact in the last 50 years compared to electric and combustion engine
+it may lead to improvements in certain fields, but had yet to introduce any ground-breaking change to everyday life
+
+26.7
+design of ultrafast and ultrastrong machines can be reduced to design of ultraintelligent machines:
+an ultraintelligent machine can easily design the former two
+ultraintelligent machine is ultra-machine complete
+
+26.8
+the most serious one may be more advanced surveillance technology
+it enables authorities to achieve their objectives more efficiently, sometimes with not so acceptable consequences
+the countermeasure, if any, does not reside in AI itself
+the dependency on large training set of recent deep learning methods destined AI a monopoly booster
+(being it monopoly on power, economy, etc.), whether it will be a net benefit of individuals varies states
+
+26.9
+/// not familiar to these technologies enough to comment 
+
+26.10
+both may be possible
+it's not a contradiction to hold both positions (A => B does not contradict ~A)
