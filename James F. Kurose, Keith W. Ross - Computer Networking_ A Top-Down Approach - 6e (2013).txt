@@ -1,0 +1,277 @@
+/// only problems and labs, skipping all review questions
+/// resource site: https://wps.pearsoned.com/ecs_kurose_compnetw_6/216/55463/14198700.cw/-/14198926/index.html
+/// errata: https://media.pearsoncmg.com/aw/ecs_kurose_compnetwork_6/Errata_6th_Edition.pdf
+
+1.1
+// all message transmitted will be shown in JSON
+the client (teller machine) first sends a message of account ID and (possibly hashed) password:
+    {
+        id: String,
+        password: String
+    }
+the server receives the message, check the password against the id, sends back either 
+    an error or 
+    an accepted message and moves into the Verified state
+the error should be as general as possible for security reason
+    // one of the two is sent
+    "ERROR"
+    "ACCPETED"
+once accepted, the client can query for account balance:
+    "BALANCE"
+    // server response, only in Verified state
+    {
+        balance: Number
+    }
+    // not in Verified state
+    "VERIFICATION REQUIRED"
+or try withdraw an amount of cash:
+    {
+        withdraw: Number
+    }
+    // server response, one of them, only in Verified state
+    "Insufficient balance"
+    {
+        withdraw: Number
+        // client machine disburse cash
+    }
+    // not in Verified state
+    "VERIFICATION REQUIRED"
+at the end client issues a logout, server responses and exit Verified state
+    "LOGOUT"
+    // server response
+    "LOGOUT ACCEPTED"
+logout must be mandatory on leave, e.g. the teller machine will only login with physical insertion of a debit card
+and automatically logout on ejection of the debit card
+the channel must be encrypted
+
+1.2
+assuming these packets are the only packets in the network
+throughput is uniform among links, end host can send the next packet immediately after the current one
+end host start sending the last packet at time (P-1)L/R, it will reach the other end host (P-1)L/R + NL/R
+total delay is (P + L - 1)L/R
+
+1.3
+a.  a circuit-switched network will be more appropriate if
+        k is small enough (there's no waste of network capacity)
+        client and server of the application is geographically close
+        (otherwise it's better to reuse the existing packet-switched Internet)
+b.  congestion control is still necessary, routers may not be processing the packets quick enough
+
+1.4
+a.  16, 4 between each two neighboring switches
+b.  8, 4 on path A -> B -> C, 4 on path A -> D -> C
+c.  possible:
+        2 on path A -> B -> C
+        2 on path A -> D -> C
+        2 on path B -> A -> D
+        2 on path B -> C -> D
+
+1.5
+assume it takes the tollbooth R minutes to process a car 
+if all toollbooth operates at the same rate, there's no queuing delay except in front of the first tollbooth
+last car in the caravan is processed by the first toolbooth at (P - 1)R
+it finishes after the third toolbooth at (P - 1)R + 60 * 150/100 + 3R = (P + 2)R + 90
+a.  7R + 90
+b.  10R + 90
+
+1.6
+a.  m/s sec
+b.  L/R sec
+c.  m/s + L/R sec
+d.  at the A-end of the link
+e.  at Host B
+f.  somewhere in the link
+g.  m / s = L / R
+    m / 2.5e9 = 120 / 56 / 1024
+    m = 5231.584km
+
+1.7
+assume 8-bit bytes (octets)
+transmission delay is 56 * 8 /(2 * 1024 * 1024) = 0.2136ms
+propagation delay = 2ms
+if the bit is the first of a 56-byte packets:
+    encode delay = 56 * 8 / (64 * 1024) = 6.8359ms
+if the bit is the last of a 56-byte packets:
+    no encode delay
+overall between 2.2136ms and 0.0495ms
+
+1.8
+a.  [3 * 1024 / 150] = 20
+b.  10%
+c.  C(120, n)0.1^n0.9^(120 - n)
+d.  by normal approximation to binomial:
+    P(N >= 21)  ≒ P(X >= 21), X ~ N(12, 10.8)
+                = 0.00308495
+
+1.9
+a.  [1024 * 1024 / 100] = 10485
+b.  Σ{N < k <= M}(C(M, k)p^k(1-p)^(M-k))
+
+1.10
+assume the end hosts do not incur switch delays
+total delay:
+    2dproc + Σi (di / si + L / Ri)
+numerical delay:
+    0.002 * 3 + (5000 + 4000 + 1000) / 2.5e6 + 1500 * 8 * 3 / (2 * 1024^2) 
+    = 0.0272s = 27.2ms
+
+1.11
+one transmission delay only without store-and-forward
+L/R + Σi di / si
+
+1.12
+queueing delay:
+    4.5 * 1500 * 8 / (2 * 1024^2) = 0.0257
+    (nL + x)/R
+
+1.13
+a.  Σk {0 <= k <= N - 1}(kL/R) / N
+    = (N-1)L / 2R
+b.  if N packets arrives at the same time every LN/R seconds, same to part a
+    all N packets can be transmitted in LN/R, two bursts of packets do not interfere with each other
+
+1.14
+a.  delay   = IL/R(1 - I) + L/R
+            = a(L/R)^2/(1 - L/R) + L/R
+b.  https://www.wolframalpha.com/input/?i=plot%28x%2C+x%5E2%2F%281+-+x%29+%2B+x%29
+
+1.15
+μ = L/R
+delay = aμ^2 / (1 - μ) + μ
+
+1.16
+N = 10, d = 10ms + dtrans = 10ms + 1/100s = 20ms
+a = N/d = 0.5 packet/ms
+
+1.17
+a.  dend-end = Σi(diproc + ditrans + diprop)
+b.  E[D] = Σi(diproc + ditrans + diprop + dqueue)
+
+1.18
+ 1  203.98.68.97 (203.98.68.97) [AS10145]  0.278 ms (255)  0.305 ms (255)  0.282 ms (255) (0% loss)
+ 2  203.98.68.253 (203.98.68.253) [AS10145]  0.493 ms (63)  0.52 ms (63)  0.431 ms (63) (0% loss)
+ 3  73.194.233.220.static.exetel.com.au (220.233.194.73) [AS10143]  0.898 ms (253)  1.001 ms (253)  0.827 ms (253) (0% loss)
+ 4  * * * (100% loss)
+ 5  Bundle-Ether59.chw-edge903.sydney.telstra.net (203.54.151.81) [AS1221]  2.097 ms (251)  1.7 ms (251)  1.529 ms (251) (0% loss)
+ 6  bundle-ether17.chw-core10.sydney.telstra.net (203.50.11.176) [AS1221]  3.587 ms (250)  2.826 ms (250)  2.558 ms (250) (0% loss)
+ 7  bundle-ether8.exi-core10.melbourne.telstra.net (203.50.11.125) [AS1221]  14.751 ms (249)  15.076 ms (249)  14.622 ms (249) (0% loss)
+ 8  bundle-ether2.exi-ncprouter101.melbourne.telstra.net (203.50.11.209) [AS1221]  12.979 ms (248)  12.783 ms (248)  12.743 ms (248) (0% loss)
+ 9  www.telstra.net (203.50.5.178) [AS1221]  12.518 ms (247)  12.594 ms (247)  12.6 ms (247) (0% loss)
+a.  // skipped
+b.  // skipped
+c.  3 I guess? one anonymous, exetel and telstra
+ 1  gigabitethernet3-3.exi1.melbourne.telstra.net (203.50.77.49)  0.287 ms  0.269 ms  0.241 ms
+ 2  bundle-ether3-100.exi-core10.melbourne.telstra.net (203.50.80.1)  1.984 ms  1.542 ms  2.115 ms
+ 3  bundle-ether12.chw-core10.sydney.telstra.net (203.50.11.124)  12.604 ms  12.037 ms  12.733 ms
+ 4  bundle-ether1.oxf-gw11.sydney.telstra.net (203.50.6.93)  12.356 ms  12.309 ms  12.970 ms
+ 5  bundle-ether1.sydo-core03.sydney.reach.com (203.50.13.98)  47.815 ms  48.011 ms  46.750 ms
+ 6  i-73.paix-core02.telstraglobal.net (202.84.247.45)  200.086 ms  199.183 ms  200.618 ms
+ 7  i-92.paix02.telstraglobal.net (202.84.247.41)  199.623 ms  199.929 ms  200.372 ms
+ 8  liberty_global-peer.eqnx03.pr.telstraglobal.net (134.159.63.85)  198.252 ms  198.181 ms  198.250 ms
+ 9  be2015.ccr21.sfo01.atlas.cogentco.com (154.54.7.173)  200.120 ms  200.052 ms  199.748 ms
+10  be3109.ccr21.slc01.atlas.cogentco.com (154.54.44.138)  215.362 ms  215.043 ms  214.991 ms
+11  be3037.ccr21.den01.atlas.cogentco.com (154.54.41.146)  225.486 ms  225.537 ms  225.987 ms
+12  be3035.ccr21.mci01.atlas.cogentco.com (154.54.5.90)  237.224 ms  237.282 ms  237.601 ms
+13  be2831.ccr41.ord01.atlas.cogentco.com (154.54.42.166)  249.493 ms  248.886 ms  248.849 ms
+14  be2717.ccr21.cle04.atlas.cogentco.com (154.54.6.222)  256.835 ms  256.020 ms  256.339 ms
+15  be2993.ccr31.yyz02.atlas.cogentco.com (154.54.31.226)  263.587 ms  263.391 ms  263.084 ms
+16  38.104.158.202 (38.104.158.202)  269.711 ms  268.513 ms  268.584 ms
+d.  roundtrip delay skyrocketed from 12ms to 269ms
+
+1.19
+a.  http://traceroute.sdv.fr/
+    1	wblindix.sdv.fr      	212.95.66.126      	0.129 ms
+    2	border-gateway2.sdv.fr      	212.95.69.227      	0.749 ms
+    3	6k-2-sfr-str-e2-3-sdv-plurimedia.customers-sfr-str.ielo.net      	212.85.149.172      	0.894 ms
+    4	frpar-th2-c6k1.as29075.net      	185.96.186.74      	6.655 ms
+    5	te0-1-0-7.frpar-th2-a9k1.as29075.net      	185.96.186.239      	6.915 ms
+    6	be4.frpar-th2-n55h1.as29075.net      	185.18.172.147      	6.945 ms
+    7	hu0-0-1-0.frpar-eqx3-n55h1.as29075.net      	185.96.186.118      	7.084 ms
+    10	4.14.33.54      	4.14.33.54      	153.228 ms
+    11	138.197.244.228      	138.197.244.228      	152.676 ms
+    12	138.197.248.207      	138.197.248.207      	173.624 ms
+    13	159.203.251.185      	159.203.251.185      	153.57 ms
+    https://www.as30781.net/nettools/traceroute/
+    #1	JAGUAR-AS (AS30781)	85.31.192.253	be3-200.hr01-corp.mar02.jaguar-network.net	0.851 ms	
+    #2	JAGUAR-AS (AS30781)	78.153.231.39	be1.er02.mar02.jaguar-network.net	0.779 ms	
+    #3	*	*	*	*	*
+    #4	*	*	*	*	*
+    #5	AS3356	4.14.33.54	4.14.33.54	162.868 ms	
+    #6	*	*	*	*	*
+    #7	*	*	*	*	*
+    #8	DOSFO (AS14061)	159.203.251.185	159.203.251.185	169.888 ms	
+    one in common: 4.14.33.54, a Level 3 Communications switcher in Fremont, US
+    it should be the transatlantic link, AS29075 preceeding it is in France
+b.  http://www.han.de/cgi-bin/nph-trace.cgi
+    1  * * *
+    2  ae3-u100.cr-nunki.sxb1.bb.godaddy.com (87.230.112.2)  0.369 ms  0.264 ms  0.311 ms
+    3  ae4.cr-vega.sxb1.bb.godaddy.com (87.230.114.66)  0.361 ms  0.342 ms  0.317 ms
+    4  lag-125.ear2.Paris1.Level3.net (213.242.120.245)  6.538 ms  6.814 ms  7.003 ms
+    5  * * *
+    6  4.14.33.54 (4.14.33.54)  164.563 ms  164.506 ms 4.14.33.70 (4.14.33.70)  162.352 ms
+    7  138.197.244.226 (138.197.244.226)  159.937 ms 138.197.244.230 (138.197.244.230)  159.463 ms  165.193 ms
+    8  * * *
+    9  159.203.251.185 (159.203.251.185)  157.534 ms  162.840 ms  162.609 ms
+    the same transatlantic link 4.14.33.54 appeared
+c.  #traceroute www.linkwan.com
+    traceroute to www.linkwan.com (218.16.120.36), 30 hops max, 60 byte packets
+    1  104.236.128.253 (104.236.128.253)  0.369 ms  0.314 ms  0.272 ms
+    2  138.197.248.222 (138.197.248.222)  0.643 ms  11.188 ms  0.520 ms
+    3  138.197.244.225 (138.197.244.225)  1.192 ms 138.197.244.229 (138.197.244.229)  1.161 ms 138.197.244.231 (138.197.244.231)  1.171 ms
+    4  lag-112.ear2.SanJose1.Level3.net (4.14.33.69)  1.705 ms lag-111.ear2.SanJose1.Level3.net (4.14.33.53)  1.724 ms  1.893 ms
+    5  ae-1-9.edge2.SanJose3.Level3.net (4.69.209.181)  1.819 ms ae-3-19.edge2.SanJose3.Level3.net (4.69.209.189)  2.103 ms  1.964 ms
+    6  CHINA-TELEC.edge2.SanJose3.Level3.net (4.53.210.118)  5.784 ms CHINA-TELEC.edge2.SanJose3.Level3.net (4.53.210.210)  5.039 ms  4.991 ms
+    7  202.97.50.77 (202.97.50.77)  8.361 ms  8.284 ms  8.205 ms
+    8  202.97.89.137 (202.97.89.137)  180.948 ms  180.921 ms  180.882 ms
+    9  202.97.94.97 (202.97.94.97)  178.113 ms  178.151 ms  178.428 ms
+    10  202.97.94.145 (202.97.94.145)  178.605 ms  178.601 ms  178.553 ms
+    11  113.96.254.17 (113.96.254.17)  176.119 ms 113.96.254.37 (113.96.254.37)  190.280 ms  190.465 ms
+    12  218.16.126.205 (218.16.126.205)  178.072 ms  178.474 ms  178.818 ms
+    13  121.14.130.134 (121.14.130.134)  177.900 ms  184.418 ms  184.616 ms
+    14  218.16.120.36 (218.16.120.36)  177.238 ms  177.315 ms  177.094 ms
+    #traceroute v-www.ihep.ac.cn
+    traceroute to v-www.ihep.ac.cn (202.38.128.8), 30 hops max, 60 byte packets
+    1  104.236.128.253 (104.236.128.253)  12.702 ms  12.722 ms  12.711 ms
+    2  138.197.248.206 (138.197.248.206)  0.719 ms  0.866 ms 138.197.248.222 (138.197.248.222)  0.737 ms
+    3  64.86.208.18 (64.86.208.18)  0.486 ms 64.86.208.16 (64.86.208.16)  0.488 ms  0.473 ms
+    4  if-ae-22-2.tcore2.sqn-san-jose.as6453.net (64.86.21.101)  2.298 ms  2.240 ms  2.263 ms
+    5  if-ae-1-2.tcore1.sqn-san-jose.as6453.net (63.243.205.1)  2.300 ms  2.277 ms  2.325 ms
+    6  be6453.ccr41.sjc03.atlas.cogentco.com (154.54.12.141)  2.175 ms  2.184 ms  2.307 ms
+    7  be3669.ccr21.sfo01.atlas.cogentco.com (154.54.43.9)  3.485 ms  3.477 ms be3670.ccr22.sfo01.atlas.cogentco.com (154.54.43.13)  3.454 ms
+    8  be3694.ccr21.pdx01.atlas.cogentco.com (154.54.84.30)  21.975 ms  22.066 ms be3693.ccr21.pdx01.atlas.cogentco.com (154.54.81.66)  22.323 ms
+    9  be3701.ccr21.hkg02.atlas.cogentco.com (154.54.87.122)  155.931 ms  155.930 ms  155.908 ms
+    10  154.18.4.2 (154.18.4.2)  157.582 ms  157.347 ms  157.375 ms
+    11  8.201 (159.226.254.5)  190.629 ms  190.336 ms  190.597 ms
+    12  8.200 (159.226.254.49)  196.974 ms 8.201 (159.226.254.41)  191.384 ms  191.588 ms
+    13  8.198 (159.226.254.158)  191.225 ms 8.209 (159.226.254.162)  199.614 ms  199.600 ms
+    14  * * *
+    15  sslvpn1.ihep.ac.cn (202.122.36.2)  202.456 ms  202.438 ms  202.276 ms
+    16  * * *
+    17  * * *
+    18  * * *
+    19  * * *
+    20  * * *
+    21  * * *
+    22  * * *
+    23  * * *
+    24  * * *
+    25  * * *
+    26  * * *
+    27  * * *
+    28  * * *
+    29  * * *
+    30  * * *
+    only the first two
+    they do diverge before reaching China
+
+1.20
+min(Rs, Rc, R/M)
+
+1.21
+one path:
+    max(k){min(i){Rki}}
+all paths:
+    Σk min(i){Rki}
+
+1.22
+
