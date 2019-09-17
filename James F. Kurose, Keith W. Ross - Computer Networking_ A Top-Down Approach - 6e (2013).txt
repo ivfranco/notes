@@ -363,3 +363,73 @@ S = (40F)^(1/2)
 1.34
 they are both a ISP and a telephone service provider
 they somehow can transmit packets between the two networks
+
+2.1
+a.  false, the client will send four requests
+b.  true, with persistent connections
+c.  false, each request is sent as a single TCP segment with nonpersistent connections
+d.  false, Date: is the time the object is fetched from the server, the text is describing Last-Modified:
+e.  false, GET is sent with empty message body
+
+2.2
+USER <SP> <username> <CRLF>
+PASS <SP> <password> <CRLF>
+ACCT <SP> <account-information> <CRLF>
+CWD  <SP> <pathname> <CRLF>
+CDUP <CRLF>
+SMNT <SP> <pathname> <CRLF>
+QUIT <CRLF>
+REIN <CRLF>
+PORT <SP> <host-port> <CRLF>
+PASV <CRLF>
+TYPE <SP> <type-code> <CRLF>
+STRU <SP> <structure-code> <CRLF>
+MODE <SP> <mode-code> <CRLF>
+RETR <SP> <pathname> <CRLF>
+STOR <SP> <pathname> <CRLF>
+STOU <CRLF>
+APPE <SP> <pathname> <CRLF>
+ALLO <SP> <decimal-integer>
+    [<SP> R <SP> <decimal-integer>] <CRLF>
+REST <SP> <marker> <CRLF>
+RNFR <SP> <pathname> <CRLF>
+RNTO <SP> <pathname> <CRLF>
+ABOR <CRLF>
+DELE <SP> <pathname> <CRLF>
+RMD  <SP> <pathname> <CRLF>
+MKD  <SP> <pathname> <CRLF>
+PWD  <CRLF>
+LIST [<SP> <pathname>] <CRLF>
+NLST [<SP> <pathname>] <CRLF>
+SITE <SP> <string> <CRLF>
+SYST <CRLF>
+STAT [<SP> <pathname>] <CRLF>
+HELP [<SP> <string>] <CRLF>
+NOOP <CRLF>
+functionality of these commands are specified in section 4.1 of RFC 959
+
+2.3
+DNS: resolve host to IP
+UDP: for DNS
+TCP: for HTTP
+
+2.4
+a.  gaia.cs.umass.edu/cs453/index.html
+    from Host: and path after GET method
+b.  1.1, from HTTP/1.1
+c.  persistent, from Connection: keep-alive
+d.  unknown, not part of HTTP protocol
+e.  maybe Firefox or Firefox-compatible browser, from User-Agent: Mozilla/5.0
+    different browser supports different subset of HTML, CSS and javascript
+    it's mainly resolved by client-side shim scripts and css vendor prefixes now
+    but back in the days server sent differnt version of pages to client with different browsers
+
+2.5
+a.  yes, status code is 200
+    reply provided at Tue, 07 Mar 2018 12:39:45 GMT
+b.  Sat, 10 Dec2005 18:27:46 GMT, from Last-Modified: header
+c.  3874, from Content-Length: header
+d.  <!doc, the first five bytes following two <cr><lf>
+    yes, from Connection: Keep-Alive header
+
+2.6
