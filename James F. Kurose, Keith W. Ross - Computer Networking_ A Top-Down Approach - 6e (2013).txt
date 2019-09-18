@@ -419,10 +419,10 @@ a.  gaia.cs.umass.edu/cs453/index.html
 b.  1.1, from HTTP/1.1
 c.  persistent, from Connection: keep-alive
 d.  unknown, not part of HTTP protocol
-e.  maybe Firefox or Firefox-compatible browser, from User-Agent: Mozilla/5.0
+e.  Netscape Navigator 7.2, from User-Agent: header
     different browser supports different subset of HTML, CSS and javascript
     it's mainly resolved by client-side shim scripts and css vendor prefixes now
-    but back in the days server sent differnt version of pages to client with different browsers
+    back in the days server sent differnt version of pages to client with different browsers
 
 2.5
 a.  yes, status code is 200
@@ -433,3 +433,242 @@ d.  <!doc, the first five bytes following two <cr><lf>
     yes, from Connection: Keep-Alive header
 
 2.6
+a.  by header Connection: close, from section 8.1.2,
+        " Persistent connections provide a mechanism by which a client and a
+        server can signal the close of a TCP connection. This signaling takes
+        place using the Connection header field (section 14.10). Once a close
+        has been signaled, the client MUST NOT send any more requests on that
+        connection."
+    both client and server can signal the close of a connection
+b.  appearently none
+c.  no. from section 8.1.4, 
+        "A single-user client SHOULD NOT maintain more than 2 connections with any server or proxy."
+d.  it's possible, from section 8.1.4:
+        " A client, server, or proxy MAY close the transport connection at any
+        time. For example, a client might have started to send a new request
+        at the same time that the server has decided to close the "idle"
+        connection. From the server's point of view, the connection is being
+        closed while it was idle, but from the client's point of view, a
+        request is in progress."
+
+2.7
+2RTT0 + Σ(i>0)RTTi
+TCP 3-way handshake + transmittion + RTTs for DNS
+
+2.8
+a.  8 * 2RTT0 = 16RTT0, 2RTT0 for each object
+b.  [8/5] * 2RTT0 = 4RTT0
+c.  assume all objects are requested in turn, tcp connection already established for the HTML file
+    8RTT0, one for each object
+
+2.9
+a.  Δ = 0.0540
+    β = 16
+    d   = Δ / (1 - Δβ)
+        = 0.0540 / (1 - 0.0540 * 16)
+        = 0.3971
+    dtotal = d + 2 = 2.3971
+b.  0.6 * 850000 / 100Mbps +
+    0.4 * dtotal
+    = 0.9637
+
+2.10
+propagation delay can be ignored
+parallel and persistent connection can at most skip all the 3 * 11 = 33 control packets
+which is a gain of 33 * 200 / 150 = 44 secs
+the objects has to be sent through the link with no less than 11 * 100K / 150 = 7509.333 secs
+no significant gain from parallel nor persistent connections
+
+2.11
+a.  yes: assume Bob uses N parallel connections, each connection get 1/(N + 4) of the total throughput
+    Bob gets N / (N + 4) of the total throughput instead of 1 / (N + 4) of other users
+b.  no as reasoned above: every user gets 1/5 of the total throughput
+
+2.12
+./network/application/printout
+most sites today are HTTPS only, to which connection starts with HTTP CONNECT method:
+    CONNECT www.icann.org:443 HTTP/1.1
+    Host: www.icann.org:443
+    Proxy-Connection: keep-alive
+    User-Agent: // omitted
+all GET requests to non-HTTPS sites do not have If-Modified-Since: header
+some explicitly have header disabling caches:
+    GET http://milk.com/ HTTP/1.1
+    Host: milk.com
+    Proxy-Connection: keep-alive
+    Pragma: no-cache
+    Cache-Control: no-cache
+    Upgrade-Insecure-Requests: 1
+maybe for security reasons
+
+2.13
+FROM: in SMTP is required, only left null on notification of errors
+From: in mail data is optional
+only the From: in mail data is shown to the users as they and their mail server are not communicating on SMTP
+
+2.14
+SMTP mark the end with a period on a single line
+HTTP uses Content-Length: header to indicate the length of the message body
+HTTP cannot use the same method as SMTP, period on its own line is valid HTTP message content
+
+2.15
+Mail Transfer Agents
+"Jonny" <tennis5@pp33head.com>, others on the chain are MTAs
+
+2.16
+it's meant to provide unique ids of mails consistent across sessions:
+    "The unique-id of a message is an arbitrary server-determined
+    string, consisting of one to 70 characters in the range 0x21
+    to 0x7E, which uniquely identifies a message within a
+    maildrop and which persists across sessions.  This
+    persistence is required even if a session ends without
+    entering the UPDATE state.  The server should never reuse an
+    unique-id in a given maildrop, for as long as the entity
+    using the unique-id exists."
+
+2.17
+a.  C: delete 1
+    C: quit
+    S: +OK POP3 server signing off
+b.  C: quit
+    S: +OK POP3 server signing off
+c.  C: list
+    S: 1 <random number>
+    S: 2 <random number>
+    // user saw no new mails
+    C: quit
+    S: +OK POP3 server signing off
+
+2.18
+a.  quoting from wikipedia:
+        "WHOIS (pronounced as the phrase "who is") is a query and response protocol that is widely used for querying
+        databases that store the registered users or assignees of an Internet resource, such as a domain name, an IP
+        address block or an autonomous system, but is also used for a wider range of other information."
+b.  1.1.1.1
+    APNIC and Cloudflare DNS Resolver project
+    9.9.9.9
+    Global Public Recursive DNS Resolver Service
+c.  > set type=NS
+    > ietf.org
+    Server:         8.8.8.8
+    Address:        8.8.8.8#53
+
+    Non-authoritative answer:
+    ietf.org        nameserver = ns1.hkg1.afilias-nst.info.
+    ietf.org        nameserver = ns1.yyz1.afilias-nst.info.
+    ietf.org        nameserver = ns1.mia1.afilias-nst.info.
+    ietf.org        nameserver = ns1.ams1.afilias-nst.info.
+    ietf.org        nameserver = ns0.amsl.com.
+    ietf.org        nameserver = ns1.sea1.afilias-nst.info.
+
+    Authoritative answers can be found from:
+    > set type=A
+    > ietf.org
+    Server:         8.8.8.8
+    Address:        8.8.8.8#53
+
+    Non-authoritative answer:
+    Name:   ietf.org
+    Address: 4.31.198.44
+    > set type=MX
+    > ietf.org
+    Server:         8.8.8.8
+    Address:        8.8.8.8#53
+
+    Non-authoritative answer:
+    ietf.org        mail exchanger = 0 mail.ietf.org.
+
+    Authoritative answers can be found from:
+    and exactly the same results fromr 1.1.1.1
+d.  > bing.com
+    Server:         1.1.1.1
+    Address:        1.1.1.1#53
+
+    Non-authoritative answer:
+    Name:   bing.com
+    Address: 13.107.21.200
+    Name:   bing.com
+    Address: 204.79.197.200
+    Yes, it has three
+e.  It's not an US entity so not registered on ARIN I guess
+f.  they can get physical location of the institution with whois database
+    they can do all tropes from spy movies instead of hacking the server remotely behind a computer
+    nslookup resolves domain to IP, and IP (especially IPv6) indicates physical address
+g.  mostly because of oversight: https://whois.icann.org/en/whats-horizon
+
+2.19
+a.  // skipped
+b.  // will show one entry from each query, there can be 20+ of them in a single query
+    $ dig @a.root-servers.net google.com
+    com.                    172800  IN      NS      e.gtld-servers.net.
+    google.com.             172800  IN      NS      ns2.google.com.
+    google.com.             300     IN      A       172.217.160.11
+    $ dig @a.root-servers.net ietf.org
+    org.                    172800  IN      NS      d0.org.afilias-nst.org.
+    ietf.org.               86400   IN      NS      ns1.mia1.afilias-nst.info.
+    ietf.org.               300     IN      A       4.31.198.44
+
+2.20
+It depends on the strategy of the cache
+a well-designed cache usually keeps most used data in it more frequently to reduce miss rate of the most accessed site
+sample the cache at different time and the most frequently seen server in the cache probably is the most accessed site 
+
+2.21
+by measuring RTT of nslookup from local dns
+if a site is accessed recently, its IP should be in cache of the local DNS
+nslookup would take no more than a few milliseconds
+
+2.22
+./network/application/problems
+N = 10, u = 307200 bps, dcs = 7680.000 secs, dp2p = 7680.000 secs
+N = 10, u = 716800 bps, dcs = 7680.000 secs, dp2p = 7680.000 secs
+N = 10, u = 2097152 bps, dcs = 7680.000 secs, dp2p = 7680.000 secs
+N = 100, u = 307200 bps, dcs = 51200.000 secs, dp2p = 25903.557 secs
+N = 100, u = 716800 bps, dcs = 51200.000 secs, dp2p = 15616.203 secs
+N = 100, u = 2097152 bps, dcs = 51200.000 secs, dp2p = 7680.000 secs
+N = 1000, u = 307200 bps, dcs = 512000.000 secs, dp2p = 47558.781 secs
+N = 1000, u = 716800 bps, dcs = 512000.000 secs, dp2p = 21524.852 secs
+N = 1000, u = 2097152 bps, dcs = 512000.000 secs, dp2p = 7680.000 secs
+
+2.23
+a.  transmit to each client with rate us/N
+    it's possible as us/N <= dmin <= di for all i, us/N * N = us <= us
+    each client will receive the file in time F / (us/N) = NF / us 
+b.  transmit to each client with rate dmin
+    it's possible as dmin <= di for all i, Ndmin <= us
+    each client will receive the file in time F / dmin
+c.  immediately follows part a and b
+
+2.24
+// thanks Kumar 2006: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.63.5807&rep=rep1&type=pdf
+a.  let si be the transmit rate from server to peer i
+    let ul = Σ(i > 0)ui, us <= (ul + us)/N, Nus <= ul + us, ul/(N - 1) >= us
+    si = (1 - δ)ui / (N - 1)
+    δ = (ul / (N - 1) - us) / (ul / (N - 1))
+    0 <= δ <= 1, (N-1)si <= ui, peer i can redistribute the bits it's receiving to all other peers
+    Σsi = Σ(i>0)(1 - δ)ui / (N - 1)
+        = (1 - δ) / (N - 1) * Σ(i>0)ui
+        = (1 - δ) / (N - 1) * ul
+        = us
+    the rates can be supported by the server
+    the file can be distributed in time F/us
+b.  let si = ui / (N - 1) + δ for i >= 1
+    δ = (us - ul/(N - 1)) / N >= 0
+    Σsi = Σ(i>0)ui/(N - 1) + Nδ
+        = ul/(N-1) + us - ul(N-1)
+        = us
+    each peer redistributes ui/(N-1) fresh bits it's receiving from server to other peers
+    peer i receives
+        ui/(N-1) + δ + Σ(k != i)uk/(N - 1)
+        = Σ(i>0)ui/(N-1) + δ
+        = ul/(N-1) + (us - ul/(N-1)) / N
+        = (us + ul)/N
+    and the file can be distributed in time F / ((us + ul)/N) = NF / (us + ul)
+c.  immediately follows part a and b
+
+2.25
+N nodes and N(N-1)/2 edges
+overlay networks is abstracted over routers and such
+
+2.26
+a.  possible, 
