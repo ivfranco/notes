@@ -671,4 +671,66 @@ N nodes and N(N-1)/2 edges
 overlay networks is abstracted over routers and such
 
 2.26
-a.  possible, 
+a.  possible, if a peer for which Bob is a neighbor, either 
+        1.  there's no more than 3 peers supplying data to the peer
+        2.  Bob is optimistically unchoked
+    Bob will receive data from the peer even if he doesn't upload
+b.  the same as part a, but also share data among these computers and these computers only, with a customized client
+    some bittorrent clients have this functionality built in
+
+2.27
+peer 3 asks its first second successor (peer 4) for its successor (peer 8)
+peer 3 replaces its second successor (peer 5) with the answer 
+
+2.28
+15 asks 1
+1 asks 3
+3 asks 4
+4 asks 5
+5 realizes it's the predecessor of 6, inform 8 and pass the info back to 6
+
+2.29
+if all the known peers are stored in a trie, closest peer can be find in a single O(n) traverse of the trie
+difference at nth most significant position suppresses all n-1 less significant bits
+
+2.30
+possible, two geographically distant peers may be assigned neighboring identifiers
+if the DHT passes messages from neighbor to neighbor, the RTT would be huge 
+
+2.31
+a.  before taking any input:
+    Error: Os { code: 10061, kind: ConnectionRefused, message: "No connection could be made because the target machine actively refused it." }
+    error: process didn't exit successfully: `target\debug\tcp_client.exe 4444 5555` (exit code: 1)
+    there's no server to accept the TCP handshakes
+b.  aaaa // input
+    Error: Os { code: 10054, kind: ConnectionReset, message: "An existing connection was forcibly closed by the remote host." }
+    error: process didn't exit successfully: `target\debug\udp_client.exe 4444 5555` (exit code: 1)
+    UDP socket only found there's no server on trying to send the packet
+c.  the same errors
+
+2.32
+not necessary, client port is attached to the datagram
+before UDPClient has any port number system allocated for it, later it has port number 5432
+
+2.33
+for Chrome it's fixed at 6
+it reduces the time wasted on RTTs, but may exhaust the socket resource on the server
+
+2.34
+the bytes are received in exact the order been sent, no need to reorder them
+additional paddings (including length / format info) would be necessary if the message has variable length
+
+2.35
+"free and open-source cross-platform web server software"
+it's open-source hence free of charge
+provides standard HTTP server features (it is the standard btw)
+
+2.36
+key: the SHA-1 hash of a torrent
+value: address of peers
+
+Assignment 1
+./network/application/web-server
+
+Assignment 2
+./network/application/udp-ping

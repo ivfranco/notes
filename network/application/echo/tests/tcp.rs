@@ -2,11 +2,11 @@ use assert_cmd::prelude::*;
 use std::{io, process::Command, thread, time::Duration};
 
 #[test]
-fn udp_test() -> io::Result<()> {
+fn tcp_test() -> io::Result<()> {
     let client = "4444";
     let server = "5555";
 
-    Command::cargo_bin("udp_server")
+    Command::cargo_bin("tcp_server")
         .unwrap()
         .arg(client)
         .arg(server)
@@ -15,7 +15,7 @@ fn udp_test() -> io::Result<()> {
     // ensure server is fully set up
     thread::sleep(Duration::from_millis(200));
 
-    Command::cargo_bin("udp_client")
+    Command::cargo_bin("tcp_client")
         .unwrap()
         .arg(client)
         .arg(server)

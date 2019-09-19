@@ -6063,5 +6063,3 @@ the dependency on large training set of recent deep learning methods destined AI
 26.10
 both may be possible
 it's not a contradiction to hold both positions (A => B does not contradict ~A)
-
-26.11

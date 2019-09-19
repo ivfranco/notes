@@ -1,12 +1,14 @@
-use echo::{parse_port, BUF_SIZE};
+use echo::{parse_port, str_err_to_io, BUF_SIZE};
 use std::{
-    io::{self, ErrorKind},
-    net::UdpSocket,
+    io,
+    net::{Ipv4Addr, UdpSocket},
 };
 
 fn main() -> io::Result<()> {
+    // there's no way to initialize a UdpSocket in Rust without providing a port number
+    // otherwise client port number is unnecessary
     let (client, server) = parse_port("echo client");
-    let socket = UdpSocket::bind(("localhost", client))?;
+    let socket = UdpSocket::bind((Ipv4Addr::LOCALHOST, client))?;
     socket.connect(("localhost", server))?;
     event_loop(socket)
 }
@@ -21,8 +23,7 @@ fn event_loop(socket: UdpSocket) -> io::Result<()> {
     let len = socket.recv(&mut buf)?;
     // known bug: valid uppercase text may be longer than original text
     // and be truncated to invalid utf-8
-    let received = std::str::from_utf8(&buf[..len])
-        .map_err(|err| io::Error::new(ErrorKind::InvalidData, err))?;
+    let received = std::str::from_utf8(&buf[..len]).map_err(str_err_to_io)?;
     print!("{}", received);
 
     Ok(())

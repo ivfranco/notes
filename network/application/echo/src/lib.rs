@@ -1,5 +1,10 @@
 use clap::{App, Arg};
-use std::process;
+use std::{
+    io::{self, ErrorKind, Read, Write},
+    mem::size_of,
+    process,
+    str::Utf8Error,
+};
 
 /// maximum length of a line
 pub const BUF_SIZE: usize = 0x100;
@@ -36,4 +41,28 @@ pub fn parse_port(binary: &str) -> (u16, u16) {
         });
 
     (client, server)
+}
+
+pub fn write_length_padded<W>(mut writer: W, buf: &[u8]) -> io::Result<()>
+where
+    W: Write,
+{
+    writer.write(&buf.len().to_be_bytes())?;
+    writer.write_all(buf)?;
+    writer.flush()
+}
+
+pub fn read_length_padded<R>(mut reader: R, buf: &mut [u8]) -> io::Result<usize>
+where
+    R: Read,
+{
+    let mut pad = [0; size_of::<usize>()];
+    reader.read_exact(&mut pad)?;
+    let len = usize::from_be_bytes(pad);
+    reader.read_exact(&mut buf[..len])?;
+    Ok(len)
+}
+
+pub fn str_err_to_io(err: Utf8Error) -> io::Error {
+    io::Error::new(ErrorKind::InvalidData, err)
 }

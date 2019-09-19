@@ -1,15 +1,17 @@
 use echo::{parse_port, BUF_SIZE};
 use std::{
     io::{self, ErrorKind},
-    net::UdpSocket,
+    net::{Ipv4Addr, UdpSocket},
 };
 
 fn main() -> io::Result<()> {
     let (_, server) = parse_port("echo server");
-    let socket = UdpSocket::bind(("localhost", server))?;
+    let socket = UdpSocket::bind((Ipv4Addr::LOCALHOST, server))?;
     event_loop(socket)
 }
 
+// if this is a loop, tests cannot kill the spawned child process on Windows 10
+// handle only one line of input instead 
 fn event_loop(socket: UdpSocket) -> io::Result<()> {
     let mut buf = [0; BUF_SIZE];
 
