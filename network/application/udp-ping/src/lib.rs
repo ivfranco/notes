@@ -1,41 +1,5 @@
 use internet_checksum::checksum;
-use std::{
-    env,
-    io::{self, ErrorKind},
-    net::SocketAddr,
-    process,
-};
-
-fn parse_port() -> Option<u16> {
-    let mut args = env::args();
-    // skip executable name
-    args.next();
-    args.next().and_then(|arg| arg.parse::<u16>().ok())
-}
-
-pub fn parse_port_or_exit() -> u16 {
-    parse_port().unwrap_or_else(|| {
-        eprintln!("Usage: EXEC PORT");
-        process::exit(1);
-    })
-}
-
-fn parse_host() -> Option<(u16, SocketAddr)> {
-    let mut args = env::args();
-    // skip executable name
-    args.next();
-    let client = args.next().and_then(|arg| arg.parse::<u16>().ok())?;
-    let server = args.next().and_then(|arg| arg.parse::<SocketAddr>().ok())?;
-
-    Some((client, server))
-}
-
-pub fn parse_host_or_exit() -> (u16, SocketAddr) {
-    parse_host().unwrap_or_else(|| {
-        eprintln!("Usage: EXEC CLIENT_PORT SERVER_HOST:SERVER_PORT");
-        process::exit(1);
-    })
-}
+use std::io::{self, ErrorKind};
 
 pub mod consts {
     pub const TYPE_LEN: usize = 1;

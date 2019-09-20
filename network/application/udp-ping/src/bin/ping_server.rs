@@ -1,8 +1,9 @@
 use std::{
-    io,
+    env, io,
     net::{Ipv4Addr, UdpSocket},
+    process,
 };
-use udp_ping::{consts::PACKET_LEN, parse_port_or_exit, PingPacket, Type};
+use udp_ping::{consts::PACKET_LEN, PingPacket, Type};
 
 fn main() -> io::Result<()> {
     let port = parse_port_or_exit();
@@ -23,4 +24,18 @@ fn recv_ping(port: u16) -> io::Result<()> {
         );
         socket.send_to(&reply_packet.packet(), client)?;
     }
+}
+
+fn parse_port() -> Option<u16> {
+    let mut args = env::args();
+    // skip executable name
+    args.next();
+    args.next().and_then(|arg| arg.parse::<u16>().ok())
+}
+
+fn parse_port_or_exit() -> u16 {
+    parse_port().unwrap_or_else(|| {
+        eprintln!("Usage: EXEC PORT");
+        process::exit(1);
+    })
 }

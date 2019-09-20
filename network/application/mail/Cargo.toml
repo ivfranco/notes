@@ -1,0 +1,15 @@
+[package]
+name = "mail"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@outlook.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "^0.4"
+env_logger = "^0.6"
+trust-dns-resolver = "^0.12"
+clap = { version = "^2.33", default-features = false }
+chrono = "^0.4"
+base64-stream = "^1.0"

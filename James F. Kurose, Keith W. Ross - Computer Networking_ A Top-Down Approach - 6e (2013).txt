@@ -729,8 +729,16 @@ provides standard HTTP server features (it is the standard btw)
 key: the SHA-1 hash of a torrent
 value: address of peers
 
-Assignment 1
+Socket Assignment 1
 ./network/application/web-server
 
-Assignment 2
+Socket Assignment 2
 ./network/application/udp-ping
+packet structure resembles ICMP echo request/reply
+
+Socket Assignment 3
+./network/application/mail
+successfully sent to local MailSlurper server and ProtonMail
+failed on Gmail due to reputation issue
+
+Socket Assignment 4
