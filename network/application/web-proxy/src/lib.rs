@@ -1,3 +1,4 @@
+pub mod http;
 pub mod resolver;
 pub mod server;
 
@@ -6,6 +7,7 @@ use trust_dns_resolver::error::ResolveError;
 
 #[derive(Debug)]
 pub enum Error {
+    BodyNotPresent,
     MalformedHTTP,
     MethodNotImplemented,
     ParseError(ParseError),

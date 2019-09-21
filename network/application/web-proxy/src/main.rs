@@ -1,5 +1,5 @@
-use std::{env, process};
 use log::debug;
+use std::{env, process};
 use web_proxy::{server::spawn_server, Result};
 
 fn main() -> Result<()> {

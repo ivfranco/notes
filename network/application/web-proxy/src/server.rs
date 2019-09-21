@@ -1,12 +1,16 @@
-use crate::{resolver::DNSResolver, Error, Result};
-use httparse::{Request, EMPTY_HEADER};
+use crate::{
+    http::{HTTPRequest, HTTPResponse, HTTPResponseBuilder, Method, Status},
+    resolver::DNSResolver,
+    Error, Result,
+};
 use log::{debug, error};
 use std::{
-    collections::HashMap,
-    io::{BufRead, BufReader, Write},
+    io::{BufReader, Write},
     net::{Ipv4Addr, TcpListener, TcpStream},
     thread,
 };
+
+const HTTP_PORT: u16 = 80;
 
 pub fn spawn_server(port: u16) -> Result<()> {
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port))?;
@@ -20,167 +24,83 @@ pub fn spawn_server(port: u16) -> Result<()> {
     Ok(())
 }
 
-fn relay_and_report(client: TcpStream) {
-    if let Err(err) = relay(client) {
+fn relay_and_report(mut client: TcpStream) {
+    if let Err(err) = relay(&mut client) {
         error!("{:?}", err);
     }
 }
 
-fn relay(mut client: TcpStream) -> Result<()> {
-    let request = HTTPRequest::from_reader(BufReader::new(&mut client))?;
-    debug!("Received request from client:\n{:?}", request);
-    let resolver = DNSResolver::spawn()?;
-    debug!("Resolving domain name {}", request.host);
-    let ip = resolver.lookup(&request.host)?;
-    debug!("Domain name {} resolved to {:?}", request.host, ip);
-    let mut server = TcpStream::connect((ip, HTTP_PORT))?;
-    debug!("Connected to server at {:?}", ip);
-    request.write_to(&mut server)?;
-    debug!("Request relayed to server, waiting for response");
-
-    // FIXME: actually parse and relay HTTP responses
-    std::io::copy(&mut server, &mut client)?;
+fn relay(client: &mut TcpStream) -> Result<()> {
+    let mut server = match relay_request(client) {
+        Ok(server) => server,
+        Err(err) => {
+            let handled = match err {
+                Error::BodyNotPresent | Error::MalformedHTTP => {
+                    error_response(Status::BadRequest, client)
+                }
+                Error::MethodNotImplemented => error_response(Status::NotImplemented, client),
+                _ => Err(err),
+            };
+            return handled;
+        }
+    };
+    relay_response(client, &mut server)?;
     Ok(())
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-enum Method {
-    GET,
-    POST,
+fn relay_request(client: &mut TcpStream) -> Result<TcpStream> {
+    let client_peer = client.peer_addr();
+    let mut client_reader = BufReader::new(client);
+    let request = HTTPRequest::from_reader(&mut client_reader)?;
+    debug!(
+        "Received request from client {:?}:\n{:?}",
+        client_peer, request
+    );
+    let resolver = DNSResolver::spawn()?;
+    debug!("Resolving domain name {}", request.host());
+    let ip = resolver.lookup(request.host())?;
+    debug!("Domain name {} resolved to {:?}", request.host(), ip);
+    let mut server = TcpStream::connect((ip, HTTP_PORT))?;
+    debug!("Connected to server at {:?}", ip);
+    write!(server, "{}", request)?;
+    if request.method() == Method::POST {
+        debug!("POST request, sending body");
+        let body = request.read_body(&mut client_reader)?;
+        server.write_all(&body)?;
+        debug!("Sent {} bytes", body.len());
+    }
+    debug!("Request relayed to server, waiting for response");
+    Ok(server)
 }
 
-const HTTP_PORT: u16 = 80;
-const MAX_HEADER: usize = 32;
-const CRLF: &[u8] = b"\r\n";
-const LF: u8 = b'\n';
-
-struct HTTPRequest {
-    method: Method,
-    host: String,
-    path: String,
-    headers: HashMap<String, String>,
-    body: Vec<u8>,
-}
-
-impl HTTPRequest {
-    fn from_reader<R>(mut reader: R) -> Result<Self>
-    where
-        R: BufRead,
-    {
-        let mut headers_buf = [EMPTY_HEADER; MAX_HEADER];
-        let mut parser = Request::new(&mut headers_buf);
-        let mut buf = vec![];
-        loop {
-            let len = reader.read_until(LF, &mut buf)?;
-            // an empty line, end of header
-            if len == 2 && buf.ends_with(CRLF) {
-                break;
-            }
+fn relay_response(client: &mut TcpStream, server: &mut TcpStream) -> Result<()> {
+    let server_peer = server.peer_addr();
+    let mut server_reader = BufReader::new(server);
+    let response = HTTPResponse::from_reader(&mut server_reader)?;
+    debug!(
+        "Received response from server {:?}:\n{:?}",
+        server_peer, response
+    );
+    write!(client, "{}", response)?;
+    match response.read_body(&mut server_reader) {
+        Ok(body) => {
+            debug!("Sending response body");
+            client.write_all(&body)?;
+            debug!("{} bytes sent", body.len());
         }
-        parser.parse(&buf)?;
-
-        let method = match parser.method {
-            Some("GET") => Method::GET,
-            Some("POST") => Method::POST,
-            _ => {
-                error!("Unexpected HTTP method {:?}", parser.method);
-                return Err(Error::MethodNotImplemented);
-            }
-        };
-
-        let url = if let Some(url) = parser.path {
-            url
-        } else {
-            return Err(Error::MalformedHTTP);
-        };
-        let (host, path) = split_url(url)?;
-
-        let headers: HashMap<String, String> = parser
-            .headers
-            .iter()
-            .try_fold::<HashMap<_, _>, _, Result<_>>(HashMap::new(), |mut headers, header| {
-                let name = header.name.to_string();
-                let value =
-                    String::from_utf8(header.value.to_vec()).map_err(|_| Error::MalformedHTTP)?;
-                headers.insert(name, value);
-                Ok(headers)
-            })?;
-
-        let mut body = vec![];
-        if method == Method::POST {
-            let size = headers
-                .get("Content-Length")
-                .and_then(|value| value.parse::<usize>().ok())
-                .unwrap_or(0);
-            body.resize_with(size, Default::default);
-            reader.read_exact(&mut body)?;
-        }
-
-        Ok(Self {
-            method,
-            host: host.to_string(),
-            path: path.to_string(),
-            headers,
-            body,
-        })
+        Err(Error::BodyNotPresent) => (),
+        Err(err) => return Err(err),
     }
+    debug!("Response relayed to client, closing connection");
 
-    fn write_headers<W>(&self, writer: &mut W) -> Result<()>
-    where
-        W: Write,
-    {
-        // start line
-        writeln!(writer, "{:?} {} HTTP/1.1\r", self.method, self.path)?;
-        // headers, end with an empty line
-        for (name, value) in &self.headers {
-            writeln!(writer, "{}: {}\r", name, value)?;
-        }
-        writeln!(writer, "\r")?;
-
-        Ok(())
-    }
-
-    fn write_to<W>(&self, writer: &mut W) -> Result<()>
-    where
-        W: Write,
-    {
-        self.write_headers(writer)?;
-        writer.write_all(&self.body)?;
-
-        Ok(())
-    }
+    Ok(())
 }
 
-impl std::fmt::Debug for HTTPRequest {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut buf = vec![];
-        self.write_headers(&mut buf).map_err(|_| std::fmt::Error)?;
-        write!(
-            f,
-            "{}",
-            String::from_utf8(buf).expect("Headers are valid strings")
-        )?;
-        writeln!(f, "Body length: {}", self.body.len())?;
+pub fn error_response(status: Status, client: &mut TcpStream) -> Result<()> {
+    let response = HTTPResponseBuilder::new(status)
+        .attach_header("Connection", "close")
+        .build();
 
-        Ok(())
-    }
-}
-
-fn split_url(mut url: &str) -> Result<(String, String)> {
-    if url.starts_with("http://") {
-        // configured as the http proxy in the browser
-        url = &url["http://".len()..];
-    } else if url.starts_with('/') {
-        // accessed from url as localhost:port/url
-        url = &url[1..];
-    }
-
-    let slash = url.find('/').unwrap_or_else(|| url.len());
-    let host = url[..slash].to_string();
-    let path = if slash == url.len() {
-        "/".to_string()
-    } else {
-        url[slash..].to_string()
-    };
-    Ok((host, path))
+    write!(client, "{}", response)?;
+    Ok(())
 }

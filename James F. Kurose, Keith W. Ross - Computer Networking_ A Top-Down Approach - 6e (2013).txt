@@ -742,3 +742,5 @@ successfully sent to local MailSlurper server and ProtonMail
 failed on Gmail due to reputation issue
 
 Socket Assignment 4
+./network/application/web-proxy
+again most access to HTTPS sites starts with CONNECT method, which this program does not handle
