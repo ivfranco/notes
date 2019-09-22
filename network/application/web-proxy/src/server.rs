@@ -1,3 +1,10 @@
+//! Proxy server relay logics, ignoring semantics of most headers.\
+//! In particular, connections are always non-persistent, even when Connection: keep-alive is set.\
+//! Forge artifical responses when:
+//! - HTTP request has bad format
+//! - DNS resolver cannot find the domain requested
+//! - All but GET and POST method encounted
+
 use crate::{
     http::{HTTPRequest, HTTPResponse, HTTPResponseBuilder, Method, Status},
     resolver::DNSResolver,
@@ -12,6 +19,7 @@ use std::{
 
 const HTTP_PORT: u16 = 80;
 
+/// Spawn a http proxy server with non-persistent connections.
 pub fn spawn_server(port: u16) -> Result<()> {
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port))?;
     debug!("TCP listener established at {}", port);
@@ -35,10 +43,18 @@ fn relay(client: &mut TcpStream) -> Result<()> {
         Ok(server) => server,
         Err(err) => {
             let handled = match err {
+                Error::ResolveError(..) => {
+                    error!("Forge response for dns query failure");
+                    error_response(Status::NotFound, client)
+                }
                 Error::BodyNotPresent | Error::MalformedHTTP => {
+                    error!("Forge response for malformed request");
                     error_response(Status::BadRequest, client)
                 }
-                Error::MethodNotImplemented => error_response(Status::NotImplemented, client),
+                Error::MethodNotImplemented => {
+                    error!("Forege response for unexpected HTTP method");
+                    error_response(Status::NotImplemented, client)
+                }
                 _ => Err(err),
             };
             return handled;
@@ -52,10 +68,8 @@ fn relay_request(client: &mut TcpStream) -> Result<TcpStream> {
     let client_peer = client.peer_addr();
     let mut client_reader = BufReader::new(client);
     let request = HTTPRequest::from_reader(&mut client_reader)?;
-    debug!(
-        "Received request from client {:?}:\n{:?}",
-        client_peer, request
-    );
+    debug!("Received request from client {:?}", client_peer);
+    debug!("\n{:?}", request);
     let resolver = DNSResolver::spawn()?;
     debug!("Resolving domain name {}", request.host());
     let ip = resolver.lookup(request.host())?;
@@ -77,16 +91,14 @@ fn relay_response(client: &mut TcpStream, server: &mut TcpStream) -> Result<()> 
     let server_peer = server.peer_addr();
     let mut server_reader = BufReader::new(server);
     let response = HTTPResponse::from_reader(&mut server_reader)?;
-    debug!(
-        "Received response from server {:?}:\n{:?}",
-        server_peer, response
-    );
+    debug!("Received response from server {:?}", server_peer,);
+    debug!("\n{:?}", response);
     write!(client, "{}", response)?;
     match response.read_body(&mut server_reader) {
         Ok(body) => {
             debug!("Sending response body");
             client.write_all(&body)?;
-            debug!("{} bytes sent", body.len());
+            debug!("Snet {} bytes", body.len());
         }
         Err(Error::BodyNotPresent) => (),
         Err(err) => return Err(err),
@@ -96,7 +108,7 @@ fn relay_response(client: &mut TcpStream, server: &mut TcpStream) -> Result<()> 
     Ok(())
 }
 
-pub fn error_response(status: Status, client: &mut TcpStream) -> Result<()> {
+fn error_response(status: Status, client: &mut TcpStream) -> Result<()> {
     let response = HTTPResponseBuilder::new(status)
         .attach_header("Connection", "close")
         .build();

@@ -1,3 +1,7 @@
+#![deny(missing_docs)]
+
+//! A naive HTTP proxy, disregarding most RFCs.
+
 pub mod http;
 pub mod resolver;
 pub mod server;
@@ -5,13 +9,20 @@ pub mod server;
 use httparse::Error as ParseError;
 use trust_dns_resolver::error::ResolveError;
 
+/// Crate universal error type.
 #[derive(Debug)]
 pub enum Error {
+    /// No body found for HTTP request or response
     BodyNotPresent,
+    /// Format error in HTTP request or response
     MalformedHTTP,
+    ///
     MethodNotImplemented,
+    /// Error propagated from httparse
     ParseError(ParseError),
+    /// Error propagated from trust-dns-resolver
     ResolveError(ResolveError),
+    /// Error propagated from std::io
     IOError(std::io::Error),
 }
 
@@ -35,4 +46,5 @@ impl From<std::io::Error> for Error {
     }
 }
 
+/// Crate universal result type.
 pub type Result<T> = std::result::Result<T, Error>;

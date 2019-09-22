@@ -1,3 +1,5 @@
+//! Basic HTTP types.
+
 use crate::{Error, Result};
 use httparse::{Header, Request, Response, EMPTY_HEADER};
 use log::{debug, error};
@@ -28,7 +30,6 @@ impl HTTPHeaders {
             .map_or(false, |value| value.starts_with("chunked"))
     }
 
-    // return 0 when Content-Length: header is missing
     fn content_length(&self) -> Option<usize> {
         self.fields
             .get("Content-Length")
@@ -40,14 +41,7 @@ impl HTTPHeaders {
         R: BufRead,
     {
         if self.chunked() {
-            let mut buf = read_until_empty_line(reader)?;
-            let mut tail = [0; 256];
-            let len = reader.read(&mut tail)?;
-            if len > 0 {
-                debug!("FIXME: {} bytes read after supposed EOF", len);
-                buf.extend_from_slice(&tail[..len]);
-            }
-            Ok(buf)
+            read_chunks(reader)
         } else if let Some(len) = self.content_length() {
             let mut buf = vec![0; len];
             reader.read_exact(&mut buf)?;
@@ -69,9 +63,12 @@ impl std::fmt::Display for HTTPHeaders {
     }
 }
 
+/// HTTP methods handled by the proxy server
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Method {
+    /// Head-only GET Request
     GET,
+    /// POST request, expecting Content-Length: or Content-Transfer-Encoding: chunked
     POST,
 }
 
@@ -79,6 +76,7 @@ const MAX_HEADER: usize = 32;
 const CRLF: &[u8] = b"\r\n";
 const LF: u8 = b'\n';
 
+/// An HTTP request without body.
 pub struct HTTPRequest {
     method: Method,
     host: String,
@@ -87,6 +85,7 @@ pub struct HTTPRequest {
 }
 
 impl HTTPRequest {
+    /// Parse an http request from byte stream.
     pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: BufRead,
@@ -130,15 +129,18 @@ impl HTTPRequest {
         })
     }
 
+    /// Host domain name of the proxified request.
     pub fn host(&self) -> &str {
         &self.host
     }
 
+    /// Method of the request.
     pub fn method(&self) -> Method {
         self.method
     }
 
-    // https://tools.ietf.org/html/rfc7230#section-3.3.3
+    /// Parse the body of the request defined by:\
+    /// ]https://tools.ietf.org/html/rfc7230#section-3.3.3](https://tools.ietf.org/html/rfc7230#section-3.3.3)
     pub fn read_body<R>(&self, reader: &mut R) -> Result<Vec<u8>>
     where
         R: BufRead,
@@ -163,40 +165,7 @@ impl std::fmt::Debug for HTTPRequest {
     }
 }
 
-fn split_url(mut url: &str) -> Result<(String, String)> {
-    if url.starts_with("http://") {
-        // configured as the http proxy in the browser
-        url = &url["http://".len()..];
-    } else if url.starts_with('/') {
-        // accessed from url as localhost:port/url
-        url = &url[1..];
-    }
-
-    let slash = url.find('/').unwrap_or_else(|| url.len());
-    let host = url[..slash].to_string();
-    let path = if slash == url.len() {
-        "/".to_string()
-    } else {
-        url[slash..].to_string()
-    };
-    Ok((host, path))
-}
-
-fn read_until_empty_line<R>(reader: &mut R) -> Result<Vec<u8>>
-where
-    R: BufRead,
-{
-    let mut buf = vec![];
-    loop {
-        let len = reader.read_until(LF, &mut buf)?;
-        // an empty line, end of header
-        if len == 2 && buf.ends_with(CRLF) {
-            break;
-        }
-    }
-    Ok(buf)
-}
-
+/// An HTTP response without body.
 pub struct HTTPResponse {
     code: u16,
     reason: String,
@@ -204,6 +173,7 @@ pub struct HTTPResponse {
 }
 
 impl HTTPResponse {
+    /// Parse an HTTP response from byte stream.
     pub fn from_reader<R>(reader: &mut R) -> Result<Self>
     where
         R: BufRead,
@@ -239,7 +209,8 @@ impl HTTPResponse {
         })
     }
 
-    // https://tools.ietf.org/html/rfc7230#section-3.3.3
+    /// Parse the body of the response defined by:\
+    /// [https://tools.ietf.org/html/rfc7230#section-3.3.3](https://tools.ietf.org/html/rfc7230#section-3.3.3)
     pub fn read_body<R>(&self, reader: &mut R) -> Result<Vec<u8>>
     where
         R: BufRead,
@@ -263,8 +234,13 @@ impl std::fmt::Debug for HTTPResponse {
     }
 }
 
+/// Error status returned by the proxy server.
 pub enum Status {
+    /// 400 Bad Request
     BadRequest,
+    /// 404 Not Found
+    NotFound,
+    /// 501 Not Implemented
     NotImplemented,
 }
 
@@ -274,6 +250,7 @@ impl Status {
     fn code(&self) -> u16 {
         match self {
             BadRequest => 400,
+            NotFound => 404,
             NotImplemented => 501,
         }
     }
@@ -281,17 +258,20 @@ impl Status {
     fn reason(&self) -> &'static str {
         match self {
             BadRequest => "Bad Request",
+            NotFound => "Not Found",
             NotImplemented => "Not Implemented",
         }
     }
 }
 
+/// A helper struct to build HTTP error responses.
 pub struct HTTPResponseBuilder {
     status: Status,
     fields: HashMap<String, String>,
 }
 
 impl HTTPResponseBuilder {
+    /// Construct a new builder with the given status.
     pub fn new(status: Status) -> Self {
         Self {
             status,
@@ -299,11 +279,13 @@ impl HTTPResponseBuilder {
         }
     }
 
+    /// Insert or replace a header field of the HTTP response.
     pub fn attach_header(&mut self, name: &str, value: &str) -> &mut Self {
         self.fields.insert(name.to_string(), value.to_string());
         self
     }
 
+    /// Build an HTTP response.
     pub fn build(&mut self) -> HTTPResponse {
         let fields = mem::replace(&mut self.fields, HashMap::new());
         HTTPResponse {
@@ -312,4 +294,92 @@ impl HTTPResponseBuilder {
             headers: HTTPHeaders { fields },
         }
     }
+}
+
+fn split_url(mut url: &str) -> Result<(String, String)> {
+    if url.starts_with("http://") {
+        // configured as the http proxy in the browser
+        url = &url["http://".len()..];
+    } else if url.starts_with('/') {
+        // accessed from url as localhost:port/url
+        url = &url[1..];
+    }
+
+    let slash = url.find('/').unwrap_or_else(|| url.len());
+    let host = url[..slash].to_string();
+    let path = if slash == url.len() {
+        "/".to_string()
+    } else {
+        url[slash..].to_string()
+    };
+    Ok((host, path))
+}
+
+fn read_until_empty_line<R>(reader: &mut R) -> Result<Vec<u8>>
+where
+    R: BufRead,
+{
+    let mut buf = vec![];
+    loop {
+        let len = reader.read_until(LF, &mut buf)?;
+        // an empty line, end of header
+        if len == 2 && buf.ends_with(CRLF) {
+            break;
+        }
+    }
+
+    Ok(buf)
+}
+
+fn read_chunks<R>(reader: &mut R) -> Result<Vec<u8>>
+where
+    R: BufRead,
+{
+    debug!("Parsing chunked body");
+    let mut buf = vec![];
+    loop {
+        if read_chunk(&mut buf, reader)? == 0 {
+            break;
+        }
+    }
+    debug!("Terminate chunk hit");
+    // skip all trailers
+    Ok(buf)
+}
+
+fn read_chunk<R>(buf: &mut Vec<u8>, reader: &mut R) -> Result<usize>
+where
+    R: BufRead,
+{
+    let begin = buf.len();
+    let len = reader.read_until(LF, buf)?;
+    let size = decode_size(&buf[begin..begin + len])?;
+    debug!("Found chunk of size {} bytes", size);
+
+    let chunk_start = begin + len;
+    let chunk_size = size + CRLF.len();
+    buf.resize(chunk_start + chunk_size, 0);
+    reader.read_exact(&mut buf[chunk_start..chunk_start + chunk_size])?;
+
+    Ok(size)
+}
+
+fn decode_size(line: &[u8]) -> Result<usize> {
+    line.iter()
+        .take_while(|byte| byte.is_ascii_hexdigit())
+        .try_fold(0, |size, &byte| {
+            let digit = hex_digit(byte)?;
+            Ok((size << 4) + digit)
+        })
+}
+
+fn hex_digit(byte: u8) -> Result<usize> {
+    let unsigned_char = match byte {
+        b'0'..=b'9' => Ok(byte - b'0'),
+        b'a'..=b'f' => Ok(byte - b'a' + 10),
+        b'A'..=b'F' => Ok(byte - b'A' + 10),
+        _ => Err(Error::MalformedHTTP),
+    }?;
+
+    Ok(unsigned_char as usize)
 }

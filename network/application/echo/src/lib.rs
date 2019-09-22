@@ -47,7 +47,7 @@ pub fn write_length_padded<W>(mut writer: W, buf: &[u8]) -> io::Result<()>
 where
     W: Write,
 {
-    writer.write(&buf.len().to_be_bytes())?;
+    writer.write_all(&buf.len().to_be_bytes())?;
     writer.write_all(buf)?;
     writer.flush()
 }
