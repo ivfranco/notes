@@ -1,6 +1,6 @@
 //! Basic HTTP types.
 
-use crate::{Error, Result};
+use crate::{cache::CacheEntry, Error, GMTDateTime, Result};
 use httparse::{Header, Request, Response, EMPTY_HEADER};
 use log::{debug, error};
 use std::{collections::HashMap, io::BufRead, mem};
@@ -36,6 +36,13 @@ impl HTTPHeaders {
             .and_then(|value| value.parse().ok())
     }
 
+    fn last_modified(&self) -> Option<GMTDateTime> {
+        self.fields
+            .get("Last-Modified")
+            // treat bad formatted  date as non-present
+            .and_then(|rfc2822| GMTDateTime::parse_from_rfc2822(rfc2822))
+    }
+
     fn read_body<R>(&self, reader: &mut R) -> Result<Vec<u8>>
     where
         R: BufRead,
@@ -63,13 +70,27 @@ impl std::fmt::Display for HTTPHeaders {
     }
 }
 
-/// HTTP methods handled by the proxy server
+/// HTTP methods handled by the proxy server.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Method {
     /// Head-only GET Request
     GET,
-    /// POST request, expecting Content-Length: or Content-Transfer-Encoding: chunked
+    /// POST request, expecting Content-Length: or Transfer-Encoding: chunked
     POST,
+    /// Head-only HEAD Request
+    HEAD,
+}
+
+impl Method {
+    fn parse(s: &str) -> Option<Self> {
+        use Method::*;
+        match s {
+            "GET" => Some(GET),
+            "POST" => Some(POST),
+            "HEAD" => Some(HEAD),
+            _ => None,
+        }
+    }
 }
 
 const MAX_HEADER: usize = 32;
@@ -100,12 +121,10 @@ impl HTTPRequest {
         parser.parse(&buf)?;
 
         let method = match parser.method {
-            Some("GET") => Ok(Method::GET),
-            Some("POST") => Ok(Method::POST),
-            Some(method) => {
-                error!("Unexpected HTTP method {:?}", method);
-                Err(Error::MethodNotImplemented)
-            }
+            Some(m) => Method::parse(m).ok_or_else(|| {
+                error!("Unexpected HTTP method {}", m);
+                Error::MethodNotImplemented
+            }),
             _ => {
                 error!("No HTTP method in request");
                 Err(Error::MalformedHTTP)
@@ -139,6 +158,14 @@ impl HTTPRequest {
         self.method
     }
 
+    /// Convert this response to an cache entry if Last-Modified: is set.\
+    /// Otherwise it's impossible to determine whether the cache is valid.
+    pub fn to_cache_entry(&self, body: &[u8]) -> Option<CacheEntry> {
+        let last_modified = self.headers.last_modified()?;
+        let is_chunked = self.headers.chunked();
+        Some(CacheEntry::new(last_modified, is_chunked, body.to_vec()))
+    }
+
     /// Parse the body of the request defined by:\
     /// ]https://tools.ietf.org/html/rfc7230#section-3.3.3](https://tools.ietf.org/html/rfc7230#section-3.3.3)
     pub fn read_body<R>(&self, reader: &mut R) -> Result<Vec<u8>>
@@ -162,6 +189,39 @@ impl std::fmt::Display for HTTPRequest {
 impl std::fmt::Debug for HTTPRequest {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         <Self as std::fmt::Display>::fmt(self, f)
+    }
+}
+
+/// A helper struct to build HTTP responses.
+pub struct HTTPRequestBuilder {
+    method: Method,
+    fields: HashMap<String, String>,
+}
+
+impl HTTPRequestBuilder {
+    /// Construct a new builder with the given method.
+    pub fn new(method: Method) -> Self {
+        Self {
+            method,
+            fields: HashMap::new(),
+        }
+    }
+
+    /// Insert or replace a header field of the HTTP request.
+    pub fn attach_header(&mut self, name: &str, value: &str) -> &mut Self {
+        self.fields.insert(name.to_string(), value.to_string());
+        self
+    }
+
+    /// Build an HTTP request from given host and path.
+    pub fn build(&mut self, host: &str, path: &str) -> HTTPRequest {
+        let fields = mem::replace(&mut self.fields, HashMap::new());
+        HTTPRequest {
+            method: self.method,
+            host: host.to_string(),
+            path: path.to_string(),
+            headers: HTTPHeaders { fields },
+        }
     }
 }
 
@@ -234,8 +294,10 @@ impl std::fmt::Debug for HTTPResponse {
     }
 }
 
-/// Error status returned by the proxy server.
+/// Status returned by the proxy server.
 pub enum Status {
+    /// 200 OK
+    OK,
     /// 400 Bad Request
     BadRequest,
     /// 404 Not Found
@@ -249,6 +311,7 @@ use Status::*;
 impl Status {
     fn code(&self) -> u16 {
         match self {
+            OK => 200,
             BadRequest => 400,
             NotFound => 404,
             NotImplemented => 501,
@@ -257,6 +320,7 @@ impl Status {
 
     fn reason(&self) -> &'static str {
         match self {
+            OK => "OK",
             BadRequest => "Bad Request",
             NotFound => "Not Found",
             NotImplemented => "Not Implemented",
@@ -264,7 +328,7 @@ impl Status {
     }
 }
 
-/// A helper struct to build HTTP error responses.
+/// A helper struct to build HTTP responses.
 pub struct HTTPResponseBuilder {
     status: Status,
     fields: HashMap<String, String>,
@@ -343,6 +407,8 @@ where
         }
     }
     debug!("Terminate chunk hit");
+    // the test server appearently left out the last CRLF required by RFC7230
+    buf.extend_from_slice(CRLF);
     // skip all trailers
     Ok(buf)
 }
@@ -374,12 +440,12 @@ fn decode_size(line: &[u8]) -> Result<usize> {
 }
 
 fn hex_digit(byte: u8) -> Result<usize> {
-    let unsigned_char = match byte {
+    let digit = match byte {
         b'0'..=b'9' => Ok(byte - b'0'),
         b'a'..=b'f' => Ok(byte - b'a' + 10),
         b'A'..=b'F' => Ok(byte - b'A' + 10),
         _ => Err(Error::MalformedHTTP),
     }?;
 
-    Ok(unsigned_char as usize)
+    Ok(digit as usize)
 }

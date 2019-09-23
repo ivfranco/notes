@@ -1,8 +1,7 @@
 # Disclaimer
 
 Notes and exercise answers in this repository are side products of informal and unsupervised self-teaching. 
-Who produced these notes is not a undergraduate/graduate in computer or mathematics related fields,
-nor a native English speaker.
+Who produced these notes is not a graduate in computer or mathematics related fields, nor a native English speaker.
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
 # Reading:

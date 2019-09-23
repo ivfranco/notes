@@ -8,7 +8,7 @@
 use crate::{
     http::{HTTPRequest, HTTPResponse, HTTPResponseBuilder, Method, Status},
     resolver::DNSResolver,
-    Error, Result,
+    Error, Result, GMTDateTime,
 };
 use log::{debug, error};
 use std::{
@@ -52,7 +52,7 @@ fn relay(client: &mut TcpStream) -> Result<()> {
                     error_response(Status::BadRequest, client)
                 }
                 Error::MethodNotImplemented => {
-                    error!("Forege response for unexpected HTTP method");
+                    error!("Forge response for unexpected HTTP method");
                     error_response(Status::NotImplemented, client)
                 }
                 _ => Err(err),
@@ -98,7 +98,7 @@ fn relay_response(client: &mut TcpStream, server: &mut TcpStream) -> Result<()> 
         Ok(body) => {
             debug!("Sending response body");
             client.write_all(&body)?;
-            debug!("Snet {} bytes", body.len());
+            debug!("Sent {} bytes", body.len());
         }
         Err(Error::BodyNotPresent) => (),
         Err(err) => return Err(err),
@@ -111,6 +111,7 @@ fn relay_response(client: &mut TcpStream, server: &mut TcpStream) -> Result<()> 
 fn error_response(status: Status, client: &mut TcpStream) -> Result<()> {
     let response = HTTPResponseBuilder::new(status)
         .attach_header("Connection", "close")
+        .attach_header("Date", &GMTDateTime::now().to_rfc2822())
         .build();
 
     write!(client, "{}", response)?;
