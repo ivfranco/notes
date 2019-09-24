@@ -1,13 +1,13 @@
 use log::debug;
 use std::{env, process};
-use web_proxy::{server::spawn_server, Result};
+use web_proxy::{server::run_server, Result};
 
 fn main() -> Result<()> {
     env_logger::init();
 
     debug!("Program started");
     let port = parse_port_or_exit();
-    spawn_server(port)
+    run_server(port)
 }
 
 fn parse_port_or_exit() -> u16 {

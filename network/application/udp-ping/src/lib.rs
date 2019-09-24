@@ -1,5 +1,6 @@
 use internet_checksum::checksum;
 use std::io::{self, ErrorKind};
+use std::ops::Deref;
 
 pub mod consts {
     pub const TYPE_LEN: usize = 1;
@@ -132,12 +133,9 @@ impl PingPacket {
     }
 
     pub fn from_be_bytes(packet: [u8; PACKET_LEN]) -> Result<Self, PingError> {
-        let mut ping_packet = PingPacket { packet };
-        let mut checksum_bytes = [0u8; 2];
-        checksum_bytes.copy_from_slice(ping_packet.checksum_bytes());
-        ping_packet.checksum_bytes().copy_from_slice(&[0, 0]);
+        let ping_packet = PingPacket { packet };
         let checksum = checksum(ping_packet.packet());
-        if checksum == checksum_bytes {
+        if checksum == [0, 0] {
             Ok(ping_packet)
         } else {
             Err(PingError::InvalidChecksum)
@@ -158,4 +156,23 @@ impl PingPacket {
         );
         u16::from_be_bytes(sequence_number_bytes)
     }
+}
+
+impl Deref for PingPacket {
+    type Target = [u8];
+
+    fn deref(&self) -> &Self::Target {
+        &self.packet
+    }
+}
+
+#[test]
+fn checksum_test() {
+    use random_fast_rng::{Random, local_rng}; 
+
+    let mut rng = local_rng();
+    let packet = PingPacket::new(Type::Request, rng.gen(), rng.gen());
+    let mut datagram = [0; PACKET_LEN];
+    datagram.copy_from_slice(&packet);
+    assert!(PingPacket::from_be_bytes(datagram).is_ok());
 }

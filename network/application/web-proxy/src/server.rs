@@ -19,8 +19,8 @@ use std::{
 
 const HTTP_PORT: u16 = 80;
 
-/// Spawn a http proxy server with non-persistent connections.
-pub fn spawn_server(port: u16) -> Result<()> {
+/// Run an HTTP proxy server with non-persistent connections on the current thread.
+pub fn run_server(port: u16) -> Result<()> {
     let listener = TcpListener::bind((Ipv4Addr::LOCALHOST, port))?;
     debug!("TCP listener established at {}", port);
     for result in listener.incoming() {

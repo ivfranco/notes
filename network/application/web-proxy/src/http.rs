@@ -269,6 +269,20 @@ impl HTTPResponse {
         })
     }
 
+    /// Construct HTTP response and body from cache entry
+    pub fn from_cache_entry(entry: &CacheEntry) -> (Self, Vec<u8>) {
+        let mut builder = HTTPResponseBuilder::new(Status::OK);
+        builder.attach_header("Date", &GMTDateTime::now().to_rfc2822());
+        builder.attach_header("Last-Modified", &entry.last_modified.to_rfc2822());
+        if entry.is_chunked {
+            builder.attach_header("Transfer-Encoding", "chunked");
+        } else {
+            builder.attach_header("Content-Length", &format!("{}", entry.content_length()));
+        }
+
+        (builder.build(), entry.body.to_vec())
+    }
+
     /// Parse the body of the response defined by:\
     /// [https://tools.ietf.org/html/rfc7230#section-3.3.3](https://tools.ietf.org/html/rfc7230#section-3.3.3)
     pub fn read_body<R>(&self, reader: &mut R) -> Result<Vec<u8>>
