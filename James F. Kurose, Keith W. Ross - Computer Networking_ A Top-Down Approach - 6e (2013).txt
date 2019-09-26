@@ -744,3 +744,178 @@ failed on Gmail due to reputation issue
 Socket Assignment 4
 ./network/application/web-proxy
 again most access to HTTPS sites starts with CONNECT method, which this program does not handle
+
+3.1
+a.  (A > 1023, 23)
+b.  (B > 1023, 23)
+c.  (23, A)
+d.  (23, B)
+e.  possible
+f.  possible: they may be different packages in the same connection
+
+3.2
+reverse of the source / dest. ports flowing from client to server
+reverse of the IPs in the packages from client to server
+
+3.3
+./network/transport/problems
+00000000 + 01010011 = 01010011
+01010011 + 01100110 = 10111001
+10111001 + 01110100 = 00101110
+complement of the sum is 11010001
+CPUs back then and now can detect if the result of the last operation is all zero in bits
+without additional bit operations (by status flags)
+the same checksum procedure can be reused at sender and receiver
+with 1's complement, the receiver computes checksum of the received package (including the sender checksum)
+if the checksum is correct, the result should be all zero in bits
+1-bit error will not go undetected:
+    change 1 bit in any byte, the new sum is 2^n bigger or smaller than the old sum
+    if the new sum didn't overflow, the sum is changed
+    if the new sum did overflow, the LSB will change
+    if the changed bit is the LSB and it causes overflow, all bits above it in the sum is changed
+2-bit error may go undetected:
+    e.g. two bytes switch their LSB, sum will not change
+
+3.4
+a.  00111110
+b.  10111111
+c.  01011101, 01100100
+
+3.5
+no, refer 3.3
+
+3.6
+the receiver do not double ACK an already received package
+assume the following events occurred:
+    sender send package 0
+    receiver received package 0 correctly, send ACK
+    sender received corrupted ACK, retransmit package 0
+receiver will be in state "Wait for 1 from below", but all it will receive is retransmittion of package 0
+sender will be in state "Wait for ACK or NAK 0", receive only NAK from receiver and stuck
+
+3.7
+because it's a stop-and-wait protocol and the link cannot reorder sgement
+sender will not move to the next sequence number unless the current package is ACKed
+only two packages (and their retransmittions) may be in the link from sender to receiver at any time
+which package is ACKed can be inferred from the ACK field in the package
+
+3.8
+// the same to rdt2.2 receiver
+Wait for 0:
+    rdt_rcv(rcvpkt) && notcorrupt(rcvpkt) && has_seq0(rcvpkt) => {
+        extract_data(rcvpkt, data);
+        deliver_data(data);
+        sndpkt = make_pkt(ACK, 0, checksum);
+        udt_send(sndpkt);
+        state_transfer();
+    },
+    rdt_rcv(rcvpkt) && (corrupt(rcvpkt) || has_seq1(rcvpkt) => {
+        sndpkt = make_pkt(ACK, 1, checksum);
+        udp_send(sndpkt);
+    }
+Wait for 1:
+    // symmetric
+
+3.9
+=>  send pkt 0
+<=  rcv pkt 0 (corrupted)
+    send ACK 1
+=>  rcv ACK 1 (corrupted)
+    timeout
+    send pkt 0
+
+3.10
+Wait for call 0 from above:
+    rdt_send(data) => {
+        sndpkt = make_pkt(0, data, checksum);
+        udt_send(sndpkt);
+        timer_start();
+        state_transfer();
+    }
+Wait for ACK or NAK 0:
+    rdt_rcv(rcvpkt) && notcorrupt(rcvpkt) && isACK(rcvpkt) => {
+        timer_stop();
+        state_transfer();
+    },
+    rdt_rcv(rcvpkt) && (corrupt(rcvpkt) || isNAK(rcvpkt)) => (),
+    timeout => {
+        udt_send(sndpkt);
+        timer_start();
+    }
+Wait for call 0 from above:
+    // symmetric
+Wait for ACK or NAK 0:
+    // symmetric
+if package is lost, no ACK from receiver, sender timeout in RTT and retransmit
+on receiving an ACK or NAK:
+    NAK means the package is corrupted, wait for timeout and retransmit
+    ACK means one of the two:
+        the receiver is sync with the sender, ACK for the current sequential number
+        the receiver is waiting for the next sequential number, ACK for the current sequential number was sent but lost
+    both case the sender should move to the next sequential number await for call from above
+    by waiting at least RTT before retransmittion, sender will never receive an ACK to the last sequential number
+    in no situation the sender may move to the next sequential number faster than the receiver
+if ACK is lost:
+    timeout in RTT and retransmit
+
+3.11
+assume the following events occurred:
+    =>  send pkt 0
+    <=  rcv pkt 0 (move to Wait for 1 from below)
+        send ACK 0 (corrupted)
+    =>  rcv ACK 0 (corrupted)
+        send pkt 0
+    =>  (waiting for ACK)
+    <=  (waiting for pkg)
+if the action is removed, both receiver and sender will deadlock
+if the event is removed from Wait for 0 from below, when the first pkg 0 is corrupted
+receiver has no action corresponding to the event and deadlock
+
+3.12
+for each ACK with wrong sequential number the sender will retransmit the package
+assume the following events occurred:
+    =>  send pkt 0
+    <=  rcv pkt 0 (corrupted)
+        send ACK 1 (delayed)
+    =>  (timeout) send pkt 0
+        rcv ACK 1
+        send pkt 0
+if the link is congested, number of retransmittion may grow linearly, package n may be transmitted n times
+
+3.13
+assume the following events occurred:
+    =>  send pkt 0
+    <=  rcv pkt 0
+        send ACK 0 (delayed), move to state 1
+    =>  (timeout) send pkt 0
+    =>  rcv ACK 0, move to state 1
+        send pkt 1
+    <=  rcv pkt 1
+        send ACK 1, move to state 0
+    =>  rcv ACK 1, move to state 0
+        send pkt 0 (lost)
+    <=  rcv pkt 0 (delayed)
+        send ACK 0, move to state 1
+    =>  rcv ACK 0, move to state 1
+second pkt 0 is lost, but sender receives an old ACK 0 and moves to the next sequential number
+second pkt 0 will never be retransmitted
+
+3.14
+without ACK, there's no way to implement a pipelined sender: all packages sent so far has to be cached
+sender by no means can confirm if a package is correctly sent or an NAK is awfully delayed
+in stop-and-wait protocol, when data is sent infrequently,
+    when there's no response from receiver, sender will send packages anyway
+    receiver may only detect package loss when there's gaps in the packages received
+    may be minutes later to when the package is sent
+when data is sent frequently with few bit errors:
+    receiver will detect package loss relatively fast, an NAK will arrive at sender almost immediately
+    it's similar to GBN protocol, eventhough required cache size is still unbounded
+
+3.15
+ignore propagation delay, RTT = 30msec
+let window size be w packages
+    0.98 * 1Gbps * 30msec <= w * 1500byte
+    w >= 2631
+
+3.16
+

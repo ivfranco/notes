@@ -25,7 +25,7 @@ pub fn run_server(port: u16) -> Result<()> {
     debug!("TCP listener established at {}", port);
     for result in listener.incoming() {
         let client = result?;
-        debug!("Accepted client from {:?}", client.peer_addr());
+        debug!("Accepted client from {:?} at {:?}", client.peer_addr(), client.local_addr());
         thread::spawn(|| relay_and_report(client));
     }
 
