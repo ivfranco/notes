@@ -743,7 +743,7 @@ failed on Gmail due to reputation issue
 
 Socket Assignment 4
 ./network/application/web-proxy
-again most access to HTTPS sites starts with CONNECT method, which this program does not handle
+again most accesses to HTTPS sites start with CONNECT method, which this program does not handle
 
 3.1
 a.  (A > 1023, 23)
@@ -790,13 +790,13 @@ assume the following events occurred:
     sender send packet 0
     receiver received packet 0 correctly, send ACK
     sender received corrupted ACK, retransmit packet 0
-receiver will be in state "Wait for 1 from below", but all it will receive is retransmittion of packet 0
+receiver will be in state "Wait for 1 from below", but all it will receive is retransmission of packet 0
 sender will be in state "Wait for ACK or NAK 0", receive only NAK from receiver and stuck
 
 3.7
 because it's a stop-and-wait protocol and the link cannot reorder sgement
 sender will not move to the next sequence number unless the current packet is ACKed
-only two packets (and their retransmittions) may be in the link from sender to receiver at any time
+only two packets (and their retransmissions) may be in the link from sender to receiver at any time
 which packet is ACKed can be inferred from the ACK field in the packet
 
 3.8
@@ -853,7 +853,7 @@ on receiving an ACK or NAK:
         the receiver is sync with the sender, ACK for the current sequential number
         the receiver is waiting for the next sequential number, ACK for the current sequential number was sent but lost
     both case the sender should move to the next sequential number await for call from above
-    by waiting at least RTT before retransmittion, sender will never receive an ACK to the last sequential number
+    by waiting at least RTT before retransmission, sender will never receive an ACK to the last sequential number
     in no situation the sender may move to the next sequential number faster than the receiver
 if ACK is lost:
     timeout in RTT and retransmit
@@ -880,7 +880,7 @@ assume the following events occurred:
     =>  (timeout) send pkt 0
         rcv ACK 1
         send pkt 0
-if the link is congested, number of retransmittion may grow linearly, packet n may be transmitted n times
+if the link is congested, number of retransmission may grow linearly, packet n may be transmitted n times
 
 3.13
 assume the following events occurred:
@@ -920,6 +920,410 @@ let window size be w packets
 3.16
 sender upon receiving ACK corresponding to its state will advance and send the next packet immediately
 it defeats all design principles of rdt3.0, nothing holds anymore
-e.g. loss packets are not retranmitted
+e.g. lost packets are not retranmitted
 
 3.17
+Host A
+Await:
+    rdt_send(data) => {
+        rdt_unable_to_send(data); 
+    }
+    rdt_rcv(packet) => {
+        extract(packet, data);
+        deliver_data(data);
+        move_to_state(Ready);
+    }
+Ready (Init):
+    rdt_send(data) => {
+        packet = make_pkt(data);
+        udt_send(packet);
+        move_to_state(Await);
+    }
+    rdt_rcv(packet) => {
+        // should be impossible
+    }
+Host B
+// symmetric, init state is Await
+
+3.18
+// assume initital sequential number is established during handshaking 
+Sender
+    Data0
+        rdt_send(data) => {
+            packet0 = make_pkt(data, sn + 1);
+            udt_send(packet0);
+            move_to_state(Data1);
+        }
+    Data1
+        rdt_send(data) => {
+            packet1 = make_pkt(data, sn + 2);
+            udt_send(packet1);
+            timer_start();
+            move_to_state(Await);
+        }
+    Await
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 1 => {
+            move_to_state(Await1);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 2 => {
+            move_to_state(Await0);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn <= sn => {
+            // ignore duplicated ACK
+        }
+        timeout => {
+            udt_send(packet0);
+            udt_send(packet1);
+            timer_start();
+        }
+    Await0
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 1 => {
+            timer_stop();
+            sn += 2;
+            move_to_state(Data0);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn != sn + 1 => {
+            // ignore other ACK
+        }
+        timeout => {
+            udt_send(packet0);
+            timer_start();
+        }
+    Await1
+    // symmetric to Await0
+Receiver
+    Await
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 1 => {
+            extract_data(rcvpkt, data0);
+            packet = make_pkt(ACK, sn + 1);
+            udt_send(packet);
+            move_to_state(Await1);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 2 => {
+            extract_data(rcvpkt, data1);
+            packet = make_pkt(ACK, sn + 2);
+            udt_send(packet);
+            move_to_state(Await0);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn <= sn => {
+            // duplicated ACK
+            packet = make_pkt(ACK, rcvpkt.sn);
+            udt_send(packet);
+        }
+    Await0
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn + 1 => {
+            extract_data(rcvpkt, data1);
+            deliver_data(data0);
+            deliver_data(data1);
+            packet = make_pkt(ACK, sn + 1);
+            udt_send(packet);
+            sn += 2;
+            move_to_state(Await);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn != sn + 1 => {
+            // duplicated ACK
+            packet = make_pkt(ACK, rcvpkt.sn);
+            udt_send(packet);
+        }
+    Await1
+    // symmetric to Await0
+if first packet is lost:
+    =>  send pkt sn + 1 (lost), => Data1
+        send pkt sn + 2, => Await
+    <=  rcv pkt sn + 1
+        send ACK sn + 1, => Await1
+    =>  rcv ACK sn + 1, => Await1
+    =>  (timeout) send pkt sn + 2
+    <=  rcv pkt sn + 2
+        send ACK sn + 2, => Await
+    =>  rcv ACK sn + 2, => Data0
+if second ACK is lost:
+    =>  send pkt sn + 1, => Data1
+        send pkt sn + 2, => Await
+    <=  rcv pkt sn + 1
+        send ACK sn + 1, => Await1
+    <=  rcv pkt sn + 2
+        send ACK sn + 2 (lost), Await
+    =>  rcv ACK sn + 1, => Await1
+    =>  (timeout) send pkt sn + 2
+    <=  rcv pkt sn + 2 (current sn' = sn + 2, duplicated ACK)
+        send ACK sn + 2
+    =>  rcv ACK sn + 2, => Data0
+
+3.19
+Host A
+// should be almost the same to 3.18
+// instead of two different packets from the same host, it's two identical packets from different hosts
+// initial sequential bit is established in protocol or during handshake
+    Data
+        rdt_send(data) => {
+            packet = make_pkt(data);
+            udt_send(packet, sn);
+            timer_start();
+            move_to_state(Await);
+        }
+    Await
+        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
+            move_to_state(AwaitC);
+        }
+        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = C => {
+            move_to_state(AwaitB);
+        }
+        rdt_rcv(rcvpkt) && (corrupted(rcvpkt) || rcvpkt.sn != sn) => {
+            // ignore corrupted or delayed ACK
+        }
+        timeout => {
+            udt_send(packet);
+            timer_start();
+        }
+    AwaitB
+        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
+            // flip sequential bit
+            sn = !sn;
+            move_to_state(Data);
+        }
+        rdt_rcv(rcvpkt) && (corrupted(rcvpkt) || rcvpkt.sn != sn || revpkt.sender != B) => {
+            // ignore corrupted, delayed or duplicated ACK
+        }
+        timeout => {
+            udt_send(packet);
+            timer_start();
+        }
+    AwaitC
+    // symmetric
+Host B
+    Await
+        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn => {
+            extract_data(rcvpkt, data);
+            deliver_data(data);
+            packet = make_pkt(ACK, sn, B);
+            udt_send(packet);
+            sn = !sn;
+        }
+        rdt_rcv(rcvpkt) && (corrupted(rcvpkt) || rcvpkt.sn != sn) => {
+            // for both corrupted and delayed data
+            // channel cannot reorder packets, different sn must be last packet
+            packet = make_pkt(ACK, !sn, B);
+            udt_send(packet);
+        }
+Host C
+// symmetric
+sender packet format:
+    source port
+    target port
+    data length
+    checksum
+    sequential number
+    data
+receiver ACK packet format:
+    source port
+    target port
+    checksum
+    sequential number
+    machine number (B or C)
+
+3.20
+seperate rdt3.0 for both A -> C and B -> C with application layer protocol reading data from them alternatively
+in a single FSM: rdt3.0 receiver with duplicated states for each sender
+
+3.21
+Host A
+    Request
+        rdt_request => {
+            packet = make_pkt(R, sn);
+            udt_send(packet);
+            timer_start();
+            move_to_state(Await);
+        }
+    Await
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn => {
+            extract_data(rcvpkt, data);
+            deliver_data(data);
+            sn += 1;
+            move_to_state(Request);
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn != sn => {
+            // cannot happen: B => A channel is reliable, data with each sequential number is sent once
+        }
+        timeout => {
+            udt_send(packet);
+            timer_start();
+        }
+Host B
+    Await
+        rdt_rcv(rcvpkt) && rcvpkt.sn == sn => {
+            udt_send(D);
+            sn += 1;
+        }
+        rdt_rcv(rcvpkt) && rcvpkt.sn < sn => {
+            // duplicated request
+        }
+request packet format:
+    source port
+    target port
+    sequential number
+    request R
+data packet format:
+    source port
+    target port
+    sequential number
+    data D
+
+3.22
+a.  min:
+        sender has sent packet with sn k - 1, it may not be ACKed (the ACK packet may be lost or delayed)
+        if the packet in sender's window with minimum sn is eariler than k - 1, packet k - 1 is in the window too
+        k - 1 - (4 - 1) = k - 4 is the minimum possible sn in the window
+    max:
+        receiver didn't send ACK for sn = k
+        if sender received ACK for all packets up to k - 1, its window starts with k
+        k + 3 is the maximum possible sn in the window
+b.  sender sent packet k - 1, it must has received ACK for sn = k - 5, otherwise k - 1 is not in the window
+    ACKs sent by receiver have non-decreasing sn:
+        when receiver is expecting sn = k, all ACK from it has sn <= k
+    ACK with sn = k - 5 arrived, currently expecting sn = k, channel cannot reorder packets
+    [k - 5, k - 1] are the possible sn in ACK field of packets in the channel
+    k - 5 is possible in response to a delayed retransmission of packet k - 5
+
+3.23
+let w be window size, receiver is expecting sn = n
+GBN:
+    as arguments in 3.22, sn - w - 1 cannot wrap to sn + w - 1 or a wrong packet will be ACKed
+    sn + w - 1 - (sn - w - 1) < k, 2w < k, w < k/2
+SR:
+    assume the next in-order packet the receiver is expecting is n
+    min and max: same to GBN
+    ACKs in the channel:
+        earliest ACK is same to GBN
+        SR protocol may also send ACK for out-of-order packets up to n + w - 1
+    w < k/2 again
+
+3.24
+a.  true; with window size = 1, SR is equivalent to stop-and-wait rdt3.0
+    rdt3.0 sender may receive delayed ACK for earlier sn
+b.  true; same to part a
+c.  true; with window size 1 there's no cumulative acknowledgement
+d.  true; with window size 1 there's no out-of-order acknowledgement
+
+3.25
+a.  UDP packet sizes are decided by the application layer caller on each call
+    TCP packet sizes are decided by MSS and the data may be segmented arbitrarily by the TCP implementation
+b.  UDP has no congestion control, a packet is sent immediately when called from above
+    TCP may buffer the data if it's not in the sender's window or outright deny it
+
+3.26
+a.  2^32 = 4GB
+b.  4GB * ((536 + 66) / 536) / 155Mbps = 237.438s
+
+3.27
+a.  sn = 207
+    source port = 302
+    dest port = 80
+b.  ack = 207
+    source port = 80
+    dest port = 302
+c.  ack = 127
+    source port = 80
+    dest port = 302
+d.  =>  send pkt { sn = 127, length = 80 }
+    =>  send pkt { sn = 207, length = 40 }
+    <=  rcv pkt { sn = 127, length = 80 }
+        send ACK { sn = 207 } (lost)
+    <=  rcv pkt { sn = 207, length = 40 }
+        send ACK { sn = 247 }
+    =>  (timeout) send pkt { sn = 127, length = 80 }
+    =>  rcv ACK { sn = 247 }
+    <=  rcv pkt { sn = 127, length = 80 }
+        send ACK { sn = 247 }
+    =>  rcv ACK { sn = 247 }
+
+3.28
+flow control happens at two places:
+1.  the application on Host A will eventually fill the buffer of TCP sender, blocking the thread or get IO error
+2.  ACKs from Host B to Host A will have smaller and smaller rwnd field
+    once rwnd <= current unACKed bytes in sender's window sender will stop sending new packets
+
+3.29
+a.  to protect itself from SYN flood attack
+    with SYN cookies, to create an open / half open TCP connection on the server
+    the attacker must maintain one TCP connection with the server for at least one RTT
+    which significantly reduces the intensity of possible attacks
+b.  no, it must maintain TCP connection for one RTT
+    hash function is computationally impractical to reverse
+    the attacker cannot forge the cookie without actually knowing the secret number
+c.  no, the cookie contains information of both the source and target IP
+    cookies collected from other hosts with different IP would be found invalid when server received the ACK
+    in practice SYN cookies also contain temporal information
+    even cookies collected on the same host won't be valid most of the time
+
+3.30
+a.  assume the link from router to target host has small transmittion rate compared to source to router links
+    naturally packets will pile up at the router
+    if the router has small buffer they are lost and after timeout sender will retransmit them
+    if the router has big buffer they still will be retransmitted
+    however this time the buffered packets will be transmitted too, wasting more channel capacity
+b.  the maximum achievable throughput won't be improved (limited by links)
+    if the senders can eliminate retransmission of buffered packets entirely
+    from sender's view the receiver are having bigger buffer, hence bigger rwnd and it might help increasing throughput
+
+3.31
+./network/transport/problems
+after observed sample rtt = 106ms, EstimatedRTT = 100ms, DevRTT = 5ms, TimeoutInterval = 120ms
+after observed sample rtt = 120ms, EstimatedRTT = 102ms, DevRTT = 8ms, TimeoutInterval = 134ms
+after observed sample rtt = 140ms, EstimatedRTT = 106ms, DevRTT = 14ms, TimeoutInterval = 162ms
+after observed sample rtt = 90ms, EstimatedRTT = 104ms, DevRTT = 14ms, TimeoutInterval = 160ms
+after observed sample rtt = 115ms, EstimatedRTT = 105ms, DevRTT = 13ms, TimeoutInterval = 157ms
+
+3.32
+a.  αΣ(1 <= i <= 5)RTTi(1-α)^(i-1), where RTT5 is the estimated RTT before observing RTT4
+b.  αΣ(1 <= i <= n+1)RTTi(1-α)^(i-1), where RTTn+1 is the estimated RTT before observing RTTn
+c.  eariler observations has exponentially diminishing weights in the sum
+
+3.33
+the sender cannot be sure whether the ACK is in response to the original packet or the retransmission
+
+3.34
+LastByteRcvd is the last byte received in order, receiver has sent ACK for the packet containing the byte
+also LastByteRcvd is the maximum sn the receiver has sent in ACK field so far
+if the ACK is received by the sender, SendBase = LastByteRcvd + 1 (all following packets are not ACKed)
+otherwise SendBase <= LastByteRcvd
+
+3.35
+there is an ACK packet from receiver with y = LastByteRcvd + 1, while it may be lost 
+
+3.36
+referring https://tools.ietf.org/html/rfc2001#section-3
+    "Since TCP does not know whether a duplicate ACK is caused by a lost
+    segment or just a reordering of segments, it waits for a small number
+    of duplicate ACKs to be received.  It is assumed that if there is
+    just a reordering of the segments, there will be only one or two
+    duplicate ACKs before the reordered segment is processed, which will
+    then generate a new ACK.  If three or more duplicate ACKs are
+    received in a row, it is a strong indication that a segment has been
+    lost.  TCP then performs a retransmission of what appears to be the
+    missing segment, without waiting for a retransmission timer to
+    expire."
+
+3.37
+a.  GBN:
+        =>  5 packets first, 4 more packets after timeout
+        <=  4 ACKs for the first group, 4 more for the retransmission
+    SR:
+        =>  5 packets first, 1 more packets after timeout
+        <=  4 ACKs for the first group, 1 more for the retransmission
+    TCP:
+        =>  5 packets
+            (timeout if no fast retransmit)
+            1 packet
+            1 packet
+            1 packet
+            1 packet
+        <=  4 ACKs (all with same sn)
+            1 ACK
+            1 ACK
+            1 ACK
+            1 ACK
+b.  TCP with fast retransmit
+
+3.38
+
