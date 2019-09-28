@@ -2,6 +2,7 @@
 /// resource site: https://wps.pearsoned.com/ecs_kurose_compnetw_6/216/55463/14198700.cw/-/14198926/index.html
 /// errata: https://media.pearsoncmg.com/aw/ecs_kurose_compnetwork_6/Errata_6th_Edition.pdf
 /// Wireshark Labs: https://github.com/ashly13/Computer-Networking---A-Top-Down-Approach/tree/master/Wirshark%20Labs
+/// 1G = 1024M, 1M = 1024K, 1K = 1024
 
 1.1
 // all message transmitted will be shown in JSON
@@ -16,7 +17,7 @@ the server receives the message, check the password against the id, sends back e
 the error should be as general as possible for security reason
     // one of the two is sent
     "ERROR"
-    "ACCPETED"
+    "ACCEPTED"
 once accepted, the client can query for account balance:
     "BALANCE"
     // server response, only in Verified state
@@ -69,9 +70,9 @@ c.  possible:
 
 1.5
 assume it takes the tollbooth R minutes to process a car 
-if all toollbooth operates at the same rate, there's no queuing delay except in front of the first tollbooth
-last car in the caravan is processed by the first toolbooth at (P - 1)R
-it finishes after the third toolbooth at (P - 1)R + 60 * 150/100 + 3R = (P + 2)R + 90
+if all tollbooth operates at the same rate, there's no queuing delay except in front of the first tollbooth
+last car in the caravan is processed by the first tollbooth at (P - 1)R
+it finishes after the third tollbooth at (P - 1)R + 60 * 150/100 + 3R = (P + 2)R + 90
 a.  7R + 90
 b.  10R + 90
 
@@ -111,7 +112,7 @@ b.  Σ{N < k <= M}(C(M, k)p^k(1-p)^(M-k))
 1.10
 assume the end hosts do not incur switch delays
 total delay:
-    2dproc + Σi (di / si + L / Ri)
+    2d_proc + Σi (di / si + L / Ri)
 numerical delay:
     0.002 * 3 + (5000 + 4000 + 1000) / 2.5e6 + 1500 * 8 * 3 / (2 * 1024^2) 
     = 0.0272s = 27.2ms
@@ -141,12 +142,12 @@ b.  https://www.wolframalpha.com/input/?i=plot%28x%2C+x%5E2%2F%281+-+x%29+%2B+x%
 delay = aμ^2 / (1 - μ) + μ
 
 1.16
-N = 10, d = 10ms + dtrans = 10ms + 1/100s = 20ms
+N = 10, d = 10ms + d_trans = 10ms + 1/100s = 20ms
 a = N/d = 0.5 packet/ms
 
 1.17
-a.  dend-end = Σi(diproc + ditrans + diprop)
-b.  E[D] = Σi(diproc + ditrans + diprop + dqueue)
+a.  d_end-end = Σi(di_proc + di_trans + di_prop)
+b.  E[D] = Σi(di_proc + di_trans + di_prop + d_queue)
 
 1.18
  1  203.98.68.97 (203.98.68.97) [AS10145]  0.278 ms (255)  0.305 ms (255)  0.282 ms (255) (0% loss)
@@ -202,7 +203,7 @@ a.  http://traceroute.sdv.fr/
     #7	*	*	*	*	*
     #8	DOSFO (AS14061)	159.203.251.185	159.203.251.185	169.888 ms	
     one in common: 4.14.33.54, a Level 3 Communications switcher in Fremont, US
-    it should be the transatlantic link, AS29075 preceeding it is in France
+    it should be the transatlantic link, AS29075 preceding it is in France
 b.  http://www.han.de/cgi-bin/nph-trace.cgi
     1  * * *
     2  ae3-u100.cr-nunki.sxb1.bb.godaddy.com (87.230.112.2)  0.369 ms  0.264 ms  0.311 ms
@@ -281,19 +282,19 @@ X ~ Geometric((1-p)^N), E[X] = 1 / (1-p)^N
 1.23
 a.  trace of last bit of package 1 
         L/Rs:   leaves A
-        +dprop: reaches switch
+        +d_prop: reaches switch
         +L/Rc:  leaves switch
-        +dprop: reaches B
+        +d_prop: reaches B
     trace of last bit of package 2
-        // no queueing inbetween: Rc >= Rs
+        // no queueing in between: Rc >= Rs
         2L/Rs: leaves A
-        +dprop: reaches switch
+        +d_prop: reaches switch
         +L/Rc:  leaves switch
-        +dprop: reaches B
+        +d_prop: reaches B
     inter-arrival time is L/Rs
 b.  possible:
-        last bit of the first packet leaves the switch at L/Rs + dprop + L/Rc
-        last bit of the second packet reaches the switch at 2L/Rs + dprop
+        last bit of the first packet leaves the switch at L/Rs + d_prop + L/Rc
+        last bit of the second packet reaches the switch at 2L/Rs + d_prop
         L/Rc > L/Rs
     T >= L/Rc - L/Rs
 
@@ -302,12 +303,12 @@ b.  possible:
 FedEx overnight is much better
 
 1.25
-a.  dprop = 20000 / 2.5e8 = 0.08s
-    R * dprop = 2Mb/s * 0.08s = 0.16Mb
+a.  d_prop = 20000 / 2.5e8 = 0.08s
+    R * d_prop = 2Mb/s * 0.08s = 0.16Mb
 b.  min(800_000b, 0.16Mb) = 0.16Mb
 c.  the maximum number of bits in the link
 d.  20000 / 0.16 / 1024^2 = 119.209m, slightly longer than a football field
-e.  Rdprop / m = Rm/s / m = R/s
+e.  R * d_prop / m = Rm/s / m = R/s
 
 1.26
 R = s
@@ -318,13 +319,13 @@ b.  min(800_000b, 0.08Gb) = 800_000b
 c.  1Gb/s / 2.5e8m/s = 4.295m
 
 1.28
-a.  d = L/R + dprop = 800_000 / 2 * 1024^2 + 0.08s = 0.381s + 0.08s = 0.461s
+a.  d = L/R + d_prop = 800_000 / 2 * 1024^2 + 0.08s = 0.381s + 0.08s = 0.461s
 b.  one package:
         L/R:    last bit sent
-        +dprop: last bit received, acknowledge sent
-        +dprop: acknowledge received 
-    20(2 * dprop + L/R) = 3.2s + 0.381s = 3.581s
-c.  a is quicker but less reliable, the whole message has to be resended on failure
+        +d_prop: last bit received, acknowledge sent
+        +d_prop: acknowledge received 
+    20(2 * d_prop + L/R) = 3.2s + 0.381s = 3.581s
+c.  a is quicker but less reliable, the whole message has to be resent on failure
 
 1.29
 a.  36000km / 2.4e8m/s = 0.15s
@@ -422,7 +423,7 @@ d.  unknown, not part of HTTP protocol
 e.  Netscape Navigator 7.2, from User-Agent: header
     different browser supports different subset of HTML, CSS and javascript
     it's mainly resolved by client-side shim scripts and css vendor prefixes now
-    back in the days server sent differnt version of pages to client with different browsers
+    back in the days server sent different version of pages to client with different browsers
 
 2.5
 a.  yes, status code is 200
@@ -440,7 +441,7 @@ a.  by header Connection: close, from section 8.1.2,
         has been signaled, the client MUST NOT send any more requests on that
         connection."
     both client and server can signal the close of a connection
-b.  appearently none
+b.  apparently none
 c.  no. from section 8.1.4, 
         "A single-user client SHOULD NOT maintain more than 2 connections with any server or proxy."
 d.  it's possible, from section 8.1.4:
@@ -453,7 +454,7 @@ d.  it's possible, from section 8.1.4:
 
 2.7
 2RTT0 + Σ(i>0)RTTi
-TCP 3-way handshake + transmittion + RTTs for DNS
+TCP 3-way handshake + transmission + RTTs for DNS
 
 2.8
 a.  8 * 2RTT0 = 16RTT0, 2RTT0 for each object
@@ -467,9 +468,9 @@ a.  Δ = 0.0540
     d   = Δ / (1 - Δβ)
         = 0.0540 / (1 - 0.0540 * 16)
         = 0.3971
-    dtotal = d + 2 = 2.3971
+    d_total = d + 2 = 2.3971
 b.  0.6 * 850000 / 100Mbps +
-    0.4 * dtotal
+    0.4 * d_total
     = 0.9637
 
 2.10
@@ -579,7 +580,7 @@ c.  > set type=NS
     ietf.org        mail exchanger = 0 mail.ietf.org.
 
     Authoritative answers can be found from:
-    and exactly the same results fromr 1.1.1.1
+    and exactly the same results from 1.1.1.1
 d.  > bing.com
     Server:         1.1.1.1
     Address:        1.1.1.1#53
@@ -632,11 +633,11 @@ N = 1000, u = 2097152 bps, dcs = 512000.000 secs, dp2p = 7680.000 secs
 
 2.23
 a.  transmit to each client with rate us/N
-    it's possible as us/N <= dmin <= di for all i, us/N * N = us <= us
+    it's possible as us/N <= d_min <= di for all i, us/N * N = us <= us
     each client will receive the file in time F / (us/N) = NF / us 
-b.  transmit to each client with rate dmin
-    it's possible as dmin <= di for all i, Ndmin <= us
-    each client will receive the file in time F / dmin
+b.  transmit to each client with rate d_min
+    it's possible as d_min <= di for all i, N * d_min <= us
+    each client will receive the file in time F / d_min
 c.  immediately follows part a and b
 
 2.24
@@ -794,7 +795,7 @@ receiver will be in state "Wait for 1 from below", but all it will receive is re
 sender will be in state "Wait for ACK or NAK 0", receive only NAK from receiver and stuck
 
 3.7
-because it's a stop-and-wait protocol and the link cannot reorder sgement
+because it's a stop-and-wait protocol and the link cannot reorder segments
 sender will not move to the next sequence number unless the current packet is ACKed
 only two packets (and their retransmissions) may be in the link from sender to receiver at any time
 which packet is ACKed can be inferred from the ACK field in the packet
@@ -802,7 +803,7 @@ which packet is ACKed can be inferred from the ACK field in the packet
 3.8
 // the same to rdt2.2 receiver
 Wait for 0:
-    rdt_rcv(rcvpkt) && notcorrupt(rcvpkt) && has_seq0(rcvpkt) => {
+    rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && has_seq0(rcvpkt) => {
         extract_data(rcvpkt, data);
         deliver_data(data);
         sndpkt = make_pkt(ACK, 0, checksum);
@@ -833,7 +834,7 @@ Wait for call 0 from above:
         state_transfer();
     }
 Wait for ACK or NAK 0:
-    rdt_rcv(rcvpkt) && notcorrupt(rcvpkt) && isACK(rcvpkt) => {
+    rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && isACK(rcvpkt) => {
         timer_stop();
         state_transfer();
     },
@@ -909,7 +910,7 @@ in stop-and-wait protocol, when data is sent infrequently,
     may be minutes later to when the packet is sent
 when data is sent frequently with few bit errors:
     receiver will detect packet loss relatively fast, an NAK will arrive at sender almost immediately
-    it's similar to GBN protocol, eventhough required cache size is still unbounded
+    it's similar to GBN protocol, even though required cache size is still unbounded
 
 3.15
 ignore propagation delay, RTT = 30msec
@@ -946,7 +947,7 @@ Host B
 // symmetric, init state is Await
 
 3.18
-// assume initital sequential number is established during handshaking 
+// assume initial sequential number is established during handshaking 
 Sender
     Data0
         rdt_send(data) => {
@@ -1063,10 +1064,10 @@ Host A
             move_to_state(Await);
         }
     Await
-        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
+        rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
             move_to_state(AwaitC);
         }
-        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = C => {
+        rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = C => {
             move_to_state(AwaitB);
         }
         rdt_rcv(rcvpkt) && (corrupted(rcvpkt) || rcvpkt.sn != sn) => {
@@ -1077,7 +1078,7 @@ Host A
             timer_start();
         }
     AwaitB
-        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
+        rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && rcvpkt.sn == sn && rcvpkt.sender = B => {
             // flip sequential bit
             sn = !sn;
             move_to_state(Data);
@@ -1093,7 +1094,7 @@ Host A
     // symmetric
 Host B
     Await
-        rdt_rcv(rcvpkt) && notcorrupted(rcvpkt) && rcvpkt.sn == sn => {
+        rdt_rcv(rcvpkt) && not_corrupt(rcvpkt) && rcvpkt.sn == sn => {
             extract_data(rcvpkt, data);
             deliver_data(data);
             packet = make_pkt(ACK, sn, B);
@@ -1123,7 +1124,7 @@ receiver ACK packet format:
     machine number (B or C)
 
 3.20
-seperate rdt3.0 for both A -> C and B -> C with application layer protocol reading data from them alternatively
+separate rdt3.0 for both A -> C and B -> C with application layer protocol reading data from them alternatively
 in a single FSM: rdt3.0 receiver with duplicated states for each sender
 
 3.21
@@ -1172,7 +1173,7 @@ data packet format:
 3.22
 a.  min:
         sender has sent packet with sn k - 1, it may not be ACKed (the ACK packet may be lost or delayed)
-        if the packet in sender's window with minimum sn is eariler than k - 1, packet k - 1 is in the window too
+        if the packet in sender's window with minimum sn is earlier than k - 1, packet k - 1 is in the window too
         k - 1 - (4 - 1) = k - 4 is the minimum possible sn in the window
     max:
         receiver didn't send ACK for sn = k
@@ -1241,7 +1242,7 @@ d.  =>  send pkt { sn = 127, length = 80 }
 flow control happens at two places:
 1.  the application on Host A will eventually fill the buffer of TCP sender, blocking the thread or get IO error
 2.  ACKs from Host B to Host A will have smaller and smaller rwnd field
-    once rwnd <= current unACKed bytes in sender's window sender will stop sending new packets
+    once rwnd <= current un-ACKed bytes in sender's window sender will stop sending new packets
 
 3.29
 a.  to protect itself from SYN flood attack
@@ -1257,7 +1258,7 @@ c.  no, the cookie contains information of both the source and target IP
     even cookies collected on the same host won't be valid most of the time
 
 3.30
-a.  assume the link from router to target host has small transmittion rate compared to source to router links
+a.  assume the link from router to target host has small transmission rate compared to source to router links
     naturally packets will pile up at the router
     if the router has small buffer they are lost and after timeout sender will retransmit them
     if the router has big buffer they still will be retransmitted
@@ -1277,7 +1278,7 @@ after observed sample rtt = 115ms, EstimatedRTT = 105ms, DevRTT = 13ms, TimeoutI
 3.32
 a.  αΣ(1 <= i <= 5)RTTi(1-α)^(i-1), where RTT5 is the estimated RTT before observing RTT4
 b.  αΣ(1 <= i <= n+1)RTTi(1-α)^(i-1), where RTTn+1 is the estimated RTT before observing RTTn
-c.  eariler observations has exponentially diminishing weights in the sum
+c.  earlier observations has exponentially diminishing weights in the sum
 
 3.33
 the sender cannot be sure whether the ACK is in response to the original packet or the retransmission
@@ -1326,4 +1327,229 @@ a.  GBN:
 b.  TCP with fast retransmit
 
 3.38
+sending rate is approximately cwnd / RTT since sender can only send cwnd bytes before stopping and waiting for ACK
+when RTT is not the limiting factor (e.g. transmit rate is low), cwnd may not reflect the true rate
+
+3.39
+no premature timeout:
+    link capacity is exhausted, increase λin anymore and the new packets will all lost
+    higher proportion of packets will lost, causing more retransmission
+    fewer packets among R/2 would be original packets, λ_out would be lower
+premature timeout:
+    maximum rate from sender to route is R/2
+    maximum rate from router to receiver is (R/2)/2 = R/4
+    increasing λ'_in cannot increase λ_out
+
+3.40
+a.  [0, 6] and [23, 26], cwnd is increasing exponentially
+b.  [6, 16] and [17, 22], cwnd is increasing linearly
+c.  by triple duplicated ACK, cwnd is roughly halved
+d.  by timeout, cwnd is set to 1
+e.  32, shown by transfer from slow start to congestion avoidance at 6
+f.  21, 42 / 2 on triple duplicated ACK
+g.  14, 29 / 2 on timeout
+h.  7
+i.  ssthresh = 8 / 2 = 4
+    cwnd = ssthresh + 3 = 7
+j.  ssthresh = 42 / 2 = 21
+    cwnd = 1 + (18 - 17) = 2
+k.  (1 + 6) * 6 / 2 = 21
+
+3.41
+no, the throughput of 1 and 2 will go back and forth on the same line
+increase the same amount in congestion avoidance, cause timeout, then decrease the same constant amount
+
+3.42
+TCP is a pipelined protocol
+without cwnd, long timeout would not stop sender from sending packets into the channel
+
+3.43
+not flow control: rwnd is too big to be a limitation
+not congestion control: no loss or duplicated ACK
+when send buffer is full, TCP socket will block the application thread or return IO error
+
+3.44
+a.  6RTT
+b.  (1 + 6) * 6 / 2 MSS / 6RTT
+    = 3.5MSS / RTT
+
+3.45
+a.  during a period, total number of packets sent is 
+        Σ(W/2 <= i <= W)i
+        = (W/2 + W) * (W/2 + 1) / 2
+        = 3W^2/8 + 3W/4
+    among which a single packet is lost, lost rate is 1/(3W^2/8 + 3W/4)
+b.  L = 1/(3W^2/8 + 3W/4)
+    3W^2/8 + 3W/4 - 1/L = 0
+    W^2 + 2W - 8/3L = 0
+    W = ((3L + 8) / 3L)^(1/2) - 1
+    asymptotically W^2 = 8L/3, W = (8/3L)^(1/2) = 1.633L^(1/2)
+    average rate = 0.75W MSS / RTT = 1.225 / L^(1/2) MSS/RTT
+
+3.46
+a.  W * MSS / RTT = 10Mbps
+    W * 1500byte / 0.15sec = 10Mbps
+    W = 10 * 1024^2 * 0.15 / (1500 * 8) = 131.072 segments
+b.  average window size = 0.75W = 98.304 segments
+    average throughput = 0.75W / RTT = 7.5Mbps
+c.  W / 2 = 65.536 secs
+
+3.47
+let wb be window size in bytes
+wb = 1500byte * W = 10Mbps * 0.15sec = C * RTT
+with any smaller window size the TCP sender won't be able to send packets quick enough
+
+3.48
+a.  W = 10 * 1024^3 * 0.15 / (1500 * 8) = 134217.728 segments
+b.  average window size = 0.75W = 100663.296 segments
+    average throughput = 0.75W MSS / RTT = 7.5Gbps
+c.  W / 2 = 67108.864 secs
+    possible solution: switch to TCP CUBIC
+
+3.49
+average throughput = W' = 0.75W / RTT
+T = W/2 = W' * RTT / 0.75
+
+3.50
+./network/transport/problems
+a.  at the end of t =   50ms, C1.cwnd = 5,C2.cwnd = 10,
+    at the end of t =  100ms, C1.cwnd = 3,C2.cwnd = 5,
+    at the end of t =  150ms, C1.cwnd = 2,C2.cwnd = 5,
+    at the end of t =  200ms, C1.cwnd = 1,C2.cwnd = 3,
+    at the end of t =  250ms, C1.cwnd = 1,C2.cwnd = 3,
+    at the end of t =  300ms, C1.cwnd = 1,C2.cwnd = 2,
+    at the end of t =  350ms, C1.cwnd = 1,C2.cwnd = 2,
+    at the end of t =  400ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  450ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t =  500ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  550ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t =  600ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  650ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t =  700ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  750ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t =  800ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  850ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t =  900ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  950ms, C1.cwnd = 2,C2.cwnd = 1,
+    at the end of t = 1000ms, C1.cwnd = 1,C2.cwnd = 1,
+b.  no, C1 with shorter rtt will receive ack more frequently, has more chance to increase its cwnd
+
+3.51
+./network/transport/problems
+a.  at the end of t =  100ms, C1.cwnd = 8,C2.cwnd = 5,
+    at the end of t =  200ms, C1.cwnd = 4,C2.cwnd = 3,
+    at the end of t =  300ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t =  400ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  500ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t =  600ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  700ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t =  800ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t =  900ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 1000ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 1100ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 1200ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 1300ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 1400ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 1500ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 1600ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 1700ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 1800ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 1900ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 2000ms, C1.cwnd = 1,C2.cwnd = 1,
+    at the end of t = 2100ms, C1.cwnd = 2,C2.cwnd = 2,
+    at the end of t = 2200ms, C1.cwnd = 1,C2.cwnd = 1,
+b.  yes
+c.  yes, they have the same rtt
+    when the link capacity is exceeded all cwnd will be penalized at the same time
+    when the link capacity is not exceeded all cwnd will increase at the same time
+    maximum cwnd is 2 for both of them
+d.  no, synchronized hosts will increase / decrease cwnd at the same time
+    either waste link capacity or experience lost at the same time, amplitude of total sending rate will be bigger
+    this phenomenon is called "TCP global synchronization"
+    and is addressed by a mechanism called "random early detection (RED)"
+    by which packets are dropped with different probability for different hosts
+
+3.52
+total number of packets send before a loss is
+    Σ(0 <= i <= k)(W/2) * (1 + a)^i, where (1 + a)^k = 2, k = log(1 + a, 2)
+    = (W/2)(1 - (1 + a)^(k + 1)) / (1 - (1 + a))
+    = (W/2)(1 - 2(1 + a)) / -a
+    = (W/2)(-2a - 1) / -a
+    = (W/2)(1 + 2a) / a
+    = W(1 + 2a)/2a
+lost rate is
+    L = 2a / W(1 + 2a)
+this algorithm spends log(1 + a, 2) to increase its congestion window size from W/2 to W, independent to W
+
+3.53
+L   = (1.22 * MSS / (RTT * B))^2
+    = 1.859e-12
+
+3.54
+pro:    TCP will resume at speed in the range [W/2, W], utilizing more link capacity than slow start
+con:    W estimation through cwnd and ssthresh may not be accurate anymore due to congestion or other connections
+        TCP may experience or cause packet loss
+alternative: start with cwnd = 1 and do slow start
+
+3.55
+a.  response will go to address Y
+b.  the server can be certain, it sent SYNACK to the address Y and got a valid response
+
+3.56
+after sending a packet, ACK will come back in time RTT
+let cwnd = k * pkt, if (k - 1)S/R < RTT, kS/R < S/R + RTT, the server have to wait for another ACK
+otherwise the server can send packets at full speed
+a.  4S/R > S/R + RTT > 2S/R
+    0:      =>  send ACK    
+    0.5RTT: <=  rcv ACK, send SYNACK
+    1RTT:   =>  rcv SYNACK, send request
+    1.5RTT: <=  rcv request, start sending pkt 0
+    S/R + 1.5RTT    <=  send pkt  
+    S/R + 2.0RTT    =>  rcv pkt 0, send ACK 0
+    S/R + 2.5RTT    <=  rcv ACK 0, cwnd = 2, start sending pkt 1 and 2
+    2S/R + 2.5RTT   <=  send pkt 1
+    3S/R + 2.5RTT   <=  send pkt 2
+    2S/R + 3.0RTT   =>  rcv pkt 1, send ACK 1
+    3S/R + 3.0RTT   =>  rcv pkt 2, send ACK 2
+    2S/R + 3.5RTT   <=  rcv ACK 1, cwnd = 3, start sending pkt 3, 4 and 5
+    3S/R + 3.5RTT   <=  rcv ACK 2, cwnd = 4, send pkt 3, start sending pkt 6, wait no more
+    pkt 14 will be sent at time 3S/R + 3.5RTT + 11S/R = 14S/R + 3.5RTT
+    will be received at time 14S/R + 4RTT
+a pair of lists [a, b], [c, d] indicates the congestion window where a, b were sent, c, d can be sent but not yet
+sum of length of the two lists should be cwnd / MSS
+b.  RTT > 4S/R
+    0:      =>  send ACK    
+    0.5RTT: <=  rcv ACK, send SYNACK
+    1RTT:   =>  rcv SYNACK, send request
+    1.5RTT: <=  rcv request, cwnd = 1, [], [0]
+    S/R + 1.5RTT    <=  [0], []
+    S/R + 2.0RTT    =>  rcv pkt 0, send ACK 0
+    S/R + 2.5RTT    <=  rcv ACK 0, cwnd = 2, [], [1, 2]
+    2S/R + 2.5RTT   <=  [1], [2]
+    3S/R + 2.5RTT   <=  [1, 2], []
+    2S/R + 3.0RTT   =>  rcv pkt 1, send ACK 1
+    3S/R + 3.0RTT   =>  rcv pkt 2, send ACK 2
+    2S/R + 3.5RTT   <=  rcv ACK 1, cwnd = 3, [2], [3, 4]
+    3S/R + 3.5RTT   <=  rcv ACK 2, cwnd = 4, [3], [4, 5, 6]
+    4S/R + 3.5RTT   <=  [3, 4], [5, 6]
+    5S/R + 3.5RTT   <=  [3, 4, 5], [6]
+    6S/R + 3.5RTT   <=  [3, 4, 5, 6], []
+    3S/R + 4RTT     =>  rcv pkt 3, send ACK 3
+    4S/R + 4RTT     =>  rcv pkt 4, send ACK 4
+    5S/R + 4RTT     =>  rcv pkt 5, send ACK 5
+    6S/R + 4RTT     =>  rcv pkt 6, send ACK 6
+    3S/R + 4.5RTT   =>  rcv ACK 3, cwnd = 5, [4, 5, 6], [7, 8]
+    cwnd will grow to 8 with 8 packets remaining, all will be sent in a row
+    7 will be sent at 4S/R + 4.5RTT, 14 will be sent at 11S/R + 4.5RTT and received at 11S/R + 5RTT
+c.  S/R > RTT
+    0:      =>  send ACK    
+    0.5RTT: <=  rcv ACK, send SYNACK
+    1RTT:   =>  rcv SYNACK, send request
+    1.5RTT: <=  rcv request, cwnd = 1, [], [0]
+    S/R + 1.5RTT    <=  [0], []
+    S/R + 2.0RTT    =>  rcv pkt 0, send ACK 0
+    S/R + 2.5RTT    <=  rcv ACK 0, cwnd = 2, [], [1, 2]
+    2S/R + 2.5RTT   <=  [1], [2]
+    server at full speed from now on
+    pkt 1 is sent at 2S/R + 2.5RTT, pkt 14 will be sent at 15S/R + 2.5RTT and received at 15S/R + 3RTT
 
