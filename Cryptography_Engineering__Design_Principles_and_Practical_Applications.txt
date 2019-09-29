@@ -32,7 +32,7 @@ in DES2, either half of the plaintext is affected by only one round function
 given plaintext (L0, R0) and ciphertext (L2, R2)
 by definition of DES, L1 = R0 and R1 = L2, all (Li, Ri) for i = 0 .. 2 are known
 R1 = L0 xor F(k1, R0), R2 = L1 xor F(k2, R1), both the input and output of Fk1, Fk2 are known
-therefore k1 and k2 can be exhaustively searched seperately, takes 2^48 * 2 = 2^49 encryptions
+therefore k1 and k2 can be exhaustively searched separately, takes 2^48 * 2 = 2^49 encryptions
 also in DES2, changing one half of the plaintext will only affect one half of the ciphertext
 which only happens in an idealized cipher with probability 1/2^32
 
@@ -174,7 +174,7 @@ the adversary can then easily compute the difference between two messages using 
 
 7.4
 given a CPA-secure encryption scheme and a secure authentication scheme
-encryption-then-authentication will guarentee a CCA-secure encryption scheme
+encryption-then-authentication will guarantee a CCA-secure encryption scheme
 the security of authentication-then-encryption is only determined after a case-by-case analysis
 encryption-and-authentication is almost never secure
 authentication schemes is not required to, thereby often does not have indistinguishable encryption
@@ -187,7 +187,7 @@ by eavesdropping the traffics of the secure channel in this scheme, an adversary
     the size of every message (up to number of blocks due to padding)
     when and how often these messages are issued and received
     the total number of messages issued under the current key (message number is not encrypted)
-    the messages is not obfuscated, it will be clear to any eavesdropper that the two parites are communicating secretly
+    the messages is not obfuscated, it will be clear to any eavesdropper that the two parties are communicating secretly
 say an Orwellian authority is in operation
 then frequent and lengthy communication through an encrypted channel is itself a strong indication of thoughtcrime
 the actual message been exchanged doesn't really matter
@@ -236,7 +236,7 @@ as a consequence it cannot and don't have to deal with reboots: it doesn't colle
 9.4
 RNG:    pros:   truly random
         cons:   based on real events which can be manipulated by adversaries
-                rekatively slow compared to PRNG (by a degree of 10^3 ~ 10^6)
+                relatively slow compared to PRNG (by a degree of 10^3 ~ 10^6)
                 relies on real events, is not always fully available
 PRNG:   pros:   fast
                 do not relies on real events, numbers can be generated in fixed, constant time
@@ -325,11 +325,11 @@ the corresponding secret key is 1367
 gcd(e, lcm(p-1, q-1)) == 3, e is not a valid public key
 
 12.6
-when the secret key is fixed, anyone can easily decrypt any ciphertext and the encryption scheme is trivally broken
+when the secret key is fixed, anyone can easily decrypt any ciphertext and the encryption scheme is trivially broken
 
 12.7
 when n = pq, Pollard's rho algorithm can factor n in time O(n^(1/4))
-given the factorization of n, the RSA encryption is trivally broken
+given the factorization of n, the RSA encryption is trivially broken
 therefore 256-bit RSA key can at most provide 64-bit security, worse than 128-bit security of 256-bit AES key
 there are also other more efficient algorithms reduces the security of 256-bit RSA key further
 
@@ -379,12 +379,12 @@ attacker may has access to the memory of the server or Alice's machine
 attacker may already learnt the master key KA, then the key negotiation protocol is compromised, as well as KA'
 the key negotiation protocol may have a flaw that leaks enough information of KA' or KA
 the secure channel may have a flaw that leaks enough information of KA'
-Alice or the server may accientally uses the key KA or KA' somewhere else
+Alice or the server may accidentally uses the key KA or KA' somewhere else
 if only KA' is known to the attacker but not KA
 an attacker can learn every message Alice and the server exchanged, which includes KAB
 then the attacker can also learn every message exchanged by Alice and Bob during the lifetime of KA'
 the attacker can also impersonate Alice, the server or Bob, forge and manipulate messages been exchanged between them
-once KA' expires, the security of the protocol is recoverd for a moment, until the attacker learnt the new key
+once KA' expires, the security of the protocol is recovered for a moment, until the attacker learnt the new key
 also if the key negotiation protocol is CPA-secure, the attacker won't be able to learn KA from KA'
 
 17.3
@@ -402,7 +402,7 @@ with KA', the secure channel is compromised, the attacker can learn KAB
 with KAB, all communications between Alice and Bob is no longer secure, the attacker can read them retroactively
 
 17.5
-the key negotiation protocol has to be rerun everytime the key server rebooted
+the key negotiation protocol has to be rerun every time the key server rebooted
 assume the key negotiation protocol is flawed
 if the attacker forcibly reboots the server, the attacker also forces a rerun of th key negotiation protocol
 after enough amount of reboots, the attacker may learn KA from the flaw, and all further communications are compromised
@@ -431,7 +431,7 @@ an entity may hold different identities in different applications
 e.g. a person may use different nicknames on two different websites
 when someone goes to the CA and claims to be PA in application A, PB in application B, etc.
 the CA have to be able to verify these ownerships before signing the certificates
-when there is only a single universal CA, it is impossible for it to verfiy all these claims
+when there is only a single universal CA, it is impossible for it to verify all these claims
 
 18.3
 a worldwide universal PKI has to be trusted by everyone in the world, which is certainly impossible
@@ -472,7 +472,7 @@ if it verifies the certificates regardless of the CRL, that defeats the whole re
 19.4
 PKI:        more complicate, the server do not have private keys of the users
 key server: less complicate, the server holds the private keys of all the users by nature
-for a huge corporation with hundreds of departments all over the world, a PKI is more suitble
+for a huge corporation with hundreds of departments all over the world, a PKI is more suitable
     every department can have its own sub-CA and issuing certificates for access to assets in the department
     it's unnecessary to have a huge key server managing all the keys, that may be even physically impossible
 for an instance message service provider who is obligated to log and keep all the conversations for legal reasons
@@ -484,9 +484,9 @@ CRL provides instantaneous revocation
 when all the devices in the system fundamentally do not work without network connection e.g. ATMs
 CRL is more preferable than other methods
 fast expiration relies less on consistent and fast network access, but requires more time to revoke a key
-when devices in the system only have occational network access e.g. nuclear submarines, fast expiration is the choice
+when devices in the system only have occasional network access e.g. nuclear submarines, fast expiration is the choice
 online certificate verification is almost always inferior to CRL
-it's only preferable when all the devices in the system are rarely used, has consistant but very slow network access
+it's only preferable when all the devices in the system are rarely used, has consistent but very slow network access
 
 Chapter 20
 20.1

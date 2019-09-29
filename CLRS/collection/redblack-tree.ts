@@ -285,7 +285,7 @@ class RBNode<T> extends SearchTreeNode<T> {
   }
 
   public diagnose() {
-    // property 1 is guarenteed by the type system
+    // property 1 is guaranteed by the type system
 
     // property 2
     if (this.parent === null) {

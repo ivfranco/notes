@@ -127,7 +127,7 @@ class VEBNode<V> extends VEBTree<V> {
         this.summary.insert(high(k, d), unit);
       }
       //  if the insertion into summary above happened
-      //  the insertion below is guarenteed to be an insertion into an empty tree
+      //  the insertion below is guaranteed to be an insertion into an empty tree
       this.touch(high(k, d)).insert(low(k, d), v);
     }
 

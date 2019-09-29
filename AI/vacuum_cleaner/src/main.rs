@@ -1,6 +1,6 @@
-use vaccum_cleaner::rectangle::{RandomCleaner, BumpCleaner, Rectangle};
-use vaccum_cleaner::simple::{ReflexCleaner, TwoSquare};
-use vaccum_cleaner::{simulate, MeasureJudge};
+use vacuum_cleaner::rectangle::{RandomCleaner, BumpCleaner, Rectangle};
+use vacuum_cleaner::simple::{ReflexCleaner, TwoSquare};
+use vacuum_cleaner::{simulate, MeasureJudge};
 
 
 fn main() {

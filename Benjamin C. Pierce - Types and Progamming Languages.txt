@@ -114,7 +114,7 @@ the other direction of iff is straight forward by subterms induction
 
 3.5.18
 E-IFTRUE and E-IFELSE only apply when "if (true | false) then v2 else v3"
-E-IF only applys then and else clause are values
+E-IF only applies then and else clause are values
 a new rule E-IFTHEN
 	t2 -> t2'
 	--------
@@ -689,7 +689,7 @@ case T-PAIR
 	t ->* {v1, v2} in finite steps, t is normalizable
 	
 13.1.1
-a is a tuple of two different references, b is a tuple of two copys of the same reference
+a is a tuple of two different references, b is a tuple of two copies of the same reference
 
 13.1.2
 no. in call by value the body of a lambda abstraction won't be reduced
@@ -763,7 +763,7 @@ if the final step is T-RCD, then ki = li for i in 1..n, {li for i in 1..n} = {ka
 if the final step is T-SUB, then |- v:S, S <: {li: Ti for i in 1..n}
 by 15.3.2 S = {kj: Sj for j in 1..m} and {li for i in 1..n} subs {kj for j = 1..m}
 by induction v has the form {wn = vz for z in 1..r} that {kj for j = 1..m} subs {wz for z in 1..r}
-by transtivity {li for i in 1..n} subs {wz for z in 1..r}
+by transitivity {li for i in 1..n} subs {wz for z in 1..r}
 
 15.5.1
 if type of parameters doesn't match, the evaluation will stuck
@@ -1035,7 +1035,7 @@ R |- t1: C1, R |- t2: C2
 R |- try t1 with t2: C1 V C2
 
 19.4.5
-downcast still have to mension the subtyping rules explicitly
+downcast still have to mention the subtyping rules explicitly
 T-INK, T-NEW, T-UCAST can be formulated without the explicit prerequisite to subtyping sa the presence of T-SUB
 
 19.4.6
@@ -1242,7 +1242,7 @@ F(S) =
 	U { s1 X s2, s1 and s2 in S }
 	U { s1 -> s2, s1 and s2 in S }
 
-_T is all functions (1, 2)* -> {->, X, Top} in U with addtional properties:
+_T is all functions (1, 2)* -> {->, X, Top} in U with additional properties:
 	if T(q) = Top then T(q, 1) and T(q, 2) are undefined
 	if T(q) = -> or X then T(q, 1) and T(q, 2) are defined
 _Tf are all functions T in _T that dom(T) is finite.
@@ -1862,7 +1862,7 @@ R |- T <: S, R, X<:T |- X <: X
 => and <= trivial
 
 28.5.4
-since algorithmic SA rules are sound and complete, |- and |-> is interchangable
+since algorithmic SA rules are sound and complete, |- and |-> is interchangeable
 
 case SA-TOP: trivial, both ways
 case SA-REFL-TVAR: trivial, both ways 
@@ -1913,7 +1913,7 @@ let [S :=: T] be such a sequence that
 S = S0 :=: S1 :=: ... :=: Sn = T, 
 no Q-TRANS in subderivations, Q-SYMM only at end of a subderivation
 
-by indcution on Q-derivations:
+by induction on Q-derivations:
 Q-REFL: intuitive
 Q-SYMM:
     S :=: T

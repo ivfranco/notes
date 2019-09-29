@@ -17,7 +17,7 @@ impl DNSResolver {
     }
 
     /// Lookup an IPv4 address of the given domain.\
-    /// Always retreive the first entry in answers when available.
+    /// Always retrieve the first entry in answers when available.
     pub fn lookup(&self, domain: &str) -> Result<Ipv4Addr> {
         let lookup = self.inner.ipv4_lookup(domain)?;
         lookup

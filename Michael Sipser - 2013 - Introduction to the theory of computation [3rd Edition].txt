@@ -22,7 +22,7 @@ define another oracle machine R with an oracle for Atm that for any input w:
     produce its own description <R> and prepend w, get <R, w>
     run <R, w> on T, possible since both R and T is oracle for Atm
     accepts if T rejects, rejects if T accepts 
-then if <R, w> is accepted by A'tm, by definiition R accepts w and T rejects <R, w>
+then if <R, w> is accepted by A'tm, by definition R accepts w and T rejects <R, w>
 if <R, w> is rejected by A'tm, R rejects w and T accepts <R, w>
 
 6.5
@@ -122,7 +122,7 @@ complement: run T on input, accept iff T rejects
 
 7.7
 union: a certificate can be verified for both problem in polynomial time
-concatination: the same argument for P
+concatenation: the same argument for P
 
 7.8
 step 1. once, scan the whole input and mark a single node, O(n)
@@ -145,7 +145,7 @@ build a graph from transitions and states of ~M, the problem reduces to
 which is in P, and the graph transforming is easily P, building ~M from M also in P
 
 7.11
-a.  by verifying the language of symmatric difference:
+a.  by verifying the language of symmetric difference:
         M' = (M ∩ ~N) ∪ (~M ∩ N)
     is empty, which reduces to CONNECT
     union and intersection of DFAs results in a new DFA with |Q1| * |Q2| states, which is polynomial
@@ -177,7 +177,7 @@ O(n^2) combined
 verifiable in polynomial time => NP
     
 7.13
-addition of two n bit number on a three-taple deterministic TM is O(n)
+addition of two n bit number on a three-tuple deterministic TM is O(n)
 multiplication of two n bit number on the same machine is O(n^2), by shifting and addition
 modular operation by long division O(n^2)
 by reading b from most significant bit, starting with a number on tape c = 1:
@@ -213,8 +213,8 @@ union: divide the tape to top and bottom parts, run on tape alphabet ΓxΓ
     space complexity 2O(f(n)) + 2O(g(n)) in PSPACE if f(n) and g(n) are polynomial
 complementation: PSPACE problems are decidable, simulate M, accept if M rejects
 star: NPSPACE = PSPACE
-    nondeterministically insert seperators into the input, divide input to several segments, run M for each segment
-    if w ∈ A*, one of such seperations will be accepted
+    nondeterministically insert separators into the input, divide input to several segments, run M for each segment
+    if w ∈ A*, one of such separations will be accepted
 
 8.5
 a DFA have two state:
@@ -229,19 +229,19 @@ which makes the problem NP-hard
 
 8.7
 union: run both machine, erase the working tape before running the second one 
-concatenation: combine the two machines, nondeterministically decide a bound that seperates input into two segments
+concatenation: combine the two machines, nondeterministically decide a bound that separates input into two segments
     add transitions from accept state of the first machine to the start state of the second machine
     if entered the second machine, skip to the second segment
     check the bound every time it moves the reading head left
     if it's attempting to move into the first segment, act if it read the leftmost symbol
     accept if the second machine accepts
-    stores two pointers in addtion to the two machines' memory
+    stores two pointers in addition to the two machines' memory
     complexity max(f(n), g(n)) + 2log(n), log space if both f and g is log space
 star: ?
 
 8.8
 from a regular expression R, a NFA M can be built in polynomial time
-Example 8.4 says the emptyness test of NFA is in PSPACE
+Example 8.4 says the emptiness test of NFA is in PSPACE
 by the same argument of EQdfa, EQnfa is in PSPACE => EQrex is in PSPACE
 
 9.1
@@ -252,7 +252,7 @@ so k2^(n+1) = O(2^n) and TIME(2^(n+1)) = TIME(2^n)
 9.2
 2^2n / log(2^2n) = 2^2n / 2n = (2^n)^2 / 2n
 lim(2^n / (2^n)^2 / 2n) = lim(2n / 2^n) = 0, so 2^n = o(2^2n / log(2^2n))
-by hirarchy theorem TIME(2^n) ⊂ TIME(2^2n)
+by hierarchy theorem TIME(2^n) ⊂ TIME(2^2n)
 
 9.3
 NTIME(n) ⊆ NSPACE(n) ⊆ SPACE(n^2) ⊂ SPACE(n^k, k > 2) ⊆ PSPACE
@@ -275,7 +275,7 @@ where x1 xor x2 = ((not x1) and x2) or (x1 and (not x2))
     thus the total running time without a oracle is f(n) + g(f(n)), which is polynomial
 
 9.7
-using syntax of regular expression common in nowaday programming languages
+using syntax of regular expression common in nowadays programming languages
 a.  (0|1){500}
 b.  (0|1|ε){500}
 c.  (0|1){500}(0|1)*

@@ -28,12 +28,12 @@ characters in position i, i+t, i+2t is in a mono-alphabetic permutation, and t c
 then the problem reduces to breaking t mono-alphabetic permutation
 
 1.4
-a.  substract ki + j modulo 26
+a.  subtract ki + j modulo 26
 b.  the repeating bi or trigram is 26 times less frequent
     since they have to occur in the (modulo 26) same position in the key and jth block
     requires longer ciphertext to determine the period
 c.  since the encryption method is open
-    substract j for characters in jth block modulo 26 and it's now an ordinary Vigenere cipher
+    subtract j for characters in jth block modulo 26 and it's now an ordinary Vigenere cipher
 
 1.5
 shift:  all it needed is a single character to calculate the shift
@@ -63,7 +63,7 @@ so if Pr [M = m | C = c] = Pr[M = m' | C = c], then
 what only holds if the distribution over M is uniform, so refute
 
 2.3
-by outruling k = 0^l, |K| = |M| - 1 < |M|, so this encryption is no longer perfectly secret
+by overruling k = 0^l, |K| = |M| - 1 < |M|, so this encryption is no longer perfectly secret
 first, it's a very low possibility of choosing k = 0^l, namely 1/2^l
 second, for all possible m ∈ M and c ∈ C, there exists a key encrypts m to c
 that means any meaningful sentence can be the ciphertext of any other plaintext
@@ -183,7 +183,7 @@ that makes effective decryption impossible
 2.10
 use mono-alphabetic cipher on the message space of a single character
 then the key is effectively a bijection k: Z26 -> Z26,
-    Gen = choose such a bijection from all |K| = 26! bijections
+    Gen = choose such a bijection from all |K| = 26! bijection
     Enc(k, m) = k(m)
     Dec(k, m) = k^-1(m)
     M = C = Z26
@@ -326,7 +326,7 @@ define Π = (Gen, Enc, Dec) identical to construction 3.24 except:
         not ambiguous since Enc(F(k, k)) will be the only ciphertext of length n (2n otherwise)
     3.  otherwise Dec(c) strips the first n bits from the ciphertext and decrypts the remaining as construction 3.24
 since F is a pseudorandom function, it's polynomial time indistinguishable from a random function f <- Func(n)
-F(k, k) appearently is just some random string from {0, 1}^n, not predictable from the encryption scheme without the key
+F(k, k) apparently is just some random string from {0, 1}^n, not predictable from the encryption scheme without the key
 an adversary in a multiple-message experiment have to prepare sequences of messages before receiving any ciphertext
 it may send F(k, k) as one of the messages by chance, but not with non-negligible probability (by name, 1/2^n)
 however a adversary with an encryption oracle can take the first n bits from any previous ciphertext and get F(k, k)
@@ -339,8 +339,8 @@ d = O(log(n)) => d * 2^d    = O(log(n)) * 2^O(log(n))
                             < c1(log(n)) * 2^c2(log(n))
                             = c1(log(n)) * n^c2
                             = O(n^c2log(n)) for some c2
-so the key required to build a truely random function in Func(d) has length polynomial in n
-and the scheme permits a key of polynomial length, thus permits truely random functions
+so the key required to build a truly random function in Func(d) has length polynomial in n
+and the scheme permits a key of polynomial length, thus permits truly random functions
 
 3.9
 Given a pseudorandom function F that requires a key k of length n, for any polynomial l:
@@ -349,7 +349,7 @@ Given a pseudorandom function F that requires a key k of length n, for any polyn
     for i from 0 to l(n) / n, compute F(s, (ctr + i) mod 2^n)
     a single F(s, ctr') have length n, combined has length l(n) in total
     concatenate and truncate the result to get G(s, 1^l(|s|))
-if F is a pseudorandom function, from the perspect of a polynomial time adversary:
+if F is a pseudorandom function, from the perspective of a polynomial time adversary:
     F(s, ctr + i) and F(s, ctr + j) for any different i, j should be totally random and independent
 since l is a polynomial, l(n) / n < 2^n, all (ctr+i) mod 2^n will be pairwise different
 if a distinguisher D can distinguish r from G(s, 1^|r|) for |r| = l(|s|),
@@ -435,7 +435,7 @@ F' and f <- Perm(n) are distinguishable with probability 1 - ε(n) for some negl
 3.14
 Dec: compute F^-1(k, c) and take the last n/2 bits
 define an alternative scheme Π' by replacing Fk with a random permutation f
-in scheme Π', f(rm) for any m is totally random, and for an adversary A that querys the oracle g(n) times:
+in scheme Π', f(rm) for any m is totally random, and for an adversary A that queries the oracle g(n) times:
 a.  if no query result equals to the challenge ciphertext, D gained no information about f^-1(c), A can only guess
 b.  if any query O(m) = c, m is the plaintext been encrypted in the experiment, A then compare it to m0 and m1 for b'
     this only happens when m = mb and the two encryption used the same r, with probability p(n) <= 1/2^|r| = 1/2^(n-1)
@@ -503,7 +503,7 @@ a.  for Fk to be a pseudorandom function,
         q(n)/max(lin(n), lout(n)) is an upper bound of the number of queries
         q(n) is an upper bound of the length of any query string
     ctr* <- {0, 1}^lin(n) for the encryption of m0 and m1, ctri <- {0, 1}^lin(n) for ith query to the encryption oracle
-    lin(n) may not be logarithm, or 2^lin(n) will be polynomial and for big enough q overlap is guarenteed
+    lin(n) may not be logarithm, or 2^lin(n) will be polynomial and for big enough q overlap is guaranteed
         Pr[Overlapi] = (2q(n) - 1) / 2^lin(n)
         Pr[Overlap] <= ∑Pr[Overlapi]
                     = (q(n) / max(lin(n), lout(n))) * (2q(n) - 1) / 2^lin(n)
@@ -571,11 +571,11 @@ define a new scheme Π that:
 Gen:    sample k1, k2 <- {0, 1}^n, set k1, k2 as the key for Π1 and Π2, k = <k1, k2>
 Enc:    for |m| = n:
         sample r <- {0, 1}^n 
-        encrypt m1 = r, m2 = m xor r seperately with Π1 and Π2, get c1 and c2
+        encrypt m1 = r, m2 = m xor r separately with Π1 and Π2, get c1 and c2
         (which one encrypted by which scheme doesn't matter)
         output <c1, c2> as the ciphertext 
 Dec:    
-        on receiving <c1, c2>, decrypt seperately with Π1 and Π2, get m1 and m2
+        on receiving <c1, c2>, decrypt separately with Π1 and Π2, get m1 and m2
         calculate m = m1 xor m2
 an encryption oracle of Enck is equivalent to two encryption oracle Enc1k1 and Enc2k2 combined
 if some adversary A1 can break Π1 with an oracle Enc1k1
@@ -733,7 +733,7 @@ b.  define an adversary A that:
     t1' = F(k, t1 xor m2) = t2 
     t2' = F(k, t1' xor m1') = F(k, t2 xor t2 xor m1) = F(k, m1) = t1
     thus A succeeds if m1||m2 != m1'||m2'
-    as F is pseudorandom, m1 = m1' = t1 xor m2 only happends with negligible probability
+    as F is pseudorandom, m1 = m1' = t1 xor m2 only happens with negligible probability
     A succeeds with probability 1 - negl(n)
 
 4.10
@@ -781,7 +781,7 @@ thus second pre-image resistance implies pre-image resistance
 
 4.11
 a.  obviously, a collision in Π is directly a collision in Π1 and Π2 with corresponding keys
-    if an adversary A can break Π with non-negligible probability, deifine a new adversary A1 for Π1 that:
+    if an adversary A can break Π with non-negligible probability, define a new adversary A1 for Π1 that:
         upon receiving s1, generate s2 <- Gen2(1^n) (1^n is implicit in s1)
         run A with (s1, s2), A outputs x and x'
         output x and x'
@@ -942,7 +942,7 @@ so there is Deck(c) = m for every c and there is no authenticated communication
 
 4.21
 let MAC be any authentication method, and Enc(k, m) just outputs plain m
-then EncMac((k1, k2), m) = <m, t> with encryption-and-authenciation method
+then EncMac((k1, k2), m) = <m, t> with encryption-and-authentication method
 oracle access to EncMack is equivalent to Mack, Auth(A, Π', n) is equivalent to Mac-forge(A, ΠM, n)
 obviously Pr[Auth(A, Π', n) = 1] = Pr[Mac-forge(A, ΠM, n) = 1] <= negl(n)
 but the scheme is not secure at all
@@ -1275,7 +1275,7 @@ a.  assume f is a one-way function
     then this machine solves inversion problem in nondeterministic polynomial time
     if P = NP, a deterministic machine M can simulate this machine in polynomial time
     M inverts f in polynomial time, in contradiction to the assumption
-    thus existance of one-way function implies P != NP
+    thus existence of one-way function implies P != NP
     a more formal proof: https://crypto.stackexchange.com/questions/39878
 b.  define f on input x ∈ {0,1}^n as:
         calculate n' as biggest integer that n'^2 + n' <= |x|
@@ -1309,7 +1309,7 @@ then n' + log(n') <= n <= n' + 1 + log(n'+1)
 define algorithm Ai guessing ith bit of x <- {0,1}^n from f'(x) as:
     parse f'(x) = f(x)||i'||b||pad as before
     if i > n' + log(n'), output (i - n' + log(n'))th bit in pad
-    if n'+1 <= i <= n' + log(n'), output (i - n')th bit in the repsentation of i'
+    if n'+1 <= i <= n' + log(n'), output (i - n')th bit in the representation of i'
     if i <= n':
         if i = i'+1, output b
         if i != i'+1, output 1 or 0 randomly
@@ -1411,7 +1411,7 @@ by rearranging the result, H'(s0||s1) = G0(s0)||G1(s0)||G0(s1)||G1(s1) = G(s0)||
 by theorem 6.37, H' is a pseudorandom generator
 if some D can distinguish H(s), s <- {0,1}^2n and r <- {0,1}^4n
     |Pr[D(H(s)) = 1] - Pr[D(r) = 1]| = ε(n)
-H'(s) and r can be easily distinguished with the same probability, in contradicton to H' being pseudorandom
+H'(s) and r can be easily distinguished with the same probability, in contradiction to H' being pseudorandom
 therefore H(s) and r are indistinguishable
 by transitivity of indistinguishability, G'(s) and r are indistinguishable, G' is a pseudorandom generator
 
@@ -1729,7 +1729,7 @@ Zpq* is isomorphic to Zp* x Zq*
 
 7.10
 when p, q are distinct prime numbers, φ(N) = φ(p)φ(q)
-by Chinese remainder theorem, Zn is isomorphic to Zp x Zq, f(x) = (x mod p, x mod q) satistifes:
+by Chinese remainder theorem, Zn is isomorphic to Zp x Zq, f(x) = (x mod p, x mod q) satisfies:
     f(xx') = f(x)f(x')
     f(x^ed) = f(x)^ed = (x^ed mod p, x^ed mod q)
 x^ed = x^(1 + kφ(N)) = x^(1 + kφ(p)φ(q))
@@ -2056,7 +2056,7 @@ b.  assume there is some A attacking KEPrivK(A, Π', n) and
         run (trans, _) <- Πk(1^n)
         pass trans to A, A outputs a pair of messages (m0, m1)
         sample k <- Gen(1^n), b <- {0,1}, pass Enc(k, mb) to A, A outputs a bit b' ∈ {0,1}
-        the output of the experiment is defiend as 1 if b = b'; 0 otherwise
+        the output of the experiment is defined as 1 if b = b'; 0 otherwise
     define:
         Pr[KEPrivK'(A, Π', n) = 1] = 1/2 + ε'(n)
     define another A' attacking PrivK(A', Πe, n) that:
@@ -2104,7 +2104,7 @@ as A knows both kA and kB, A can:
     (or vice versa)
 both party won't notice any difference
 after A leaves, Alice and Bob will no longer be able to decrypt ciphertexts from each other
-only then they will notice the existance of the adversary
+only then they will notice the existence of the adversary
 
 9.3
 w xor t = u xor r xor t = s xor t xor r xor t = k xor r xor t xor r xor t = k
@@ -2125,7 +2125,7 @@ define A as:
     for all r <- {0,1}^p(n), compute c' = Enc(pk, 0; r), compare the result to c
     if any c' equals c, A outputs 0; otherwise A outputs 1
 if b = 0, c = Enc(pk, 0; r) for some r, there must be some c' = c, A always output 0
-if b = 1, no Enc(pk, 0; r) can be c or the scheme does not have correct decryption, A always otuput 1
+if b = 1, no Enc(pk, 0; r) can be c or the scheme does not have correct decryption, A always output 1
     Pr[PubK(A, Π, n) = 1]   = 1/2 * (Pr[b' = 0 | b = 0] + Pr[b' = 1 | b = 1])
                             = 1/2 * (1 + 1)
                             = 1
@@ -2216,7 +2216,7 @@ therefore Π has indistinguishable multiple encryptions regarding message vector
 
 10.6
 define an adversary A' attacking PubK(A', Π, n) that:
-    run A as a rubroutine
+    run A as a subroutine
     on input (pk, 1^n), pass (pk, 1^n) to A, get a pair of vectors ((m00, m01), (m10, m11))
     output a pair of messages (m00, m10), get a challenge ciphertext c0
     compute c1 <- Enc(pk, m11), pass (c0, c1) to A
@@ -2359,7 +2359,7 @@ A succeeds with certainty and Π' is not CCA-secure
 in CCA-security experiments, the adversary can query the decryption of any ciphertexts except these given as challenges
 with a single long message, the ciphertext can be parsed to many shorter ciphertexts
 the messages can be totally recovered by query all these shorter ciphertexts to the decryption oracle
-while in multiple messages experiment, messages in the vectors are encrypted seperately
+while in multiple messages experiment, messages in the vectors are encrypted separately
 an adversary is not allowed to query any ciphertext in the challenge ciphertext vector
 to recover some information of the message m from its ciphertext c
 the adversary has to modify c to some c', the ciphertext of m' that is somehow relative to m
@@ -2464,7 +2464,7 @@ both N = pq and p, q are known
     |ZN*|/|ZN| = (p-1)(q-1)/pq >= 2/6 = 1/3
 by sample n independent 0 < z < N, with probability 1 - (2/3)^n more than one of them are in ZN*
 testing whether z ∈ ZN* is equivalent to test gcd(z, N) = 1, can be done in time poly(||N||)
-thereby ZN* is efficiently samplable
+thereby ZN* is efficiently sampleable
 with a random z <- ZN*, z ∈ QNR+1 iff Jp([z mod p]) = Jq([z mod q]) = -1
 both Jp and Jq can be calculated in time poly(||N||), and Pr[z ∈ QNR+1] = 1/4
 by sample n = ||N|| random z <- ZN* and test Jp([z mod p]) and Jq([z mod q])
@@ -2491,13 +2491,13 @@ when x <- QR,
 let N = p1p2p3p4p5
 by Chinese remainder theorem, [x mod N] <-> ([x mod p1], [x mod p2], [x mod p3], [x mod p4], [x mod p5])
 different (x1, x2, x3, x4, x5) corresponds to different element of ZN*
-by an extension of Propositon 11.6
+by an extension of Proposition 11.6
 y ∈ ZN* is a quadratic residue iff y <-> (y1 .. y5) and y1 .. y5 are quadratic residues in their corresponding groups
-if yi ∈ Zpi is a quadratic residue, yi has exactly two suqare roots xi and -xi
+if yi ∈ Zpi is a quadratic residue, yi has exactly two square roots xi and -xi
 by choose xi or -xi for i = 1 .. 5, there are 2^5 = 32 different elements (x1 .. x5) in Zp1 x Zp2 x Zp3 x Zp4 x Zp5 that
     (x1 .. x5)^2 = (y1 .. y5) <-> y
 all (x1 .. x5) are mutually different i.e. corresponds to different elements in ZN*
-therefore there are 32 differernt x ∈ ZN* that x^2 = y mod N, y has 32 square roots 
+therefore there are 32 different x ∈ ZN* that x^2 = y mod N, y has 32 square roots 
 
 11.7
 a.  as p|N and q|N, [-1 mod N] = -1 mod p and [-1 mod N] = -1 mod q
@@ -2507,7 +2507,7 @@ a.  as p|N and q|N, [-1 mod N] = -1 mod p and [-1 mod N] = -1 mod q
     similarly Jq([-1 mod q]) = -1, thereby [-1 mod N] ∈ QNR+1
 b.  when deciding quadratic residuosity is hard relative to GenModulus
     this scheme is equivalent to Construction 11.13 with fixed z = [-1 mod N]
-    decryption is still determined by the qudratic residuosity of ciphertext
+    decryption is still determined by the quadratic residuosity of ciphertext
     [-1 mod N] incurs no difference compared to any other z ∈ QNR+1
     assume for some adversary A that:
         Pr[PubK(A, Π, n) = 1] = ε(n)
@@ -2548,7 +2548,7 @@ assume decide quadratic residuosity is hard relative to GenModulus,
 therefore distinguishing z <- QR and z <- JN+1 is also hard                                                 
 
 11.9
-a.  as mensioned in section 11.1.3, there isa polynomial time algorithm calculating JN(x) without factoring N
+a.  as mentioned in section 11.1.3, there isa polynomial time algorithm calculating JN(x) without factoring N
     by sample x <- ZN*,Pr[JN(x) = 1] = 1/2
     by sample n random x <- ZN* and test JN(x), with 1 - (1/2)^n the algorithm can find at least one x ∈ JN+1
 b.  on receiving (c1 .. cn), the receiver tests quadratic residuosity of all ci
@@ -2634,10 +2634,10 @@ even if the scheme try to hide an error by return some element in m on quadratic
     c' = [m^2 mod N]
 and c' is a quadratic residue of ZN*, it must have c' != c
 thereby in a chosen ciphertext attack, it will be easy to determine the quadratic residuosity of any c ∈ ZN*
-by Theorem 11.22, by finding two unrelative quadratic residues x and x', N can be factored in time poly(n)
+by Theorem 11.22, by finding two irrelative quadratic residues x and x', N can be factored in time poly(n)
 by Proposition 11.8, Pr(x <- ZN*)[x ∈ QR] = 1/4
 by sample n random x <- ZN*, an algorithm can find a quadratic residue with probability 1 - (3/4)^n
-by sample other n random x' <- ZN*, another quadratic residue with probility 1 - (3/4)^n
+by sample other n random x' <- ZN*, another quadratic residue with probability 1 - (3/4)^n
 as these two quadratic residues are independent sampling of QR, x' = ±x mod N with probability 2/|QR| = 8/φ(N)
 as N = pq is a Blum integer, p, q >= 3, φ(N) = (p-1)(q-1) >= 2N/3
     Pr[x' = ±x mod N] = 8/φ(N) <= 12/N
@@ -2830,7 +2830,7 @@ assume Π' is secure,
 and Π is secure against adaptive chosen-message attacks
 l(n) has to be at least super-logarithm
 the signature will be linear to the length of the message
-however this scheme does not rely on the existance of hash functions compared to hash-and-sign schemes
+however this scheme does not rely on the existence of hash functions compared to hash-and-sign schemes
 
 12.6
 a.  define an adversary A that:
@@ -2879,7 +2879,7 @@ assume some adversary A can forge a signature of this scheme with probability ε
 define another A' inverting the one-way function f that:
     run A as a subroutine
     on input (1^n, y), sample i* <- {1 .. 2l}
-    for all i != i*, sampe xi <- {0,1}^n, compute yi = f(xi)
+    for all i != i*, sample xi <- {0,1}^n, compute yi = f(xi)
     set pk = (y1 .. y2l), pass pk to A
     when A queries a message m':
         if the corresponding subset Sm' contains i*, halt
@@ -3001,13 +3001,13 @@ either case the correct thing to do is to revoke Bob's public key
 Chapter 13
 13.1
 let F be the pseudorandom function constructed in Section 13.1.1
-assume some distinguisher D given oracle access to H and a function f trying to find out weither
+assume some distinguisher D given oracle access to H and a function f trying to find out whether
     f <- Func(n) or f(x) = H(k||x)
 as F being a random oracle, output of Both Fk and H are independent to their input
 k is totally independent to all the queries D can make
 let Query denote the event that D ever queries H(k||x) for some x
 only 2^n in 2^2n strings in {0,1}^2n has the form k||x, which means
-assume D makes q = q(n) querie to the random oracle H,
+assume D makes q = q(n) queries to the random oracle H,
     Pr[Query]   = 1 - (1 - 2^n/2^2n)^q
                 = 1 - ΣC(q, i)(-negl(n))^i
                 = negl'(n)
@@ -3031,7 +3031,7 @@ a.  as H being a random oracle, Pr[H(0) = y] = negl(n) for any fixed y
                                         = negl'(n)
     and Πy is secure in random oracle model
 b.  as SHA-1 being a deterministic function, define y = SHA-1(0)
-    Πy will output the secret key everytime therefore is not secure
+    Πy will output the secret key every time therefore is not secure
 
 13.3
 by the same argument in problem 13.1
@@ -3072,7 +3072,7 @@ define another A' attacking PrivK(A, Π', n) that:
     run A as a subroutine
     run (N, e, d) <- GenRSA(1^n), pass pk = (N, e) to A
     sample r* <- ZN*, compute c1 = [r*^e mod N]
-    whex A queries H(r):
+    when A queries H(r):
         if (r, k) is previously recorded, return k
         otherwise sample k <- {0,1}^n, record (r, k), return k
     when A outputs (m0, m1), output (m0, m1) too, on receiving the challenge ciphertext c pass c to A
@@ -3116,7 +3116,7 @@ b.  assume the three key pairs are generated randomly by GenRSA
         on input ((N1, e1), (N2, e2), (N3, e3)) and a message m
         sample r1 <- ZN1*, r2 <- ZN2*, r3 <- ZN3*, output ciphertext
             ([r1^e1 mod N1], [r2^e2 mod N2], [r3^e3 mod N3], H(r1) xor m, H(r2) xor m, H(r3) xor m)
-    intuitively, Π applies Contstuction 13.1 with three independent key pairs
+    intuitively, Π applies Construction 13.1 with three independent key pairs
     let Query denotes the event that an adversary A attacking PubK(A, Π, n) queries any of {r1, r2, r3}
     by the same argument in the proof of Claim 13.4, Pr[Query] is negligible
     when Query never happens, H(r1), H(r2) and H(r3) are totally random to A

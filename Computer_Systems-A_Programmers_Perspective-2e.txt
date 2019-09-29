@@ -221,7 +221,7 @@ fn tadd_ok(x: i32, y: i32) -> bool {
 
 2.31
 cause I was being harsh against others
-and the implementation is based on the exact meaning of signed substraction
+and the implementation is based on the exact meaning of signed subtraction
 when sum = x + y overflowed, sum - x and sum - y may also overflow, the result is UB in the specification of C
 
 2.32
@@ -262,7 +262,7 @@ define t = r - k then xy = p + t2^w
 the specification of C language requires (p / x) * x + p % x == p for integers
 http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf
 hence for q = p/x, p == q * x + p % x, where p % x is the reminder of p divides x, therefore r = p % x and |r| < |x|
-when t == 0, r == 0, xy didn't oveflow, xy == p, q == p / x == y
+when t == 0, r == 0, xy didn't overflow, xy == p, q == p / x == y
 when t != 0, xy overflowed, xy == p + t2^w, p == xy - t2^w
 if q == p / x == y, p == xy + r, |r| < |x|, which implies |t2^w| < |x|, contradiction
 therefore when t != 0, q != y, and q == y <=> (t == 0 && r == 0)
@@ -279,7 +279,7 @@ fn tmult_ok(x: i32, y: i32) -> bool {
 
 2.37
 A.  not so much. the library function memcpy expects input of type size_t, and will truncate asize to that size
-    by carefully choosing ele_cnt and ele_size, the trancated asize can still be small
+    by carefully choosing ele_cnt and ele_size, the truncated asize can still be small
 B.  explicitly check for overflow using function tmult_ok
     immediately return NULL when the multiplication will overflow
 
@@ -299,7 +299,7 @@ for k ∈ {0 .. 3}, LEA can calculate pa for p ∈ {1, 2 4, 8} ∪ {2, 3, 5, 9} 
 
 2.41
 when (n - m) is greater than 2 and subtraction has similar cost to addition, use form B
-otherwise (n - m <= 2 or substraction is significantly more costy than addition), use form A
+otherwise (n - m <= 2 or subtraction is significantly more expensive than addition), use form A
 
 2.42
 fn div16(x: i32) -> i32 {
@@ -315,7 +315,7 @@ N == 2^3 == 8
 2.44
 A.  for x = -2^31, x < 0, x - 1 == 2^31 - 1 > 0
 B.  x & 7 truncates x to 3 bits
-    when x & 7 intepreted as a 32-bit signed integer equals to 7, the least significant 3 bits of x is 111
+    when x & 7 interpreted as a 32-bit signed integer equals to 7, the least significant 3 bits of x is 111
     thereby x << 29 will have most significant bit equals to 1, is a negative number when interpreted as a signed int
 C.  for x = 1234567891, x * x == -1521747479 < 0
 D.  if x >= 0, -x is representable in 32 bits and will not overflow, -x <= 0
@@ -420,7 +420,7 @@ C.  x = 0.1234567890123
 D.  true, float -> double will be exact, no rounding performed on the way back
 E.  true, negation of a floating number only changes the sign bit
 F.  true, integer literals will be implicitly converted to float
-G.  guarenteed by IEEE format
+G.  guaranteed by IEEE format
 H.  f = 1e10, d = 1e-10
 
 2.55
@@ -474,7 +474,7 @@ doing so iteratively and odd_ones can be computed with log2(w) xors and log2(w) 
 2.66
 ./CSAPP/float
 let x = [0 .. 0bk .. bw], where bk is the most significant non-zero bit
-by computing x |= x >> 1, both bk and bk+1 now is guarenteed to be 1
+by computing x |= x >> 1, both bk and bk+1 now is guaranteed to be 1
 such a computation will never change bits more significant than bk, as right shift is logical for unsigned integer
 then x |= x >> 2, as bk and bk+1 are 1, bk+2 and bk+3 will be 1 after this step
 after t steps, 2^t bits after bk will be 1
@@ -563,7 +563,7 @@ B.  (x + y) << 4 == 16 * (x + y) == 16 * x + 16 * y
 C.  ~(x + y) + 1 == -(x + y), ~(x + y) == -(x + y) - 1
     ~x + 1 == -x, ~y == -y - 1, ~x + ~y + 1 = -x + -y - 1
     -x + x + -y + y == 0, x + y + (-x + -y) == 0, (-x + -y) == -(x + y), negation distributes over addition
-D.  substraction, addition and negation are all isomorphic in signed and unsigned arithmetics
+D.  subtraction, addition and negation are all isomorphic in signed and unsigned arithmetics
     the bit representation is always the same after signed or unsigned computation
     -(y - x) == -(uy - ux)
     ux - uy + (uy - ux) == 0, -(uy - ux) == ux - uy
@@ -614,7 +614,7 @@ routine
 2.88
 A.  casting from int -> double is accurate, int -> float is equivalent to int -> double -> float
 B.  dx - dy will not underflow
-    when x - y underflowed (x - y < INT_MIN), (double)(x - y) will be positive, while dx - dy is negative
+    when x - y overflowed (x - y < INT_MIN), (double)(x - y) will be positive, while dx - dy is negative
 C.  floating point arithmetics is not associative
     when dx = 1e-10, dy = 1e10, dz = -1e10
     (dx + dy) + dz == 0, dx + (dy + dz) == 1e-10
@@ -738,7 +738,7 @@ movl %edx, (%esp)
 
 3.12
 A.  num_t is long long unsigned, or u64
-    it has size twice a dword, and computing x * y compiled to mull, the unsigned full multiplication instructure
+    it has size twice a dword, and computing x * y compiled to mull, the unsigned full multiplication instruction
 B.  movl 20(%edp), %ecx, on a little-endian machine, moves the higher 8 bytes of y to %ecx
     y == 20(%edp) * 2^32 + 16(%edp) == %ecx * 2^32 + 16(%edp)
     x * y == (x * %ecx mod 2^32) * 2^32 + x * 16(%edp) mod 2^64
@@ -818,7 +818,7 @@ A.  %eax    x       x
     %ecx    y       y
     %edx    n       n
 B.  test-expr: n > 0 && y < n
-    body-statemenet: x += n; y *= n; n--;
+    body-statement: x += n; y *= n; n--;
 C.  movl    8(%edp), %eax       Get x
     movl    12(%edp), %ecx      Get y 
     movl    16(%edp), %edx      Get n
@@ -1172,14 +1172,14 @@ A.  -8
     -32 3
     -40 2
 B.  -
-C.  the array is allocated on %rsp - 7 to %rsp - 40, without actually substracing %rsp
+C.  the array is allocated on %rsp - 7 to %rsp - 40, without actually subtracting %rsp
 
 3.52
 A.  x 
 B.  store and restore the callee-save register %rbx
 C.  -
 D.  it uses pushq to automatically increment %rsp and store the value at the same time
-    other programs manually substracts the number of bytes it allocates from %rsp
+    other programs manually subtracts the number of bytes it allocates from %rsp
 
 3.53
 A.  i   c   j   d
@@ -1822,7 +1822,7 @@ bool set_cc = E_icode == IOPL && exception;
 4.40
 // change of CC, memory write and register write back should be disabled when exception happens
 bool M_bubble = exception;
-// when an exception arised from memory stage
+// when an exception arose from memory stage
 // the instruction in write back stage should still be fully executed
 // register W should only stall when the exception has propagated to write back stage
 bool W_stall = W_stat in { SHLT, SADR, SINS };
@@ -2011,7 +2011,7 @@ Combination 2, 3, 4:
     RET is a read instruction (reads %esp)
     so all three cases of read/write hazard and case1 of ret may happen at the same time
     this combination will put pipeline register D in both stalled and bubble condition
-    to solve this confliction, the write instruction preceding RET should be fully executed first
+    to solve this conflict, the write instruction preceding RET should be fully executed first
     W   bubble
     M   bubble
     E   bubble
@@ -2025,7 +2025,7 @@ excluded the situation where d_srcA == RNONE or d_srcB == RNONE
 where forwarding didn't actually happen but the forwarding logic still computes the correct srcA and srcB
 however according to analysis here, jxx misprediction and write/read hazard cannot happen at the same time
 (jxx is neither a read nor write instruction, d_srcA == d_srcB == RNONE)
-hence rw_hazard implies !jxx_misprediction and the above implementation includes a few redundency
+hence rw_hazard implies !jxx_misprediction and the above implementation includes a few redundancy
 after deleting misprediction conditions from like (rw_hazard && !jxx_misprediction)
 the compiled simulator still passes all 600 hazard tests defined by htest.pl
 ./CSAPP/hcl/pipe-stall.hcl
@@ -2131,7 +2131,7 @@ C.  as -O2 writes the value of %xmm0 to memory every iteration
 5.5
 A.  2n additions (result += .. and i++), 2n multiplications (a[i] * xpwr and x * xpwr)
 B.  the latency bound of double multiplication is 5 cycles
-    the value of xpwr in the next iteration depends on a multiple of xpwr in the currecnt iteration
+    the value of xpwr in the next iteration depends on a multiple of xpwr in the current iteration
     which forms a critical path, so 5 is the lower bound of the CPE of this function
 
 5.6
@@ -2178,7 +2178,7 @@ B.  a[i] == 0 for all i
 C.  in part A, every memory position appears twice 
     first time as src, second time as dest in the next iteration
     thereby the function never reads from a memory position it previously stores to
-    load and store operations in this case do not form critial paths
+    load and store operations in this case do not form critical paths
     in part B, again every memory position appears twice
     first time as dest, then immediately as src in the next iteration
     load operations in every iteration depends on store operation in the previous iteration
@@ -2419,7 +2419,7 @@ C.  256/512 = 50%
 
 6.20
 A.  still 512 reads, since structs with multiple fields usually cannot be stored in registers
-    .x and .y have to be two seperate memory reads
+    .x and .y have to be two separate memory reads
 B.  a stride-64 reference pattern
     every 8 loads from the lower level in an iteration will be overwritten by the next 8 loads
     let struct B be the struct next to struct A in the array, then B will only be read after 16 iteration
@@ -2642,7 +2642,7 @@ C.  again &x[0][i] + 512 = &x[1][i], the two reads will be loaded to the same ca
     but now the cache set has two lines, the second read will not overwrite the first one
     after 4 * 512 / 16 / 2 = 64 iterations, the same cache set will be used again
     as the update policy is LRU, the data 64 iteration ago will soon be discarded
-    the cache after 64 iteration hehaves just like an empty cache
+    the cache after 64 iteration behaves just like an empty cache
     every cache miss will load 4 ints into the cache, results in 25% miss rate
 D.  25% is already the optimal miss rate with a block size of 16 bytes
     increasing the cache size will not reduce the miss rate
@@ -2778,7 +2778,7 @@ the version using raw pointers to access arrays get automatically unrolled 8-way
     addq $32, %rbx
     addq %r12, %rax
 unrolling in this case will not improve the performance (no arithmetic, only independent loads and stores)
-while the ordinary verison, surprisingly, is compiled to a procedure logically similar to the raw pointer version
+while the ordinary version, surprisingly, is compiled to a procedure logically similar to the raw pointer version
     movl (%rdx,%rax,4), %ebx
     movl %ebx, (%rdi,%rsi,4)
     incq %rax
@@ -3199,7 +3199,7 @@ B.  VPN:            0x1
     d:  false, external fragmentation in C is is unavoidable
 2.  a:  false, it will have high performance and severe external fragmentation
         performance will be good (constant time), if the first free block doesn't fit then more memory is needed
-        for repeating small mallocs, big free blocks will be wasted on small data, or splited into small free blocks
+        for repeating small mallocs, big free blocks will be wasted on small data, or split into small free blocks
     b:  false, the order doesn't matter that much with best-fit
     c:  false, smallest
     d:  true
@@ -3266,7 +3266,7 @@ Chapter 11
 ./CSAPP/network
 
 11.4
-offical hostname: google.com.
+official hostname: google.com.
 address: 172.217.24.14
 address: 2404:6800:4012::200e
 A.  ipv4 first, ipv6 second
@@ -3292,7 +3292,7 @@ thus a request to read 1 byte from stdin will never block
 select will always return immediately with STDIN_FILENO set in fdset
 
 12.4
-select will modifiy this argument
+select will modify this argument
 
 12.5
 peer threads, unlike child processes, will not receive a whole copy of stack, heap and file descriptor table
@@ -3328,7 +3328,7 @@ B.  unsafe
 C.  safe
 
 12.9
-A.  necessary, a produceer must block if
+A.  necessary, a producer must block if
     1.  the buffer is full, protected by sp.slots
     2.  the consumer is accessing the buffer, protected sp.mutex
     same as the consumer
@@ -3346,7 +3346,7 @@ C.  necessary
     the mutex makes sure that only one producer/consumer has access, thereby prevents inconsistent states
 
 12.10
-a writer arrives first, then a stream of readers, writer accquires semaphore w
+a writer arrives first, then a stream of readers, writer acquires semaphore w
 then a stream of writers arrives, and the kernel always chooses another writer to run next
 
 12.11
@@ -3455,7 +3455,7 @@ sockfd is closed again and cause hazards in the first thread
 it will not deadlock according to mutex lock ordering rule
 
 12.29
-it cannot deadlock, thread 1 does not hold b and c simultanously
+it cannot deadlock, thread 1 does not hold b and c simultaneously
 a is not present in thread 2 and can be ignored
 by mutex lock ordering rule it's deadlock-free
 

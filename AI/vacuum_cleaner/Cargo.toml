@@ -1,5 +1,5 @@
 [package]
-name = "vaccum_cleaner"
+name = "vacuum_cleaner"
 version = "0.1.0"
 authors = ["ivfranco <ivfranco33@outlook.com>"]
 edition = "2018"

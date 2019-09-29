@@ -32,7 +32,7 @@ Lady Lovelace's Objection
     this objection lands more on ambiguity in human feelings / languages than ability of machines
 Argument from Continuity in the Nervous System 
     no idea 
-The Argument from Informality of Behaviour 
+The Argument from Informality of Behavior 
     AI today is already more error-prone than human while e.g. driving a car
 The Argument from Extrasensory Perception
     can't believe they took ESP into consideration seriously
@@ -55,17 +55,17 @@ human power: 10^14
 
 1.6
 1.  people lies for various reasons
-2.  people who lacks certain knowledges cannot express their thought and emotion correctly
+2.  people who lacks certain knowledge cannot express their thought and emotion correctly
 3.  people with satisfactory knowledge of thought and emotion is a biased sample
 
 1.7
-a.  pattern recognition for non-natural patterns (artifical barcodes)
+a.  pattern recognition for non-natural patterns (artificial barcode)
 b.  pattern recognition (NLP) & decision making (order of entries by preference / collected browse histories)
 c.  pattern recognition for natural patterns (human voice)
 d.  decision making
 
 1.8
-these computational models immitates result of human evolution instead of human knowledge
+these computational models imitate result of human evolution instead of human knowledge
 people don't have to understand the ATP cycle to lift and get fit
 
 1.9
@@ -98,15 +98,15 @@ List of entries not possible yet:
 //  skipped
 
 2.1
-consider a vaccum cleaner with limited battery, in an environment where dust is generated randomly over time
+consider a vacuum cleaner with limited battery, in an environment where dust is generated randomly over time
 performance is again measured by how clean the floor is on average 
 if T is short compared to the battery capacity
 the cleaner may choose to search very actively, consume more energy than optimal in the first T time steps
 and do no work at all afterwards 
 
 2.2
-a.  there are 4 cases for the initial environment, 2 cases of initial place of the vaccum cleaner
-    4 * 2 = 8 inital cases in total, where half the cases are symmetric
+a.  there are 4 cases for the initial environment, 2 cases of initial place of the vacuum cleaner
+    4 * 2 = 8 initial cases in total, where half the cases are symmetric
     assume the cleanliness is asserted at the start of each time step 
     A: Clean, B: Clean, Start: A,
         performance measure is 2000 for any agents
@@ -126,17 +126,17 @@ b.  same to figure 2.3 but stop moving when no square is dirty
     if the agent can observe the cleanliness of both squares, no internal state required
     otherwise the agent has to remember the cleanliness of another square
 c.  it may be beneficial to learn the dirt distribution and the geography of the room
-    dirts will be cleaned earlier if the agent returns to the square with a highest posibility to generate dirt
+    dirts will be cleaned earlier if the agent returns to the square with a highest possibility to generate dirt
 
 2.3
-a.  false, the vaccum cleaner agent in figure 2.2 is perfectly rational despite sensing only partial information
+a.  false, the vacuum cleaner agent in figure 2.2 is perfectly rational despite sensing only partial information
 b.  true, an environment in which a button should be pushed when two parts are defected in a row
-c.  true, a vaccum cleaner world as figure 2.3 in which no dirt are ever generated
+c.  true, a vacuum cleaner world as figure 2.3 in which no dirt are ever generated
 d.  false, agent function always takes sequence of percepts, while agent program may be pure reflex
-e.  false, it may be phisically impossible due to limitation on storage or computation power
+e.  false, it may be physically impossible due to limitation on storage or computation power
 f.  true, where the performance measure is independent to the actions of agents
-g.  true, the vaccum cleaner agent in 2.2.b is also rational in the world defined in figure 2.3
-h.  false, an agent that never clean squares cannot be rational in the vaccum cleaner world, with sensor or not
+g.  true, the vacuum cleaner agent in 2.2.b is also rational in the world defined in figure 2.3
+h.  false, an agent that never clean squares cannot be rational in the vacuum cleaner world, with sensor or not
 i.  false, it's logically impossible: what will happen when two of such agents play against each other?
 
 2.4
@@ -146,7 +146,7 @@ a.  playing soccer (as a single player):
         A:  all possible moves of a human being
         S:  visual, sound and physical contact
 b.  subsurface ocean of Titan (as a rover / submarine):
-        P:  completeness and accuracy of aquired data, project cost, (if manned) casualty
+        P:  completeness and accuracy of acquired data, project cost, (if manned) casualty
         E:  Titan (atmosphere, climate, marine condition, ...)
         A:  sampling devices, thrust, ...
         S:  visual inputs
@@ -157,7 +157,7 @@ agent function:         formal definition of the performance logic of an agent
 agent program:          implementation of an agent function
 autonomy:               ability to complete tasks / make decisions under no supervision
 reflex agent:           agent whose action is independent to history of percepts
-model-based agent:      agent which simulates unobservable part of environment as interal states from percepts
+model-based agent:      agent which simulates unobservable part of environment as internal states from percepts
                         and make decision based on those simulations
 goal-based agent:       agent which asserts and changes its actions by a binary performance measure (goal / defeat)
 utility-based agent:    agent which asserts and changes its actions by a performance measure function
@@ -200,10 +200,10 @@ b.  function UTILITY-BASED-AGENT(percept) returns an action
                 return action'
 
 2.8
-./AI/vaccum_cleaner
+./AI/vacuum_cleaner
 
 2.9
-./AI/vaccum_cleaner
+./AI/vacuum_cleaner
 World: TwoSquare { left: Clean, right: Clean }, agent: ReflexCleaner { pos: Left }, Score: 2000
 World: TwoSquare { left: Clean, right: Clean }, agent: ReflexCleaner { pos: Right }, Score: 2000
 World: TwoSquare { left: Clean, right: Dirt }, agent: ReflexCleaner { pos: Left }, Score: 1998
@@ -221,7 +221,7 @@ b.  refer 2.2
 c.  refer 2.2
 
 2.11
-./AI/vaccum_cleaner
+./AI/vacuum_cleaner
 a.  it cannot, a simple deterministic agent will only clean dirt on a fixed path
     if the initial dirt distribution generates no dirt along that path, no dirt will be cleaned by the reflex agent
     another agent may outperform it by cleaning even one square of dirt (by chance or better perception)
@@ -244,7 +244,7 @@ c.  a spiral environment
     #%%%%%%%%#
     ##########
     after cleaning the square, the random cleaner will bump into walls frequently
-    dispite there are only one correct direction to progress
+    despite there are only one correct direction to progress
 d.  a stateful agent that records the visited part of the environment, decide the next moving direction by
         1. prioritize unvisited squares
         2. choose a random non-obstacle square if surrounded by visited squares
@@ -343,7 +343,7 @@ d.  how the robot accelerate
     position of the robot in the maze is in fact continuous 
 
 3.3
-a.  let G be a indirected graph
+a.  let G be a undirected graph
     each city is a node of G
     each road is an edge of G
     the state space is tuples of nodes (i, j) where i, j ∈ G.N
@@ -394,7 +394,7 @@ I mod 2 is invariant by legal moves:
     when a tile A is moved downwards to the empty tile:
         there are two tiles B and C between A and the empty tile in row-major order
         if there are k inversions among (A, B), (A, C), after the move there will be 2 - k inversions
-        I changeed by (2 - k) - k = 2 - 2k, which is even
+        I changed by (2 - k) - k = 2 - 2k, which is even
 the goal state [1, 2, 3, 4, 5, 6, 7, 8, E] has I mod 2 = 0
 another state [1, 2, 3, 4, 5, 6, 8, 7, E] has I mod 2 = 1, both partitions are nonempty
 by CLRS, number of inversions can be computed by modified merge sort in O(nlgn)
@@ -413,7 +413,7 @@ S(n)    >= n^(1/3)
 when n = 30, S(n) >= 10^10, any n greater may exhaust the memory of a personal computer
 
 3.6
-a.  let G be an indirected graph
+a.  let G be an undirected graph
     G.V = {i | i is a region on the map}
     G.E = {(i, j) | i and j are adjacent on the map}
     state of the problem is an array of length <= |V| of c ∈ Z4
@@ -451,7 +451,7 @@ b.  when there are obstacles between two points on a plane, instead of the short
     bypass the obstacle by turn away from the shortest path as little as possible, in which case the optimality of 
     polygon vertices over point on polygon sides and middle of nowhere can be roughly explained by triangle inequality
     the state space now contains all vertices of obstacles and the start and goal points
-c.  let G be an indirected graph
+c.  let G be an undirected graph
     G.V = {i | i is a vertex of an obstacle, the start point or the goal point}
     G.E = {(i, j) | the straight line between point i and j is not blocked by any obstacle }
     state: any i ∈ G.V
@@ -519,7 +519,7 @@ branching factor: out-degree of a vertex in the state graph
 
 3.11
 world state: the state in reality, without abstraction
-state description: abstracted world state percepted and emulated by the agent
+state description: abstracted world state sensed and emulated by the agent
 search node: data structure keeping track of state descriptions and else in search algorithm
 none of any two of the above terms are equivalent:
 several world state may correspond to the same state descriptions
@@ -539,7 +539,7 @@ induction:
     let s ~> v be the path from initial state to an unexplored state before expansion
     if u is not on s ~> v, as u is the only state removed from the frontier, s ~> v passes a state in the frontier
     if u is on s ~> v
-        if v = u, v is nolonger unexplored
+        if v = u, v is no longer unexplored
         if v != u, the path is s ~> u ~> v, where u ~> v must pass a successor of u
         by the algorithm, all successors of u are added to the frontier
 
@@ -604,7 +604,7 @@ a.  state: a railway and a set of unconnected pieces
     start state: an empty railway and 32 unconnected pieces
     goal state: a railway with no overlapping and loose ends with no unconnected pieces
     action: plug one of the unconnected piece to a hole on the railway
-            for unsymmatric pieces there are two ways to plug it to a hole
+            for unsymmetric pieces there are two ways to plug it to a hole
     cost: insignificant
 b.  as all goal states are in the same depth (depth 32)
     DFS will be most memory-efficient without incurring suboptimal time complexity
@@ -628,7 +628,7 @@ a.  given a finite program instance, let the set of action costs be C
     as C* / ε is finite, the algorithm will definitely terminate
 b.  with unit step costs, ε >= 1
     d iterations at most
-c.  it depends on the minimum positive difference ε defind above
+c.  it depends on the minimum positive difference ε defined above
 d.  ./AI/searching/ils
 
 3.18
@@ -683,7 +683,7 @@ b.  %%%
     ...
     Cleaner: (2, 0)
 c.  search cost is negligible in such a tiny state space (a few milliseconds at most)
-    avarage cost of 1000 samples is 4.493
+    average cost of 1000 samples is 4.493
 d.  the astar search agent is optimal
 e.  state space has size 2^(n^2) * n^2, the search cost will dominate move cost quickly
     reflex agent will outperform the search agent for any moderately large n
@@ -806,7 +806,7 @@ for a solvable puzzle
     7 8 .
 h1 = 4, h2 = 4, Gaschnig's heuristic = 5, optimal solution has cost 16
 if a square i is misplaced, it occupies the tile of another square j, which occupies tile of square k, ..
-these misplacements therefore forms cycles
+these misplacement therefore forms cycles
 each misplacement cycle of length k requires k actions to fix if the blank square is on the cycle
 otherwise k + 1 actions
 
@@ -832,7 +832,7 @@ b.  // oddly nowhere in the paper mentioned the fitness function they used
     // skipped
 
 4.4
-//  8-puzzle cannot be fomulated as a local search problem
+//  8-puzzle cannot be formulated as a local search problem
 //  the goal state is obvious for 8-puzzle, only the path matters
 over 1000 samples of eight queens:
 Steepest ascent cost: 31.666097ms
@@ -908,7 +908,7 @@ a.  let b ⊆ b', RESULT(b, a) = {s' | s' = RESULTp(s, a) and s ∈ b}
 b.  if b is in EXPLORED, for all b' ⊆ b, a solution to b is also a solution to b'
     therefore it's not necessary to add b to the frontier
 c.  store solved states along with their plans
-    on start of OR-SEARCH(b, ..), if a superset of b is solved, return the plan associated with it
+    on start of OR-SEARCH(b, ..), if a super set of b is solved, return the plan associated with it
 
 4.9
 let initial state be {s1, s2}, 
@@ -951,11 +951,11 @@ digraph {
 4.12
 a.  a physical state is consisted of a configuration of the maze and the position of the agent
     percepts and the position of the agent filters the set of possible configurations
-    there are 12 possible internal walls, i.e. the inital believe state contains 2^12 configurations
+    there are 12 possible internal walls, i.e. the initial believe state contains 2^12 configurations
     2^(2^12) * 3^2 believe states in total
 b.  four: {Up, Right}, {Up}, {Right}, {}
 c.  each percept of a preciously unknown wall shrinks the size of the believe state to 1/2
-    each of the four possible percepts at the inital state shrinks the size of the believe state to 1/4
+    each of the four possible percepts at the initial state shrinks the size of the believe state to 1/4
     any believe state with believe set of size 1 is a goal state
     if the maze is connected, 2 * MST = 18 is an upper bound of the length of a tour
     the size of the plan is roughly 4^18
@@ -999,7 +999,7 @@ a.  from left to right:
         dd(1): -4
         dd(2): -4
         cc: 2
-b.  P is guranteed to win in at most 4 moves by the left half of the game tree
+b.  P is guaranteed to win in at most 4 moves by the left half of the game tree
     each internal node in there has value >= its deepest descendants
     the right half is suboptimal moves for P and should not be taken
 c.  from left to right:
@@ -1049,7 +1049,7 @@ Move:
     a fixed time duration t + the remaining time of the player is allowed for the move
     if the time consumed exceeds t, the surplus is deducted from the remaining time of the player
 Terminal test:
-    5 or more pieces of the same color are placed on a row (vertial, horizontal or diagonal)
+    5 or more pieces of the same color are placed on a row (vertical, horizontal or diagonal)
 Utility function:
     the winning player has utility 1, other one 0
     or 1/2 and 1/2 if end in a draw
@@ -1082,7 +1082,7 @@ RESULT(B, b1).UTILITY = 10
 RESULT(B, b2).UTILITY = -10
 RESULT(C, c).UTILITY = 5
 if MIN is optimal, MAX should choose a2 in node A
-if MIN is suboptimal and will always choose b1 at node B, MAX should chooce a1 at node A
+if MIN is suboptimal and will always choose b1 at node B, MAX should choose a1 at node A
 
 5.8
 a.  digraph G {
@@ -1114,7 +1114,7 @@ d.  by graph generation, when n = 3 player B always wins, when n = 4 player A al
     if A never goes back to the location 1, this is equivalent to a game where
         1. n = 2k - 1 
         2. the roles of two players are swapped
-    by induction, when n = 2k - 1, player B will always win, i.e. reach the other end eariler than player A
+    by induction, when n = 2k - 1, player B will always win, i.e. reach the other end earlier than player A
     hence when n = 2k, player A can always win
     for n = 2k, the start state is (1, 2k + 1), the third state is (2, 2k)
     if A never goes back to location 1, this is equivalent to a game
@@ -1310,7 +1310,7 @@ induction:
 5.19
 it's a special case of Monte Carlo method which only expands chance nodes in random
 the method describes a different game compared to the real scenario
-(as players can forcast outcomes of all chance nodes)
+(as players can forecast outcomes of all chance nodes)
 in practice it may converge to expectminimax just like Monte Carlo to minimax
 
 5.20
@@ -1340,7 +1340,7 @@ a.  Monopoly, CHANCE nodes in other games have huge branching factor
 b.  Scrabble, with fixed outcome of CHANCE nodes, poker and bridge are no longer partially observable,
     nature of the two games will change dramatically
 c.  maintain believe states for all players assuming optimality
-    likely to be extremely inpractical
+    likely to be extremely impractical
     
 6.1
 ./AI/csp
@@ -1351,7 +1351,7 @@ Solution with 4 colors: 768
 6.2
 a.  variables: positions of knights
 b.  values: P ∈ Z8^2
-c.  a single contraint between each pair of variables:
+c.  a single constraint between each pair of variables:
         for two knights at position (x0, y0) and (x1, y1), 
         (x1, y1) != (x0 + 2, y0 + 1) &&
         (x1, y1) != (x0 + 1, y0 + 2) &&
@@ -1548,7 +1548,7 @@ counters are non-negative
 by algorithm AC-4 on the paper 
     Arc and path consistency revisited, Mohr and Henderson (1986) 
     http://cse.unl.edu/~choueiry/Documents/Mohr+Henderson-AIJ1986.pdf
-the innermost loop decrements a counter, there are O(cd^2) = O(n^2d^2) such decrementations
+the innermost loop decrements a counter, there are O(cd^2) = O(n^2d^2) such decrementation
 
 6.14
 the arc-consistent graph is later searched from the root
@@ -1562,10 +1562,10 @@ if arc-consistency is forced from child to parent, for (Xi = PARENT(Xj), Xj)
     there is always an xj ∈ Xj that (xi, xj) ∈ R, no backtracking is required
 
 6.15
-for a given inital board:
+for a given initial board:
 START STATE: assign number in random order, only ensure each zone (3 x 3 square) is filled with number 1-9
 GOAL STATE: by Sudoku rules 
-ACTIONS: swap places of two numbers in a zone (3 x 3 square) that's not fixed by the inital board
+ACTIONS: swap places of two numbers in a zone (3 x 3 square) that's not fixed by the initial board
 size of the state space <= 9! * 9 <= 2^22, local search should be efficient in such a small state space
 
 6.16
@@ -1588,7 +1588,7 @@ min-conflicts:
     choose a value that prunes as few as possible values from other variables
 cycle cutset:
     let G be a CSP graph, S ⊆ G.V
-    if by removing S and incdent edges from G, the resulting graph G' is a tree
+    if by removing S and incident edges from G, the resulting graph G' is a tree
     then S is a cycle cutset of G
 
 6.17
@@ -1655,7 +1655,7 @@ d.  ./AI/propositional/src/lib.rs
     a || b with { a = false }
     a && b with { a = true }
 e.  if for a partial model P, PL-TRUE?(KB, P) is true or false
-    all the full models M where P ⊆ M nolonger have to be checked
+    all the full models M where P ⊆ M no longer have to be checked
 
 7.4
 a.  true
@@ -1893,7 +1893,7 @@ which is more likely to be satisfiable
 a.  assuming indices are one-based
     (X12 & X22 & ~X21) | (X12 & ~X22 & X21) | (~X12 & X22 & X21)
 b.  for each of C(n, k) combinations of neighbors N
-    construct a conjuction clause in which:
+    construct a conjunction clause in which:
         li = Xi if Xi ∈ N
         li = ~Xi if Xi ∉ N
     return disjunction of these clauses
@@ -1942,7 +1942,7 @@ Locked(t+1) <=> (~Locked(t) & Lock(t)) | (Locked(t) & ~Unlock(t))
 
 7.26
 // only fluents mentioned in the text
-FaceingEast(t+1) <=>    (FacingNorth(t) & TurnRight(t)) |
+FacingEast(t+1) <=>    (FacingNorth(t) & TurnRight(t)) |
                         (FacingSouth(t) & TurnLeft(t)) |
                         (FacingEast(t) & ~TurnRight(t) & ~TurnLeft(t))
 WumpusAlive(t+1) <=>    WumpusAlive(t) &
@@ -1981,7 +1981,7 @@ it is valid, without unique-name assumption x and y may be different names of th
 
 8.5
 each constant symbol may point to one of D elements, c^D possible arrangements
-a predicate of arity k is a subset of the powerset of domain D in which all sets are of size k
+a predicate of arity k is a subset of the power set of domain D in which all sets are of size k
     there are C(D, k) different subsets of size k, 2^C(D, k) for each predicate
     2^C(D, k)pk for all predicates of arity k, Π(1 <= k <= A)2^C(D, k)pk = 2^Σ(1 <= k <= A)C(D, k)pk in total
 size of the function domain D^k => D ∪ {empty} is (D + 1)^D^k
@@ -2177,13 +2177,13 @@ d.  ~∃x,y Person(x) & Person(y) => SS#(x) = SS#(y)
     ∀x Person(x) => Digits(SS#(x), 9)
 
 8.24
-constants:  Franch, Greek, Spr2001
+constants:  French, Greek, Spr2001
 predicates: Take(s, l, t), Pass(s, l, t)
 function:   Score(s, l, t)
-a.  ∃s Take(s, Franch, Spr2001)
-b.  ∀s,t Take(s, Franch, t) => Pass(s, Franch, t)
+a.  ∃s Take(s, French, Spr2001)
+b.  ∀s,t Take(s, French, t) => Pass(s, French, t)
 c.  ∃s Take(s, Greek, Spr2001) & (∀x,y Take(x, Greek, Spr2001) & Take(y, Greek, Spr2001) => x = y)
-d.  ∀x,t1∃y,t2 Take(s, Franch, t1) => Score(y, Greek, t2) > Score(x, Franch, t1)
+d.  ∀x,t1∃y,t2 Take(s, French, t1) => Score(y, Greek, t2) > Score(x, French, t1)
 predicates: Smart(c), Expensive(p), Buy(c, p, a)
 e.  ∀c (∃p,a Buy(c, p, a)) => Smart(c)
 f.  ∀c,p Expensive(p) => ~Buy(c, p)
@@ -2221,8 +2221,8 @@ n-bit addition is a function N2^n * N2^n => (N2^n, N2) defined as:
         (s', c') <- Ad1(h1, h2, c)
         ([s'|s], c')
 define the function (syntax sugar over Signal) SignalAll:
-    SignalAll(Out, c) = all output signals from a circult as a list
-    SignalAll(In, c) = all input signals from a circult as a list
+    SignalAll(Out, c) = all output signals from a circuit as a list
+    SignalAll(In, c) = all input signals from a circuit as a list
 define a new circuit Add where
     ∀c Circuit(c) & Type(c) = Add => Arity(c, 3, 2)
     ∀c Circuit(c) & Type(c) = Add =>    
@@ -2232,10 +2232,10 @@ define a new circuit Add where
         (SignalAll(Out, c) = [1, 1] <=> SignalAll(In, c) = [1, 1, 1])
 a 4-bit adder is defined as:
     Circuit(Ad4) & Arity(Ad4, 8, 5)
-    Circult(Ad0) & Type(Ad1) = Add
-    Circult(Ad1) & Type(Ad1) = Add
-    Circult(Ad2) & Type(Ad1) = Add
-    Circult(Ad3) & Type(Ad1) = Add
+    Circuit(Ad0) & Type(Ad1) = Add
+    Circuit(Ad1) & Type(Ad1) = Add
+    Circuit(Ad2) & Type(Ad1) = Add
+    Circuit(Ad3) & Type(Ad1) = Add
     Connected(Out(1, X0), In(1, Ad0))
     Connected(Out(1, Y0), In(2, Ad0))
     Connected(Out(1, X1), In(1, Ad1))
@@ -2327,7 +2327,7 @@ e.  Offspring(x, y) <=> Parent(y, x)
 f.  Mammal(x) => Parent(F(x), x)
 
 9.7
-a.  Parent, everyone have parents, no one is parent of themself
+a.  Parent, everyone have parents, no one is parent of themselves
 b.  ∀x∃y P(x, y) skolemizes to P(x, F(x))
     ~∃q P(q, q) <=> ∀q ~P(q, q) <=> ~P(q, q)
     without occur check, {q/x, x/F(x)} is a unifier, {} is entailed by KB
@@ -2395,7 +2395,7 @@ the inference procedure have to understand transitivity of equations
 S1: 
     Q1: O(1), assuming SSN is unique
     Q2: O(h), where h is the population of Houston
-    Q3: O(p), where p is the total numbre of people in the database
+    Q3: O(p), where p is the total number of people in the database
     Q4: O(t) if ResidesIn(x, TinyTownUSA) is unified first, where t is the population of TinyTownUSA
 S2:
     Q1: O(1)
@@ -2423,7 +2423,7 @@ e.g. in natural number domain
     Nat(n) => Nat(S(n))
 to prove Nat(S(S(0))), the above rule must be applied twice
 after the first application, n/S(0) ∈ θ
-if sentences are standardized once and forall before inference, the second time will fail to unify
+if sentences are standardized once and for all before inference, the second time will fail to unify
 
 9.13
 a.  ∃h Horse(h)
@@ -2447,7 +2447,7 @@ d.  https://apps.dtic.mil/dtic/tr/fulltext/u2/a172502.pdf 4.1.4
     divergent inference the problem is much harder. Here we must generate automatic
     proofs that no answers exist in a portion of the search space. These proofs are
     similar to proofs of program termination using well-founded sets."
-    some kind of meta-analysis (auto-prove the redundency of part of the proof tree)
+    some kind of meta-analysis (auto-prove the redundancy of part of the proof tree)
 
 9.14
 // skipped, refer figure 9.7
@@ -2581,7 +2581,7 @@ when there are only definite clauses, both afterward and backward chaining retur
 in which no variable can be bind to two different ground terms
 
 9.26
-no, satisfication / validity of first order logic is undecidable
+no, satisfaction / validity of first order logic is undecidable
 hence any algorithm deciding True |= s for some first order sentence s will either:
     be incorrect on some inputs, or
     not terminate on some inputs
@@ -2589,7 +2589,7 @@ hence any algorithm deciding True |= s for some first order sentence s will eith
 10.1
 the two concepts are equivalent
 every planning problem can be described as a finite searching problem
-each fninite searching problem can be described as a planning problem
+each finite searching problem can be described as a planning problem
 (treat atomic states as constants, actions as schemas on constants)
 
 10.2
@@ -2708,13 +2708,13 @@ Action(Move(),
     EFFECTS:    ~A & B)
 GOAL(A & B)
 the original problem has no solution, while the relaxed problem has a solution [Move()]
-by removing negative literals from effects, the relaxed problem has a proper superset of solutions
+by removing negative literals from effects, the relaxed problem has a proper super set of solutions
 
 10.7
 /// init state and actions described in Figure 10.3
 Goal(On(B, C) & On(A, B))
 /// solutions described in Figure 10.3
-it's impossible for an noninterleaving planner if the planner only explores optimal solutions to subgoals
+it's impossible for an non-interleaving planner if the planner only explores optimal solutions to subgoals
 for subgoal On(B, C), the optimal solution is [Move(B, Table, C)]
 but then the other subgoal cannot be achieved without undoing the first subgoal and vice versa
 
@@ -2795,12 +2795,12 @@ divide the planning problem to two subplans:
     achievement: a plan to the goal
     maintenance: a plan maintains both the goal state and the quantity of resources
 the cost of the whole plan is some linear combination of cost of the two plans, determined by the nature of the problem 
-the objective is to find a plan with accpectable cost
+the objective is to find a plan with acceptable cost
 for the chandelier suspending problem, the planner may find a solution which:
     achievement: throw the chandelier in the air
     maintenance: catch the chandelier and throw it again
 but the cost will be far higher than properly suspending the chandelier from the ceiling
-as the maintenance plan keeps both the state and resources, it can be repeated indifinitely
+as the maintenance plan keeps both the state and resources, it can be repeated indefinitely
 
 11.2
 Action(Navigate(t, from, to),
@@ -2899,7 +2899,7 @@ Goal(Clean(Left), Clean(Right))
 
 11.11
 Suck a column, look for dirty spots on the column, suck these spots until they are clean, move to the next column
-a contigent plan with action monitoring
+a contingent plan with action monitoring
 
 11.12
 what medication problem?
@@ -2949,7 +2949,7 @@ functions:
     /// order of N ∪ { None }: None is the new minimum
     Top(w, S0) = None
     Top(w, Result(Move(w, t, l, b, r), s)) = t
-    Top(w, Result(Destory(w), s)) = None
+    Top(w, Result(Destroy(w), s)) = None
     Top(w, Result(Create(w, t, l, b, r), s)) = t
     Top(w, Result(a, s)) = Top(w, s)
     Left(w, s) = .. // similar to Top
@@ -2964,7 +2964,7 @@ axioms:
     ∀x,y,z Above(x, y, s) & Above(y, z, s) => Above(x, z, s)
 actions:
     State(w, s) = Nonexist & Legal(t, l, b, r) => Poss(Create(w, t, l, b, r))
-    Exist(w, s) => Poss(Destory(w))
+    Exist(w, s) => Poss(Destroy(w))
     State(w, s) = Displayed & Legal(t, l, b, r) => Poss(Move(w, t, l, b, r))
     State(w, s) = Displayed => Poss(Minimize(w))
     State(w, s) = Minimized => Poss(Display(w))
@@ -3000,7 +3000,7 @@ c.  ∀w w ∈ Water & In(w, JohnsWaterBottle) => Frozen(w)
 d.  Perrier ⊆ Water
 e.  ∃w w ∈ Perrier & In(w, JohnsWaterBottle)
 f.  ∀w (∃t,p Liquid(w, t, p)) => FreezingPoint(w, p) != None
-g.  ∀w,a w ∈ Water & a ∈ Alcohol & Volumn(w) = Liter(1) & Volumn(a) = Liter(1) => Weight(w) > Weight(a)
+g.  ∀w,a w ∈ Water & a ∈ Alcohol & Volume(w) = Liter(1) & Volume(a) = Liter(1) => Weight(w) > Weight(a)
 
 12.8
 a.  ExhaustivePartDecomposition(s, c) <=> (∀i PartOf(i, c) <=> ∃p PartOf(i, p) & p ∈ s)
@@ -3080,9 +3080,9 @@ Allen, J. and Ferguson, G. (1994): Actions and Events in Interval Temporal Logic
 http://www.cs.rochester.edu/u/james/Papers/AllenFerguson-events-actions.pdf
 Pelavin, R. (1992): Planning with simultaneous actions and external events, in Reasoning About Plans
 /// available on libgen
-an example of combinatoric axiom explosion:
+an example of combinatorics axiom explosion:
     say a set of actions mutually interfere
-    if encoded naively, precondition of each action in the set must mension all the other actions
+    if encoded naively, precondition of each action in the set must mention all the other actions
     resulting in axioms of length Ω(n^2)
 a solution is described in Pelavin (1992)
 
@@ -3166,7 +3166,7 @@ a.  ∀x Brand(x, Dodge) & Year(x, 1973) & Model(x, Vans) => Worth(x, 575)
     ∀x Brand(x, Honda) & Year(x, 2017) & Model(x, Civic) => Worth(x, 13999)
     in worst case all such rules will be unified before the result is emitted
 b.  backward chaining will have linear complexity
-    while complexity of inheritance depends on the depth of inheritance heirarchy and usually is O(1)
+    while complexity of inheritance depends on the depth of inheritance hierarchy and usually is O(1)
 c.  if predicates are properly indexed by all combination of predicates and arguments
     given the three facts about the car (Brand, Year and Model), the price can be queried in nearly O(1)
 d.  if price of the car depends on non-uniform aspects of the car
@@ -3235,7 +3235,7 @@ P(a || b)   = 1 - P(~(a || b)) // 13.2
 13.7
 a.  C(52, 5) = 2_598_960
 b.  1 / 2_598_960
-c.  royal stright flush: 
+c.  royal straight flush: 
         4 atomic events
         4 / C(52, 5)
     four of a kind:
@@ -3308,7 +3308,7 @@ B is more indicative
 
 13.14
 with x fixed, P(Toss1 = Head & Toss2 = Head | x) = x^2 = P(Toss1 = Head | x)Poss(Toss2 = Head | x)
-when x is unknown, the posterior distribution of Toss is dependent on obvervations so far
+when x is unknown, the posterior distribution of Toss is dependent on observations so far
 the next toss is dependent on all tosses before
 
 13.15
@@ -3321,10 +3321,10 @@ hence P(disease | pos) is monotonically decreasing function in P(disease)
 13.16
 /// it's unclear how to translate rules from and to bold P notations
 /// the operations on bold P notations (divide, multiply, etc.) are not defined yet
-/// P(X) op P(Y) applies op to the cartisan product of two vector, indexed by particular values of X and Y
+/// P(X) op P(Y) applies op to the cartesian product of two vector, indexed by particular values of X and Y
 /// e.g. P(X)P(Y), P(X)/P(Y), P(X) + P(Y)
 /// fixing one variable slices a hyperplane from the value space
-/// most arithmetic rules should hold in this domin, to name a few:
+/// most arithmetic rules should hold in this domain, to name a few:
 ///     P(X)P(Y) / P(Y) = P(X)
 ///     (P(X)P(Y))P(Z) = P(X)(P(Y)P(Z))
 let E be some random variable, e ∈ E
@@ -3418,7 +3418,7 @@ b.  P(blue) = 0.1
     the taxi is most likely to be green
 
 13.22
-a.  from the trainning set, the prior probabilities
+a.  from the training set, the prior probabilities
         P(Category)
         P(Wi | Category) and P(Wi) // Wi is a binary random variable for each word wi in documentations
         P(W1, .., Wn | Category) // from P(Wi | Category) since Wi are mutually independent
@@ -3533,11 +3533,11 @@ c.  Pnew(Y | U, V, W)Pnew(X | U, V, W, Y)
     = (Σx P(Y | V, W, x)P(x | U, V)) P(Y | X, V, W)P(X | U, V) / P(Y | U, V, W)
     = (Σx P(Y | V, W, x)P(x | U, V) / P(Y | U, V, W)) P(Y | X, V, W)P(X | U, V)
     // thanks solutions manual
-    // given Parents(Y) = V ∪ W ∪ {X}, Y is conditionally independent of non-descendents U
+    // given Parents(Y) = V ∪ W ∪ {X}, Y is conditionally independent of non-descendent U
     = (Σx P(Y | U, V, W, x)P(x | U, V) / P(Y | U, V, W)) P(Y | X, V, W)P(X | U, V)
     = (Σx P(Y, U, V, W, x)P(U, V, x)P(U, V, W) / P(Y, U, V, W)P(U, V, W, x)P(U, V)) P(Y | X, V, W)P(X | U, V)
     = (Σx P(x | Y, U, V, W)P(x | U, V) / P(x | U, V, W)) P(Y | X, V, W)P(X | U, V)
-    // given Parents(X) = U ∪ V, X is conditionally independent of non-descendents W
+    // given Parents(X) = U ∪ V, X is conditionally independent of non-descendent W
     = (Σx P(x | Y, U, V, W)) P(Y | X, V, W)P(X | U, V)
     = P(Y | Parents(Y))P(X | Parents(X))
     as Parents(Xi) for Xi != X or Y will not change by arc reversal of (X, Y)
@@ -3630,7 +3630,7 @@ d.  a boolean variable with k parents contains 2^k independent values
 e.  for a noisy-AND node, P(xi | Parents(Xi)) will be almost zero unless Xj = true for all Xj ∈ Parents(Xj)
     each parent has an associated probability qj
         qj = p(xi | ~xj, parents(Xi) - {xj})
-    which indicates the probability that Xi holds eventhough Xj failed, then
+    which indicates the probability that Xi holds even though Xj failed, then
         P(xi | Parents(Xi)) = Π(xj = F)qi
     by swapping the role of T and F, the same model can be expressed with a noisy-Or node
 
@@ -3668,7 +3668,7 @@ c.  order of probability: <low, high>
     P(G | T = normal, Fg = F) = <x, 1 - x>
     P(G | T = high, Fg = T) = <1 - y, y>
     P(G | T = normal, Fg = T) = <y, 1 - y>
-d.  order of probability: <slient, sound>
+d.  order of probability: <silent, sound>
     P(A | G = normal, Fa = F) = <1, 0>
     P(A | G = high, Fa = F) = <0, 1>
     P(A | G = normal, Fa = T) = <1, 0>
@@ -3820,7 +3820,7 @@ c.  Q^2 is the transition matrix of 2 transitions in a row
 d.  if lim(n -> ∞)Q^n is defined, it's the equilibrium matrix
     a stationary distribution can be derived from the equilibrium matrix and detailed balance
 e.  as stationary distribution is unique in ergodic transition matrix, P(x | e) can be computed from Q^n
-    but even when Q^n can be computed efficiently, the martix is of size (Π|Xk|)^2, nearly always impractical
+    but even when Q^n can be computed efficiently, the matrix is of size (Π|Xk|)^2, nearly always impractical
 
 14.19
 a.  let q = [α, q1; 1-α, q2]
@@ -3863,9 +3863,9 @@ d.  if evaluated in topological order, all team qualities must be summed over
     as the network is a polytree, time complexity will be linear in nodes by variable elimination
 e.  it depends on the number of nodes the values assigned to CPTs of team qualities and match results
     with too biased values the MCMC algorithm may stuck in a state for very long, emit a sequence of biased samples
-    in this case the markov branket of a team quality is the entire network
+    in this case the markov blanket of a team quality is the entire network
     the sampling result usually converges with ε = 0.01 in a single digit of samples
-    the Gibbs sampling algorithm may occationally break down if 
+    the Gibbs sampling algorithm may occasionally break down if 
     the event is initiated to an impossible case (i.e. contradicting conditions)
     either the CPTs should not contain 0 entries or the algorithm has to be adjusted
     
@@ -3926,7 +3926,7 @@ d.  time complexity:
             = f(lgn)
 
 15.4
-Xk is assigned the value xk given the highst p(Xk = xk | e1:t)
+Xk is assigned the value xk given the highest p(Xk = xk | e1:t)
 if for some Xk, xk, Xk+1 and xk+1, P(Xk+1 = xk+1 | Xk = xk) = 0
 but max{p(Xk+1 = xk+1 | e1:t)} = xk+1
 p(x1:t | e1:t)
@@ -3953,7 +3953,7 @@ if |NEIGHBORS(s)| = k for all s, probability of reaching two locations at time t
     P(Xt = m) = 1 - (1/k)^t
     P(Xt = m) / P(Xt != m) = k^t - 1 = Ω(k^t)
 for any given ε and l, there may be a map and location m where ε >> 1 / k^t hence P(Xt = m | e1:t) > P(Xt = l | e1:t)
-the map may be nonintuitive, containing one way passes and self loops
+the map may be non-intuitive, containing one way passes and self loops
 
 15.7
 ./AI/markov
@@ -3966,7 +3966,7 @@ at t = 100, most of the time the localization error (in term of weighted manhatt
 15.8
 /// code skipped
 the error may be greater as the consequence of a sensor failure is now more severe
-vitabi algorithm can only derive valid paths, if the room is empty enough,
+viterbi algorithm can only derive valid paths, if the room is empty enough,
 a sensor failure may drive the estimation far away from the real path
 
 15.9
@@ -3998,10 +3998,10 @@ b.  P(Xt+1, St+1 | e1:t+1)
     = αP(et+1 | Xt+1)Σst P(St+1 | st)p(st | e1:t) int(xt) p(xt | e1:t)P(Xt+1 | xt, st)
     as p(xt | e1:t) is m mixture Gaussian, P(Xt+1 | xt, st) linear Gaussian
     int(xt) p(xt | e1:t)P(Xt+1 | xt, st) is still a m mixture Gaussian
-    multiply p(st | e1:t) for each st and sum over them, the result is a km mixtrue Gaussian
+    multiply p(st | e1:t) for each st and sum over them, the result is a km mixture Gaussian
     αP(et+1 | Xt+1) rebalances the factors to weight 1
 c.  each weighted Gaussian distribution in the mixture corresponds to a possible sequence of s1:t
-    the factor is the posibility of that sequence
+    the factor is the possibility of that sequence
 
 15.11
 (z1 - x1)^2 / σz^2 + (x1 - μ0)^2 / (σ0^2 + σx^2)
@@ -4011,7 +4011,7 @@ where a = σ0^2 + σx^2 + σz^2, b = -2(σ0^2 + σx^2)z1 - 2σz^2μ0, c = (σ0^2
 -b / 2a = ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2)
 = (σ0^2 + σx^2 + σz^2)(x1 - ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2))^2 / σz^2(σ0^2 + σx^2) + α
 = (x1 - ((σ0^2 + σx^2)z1 + σz^2μ0) / (σ0^2 + σx^2 + σz^2))^2 / (σz^2(σ0^2 + σx^2) / (σ0^2 + σx^2 + σz^2)) + α
-where e^α is a costant
+where e^α is a constant
 
 15.12
 ./AI/markov
@@ -4091,8 +4091,8 @@ a.  P(BatteryBrokent) -> <0, 1>
 b.  BMBrokent has an extra continuous parent Temperaturet
     p(bmbrokent+1 | ~bmbrokent, temperaturet) now depends on temperature
 c.  it may infer the current temperature by filtering 
-    by infering continuous value from (indirect) binary discrete observation 
-    precision of the inference would be inacceptable
+    by inferring continuous value from (indirect) binary discrete observation 
+    precision of the inference would be unacceptable
 
 15.17
 each evidence variable has fixed value
@@ -4165,7 +4165,7 @@ C > D:
 
 16.7
 a problem for the agent
-as descripted in the text, an irrational agent violates some axiom of utility
+as described in the text, an irrational agent violates some axiom of utility
 which in turn makes it exploitable for some adversary in certain situations
 
 16.8
@@ -4618,14 +4618,14 @@ d.  the new rule encouraged some teams into a pact
 typical reinforced learning
 improvement:
     the ability to recognize and speak words in a language
-    (the whold idea of "learning a language" is too complicated)
+    (the whole idea of "learning a language" is too complicated)
 prior knowledge:
     none
 data representation:
     visual and sound input
-    e.g. the spoken word "firehydron" and a real firehydron in front of it
+    e.g. the spoken word "fire hydrant" and a real fire hydrant in front of it
 output and feedback:
-    a certain viberation pattern of vocal folds
+    a certain vibration pattern of vocal folds
     mental/physical rewards and punishment from trainers
 
 18.2
@@ -4676,7 +4676,7 @@ dL/dpk  = -(1/(p + n))d(pk + nk)B(pk / (pk + nk))/dpk - λ1 = 0
 dL/dpk  = -(1/(p + n))d(pk + nk)B(pk / (pk + nk))/dnk - λ2 = 0
 -B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * d(pk / (pk + nk))/dnk = λ2(p + n)
 2.  -B(pk / (pk + nk)) - (pk + nk)lg(pk/nk)/ln2 * (-pk/(nk + pk)^2) = λ2(p + n)
-substract 1. and 2.
+subtract 1. and 2.
 -(pk + nk)lg(pk/nk)/ln2 * (pk + nk)/(pk + nk)^2 = (λ1 - λ2)(p + n)
 -lg(pk/nk) = ln2(λ1 - λ2)(p + n)
 the right side of the equation are independent to k
@@ -4770,16 +4770,16 @@ b.  c(x1 - a)^2 + d(x2 - b)^2 - 1 = 0
     cx1^2 - 2cax1 + ca^2 + dx2^2 - 2dbx2 + db^2 - 1 = 0
     -2cax1 - 2dbx2 + cx1^2 + dx2^2 = 1 - ca^2 - db^2
     w = [-2ca, -2db, c, d, 0]
-    4-demension will suffice
+    4-dimension will suffice
 
 18.17
 [1, 1]      => [1, 1], 0
 [1, -1]     => [1, -1], 1
 [-1, 1]     => [-1, -1], 1
 [-1, -1]    => [-1, 1], 0
-maximal margin seperator: x1x2 = 0
+maximal margin separator: x1x2 = 0
 margin is 2
-in the original input space, the seperator is the x and y axes
+in the original input space, the separator is the x and y axes
 
 18.18
 more than K/2 + 1 hypothesis must be wrong
@@ -4792,8 +4792,8 @@ among a total K inputs, either all hypotheses return the correct output
 or exactly K/2 + 1 hypotheses return the wrong output, and the error is evenly distributed among hypotheses
 
 18.19
-a single NN node can do linear seperable classification
-both AND and OR are linear seperable
+a single NN node can do linear separable classification
+both AND and OR are linear separable
 given input x1 and x2,
     define a node n1 computing x1 & x2
     define a node n2 computing x1 | x2
@@ -4828,7 +4828,7 @@ dL/dwi  = -yxi(1-p) + (1-y)xip
         = xi(-y + yp + p - yp)
         = xi(p - y)
         = -xi(y - p)
-which is similar to linear gradient decendent
+which is similar to linear gradient descendent
 
 18.22
 a.  assume nodes in the hidden layer have weights wi = [wk,i] and constant ci
@@ -4874,14 +4874,14 @@ hw = 0.8
 a.  if the three points are not colinear, they form a triangle on the plane
     if one is positive and the other two are negative (or vice versa):
         connecting mid points of two sides of the triangle
-        there is a line seperating any one of them from the other two
+        there is a line separating any one of them from the other two
     if all three of them are positive / negative:
         there is a line having all three of the points on one side
 b.  XOR function
 c.  if the four points are not coplanar, they form a tetrahedron
-    any one or two vertices can be seperated from other three by a plane
+    any one or two vertices can be separated from other three by a plane
 d.  a tetrahedron with positive vertices, and a negative point inside it
-    any planar seperating the point inside and a vertex 
+    any planar separating the point inside and a vertex 
     must have some other vertices on the same side with the negative point
 e.  /// skipped
 
@@ -4929,7 +4929,7 @@ b.  at most r - 1 new variables may be introduced by the literal
     2((n + r - 1)^r - (r - 1)^r) in total
 c.  if the literal has anything to do with the definition of the new predicate
     there must be some combination of legal additions that connects it to the variables mentioned in the new predicate
-    otherwise it's irrelavent and should not be considered
+    otherwise it's irrelevant and should not be considered
 
 19.7
 /// skipped, FOIL is abandonware now
@@ -5289,7 +5289,7 @@ a simple example world:
     two states {SA, SB}, B is terminal
     a single action A on SA
     P(SB | SA, A) = ε, P(SA | SA, A) = 1 - ε
-when ε is small enough, with sufficently few number of trials the transition (SA, A) -> SB may not be observed
+when ε is small enough, with sufficiently few number of trials the transition (SA, A) -> SB may not be observed
 a policy [Some(A), None] is proper in the real model but not in the learned transition model
 when policy is proper & evaluated only at the end of a trial, 
 there is a sequence of actions leading every state in the trial to a terminal state with positive probability
@@ -5525,7 +5525,7 @@ Quien sera:
     Bing: 10 / 10
     Yandex: 10 / 10
 Google is perfect on precision (maybe by tracking one's online activities across its services)
-Bing is medicore
+Bing is mediocre
 Yandex cannot handle Japanese
 
 22.6
@@ -5588,7 +5588,7 @@ background knowledge:
     English sentences may refer to background knowledge implicitly
 understand:
     in Java: correctly interpret a program
-    in English: correctly interpret the meaning of a sentence with repect to the writer / speaker
+    in English: correctly interpret the meaning of a sentence with respect to the writer / speaker
 
 23.5
 a.  A -> aAb | ε
@@ -5695,9 +5695,9 @@ Verb(S, 2) => smell
 Verb(P, 2) => smell
 Verb(S, 3) => smells
 Verb(P, 3) => smell
-Artical(S, Vow) => the | an
-Artical(S, Con) => the | a
-Artical(P, _) => the
+Article(S, Vow) => the | an
+Article(S, Con) => the | a
+Article(P, _) => the
 Noun(S, Con) => wumpus
 Noun(P, Con) => wumpuses
 
@@ -5735,7 +5735,7 @@ d.  the subject of "and hiring"
 
 23.14
 a.  can recollect only three
-    arrange into different groups; arbstract something; arrange again
+    arrange into different groups; abstract something; arrange again
 b.  no idea
 c.  no idea
 d.  overdoing things
@@ -5840,7 +5840,7 @@ THe light spots are upside-down images of the sun.
 24.2
 If a strong enough light source is anywhere but immediately in front of or behind sphere (wrt. the camera), 
 one side of the sphere may be shaded to a degree that's not distinguishable from the background,
-leaving the luminated part of the sphere looks like an ellipse or an oval
+leaving the light part of the sphere looks like an ellipse or an oval
 
 24.3
 I = ρI0cosθ
@@ -5877,9 +5877,9 @@ c.  d = 1pixel = 0.01953125cm
 24.6
 a.  false, calculation is the easiest
     finding corresponding points may be hard if features in one image is occluded in another
-b.  maybe? if effect of interrelection can be ignored
+b.  maybe? if effect of interreflection can be ignored
 c.  false, depends on depth and angle
-d.  false, may be two strigh lines on different depth, one occludes another
+d.  false, may be two straight lines on different depth, one occludes another
 
 24.7
 from disparity, one can tell that B is closer than A and C
@@ -5951,7 +5951,7 @@ i.e. φe = π/2 otherwise the robot arm cannot reach a point 80cms away
 by k-means clustering
 ./AI/localization
  workflow:
-    1. load image in greyscale
+    1. load image in grayscale
     2. calculate k centroids of all the dark pixels
     3. blend each pixel with some color based on their nearest centroid
     4. save to output path
@@ -5970,15 +5970,15 @@ c.  if θ follows a Gaussian distribution, neither sinθ nor cosθ will
 
 25.9
 a.  similar to the mapping wumpus world agent: follow A* path to the goal
-    recalculate path everytime a new obstacle is find on the old path
+    recalculate path every time a new obstacle is find on the old path
 b.  /// thanks solutions manual
-    first the robot go stright forward towards the goal (by moving to the neighboring square minimizes the distance)
+    first the robot go straight forward towards the goal (by moving to the neighboring square minimizes the distance)
     if the robot is blocked by an obstacle, follow the edge of the obstacle 
     until reached a local minimum of distance to the goal, then go back to go-to-goal mode
     problem is the supposed detection of failure will not work with no memory
     so the robot will loop forever when the goal is not reachable
 c.  deliberate:
-        continuous space: partically solved by discretization
+        continuous space: partially solved by discretization
         noise in perception: may report false failure e.g. goal surrounded by spurious obstacles
         noise in motion: will be fine, can replan route
         noise in perception and motion: may report false failure e.g. current location inside obstacles
@@ -6018,9 +6018,9 @@ problematic:
      
 26.2
 https://mindmatters.ai/2018/09/meaningful-information-vs-artificial-intelligence/
-the core of the arguemnt
+the core of the argument
     A defining aspect of the human mind is its ability to create mutual information
-is rather vague: not only is the "definiing aspect" unheard-of, the example given in the article is not true:
+is rather vague: not only is the "defining aspect" unheard-of, the example given in the article is not true:
 with enough training data a program can certainly learn the mutual information between road and road signs
 also with proper utility function a program can be trained to design road signs from road conditions
 after all it's not clear what is the third factor beside randomness and determinism in human mind
@@ -6037,7 +6037,7 @@ narrow content:
     transistors, electrons, bits, memory read and write
 
 26.5
-AI can do better than human in more and more fields, but it's still far away from being a lifeform
+AI can do better than human in more and more fields, but it's still far away from being a life form
 Even if they do have the capability to carry out any human cognitive tasks, there's no guarantee that
 their view of the world will be anything close to human's
 
@@ -6046,9 +6046,9 @@ AI had only minimum impact in the last 50 years compared to electric and combust
 it may lead to improvements in certain fields, but had yet to introduce any ground-breaking change to everyday life
 
 26.7
-design of ultrafast and ultrastrong machines can be reduced to design of ultraintelligent machines:
-an ultraintelligent machine can easily design the former two
-ultraintelligent machine is ultra-machine complete
+design of ultra-fast and ultra-strong machines can be reduced to design of ultra-intelligent machines:
+an ultra-intelligent machine can easily design the former two
+ultra-intelligent machine is ultra-machine complete
 
 26.8
 the most serious one may be more advanced surveillance technology

@@ -1,14 +1,14 @@
 //! Proxy server relay logics, ignoring semantics of most headers.\
 //! In particular, connections are always non-persistent, even when Connection: keep-alive is set.\
-//! Forge artifical responses when:
+//! Forge artificial responses when:
 //! - HTTP request has bad format
 //! - DNS resolver cannot find the domain requested
-//! - All but GET and POST method encounted
+//! - All but GET and POST method encountered
 
 use crate::{
     http::{HTTPRequest, HTTPResponse, HTTPResponseBuilder, Method, Status},
     resolver::DNSResolver,
-    Error, Result, GMTDateTime,
+    Error, GMTDateTime, Result,
 };
 use log::{debug, error};
 use std::{
@@ -25,7 +25,11 @@ pub fn run_server(port: u16) -> Result<()> {
     debug!("TCP listener established at {}", port);
     for result in listener.incoming() {
         let client = result?;
-        debug!("Accepted client from {:?} at {:?}", client.peer_addr(), client.local_addr());
+        debug!(
+            "Accepted client from {:?} at {:?}",
+            client.peer_addr(),
+            client.local_addr()
+        );
         thread::spawn(|| relay_and_report(client));
     }
 

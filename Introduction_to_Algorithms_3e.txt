@@ -46,7 +46,7 @@ best-case and worst-case both Θ(n^2)
 2.2-3
 Σip(i) = (Σi) / n = (1 + n) * n / 2n = (1 + n) / 2 on average, Θ(n)
 n on worst case, Θ(n)
-assuming comparsion of integers takes constant time
+assuming comparison of integers takes constant time
 
 2.2-4
 hard-code the solution of a specific input in the program 
@@ -143,12 +143,12 @@ c.  invariant:
 d.  inner loop Θ(n)
     outer loop run n - 1 times
     overall running time (n-1) * Θ(n) = Θ(n^2)
-    both the best and worst case of bubble sort performs Θ(n^2) comparsions
+    both the best and worst case of bubble sort performs Θ(n^2) comparisons
     while insertion sort in best case has running time Θ(n)
 
 2-3
 a.  the algorithm performs n additions and n multiplications
-    assuming both are contant time, T(n) = Θ(n)
+    assuming both are constant time, T(n) = Θ(n)
 b.  ./CLRS/start/index.ts#naivePolynomial
     k = Θ(n), Math.pow(x, k) = x^k if implemented naively takes time Θ(k), if not takes time Θ(lgk)
     overall running time Θ(n^2) or Θ(nlgn)
@@ -170,7 +170,7 @@ c.  every assignment in the insertion sort reduces the total number of inversion
     the sorted array has no inversions
     therefore the number of inversions in an array is a lower bound of the running time of insertion sort
 d.  assume an array A[p..r] and some q that p < q < r, then the total number of inversions in A[p..r] is the sum of
-    1.  the number of inersions in A[p..q]
+    1.  the number of inversions in A[p..q]
     2.  the number of inversions in A[q+1..r]
     3.  the number of inversions as pairs (i, j) such that
             i in {p..q}, j in {q+1..r}
@@ -203,7 +203,7 @@ which is meaningless for a asymptotically non-negative function
 2^2n / 2^n = 2^n, no constant can be asymptotically larger than 2^n
 
 3.1-5
-=>: f(n) = Θ(g(n)), c1g(n) <= f(n) <= c2g(n) for n >= n0, then trivally f(n) = O(g(n)) and f(n) = Ω(g(n))
+=>: f(n) = Θ(g(n)), c1g(n) <= f(n) <= c2g(n) for n >= n0, then trivially f(n) = O(g(n)) and f(n) = Ω(g(n))
 <=: f(n) = O(g(n)) implies f(n) <= c1g(n) for n >= n1
     f(n) = Ω(g(n)) implies f(n) >= c2g(n) for n >= n2
     take n3 = max(n1, n2), c1g(n) <= f(n) <= c2g(n) for n >= n3, f(n) = Θ(g(n))
@@ -327,7 +327,7 @@ a.  1
     lg*(lgn) = lg*n - 1
     lg*n
     lnln(n)
-    // polylogarithmics:
+    // poly-logarithmic:
     2^lg*n // unsure
     (lgn)^(1/2)
     ln(n)
@@ -344,14 +344,14 @@ a.  1
     n^2
     4^lgn = n^2
     n^3
-    // exponentials:
+    // exponential:
     (lgn)^lgn = n^lglgn
     n^lglgn
     (3/2)^n
     2^n
     n * 2^n
     e^n
-    // super-exponentials:
+    // super-exponential:
     n!
     (n+1)!
     2^(2^n)
@@ -490,7 +490,7 @@ extend size of matrix to the next power of 2
 assume size of matrix A is n x n, the next power of 2 is 2^b, the extended matrix looks like
     A   0   and     B   0
     0T  1           0T  1
-where 1 denotes (2^b - n) x (2^b - n) unit matrix, 0 denotes n x (2^b - n) zero metrix
+where 1 denotes (2^b - n) x (2^b - n) unit matrix, 0 denotes n x (2^b - n) zero matrix
 the multiplication will be
     AB  0
     0T  1
@@ -682,7 +682,7 @@ T(n)    <= c2^(n-1) + c2^(n/2) + n
 4.4-6
 thanks https://ita.skanev.com/04/04/06.html
 the shortest simple path from top to root is log(3, n)
-each level still cn, this time the binary tree up to level log(3, n) is guarenteed to be complete
+each level still cn, this time the binary tree up to level log(3, n) is guaranteed to be complete
 therefore T(n) >= log(3, n) * cn = Θ(nlgn), T(n) = Ω(nlgn)
 
 4.4-7
@@ -866,7 +866,7 @@ d.  guess with master method, T(n) = Θ(nlgn)
             <= nlg(n/3) - cn + 6c + n/2
             = nlgn - (c + lg3 - 1/2)n + 6c
             <= nlgn - cn when n is large enough
-    simlarly T(n) >= nlgn + cn for some c, T(n) = Θ(nlgn)
+    similarly T(n) >= nlgn + cn for some c, T(n) = Θ(nlgn)
 e.  similar to b, T(n) = Θ(nlglgn)
 f.  the shortest path from bottom to root passes log(8, n) = lgn/3 nodes
     immediate children of a node of value p has combined value p/2 + p/4 + p/8 = 7p/8
@@ -1092,14 +1092,14 @@ swap A[1] with A[RANDOM(1, n)] before the loop, start the loop with i = 2
 the same proof still implies but now starting with 1-permutations
 
 5.3-2
-after the procedure, A[1] is guarenteed not to be in it's original place
+after the procedure, A[1] is guaranteed not to be in it's original place
 at least n!/n = (n-1)! permutations are excluded, not only the identity
 
 5.3-3
 for an array of size 3, A = [a1, a2, a3]
 let A' denote the array after calling PERMUTE-WITH-ALL(A)
 every swap may have 3 possible consequences, the procedure overall may have 3^3 = 27 consequences
-there are 3! = 6 different permutations of A, there's no way to divide 27 comsequences evenly among 6 permutations
+there are 3! = 6 different permutations of A, there's no way to divide 27 consequences evenly among 6 permutations
 there must be some permutations Ap of A that p(A' = Ap) != 1/6
 
 5.3-4
@@ -1155,7 +1155,7 @@ k >= 1 / (lgn - lg(n-1))
 k >= 253
 
 5.4-2
-// wasted several hours here by misintepreting the problem as "until all bins contain at least 2 balls"
+// wasted several hours here by mis-interpreting the problem as "until all bins contain at least 2 balls"
 the same as the birthday problem
 
 5.4-3
@@ -1248,7 +1248,7 @@ c.  the same with part b but with success rate k/n
     E[X] = 1/(k/n) = n/k
 d.  the same as balls and bins 
     E[X] = n(ln(n) + O(1))
-e.  i <- {1 .. n}, the number of comparsions X = i
+e.  i <- {1 .. n}, the number of comparisons X = i
     E[X] = E[i] = (1/n) * n(1+n)/2 = (1+n)/2
 f.  thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch5.pdf
     define indicator variables {Xi} such that
@@ -1261,12 +1261,12 @@ f.  thanks http://sites.math.rutgers.edu/~ajl213/CLRS/Ch5.pdf
         p(Xi = 1)   = 1/k+1 // why? what's the distribution of the minimum of a k-subset of {1 .. n}?
     which gives E[ΣXi] = ΣE[Xi] = k * 1/k + (n-k)/k+1 = (n+1)/(k+1)
     in worst case, the k matches are the last k elements of the array
-    the algorithm has to perform n-k+1 comparsions
+    the algorithm has to perform n-k+1 comparisons
 g.  both average and worst case running time Θ(n)
 h.  exactly the same as part e, f and g
 i.  DETERMINISTIC-SEARCH
     shuffling an array will cost Θ(n) time, which is similar to deterministic linear searching
-    it's not worth the effort to do the shuffling unless comparsion is expensive and inputs are malicious
+    it's not worth the effort to do the shuffling unless comparison is expensive and inputs are malicious
     and the first algorithm is O(nlgn), worse than deterministic linear searching
 
 Chapter 6
@@ -1285,7 +1285,7 @@ therefore
 for a subtree of a heap, there is a simple path from root to any child node
 for an arbitrary node n, PARENT^(i)(n) = root for some i
 as A[PARENT(n)] >= A[n] for all n, A[n] <= A[PARENT(n)] <= .. <= A[root]
-root is the largest value occuring anywhere in that subtree
+root is the largest value occurring anywhere in that subtree
 
 6.1-4
 anywhere at the bottom level
@@ -1374,10 +1374,10 @@ maintenance:
     assume at the start of ith iteration, A[1 .. i] is a max heap, A[i+1 .. n] contains n-i largest elements sorted
     the root of the max heap is largest among A[1 .. i] and smaller than any element in A[i+1 .. n]
     thereby A[1] is the n-i-1th largest element
-    swapping A[1] with A[i], now A[i .. n] contains n-i+1 largest elemented in sorted order
+    swapping A[1] with A[i], now A[i .. n] contains n-i+1 largest elements in sorted order
     decrement the size of the heap and call MAX-HEAPIFY(1), elements in A[1 .. i-1] is now a max heap
 termination:
-    after the end of the last iteration, i = 1, A[2 .. n] contains n-1 largest elementes in sorted order
+    after the end of the last iteration, i = 1, A[2 .. n] contains n-1 largest elements in sorted order
     A[1] thus must be the smallest element in A[1 .. n], and A is in sorted order
 
 6.4-3
@@ -1423,7 +1423,7 @@ again the code is abstract, subclasses can override cmp to anything they like (a
 6.5-4
 because it's bad code
 the function HEAP-INCREASE-KEY is multi-purpose: it both increases the key and fixes the position of the key in heap
-the fix part should be seperated from HEAP-INCREASE-KEY, then HEAP-INSERT no longer has to call it or set -∞
+the fix part should be separated from HEAP-INCREASE-KEY, then HEAP-INSERT no longer has to call it or set -∞
 the guard condition is only necessary when A[i] may have children, in this case it hasn't
 the heap should work with all types which has a total order over it
 many of them do not have a global minimum like -∞
@@ -1431,7 +1431,7 @@ many of them do not have a global minimum like -∞
 6.5-5
 initialization:
     A[1 .. A.heap-size] is a max heap, key is inserted to A[A.heap-size + 1], i = A.heap-size + 1
-    then A[i] is guarenteed to have no left or right child
+    then A[i] is guaranteed to have no left or right child
     A[1 .. A.heap-size+1] is a max heap except A[i] may be larger than A[PARENT(i)]
     then A.heap-size is incremented before the first iteration
 maintenance:
@@ -1517,8 +1517,8 @@ c.  ./CLRS/sort/young-tableau#extractMin
     if Y[i+1, j] is the minimum, tableau property of ith row now restored, reduced to a problem one row smaller 
     if Y[i, j+1] is the minimum, tableau property of jth column now restored, reduced to a problem one column smaller
     p = m + n is incremented every iteration and every iteration takes constant time
-    the loop ends either i = m and j = n (out of bound) or eariler
-        T(p) = T(p-1) + Θ(1), T(p) = O(p) by stright-forward recurrence tree analysis
+    the loop ends either i = m and j = n (out of bound) or earlier
+        T(p) = T(p-1) + Θ(1), T(p) = O(p) by straight-forward recurrence tree analysis
     T(m + n) = O(m + n) 
 d.  ./CLRS/sort/young-tableau#insert
     correctness can be proved similarly as insert in priority queue
@@ -1634,7 +1634,7 @@ return value will be r, the problem is partitioned into two sub-problems of size
 T(n) = Θ(n^2)
 
 7.2-4
-quiksort will take time Θ(n^2) for an already sorted array
+quicksort will take time Θ(n^2) for an already sorted array
 insertion sort will take time Θ(n)
 
 7.2-5
@@ -1686,7 +1686,7 @@ E[X]    = Σ(i = {1 .. n-1})(Σ(j = {k+1 .. n-i})(2/(j+1)))
         = Σ(i = {1 .. n-1})(O(lgn) - O(lgk))
         = O(nlg(n/k))
 the quicksort stops when the subarray has length <= k
-thereby an element A[i] is guarenteed to be greater or equal to A[i - k]
+thereby an element A[i] is guaranteed to be greater or equal to A[i - k]
 when looking for a position to insert A[i], the insertion sort procedure will never have to search beyond A[i-k]
 for all 0 <= i <= n-1, O(nk) in total
 overall O(nk + nlg(n/k))
@@ -1760,7 +1760,7 @@ d.  with QUICKSORT',
         if zi or zj is first chosen as a pivot among {zi .. zj}, zi and zj will be compared
         if x = zi but not zi itself is first chosen as a pivot among {zi .. zj}
             zi will be in neither subproblems, zi will not be compared to zj
-        simlarly if x = zj but not zj itself, zi will not be compared to zj
+        similarly if x = zj but not zj itself, zi will not be compared to zj
     the expected time analysis is still valid, E[X] = Θ(nlgn)
 
 7-3
@@ -1851,12 +1851,12 @@ Chapter 8
 let array elements be vertices of a undirected graph
 edge exists between vertices a and b iff a and b are compared
 if the graph is not connected, i.e. array elements can be divided into two non-empty sets A1 and A2 that,
-comparsions are only performed within these two sets but not between them
-then any comparsion result between an elements from A1 and A2 are uncertain, the sort may not be accurate
-thus for the comparsion sort algorithm to be correct, the graph must be connected
-connected graph with n vertices has at least n-1 edges, which is the lower bound of comparsions
+comparisons are only performed within these two sets but not between them
+then any comparison result between an elements from A1 and A2 are uncertain, the sort may not be accurate
+thus for the comparison sort algorithm to be correct, the graph must be connected
+connected graph with n vertices has at least n-1 edges, which is the lower bound of comparisons
 this lower bound is achievable
-assume the input array is in sorted order, insertion sort only performs n-1 comparsions
+assume the input array is in sorted order, insertion sort only performs n-1 comparisons
 
 8.1-2
 Σ(k = {1 .. n})(lgk)    = lg(n!)
@@ -1869,7 +1869,7 @@ assume the input array is in sorted order, insertion sort only performs n-1 comp
 lg(n!) = Θ(nlgn)
 
 8.1-3
-the unique simple path to half of n! leaves of a comparsion tree have length O(n)
+the unique simple path to half of n! leaves of a comparison tree have length O(n)
 a complete binary tree of height O(n) may only have 2^O(n) leaves
 if it's possible, n!/2 = O(2^O(n)), n! = O(2^O(n)), which is not true
 change 1/2 to any constant fraction and the argument still holds
@@ -1878,7 +1878,7 @@ it's not possible even for a 2^n fraction
 
 8.1-4
 each permutation of each subsequence is a possible sub-result, there are k! permutations for a length k subsequence
-overall there are (k!)^(n/k) results, height of the comparsion tree at least 
+overall there are (k!)^(n/k) results, height of the comparison tree at least 
     lg((k!)^(n/k))  = n/k * lg(k!)
                     = n / k * Ω(klgk)
                     = Ω(nlgk)
@@ -1956,13 +1956,13 @@ quick sort:
         the element examined in the current iteration is smaller or equal to the pivot
     the original order of equivalent elements may not hold
 zip the array with its index
-comparsion now compares the index in the original array whenever two elements are equal
+comparison now compares the index in the original array whenever two elements are equal
 as array indices are distinct, the sort must be stable
 
 8.3-3
 invariant:
     after ith iteration, the array is sorted according to the i least significant digits of elements
-inititialization:
+initialization:
     considering 0 digits (nothing), all elements are equal, trivially satisfied
 maintenance:
     at the beginning of ith iteration, elements are sorted according to i-1 least significant digits 
@@ -1984,7 +1984,7 @@ assume in n elements, Xi starts with digit i, Σ(i = {0 .. r-1})Xi = n, r is the
 T(n, d) = Σ(T(Xi, d-1)) + Θ(n)
 the height of the recurrence tree solely depends on d
 in the worst case, n is evenly divided, the recurrence tree is a complete d-ary tree
-number of sorting pass equals the number of interal nodes = r^d
+number of sorting pass equals the number of internal nodes = r^d
 a single call to the procedure creates r bins
 when called recursively, the procedure keeps track of bins at most r * number of nodes in longest path = d
 
@@ -2033,18 +2033,18 @@ kth bucket should contains elements that
     k/n <= P(x) <= (k+1)/n
 
 8-1
-a.  each one of n! permutations of orders happens equally likely, with probaility 1/n!
-    each one corresponds to a leaf in the comparsion tree as that's the only way to distinguish between them
+a.  each one of n! permutations of orders happens equally likely, with probability 1/n!
+    each one corresponds to a leaf in the comparison tree as that's the only way to distinguish between them
     also an order of input can only corresponds to a single leaf
     if two leaves have the same value, as they start from the same root, they must have branched somewhere
-    but for a fixed input, no comparsion can give different result on two runs
-    the comparsion tree thus has n! leaves with 1/n! probability, other leaves unreachable
+    but for a fixed input, no comparison can give different result on two runs
+    the comparison tree thus has n! leaves with 1/n! probability, other leaves unreachable
 b.  assume LT has lk leaves, RT has rk leaves
     lk + rk = k, also when considered as the leaves of T their depth is one higher than in LT or RT
     D(T)    = D(LT) + lk + D(RT) + rk
             = D(LT) + D(RT) + k
 c.  basically dynamic programming 
-    the minial tree may have 0 <= i <= k leaves in its left subtree and k-i leaves in its right subtree
+    the minimal tree may have 0 <= i <= k leaves in its left subtree and k-i leaves in its right subtree
     if the left subtree didn't achieve d(i), swap one that does will reduce D(T)
     similarly the right subtree must have achieved d(k-i)
     d(k) = min(0 <= i <= k)(d(i) + d(k-i) + k)
@@ -2066,10 +2066,10 @@ e.  as d(k) is the minimum of D(k), D(k) = Ω(klgk), the average depth of leaves
     D(T) = D(n!) = Ω(n!lgn!)
     average-case time is Ω(lgn!) = Ω(nlgn)
 f.  as a randomization node didn't compare any two elements of the array, it gains no information of the order
-    thus a randomization node didn't eliminate any possbility of the order of an array
+    thus a randomization node didn't eliminate any possibility of the order of an array
     all children of a randomization node therefore must have the same set of leaves
     replace all randomization node with its child with minimal D(T)
-    the result is still a valid comparsion tree which contains all possible n! permutations as leaves
+    the result is still a valid comparison tree which contains all possible n! permutations as leaves
     but the resulting tree will be deterministic
     as the child is chosen as having minimal D(T), the resulting tree has no worse average-case performance
 
@@ -2094,7 +2094,7 @@ a.  1.  divide numbers of different order of magnitudes into different sets
     overall Θ(n)
 b.  1.  first divide strings of different length into different list L[i]
         the length of all strings can be computed in time O(n)
-    2.  initialize i as length of the longeset string, S an empty list, repeatedly:
+    2.  initialize i as length of the longest string, S an empty list, repeatedly:
             S = concat L[i] and S
             counting sort S with ith character (by definition of L, all strings in S now has i characters at least)
             decrement i
@@ -2114,7 +2114,7 @@ b.  1.  first divide strings of different length into different list L[i]
 a.  pick one red jug, test it with all blue jugs, repeat for all red jugs
     T(n) = n * n = Θ(n^2)
 b.  for a fixed permutation of red jugs, any permutation of blue jugs may be the correct grouping
-    n! possible results and the comparsion tree has height at least nlgn
+    n! possible results and the comparison tree has height at least nlgn
     the worst case performance of the algorithm is Ω(nlgn) 
 c.  by simultaneously quicksort red and blue jugs, repeatedly:
         1.  pick a random red jug r, test with all blue jugs
@@ -2174,11 +2174,11 @@ b.  all C(2n, n) leaves must be reachable from the root of the decision tree
 c.  if two elements a and b should be placed consecutively in sorted order, a <= b
     if a and b are not compared
         any element smaller than or equal to a will be smaller than or equal to b
-        any element greatre than a will be greater than b
-    no matter how much comparsions are made, a and b cannot be distinguished
+        any element greater than a will be greater than b
+    no matter how much comparisons are made, a and b cannot be distinguished
     for the result to be correctly sorted, a and b must be compared
 d.  there are 2n-1 consecutive pairs in an array of size 2n
-    thus 2n-1 comparsions at least
+    thus 2n-1 comparisons at least
 
 8-7
 -
@@ -2191,13 +2191,13 @@ recursively:
     2.  recursively find minimum of both subarrays, each with a list of elements compared to the minimum associated 
     3.  find minimum of the array as smaller of the two
     4.  append the greater to the list associated to the smaller
-when the procedure terminates, it returns a list of elements been comapared to the minimum so far
-number of comparsions performed equals to the number of internal nodes, which is n - 1
+when the procedure terminates, it returns a list of elements been compared to the minimum so far
+number of comparisons performed equals to the number of internal nodes, which is n - 1
 the list has size equal to the height of the recurrence tree, which is lgn
 invariant:
     at each level, all elements in the subarray except the minimum is greater of equal to an element in the list
 initialization:
-    array size is 1, consists of a single element, which is the minimum, trivially satistied
+    array size is 1, consists of a single element, which is the minimum, trivially satisfied
 maintenance:
     assume l, r are minimum of subarrays
     L, R are lists associated to them
@@ -2207,7 +2207,7 @@ maintenance:
 termination:
     -
 therefore the second minimum must be in the list associated to the minimum value
-the minimum of them can be find with lgn - 1 comparsions, n - 1 + lgn - 1 = n + lgn - 2 in total
+the minimum of them can be find with lgn - 1 comparisons, n - 1 + lgn - 1 = n + lgn - 2 in total
 
 9.1-2
 initially any element can be the maximum or the minimum
@@ -2219,12 +2219,12 @@ assume all elements are distinct, elements can be divided into 4 groups:
     4.  may be neither maximum or minimum
 comparing two elements a and b from group 1 will:
     if a < b, a now in group 3, b now in group 2, both MIN and MAX decremented by 1
-comparsions between any combinations of elements from 2, 3 or 4, depends on the result, may be in vain
-comparsions between a from group 1 and b from group 2, 3 or 4, depends on the result, may only decrement MIN+MAX by 1
-thereby in worst case, it's optimal to perform comparsions between elements in group 1 first until group 1 is empty
-such comparsions can only be performed n/2 times, eliminate n/2 potential maximum and minimum independent of the input
+comparisons between any combinations of elements from 2, 3 or 4, depends on the result, may be in vain
+comparisons between a from group 1 and b from group 2, 3 or 4, depends on the result, may only decrement MIN+MAX by 1
+thereby in worst case, it's optimal to perform comparisons between elements in group 1 first until group 1 is empty
+such comparisons can only be performed n/2 times, eliminate n/2 potential maximum and minimum independent of the input
 then the input array is divided into two disjoint groups, n/2 potential maximum and n/2 potential minimum
-in worst case, maximum and minimum can be find among them in (n/2 - 1) * 2 = n - 2 comparsions
+in worst case, maximum and minimum can be find among them in (n/2 - 1) * 2 = n - 2 comparisons
 n/2 + n - 2 = 3n/2 - 2 in total
 
 9.2-1
@@ -2267,20 +2267,20 @@ n >= 120
 the lower median can be find in time O(n)
 by finding the index of the lower median in O(n)
 the array can be partitioned into subproblems of equal size in O(n)
-a good split is then guarenteed, worst case running time thus O(nlgn)
+a good split is then guaranteed, worst case running time thus O(nlgn)
 
 9.3-4
 assume all elements are distinct
-let array elements be vertices of a graph, an edge a -> b exists iff some comparsion gives a > b
+let array elements be vertices of a graph, an edge a -> b exists iff some comparison gives a > b
 for vertices a and b
     if there is a path a -> b, a > b
     if there is a path b -> a, b > a
     otherwise it's uncertain whether a > b or b > a
 also the graph is acyclic, otherwise for some element a on the cycle, a > a
-for a procedure to correctly find the ith smallest element x, the comparsions it makes must ensure that:
+for a procedure to correctly find the ith smallest element x, the comparisons it makes must ensure that:
     i-1 elements are smaller than x
     n-i elements are greater than x
-therefore by additionally update the graph according to every comparsion
+therefore by additionally update the graph according to every comparison
 the set of i-1 elements smaller than x can be found by dfs from the vertex x
 the set of i-1 elements greater than x can be found by dfs the reverse graph from the vertex x
 
@@ -2307,7 +2307,7 @@ O(nlgk) + O(n) = O(nlgk) in total
 
 9.3-7
 find S in O(n)
-substract S from every element, take abstract value in O(n)
+subtract S from every element, take abstract value in O(n)
 find kth smallest element x of these abstract value in O(n)
 filter the original input array for elements that has distance to S smaller or equal to x in O(n)
 
@@ -2326,7 +2326,7 @@ recursively:
 9.3-9
 denote the y coordinate of the main pipeline as y0, then
     y0 = min{Σ(|yi - y|)}
-where (xi, yi) is the coordiante of ith well
+where (xi, yi) is the coordinate of ith well
 when y is greater than the y coordinate of k wells and smaller than n-k,
     increasing y by an amount of ε will increase cost by εk, while decrease cost by ε(n-k) at the same time
 therefore before k = n/2, increasing y will improve the solution
@@ -2365,11 +2365,11 @@ c.  by modifying SELECT
 d.  the same argument as 9.3-9
     increasing p a small amount ε will increase the sum by Σ(pi < p)(wiε) and decrease the sum by Σ(pi > p)(wiε)
     thus when Σ(pi > p)(wi) > 1/2, increasing p will reduce the total sum of weights
-    when Σ(pi > p) < 1/2, inceasing p will increase the total sum of weights
+    when Σ(pi > p) < 1/2, increasing p will increase the total sum of weights
     the minimum therefore is at greatest p where Σ(pi > p) >= 1/2
 d.  min(p){Σd(a, b)} = min(x, y){Σ|xi - x| + Σ|yi - y|} = min(x){Σ|xi - x|} + min(y){Σ|yi - y|}
-    when the x or y coordiate of the solution is changed, the other half of the sum won't change
-    by finding the weighted median of x and y seperately, both part are minimized
+    when the x or y coordinate of the solution is changed, the other half of the sum won't change
+    by finding the weighted median of x and y separately, both part are minimized
 
 9-3
 a.  ?
@@ -2520,7 +2520,7 @@ this.head.np = this.head.next ^ NULL = this.head.next
 for any two conservative nodes x and y,
     x.np = x.prev ^ x.next = x.prev ^ &y
     y.np = y.prev ^ y.next = &x ^ y.next
-starting from any two concervative nodes, the dlist can be traversed in any direction
+starting from any two conservative nodes, the dlist can be traversed in any direction
 hence search can be performed in a similar manner
 insert updates this.head.np to this.head.np ^ &new_head
 delete cannot be performed in constant time, must traverse the list to get two conservative nodes
@@ -2967,7 +2967,7 @@ min heap:
 it cannot print elements in sorted order in O(n)
 as building a min heap takes time O(n)
 if it can traverse its element in sorted order in O(n), n elements can be sorted in time O(n)
-which is lower than the lower bound of comparsion sort Ω(nlgn)
+which is lower than the lower bound of comparison sort Ω(nlgn)
 
 12.1-3
 the same idea as 10.4-5
@@ -3038,7 +3038,7 @@ see 12.2-8, as h = O(n), k = O(n), k + h = O(2n) = O(n)
 consider the subtree formed by nodes traversed by the k calls to SUCCESSOR
 exactly k nodes is yielded during the traverse
 the subtree may contain nodes smaller than the minimum of the k nodes on the path from root to the minimum
-similary the subtree may contains nodes greater than the maximum
+similarly the subtree may contains nodes greater than the maximum
 both path has at most h nodes
 the number of nodes in the subtree is at most O(k + 2h)
 for any node x in the subtree, x is traversed first from its parent p
@@ -3085,16 +3085,16 @@ search doesn't reference parents
 insert also doesn't reference parents
 succ, the successor of the maximum node in the subtree rooted at x will be the first "right ancestor" of x
 thereby if succ is NIL, x on the right-most branch of the tree
-parent of x can be found by travering downward from the root and check if right child of the cursor is x
+parent of x can be found by traversing downward from the root and check if right child of the cursor is x
 if succ is not NIL, x is on the right-most branch of the subtree rooted at the left child of succ
 ./CLRS/collection/tree.ts#treeParent
 this procedure will only traverse from root to the bottom at most twice, running time is O(h)
-both TRANSPLANT and TREE-DELETE only refers parent costant times, so TREE-DELETE takes time O(h)
+both TRANSPLANT and TREE-DELETE only refers parent constant times, so TREE-DELETE takes time O(h)
 
 12.3-6
 the predecessor pred will be the maximum of the subtree rooted at the left child of z
 then pred have to be first replaced by its left child before replacing z, if pred is not the left child of z
-the two strategy can be defined as two seperate procedures, which are called with 1/2 probability each
+the two strategy can be defined as two separate procedures, which are called with 1/2 probability each
 
 12.4-1
 when n = 1, ΣC(i+3, 3) = C(3, 3) = C(n+3, 4) = C(4, 4) = 1
@@ -3170,8 +3170,8 @@ this procedure is equivalent to
     2.  compare all other elements with the root, decide whether they belongs to the left or right subtree
     3.  repeat step 1. for the two groups to build the two subtrees
 which is in turn equivalent to build a random tree by insertion
-the height of an element then is number of comparsions performed with its key as an operand
-the total height bounds the total number of comparsions performed by randomized quicksort
+the height of an element then is number of comparisons performed with its key as an operand
+the total height bounds the total number of comparisons performed by randomized quicksort
 as the expected height of the tree is O(lgn), the total height is O(nlgn)
 thanks https://cs.stackexchange.com/questions/86149
 the original bound O(lgn) in 12.4 can be strengthened 
@@ -3198,7 +3198,7 @@ d.  in worst case the resulting tree is a single chain, Ω(n^2) in total
     average height h = O(lgn), expected running time O(nlgn)
 
 12-2
-insertion is stright forward, takes time proportional to the length of the string, O(n) in total
+insertion is straight forward, takes time proportional to the length of the string, O(n) in total
 nodes have to keep an additional boolean field indicating whether they are end of a string
 then the total nodes in the tree is O(n)
 instead of inorder, the tree has to be traversed in preorder to give sorted sequence
@@ -3348,7 +3348,7 @@ largest possible:
 smallest possible:
     if n = 2^k - 1, the tree is complete and all nodes can be black
     if 2^k - 1 < n < 2^(k+1) - 1, red nodes have to be inserted so property 5 holds
-    if exactly half of the bottom level is filled and they are all decendents of the same subtree of the root
+    if exactly half of the bottom level is filled and they are all descendent of the same subtree of the root
     by color the corresponding child of root to red, property 5 is maintained, red ratio is 1/n
     starting from a tree where all but the bottom nodes are black
     then for any black node one level above the bottom level which has two red children:
@@ -3390,7 +3390,7 @@ thus Σl(x) for all x in the tree is decreased by at least 1 after a right rotat
 when Σl(x) = 0, the tree is a right-going chain, cannot be right-converted to any other trees
 as l(x) can be at most n-1 for any node in a tree containing n keys
 Σl(x) = O(n^2), any tree will become a right-going chain after at most O(n^2) right rotation
-therefore if T1 can be right-converted to T2, it must happen within O(n^2) right rotaions
+therefore if T1 can be right-converted to T2, it must happen within O(n^2) right rotations
 
 13.3-1
 property 5 is violated then
@@ -3419,9 +3419,9 @@ property 5 is violated then
     δ:  path from root to δ now contains one more red node, bh still k
 
 13.3-4
-by loop invariation, z is red at the start of each iteration, so z cannot be T.nil
+by loop invariant, z is red at the start of each iteration, so z cannot be T.nil
 then immediately the loop tests whether z.p.color == RED, terminates if z.p.color != RED
-by loop invariation, if z and z.p both red, T.root is black, which means neither z or z.p is the root
+by loop invariant, if z and z.p both red, T.root is black, which means neither z or z.p is the root
 so z, z.p, z.p.p all exists, none of them is T.nil
 the uncle of z, z.p.p.right, is only modified when its color is red, so it cannot be T.nil too
 as these are the only nodes ever get modified in an iteration of RB-INSERT-FIXUP, T.nil will not be colored red
@@ -3441,7 +3441,7 @@ by pushing all the ancestors into a stack, z.p can be poped from the stack in ti
 13.4-1
 root can only be red if y was the root and its red child x becomes the new root
 then in RB-DELETE-FIXUP, the loop immediately terminates, and x is set to black
-so the root after deletion is guarenteed to be black
+so the root after deletion is guaranteed to be black
 
 13.4-2
 if both x and x.p are red, the extra black can be fixed by setting x to black
@@ -3538,7 +3538,7 @@ c.  shallow copying the current node is O(1)
     if z.key <= copy.key and copy.left == null, the loop recursion terminates, similarly when z.key > copy.key
     otherwise the procedure recursively calls itself with copy.left or copy.right, which has depth one more than copy
     time complexity is T(h) = T(h-1) + O(1) = O(h)
-    each recursive call shallow copies the current node, which consistents of a key and two pointers, takes O(1) space
+    each recursive call shallow copies the current node, which consists of a key and two pointers, takes O(1) space
     space complexity is T(h) = T(h-1) + O(1) = O(h) 
 d.  PERSISTENT-TREE-INSERT must modify and copy the root to make a new tree
     then the left and right child of the root must be modified too
@@ -3546,9 +3546,9 @@ d.  PERSISTENT-TREE-INSERT must modify and copy the root to make a new tree
     so the children of the root also have to be copied
     recursively all nodes in the tree have to be copied, the procedure will take O(n) time and space
 e.  RB-INSERT-FIXUP and RB-DELETE-FIXUP only ever modifies nodes as far as children of siblings
-    when copying all the ancestors, also copy all the siblings and chlidren of siblings
+    when copying all the ancestors, also copy all the siblings and children of siblings
     at most 4 times more nodes are copied, time and space complexity still O(h)
-    then apply reb black fixup to the tree after insertion and deleteion, the height of the tree is O(lgn)
+    then apply reb black fixup to the tree after insertion and deletion, the height of the tree is O(lgn)
 
 13-2
 a.  as insertion and deletion in reb black tree maintains property 5
@@ -3576,7 +3576,7 @@ d.  Ty has black height T2.bh, same to T2
     but then
         x may be the root after join
         x and T2.root may both be red
-    if x is the new root, coloring it black will fix both proerty 2 and 4
+    if x is the new root, coloring it black will fix both property 2 and 4
     if x is not root and both T2.root and x are red
     the tree now satisfies the invariants in RB-INSERT-FIXUP with z = T2.root, or z = x.right
     so calling RB-INSERT-FIXUP(x.right) will fix the red black tree properties
@@ -3668,7 +3668,7 @@ b.  as elements are given random priorities
         there are n+1 places xn+1 may end up at in any permutations, n! * (n+1) = (n+1)! new permutations in total
         each with probability 1/(n! * (n+1)) = 1/(n+1)!
     as the sorted form of x1 .. xn is a uniformly random permutation of x1 .. xn
-    theoriem 12.4 applies, the expected height of the treap is O(lgn)
+    theorem 12.4 applies, the expected height of the treap is O(lgn)
 c.  first the normal insertion of z is performed according to binary search tree property
     but then the priority of z.p may be greater than z, and this is the only possible violation of treap properties
     which means the other child of z.p and its descendants have priority greater than z.p
@@ -3688,7 +3688,7 @@ e.  x is initially a leaf to be inserted into the treap, C + D = 0
         x.p is added to the left spine of x's right subtree
         left subtree of x and its right spine unchanged
         C + D incremented by 1
-    similary, a right rotation at x.p when x = x.p.left increments C + D by 1
+    similarly, a right rotation at x.p when x = x.p.left increments C + D by 1
     so C + D equals to the number of rotations performed
 f.  =>: as y is in the left subtree of x, x.priority < y.priority, x.key > y.key
         as y is in the right spine of the subtree
@@ -3824,7 +3824,7 @@ rotation will not change the nodes stored in a tree, thereby will not change pre
 all operations take constant time, fixing predecessors and successors will not propagate to ancestors
 
 14.2-2
-since second stage of insertion and deleteion changes color of some nodes
+since second stage of insertion and deletion changes color of some nodes
 it cannot be simply maintained by method described in the text
 but the black height still can be maintained without changing the asymptotic performance of set operations
 the first stage of insertion will not change black height of any node, as the new node z is colored red
@@ -3976,7 +3976,7 @@ b.  if an interval i does not overlap with a point p, then
         size_high, number of high end points in subtree
         pom, point of maximum overlap in subtree
         non_overlap, number of intervals that may not overlap with point of maximum in subtree
-    calculating size_low and size_high from children and current node is strightforward
+    calculating size_low and size_high from children and current node is straightforward
     for a node x, compare x.left.size_high + x.right.non_overlap and x.right.size_low + x.left.non_overlap
     pom of subtree rooted at x may be one of:
         x.left.pom, not overlapping with x.left.non_overlap + x.right.low_size intervals
@@ -3992,7 +3992,7 @@ a.  put all numbers in a circular doubly linked list in sorted order
     since m is constant, step 1 takes O(1)
     step 2 also O(1) as deletion of a node in doubly linked list is O(1)
     the procedure runs for at most n iterations until the linked list is empty, hence O(n) total running time
-b.  rank starting from 0 for convinence here
+b.  rank starting from 0 for convenience here
     if the previously removed node has rank i, there are k numbers not removed yet
     node with rank i + m - 1 mod k should be removed next
     [1, 2, 3, 4, 5, 6, 7]
@@ -4087,8 +4087,8 @@ P(n) = n - 1 easily proved by induction
 15.3-1
 RECURSIVE-MATRIX-CHAIN enumerates fewer results than a complete enumeration
 instead all subproblem of Ai..k and Ak+1..j, only the optimal subproblem is returned
-but a complete enumeration performs one comparsion for each possible parenthesization
-while RECURSIVE-MATRIX-CHAIN performs many comparsion for each subproblem
+but a complete enumeration performs one comparison for each possible parenthesization
+while RECURSIVE-MATRIX-CHAIN performs many comparison for each subproblem
 enumerating all possibilities is at least Ω(4^n / n^(3/2)), the Catalan numbers
 redo 15.8 with different setting
 line 1-2, line 5 and line 6-7 takes at most constant time, so
@@ -4129,7 +4129,7 @@ are no longer the same subproblem
 
 15.3-6
 consider currencies as vertices in a graph and rij be directed edges
-the problem only makes sence when:
+the problem only makes sense when:
     for any cycle in the graph, the production of rij along the cycle equals to 1
     (especially rij = 1/rji for all i and j)
 otherwise looping in the cycle will result in infinite profit 
@@ -4259,12 +4259,12 @@ as least Ω(n^2) entries are filled in three tables, overall running time Θ(n^2
 15-1
 topologically sort the vertices
 remove all the vertices before s (won't appear in a path s ~> t) and after t (similar) 
-if an edge (s, u) exists, solve subproblem u ~> t, add w(s, u) to the solution, take the maxmimum among all such u
+if an edge (s, u) exists, solve subproblem u ~> t, add w(s, u) to the solution, take the maximum among all such u
 a bottom-up solution traverses the sorted list reversely from t to s, solve subproblems of smallest size first
 topological sort is O(|V| + |E|), removing nodes O(|V|)
 the graph is naturally a subproblem graph, subproblems are referred to at most O(|E|) times
-ovarall time complexity O(|V| + |E|)
-one subproblem at a time is examined, tivially independent
+overall time complexity O(|V| + |E|)
+one subproblem at a time is examined, trivially independent
 O(|E|) possible references to O(|V|) subproblems, naturally overlaps
 
 
@@ -4278,7 +4278,7 @@ for a sorted list of points [p1 .. pn]
 define a bitonic path Pij as a path that:
     visits all points in {p1 .. pj}
     starts from pi and go strictly left to p1
-    then go srtictly right from p1 to pj
+    then go strictly right from p1 to pj
 let |pipj| be the distance between pi and pj
 let b[i, j] be the length of the shortest among all bitonic path Pij
 for i < j - 1:
@@ -4362,10 +4362,10 @@ define two subproblem for each subtree rooted at x for some node x
     2.  maximizes the sum of conviviality without the node x
 then for a node x and its children y1 .. yk,
     the solution to problem 1 is the sum of subproblem 2 of its children
-    the solution to problem 2 is the sum of the greater between solution to subproblem 1 and 2 of its chilren
+    the solution to problem 2 is the sum of the greater between solution to subproblem 1 and 2 of its children
 whether a guest should join the party can be solely defined top-down by 
     whether the immediate supervisor joins the party
-    a comparsion between solutions to subproblem 1 and 2 
+    a comparison between solutions to subproblem 1 and 2 
 complexity proportional to the number of edges, O(n) in total
 
 15-7
@@ -4440,7 +4440,7 @@ c.  as the number of years is a constant 10
     2^9 = 512 different arrangements in total, which is a constant
     then the fee paid for each arrangement is a constant and can be ignored
     each arrangement can be solved in time O(n^3), where n is the total amount of investments, with scheme in part b
-d.  at some point, the total aount of dollars at the start of year i exceeds 15000
+d.  at some point, the total amount of dollars at the start of year i exceeds 15000
     then the same argument in part a no longer applies
 
 15-11
@@ -4458,7 +4458,7 @@ O(nD^2) in total
 15-12
 define subproblem (n, x) as
     maximize VORP from position n with x dollars
-similar to any other dynamic problemming problem in this chapter
+similar to any other dynamic programming problem in this chapter
 NX/1000000 subproblems, each refers to P subproblems at most, O(NXP) overall
 why a greedy algorithm doesn't work:
 let N = 2 with three players:
@@ -4615,7 +4615,7 @@ which means x.freq <= y.freq <= a.freq <= b.freq
 if x.freq = b.freq, all four characters have the same frequency
 
 16.3-2
-if the binary tree is not full, there must be some interal node n which has only one child
+if the binary tree is not full, there must be some internal node n which has only one child
 without loss of generality, assume the sole child is a left child
 then replace n with its left subtree will reduce depth of leaves in the left subtree by 1
 the resulting binary tree is still a valid encoding of the same alphabet since no leaf is removed
@@ -4651,7 +4651,7 @@ the resulting binary tree has d(ci) = |C| - i + 1
 
 16.3-4
 a leaf x with depth k contributes x.freq to all of its ancestors, and there are exactly k of them
-by summing all frequences of internal nodes frequency of each leaf x.freq is added exactly d(x) times
+by summing all frequencies of internal nodes frequency of each leaf x.freq is added exactly d(x) times
 formally define d(x, y) as the depth of x in subtree rooted at y
 prove for all leaves in a subtree rooted at y, the sum of frequencies of internal nodes equals Σx.freq * d(x, y)
 base case is d(x, x) = 0, the leaf has no internal nodes
@@ -4678,13 +4678,13 @@ so there must be an optimal solution in which code length of C is in increasing 
 16.3-6
 a huffman tree has n leaves and n - 1 internal nodes, 2n - 1 nodes in total
 use the heap-like notation to encode internal nodes, the tree can be represented in 2(n-1) + 1 = 2n - 1 bits
-(which enumerates nodse level by level, output 1 for internal nodes and 0 for leaves)
+(which enumerates nodes level by level, output 1 for internal nodes and 0 for leaves)
 leaves can be added back unambiguously since a huffman tree is full
 then list all keys in preorder, each takes at most [lgn] bits
 the keys can be plugged into the nodes unambiguously since preorder walk of a fixed tree structure is unique
 
 16.3-7
-an optimal ternay code tree may not be full
+an optimal ternary code tree may not be full
 but only one internal node with maximal depth may have 2 children, all other internal nodes must have three
 if any internal node has 1 or no children, by problem 16.3-2 the node can be eliminated
 if two internal nodes have only 2 children, denote them by x and y, assume d(x) <= d(y)
@@ -4692,14 +4692,14 @@ move a child c of y to x will not increase the total cost of the tree as c.freq 
 then x is full and y has only 1 child, y can be eliminated
 if the node with 2 children has less than maximal depth
 move one leaf with maximal depth to it will reduce the total cost, hence the node must have maximal depth
-replace a leaf with a tree with three children adds 2 leaves to the tree, thus full ternay tree has 3 + 2k leaves
+replace a leaf with a tree with three children adds 2 leaves to the tree, thus full ternary tree has 3 + 2k leaves
 if the number of leaves n = 3 + 2k for k >= 0, the tree is full
 if otherwise n = 4 + 2k, the tree is full except one internal node have only two children
-a ternay equivalence to Lemma 16.2 then have two cases
+a ternary equivalence to Lemma 16.2 then have two cases
     when n = 4 + 2k, swap x, y with least frequency with a, b as siblings with maximal depth
     when n = 3 + 2k, swap x, y, z with least frequency with a, b, c as siblings with maximal depth (must exist)
 by almost the same argument as the proof of Lemma 16.2, the tree is still optimal
-a ternay equivalence to Lemma 16.3 is strightforward
+a ternary equivalence to Lemma 16.3 is straightforward
 the algorithm should merge two least frequent nodes in the first iteration if n = 4 + 2k
 otherwise it should merge three least frequent nodes
 
@@ -4763,7 +4763,7 @@ let A ∈ I, obviously removing elements from A will not increase |A ∩ Si| for
 let A, B ∈ I, |A| < |B|
 both A and B has at most 1 element from each disjoint subset Si
 let AS = {Si | |A ∩ Si| = 1}, similarly BS
-ovbiously |A| = |AS|, |B| = |BS|
+obviously |A| = |AS|, |B| = |BS|
 |AS| < |BS| implies |BS| contains more subset Si than AS, BS - AS != ∅
 take any Sk ∈ BS - AS, add the only x ∈ B ∩ Sk to A, then A ∪ {x} ∈ I
 
@@ -4840,7 +4840,7 @@ d.  with dynamic programming
     define subproblem i naturally as
         minimize the number of coins that add up to i cents
     optimal solution to problem i can be derived from
-        for all k diffrent coins:
+        for all k different coins:
         choice one of them, compute j = i - its face value, get an optimal solution to subproblem j, plus 1
         minimize the sum over all k
     at most n subproblems, each refers to k subproblems, O(nk) in total
@@ -4995,14 +4995,14 @@ b.  subproblem is defined by a tail of the requests and the set of items in the 
         3.  a cache miss and |S| = k, either ri or one rj ∈ S is evicted
             possible subproblems are (i+1, S) and (i+1, S - {rj} ∪ {ri}) for rj ∈ S
 c.  thanks https://www.cs.princeton.edu/~wayne/kleinberg-tardos/pearson/04GreedyAlgorithms.pdf
-    assume before the ith request, there is an optimal solution A that follows furtherest-in-future strategy up to i
+    assume before the ith request, there is an optimal solution A that follows furthest-in-future strategy up to i
     consider the ith request ri
-    if A evicts an item rp in the cache that is not rk the furtherest in future (FF)
+    if A evicts an item rp in the cache that is not rk the furthest in future (FF)
     let A' be a solution that evicts rk instead and imitates A as long as possible
     let AF be the solution derived from FF
     let j be the next time that A' can no longer imitate A (must involve rp or rk)
     case 1: rj = rk
-        can't happen, rk is the furtherest in future, there must be a request to rp before rk
+        can't happen, rk is the furthest in future, there must be a request to rp before rk
         in A' the cache won't contain rp, request to rp will be a cache hit in A but a cache miss in A'
     case 2: rj = rp, a cache miss
         rp is not in the cache of A, an element rq is evicted
@@ -5042,7 +5042,7 @@ each POP is paid by previous PUSH just like in the text
 each PUSH and POP also adds one extra credit, so after k operations there are k extra credits to pay for the copy
 
 17.2-2
-assign a contant cost of 3 to increment operation
+assign a constant cost of 3 to increment operation
 between any two i = 2^k + 1 and j = 2^(k+1), the total number of credits accumulated is
     3 * (2^(k+1) - 2^k) = 3 * 2^k = 2^(k+1) + 2^k
 deduct the costs of j - i - 1 = 2^k - 1 normal incremental operations
@@ -5152,8 +5152,8 @@ may use the variable-size array introduced in the next section to support unlimi
 
 17.4-1
 by Corollary 11.7, the expected probes of insertion in an open addressing hash table is 1 / (1 - α)
-when α -> 1, 1 / (1 - α) -> ∞, the last few insertions before the table is full may be costy
-by restricting α, the expected performance of insertion is guarenteed to be better than a constant
+when α -> 1, 1 / (1 - α) -> ∞, the last few insertions before the table is full may be expensive
+by restricting α, the expected performance of insertion is guaranteed to be better than a constant
 only allow insertion if α < α0, where α0 < 1 is a constant
 then the expected number of probes in an insertion is at most 1/(1 - α) <= 1/(1 - α0) = O(1)
 the underlying table can be extended easily as described in the text
@@ -5282,7 +5282,7 @@ e.  for insertion, if rebalance unnecessary:
         Φ(Ti-1) >= c|x.left.size - x.right.size| >= c|αm - (1-α)m| = c(2α - 1)m >= m
         či  = ci + Φ(Ti) - Φ(Ti-1)
             <= O(lgn) + m - c(2α - 1)m = O(lgn)
-    for deletion, if rebalance unncessary:
+    for deletion, if rebalance unnecessary:
         či  = ci + Φ(Ti) - Φ(Ti-1)
             = O(lgn) + O(lgn) = O(lgn)
     if deletion caused a rebalance at level x, x.size = m:
@@ -5323,7 +5323,7 @@ e.  in case 1 of RB-INESRT-FIXUP, each iteration decreases potential by 1
     case 2 and 3 takes O(1) and terminates
     amortized cost of RB-INESRT-FIXUP is then O(1)
 f.  as w(x) = 0 if x is red, potential will only change if a red node is colored black
-    in case 1 the only nonterminating case (referring nodes by their name in figure 13.5 - 13.7):
+    in case 1 the only non-terminating case (referring nodes by their name in figure 13.5 - 13.7):
         w(C) changed from 2 to 0
         as A is originally red, its left child must be black
         w(A) 0 -> 0
@@ -5333,7 +5333,7 @@ f.  as w(x) = 0 if x is red, potential will only change if a red node is colored
     each iteration of case 1 is paid by the potential
     case 2 and 3 changes potential by at most a constant
         ci <= či = O(1)
-g.  in case 2 the only nonterminating case:
+g.  in case 2 the only non-terminating case:
         w(D) 1 -> 0
         B must be black or case 2 terminates
         w(B) 1 -> 0
@@ -5562,7 +5562,7 @@ the total number of splits caused by insertion is n/2 + n/4 + n/8 ... ≒ n
 the tree after n insertion may have n nodes at most
 in best case, each internal node contains 2 keys and each leaf 3
 an internal node with 3 keys after B-TREE-SPLIT-CHILD has a child with only 1 key
-any inserion into that child will cause the internal node to split
+any insertion into that child will cause the internal node to split
 let h be the height of the tree
 there are 3^d nodes at depth d
     2Σ(d = {0 .. h-1})3^d + 3 * 3^h = n
@@ -5682,7 +5682,7 @@ d.  only read a new page when the pointer is about to cross the boundary and ent
 18-2
 a.  search will not change the structure
     insertion may change the height of nodes when:
-        a child is splited, the new child z has the same height of y in B-TREE-SPLIT-CHILD
+        a child is split, the new child z has the same height of y in B-TREE-SPLIT-CHILD
             z.height can be assigned in O(1)
         the tree grows upward, the new root s has height one more than the old root
     deletion may change the height of nodes when:
@@ -5693,7 +5693,7 @@ b.  if either tree is empty, simply insert k into another, running time O(h) = O
     if h' < h'', insert T' as a child of the left-most node with height h' + 1 in T'', k as the first key
     if h' = h'', allocate a new node x with sole key k, set x.c = [T1.root, T2.root]
     split child when necessary on the path
-    at most max(1, |h' - h''|) nodes visited, spliting child takes O(t) = O(1), O(1 + |h' - h''|) in total
+    at most max(1, |h' - h''|) nodes visited, splitting child takes O(t) = O(1), O(1 + |h' - h''|) in total
     ./CLRS/structure/b-tree.ts#join
 c.  assume at some subtree rooted at x, p descends into a child x.c[i]
     define a new tree T' rooted at x' which has keys x.key[1] to x.key[i-2] and children x.c[1] to x.c[i-1]
@@ -5708,7 +5708,7 @@ c.  assume at some subtree rooted at x, p descends into a child x.c[i]
     at the node x in which k is found, assume x.key[i] = k, split x into two subtree T' and T'' that
     T' contains x.key[1] to x.key[i-1] and x.c[1] to x.c[i]
     T'' contains x.key[i+1] to x.key[x.n] and x.c[i+1] to x.c[x.n+1]
-    let T'i and T''i be subtrees splited at ith node x on the path p, similarly k'i and k''i
+    let T'i and T''i be subtrees split at ith node x on the path p, similarly k'i and k''i
     the process splits the entirety of a subtree rooted at x into five parts: T', T'', k', k'' and x.c[i]
     a key in T then is
         1.  in T'i for some i
@@ -5761,7 +5761,7 @@ insert -∞
 now H contains three root: the x root of original H, x' the root of H' and -∞
 call EXTRACT-MIN(H), -∞ is extracted, x and x' is linked
 assume x' became a child of x, denote the other child of x by z
-call FIB-HEAP-DELETE(H, z), the sub-heap rooted at z is cutted from x
+call FIB-HEAP-DELETE(H, z), the sub-heap rooted at z is cut from x
 the heap rooted at x now is a single chain of length n+1
 later z removed and the child of z added to the rooted list, which soon linked to x as both have degree 1
 repeat this procedure and the heap rooted at x will became a single chain of length n+1
@@ -5823,7 +5823,7 @@ a.  1.  |B0| = 1 = 2^0, |Bk| = 2|Bk-1| = 2^k
 b.  each binomial tree in H has distinct degree k, which means it is Bk with size 2^k
     n = Σ2^ki for distinct ki
     a binary number that has (ki+1)-th least significant bit 1 for all i and other bits 0 equals is b(n)
-    since b(n) is unique to n, the existance of Bk can be determined by (k+1)th bit of b(n)
+    since b(n) is unique to n, the existence of Bk can be determined by (k+1)th bit of b(n)
     i <= |b(n)| = [lgn] + 1
 c.  most operations on binomial heaps has much resemblance to operations on binary numbers
     ./CLRS/structure/binomial-heap.ts
@@ -5972,12 +5972,12 @@ at most two recursive calls, running time is the same to insertion
 ./CLRS/structure/proto-veb-tree.ts#delete
 two recursive calls in worst case, running time is the same to insertion
     T(u) = 2T(u^(1/2)) + O(1) = O(lgu)
-INSERT should be adjusted so now it reports whether a key is truely inserted or an existing key is overwritten
+INSERT should be adjusted so now it reports whether a key is truly inserted or an existing key is overwritten
 in the first case .n is incremented
 asymptotic running time still O(lgu) since both report and incrementing n takes constant time
 
 20.2-4
-each slot is incremented / decremented in insertion and deleteion instead of being set to 1 and 0
+each slot is incremented / decremented in insertion and deletion instead of being set to 1 and 0
 
 20.2-5
 ./CLRS/structure/proto-veb-tree.ts#ProtoVEBTree
@@ -6105,7 +6105,7 @@ a.  each internal node allocates an array of size u^(1/2) has u^(1/2) clusters a
 b.  assume P(u) <= cu - d
         P(u)    <= (u^(1/2) + 1)(c(u^(1/2)) - d) + Θ(u^(1/2))
                 = cu - (d-1)(u^(1/2)) - d + Θ(u^(1/2))
-                <= cu - d by ajusting d-1 so it covers Θ(u^(1/2))
+                <= cu - d by adjusting d-1 so it covers Θ(u^(1/2))
         P(u)    = O(u)
 c.  ./CLRS/structure/veb-tree.ts#insert
 d.  ./CLRS/structure/veb-tree.ts#successor
@@ -6119,7 +6119,7 @@ f.  for u = 2
         the new cluster contains no child clusters or summary, takes O(1) space
         the hash table may need to be extended, takes O(1) amortized space
         the summary may need to be updated
-        as summary has strictly smaller universe, insertion into summray takes O(1) amortized time
+        as summary has strictly smaller universe, insertion into summary takes O(1) amortized time
         if it didn't create a new cluster, the insertion consumes no space at all
     inductively insertion will take O(1) amortized space, n insertion will take O(n) worst case space
 g.  O(1), each line in CREATE-NEW-RS-vEB-TREE takes constant time (including creation of a dynamic hash table)
@@ -6149,7 +6149,7 @@ b.  the doubly linked list should only contain actual numbers, not their prefixe
         //  the structure introduced in this part is actually x-fast trie
         //  but instead of descendant pointer and leaf list this structure maintains a sorted linked list of all nodes
         //  no matter how the nodes are sorted, traversing down to the nearest child may take O(lgu)
-        //  if they are sorted numerically, the next node is not even guarenteed to be in the same subtree
+        //  if they are sorted numerically, the next node is not even guaranteed to be in the same subtree
         //  if they are sorted lexicographically, traversing down to a leaf may take time O(lgu)
     INSERT:
         find y the predecessor of x in O(lglgu)
@@ -6168,7 +6168,7 @@ c.  there are only O(n/lgu) elements in the x-fast trie which occupies O((n/lgu)
     O(n) + (n/lgu)O(lgu) = O(n) space in total
 d.  MINIMUM:
         find x the minimum in the x-fast trie
-        the actual minimum must be in the binary tree repesented by x, since all other trees has keys greater than x
+        the actual minimum must be in the binary tree represented by x, since all other trees has keys greater than x
         as red black tree is balanced, h = O(lglgu), find the minimum in the tree takes O(h) = O(lglgu) time
         O(1) + O(lglgu) = O(lglgu) in total
     MAXIMUM: symmetric
@@ -6193,7 +6193,7 @@ h.  use 2-3-4-trees instead of red black trees
     by definition and 18-2, a tree, its representative and the next tree can be joined in O(lglgu)
     if a tree contains more than 2lgu nodes, split it around the median results in two trees of size lgu
     (the size of each subtree can be easily maintained in each node to support order statistics operations)
-    if a tree contains less than lgu/4 nodes, join it with a neighbour in O(lglgu)
+    if a tree contains less than lgu/4 nodes, join it with a neighbor in O(lglgu)
     the resulting tree contains lgu/2 to 9lgu/4 nodes, split it if it contains more than 3lgu/2 nodes
     there will be at most 2n/lgu representatives, x-fast trie operations still O(lglgu)
     each tree has lgu/2 to 2lgu nodes, tree operations still O(lglgu)
@@ -6485,7 +6485,7 @@ b.  invariant:
         each element in {1 .. i} is either assigned to an extraction or ∈ Km+1
         i+1 therefore is the smallest element still can be assigned to an extraction
     termination:
-        each assignmenet to extracted was correct
+        each assignment to extracted was correct
         if the sequence of operations is valid, i.e. there are more insertions than extractions before each extraction
         let extracted[j] be the first slot that's not assigned, by invariant Kj exists on termination
         |I1 ∪ .. ∪ Ij| >= j, if Ij is not empty, in iteration i ∈ Kj extracted[j] will be assigned
@@ -6567,7 +6567,7 @@ b.  induct on tree height:
     execution of LCA(u.p) is on line 4
     all siblings and their descendants are either in the same set with u.p or not in any set
     u and u.p are not in the same set, no descendant of u is in any disjoint set
-    the subtree rooted at u.p is divied into 3 groups, 2 of them are represented by a disjoint set
+    the subtree rooted at u.p is divided into 3 groups, 2 of them are represented by a disjoint set
     similarly the execution of u.p.p is on line 4, the subtree rooted at u.p.p is 5 groups and 3 disjoint set
     accounting all the way to T.root, there are currently k+1 disjoint sets in the structure
     k disjoint sets if LCA(u) is just about to execute line 1
@@ -6923,7 +6923,7 @@ O(E) access to array p, O(V + E) in total
 ./CLRS/graph/directed-graph.ts#numberOfPaths
 
 22.4-3
-count the number of edges in the graph, immediately report cyclic when |E| execeeds 2|V| - 2
+count the number of edges in the graph, immediately report cyclic when |E| exceeds 2|V| - 2
 if |E| <= 2|V| - 2, run dfs and search for a back edge
 an acyclic graph can have at most |V| - 1 edges, 2|V| - 2 including the reverse of each
 dfs will finish in O(V + E) = O(V) time given |E| = O(V)
@@ -6947,7 +6947,7 @@ if the graph contains a cycle, there may not be a vertex with in degree 0, the p
 22.5-1
 if the new edge connects two vertices in the same SCC, the number of SCC won't change
 if the new edge connects two distinct SCCs C and C',
-    if there is already a path from C to C', the new egde will not change the number of SCC
+    if there is already a path from C to C', the new edge will not change the number of SCC
     if otherwise the edge forms the first path between C and C', it may reduce the number of SCCs arbitrarily
     if the SCC graph is still acyclic, the number of SCCs won't change
     if there is a path from C' to C, the number of SCCs is reduced by at least 1
@@ -7072,7 +7072,7 @@ c.  first compute v.back as min{w.d | (v, w) is a back edge}, v.back = +∞ if t
     for all children s of v in Gπ, O(Eπ) = O(V)
     since the graph G is connected, |V| <= |E| - 1, V = O(E), O(E) in total
 d.  there's no cross edge in undirected graph
-    if s a descendant of u has an egde (s, w) and w.d < s.d, w must be a proper ancestor of u, u.low < u.d
+    if s a descendant of u has an edge (s, w) and w.d < s.d, w must be a proper ancestor of u, u.low < u.d
     if no such s exists, all edges involving vertices in subtrees of u must be tree edges or back edges to up to u
     u.low >= u.d 
     so an articulation point in G is
@@ -7090,7 +7090,7 @@ f.  reuse the v.low and v.back attributes computed in part c
     for a tree edge (u, v), compare u.d with min{v,low, v.back}
     if min{v.low, v.back} <= u.d, there is a back edge from subtree rooted at v to an ancestor of u (including u)
     u is on a simple cycle
-    if min{v.low, v.back} > u.d there is no back edge from subtree roote at v to an ancestor of u
+    if min{v.low, v.back} > u.d there is no back edge from subtree root at v to an ancestor of u
     if (u, v) is on a simple cycle, there must be some edge (x, y) connecting y in the subtree and x not in the subtree
     if x is an ancestor of u, (x, y) cannot be a forward edge according to Theorem 22.10
     (x, y) must be a back edge (y, x), but then min{v.low, v.back} <= u.d
@@ -7099,7 +7099,7 @@ f.  reuse the v.low and v.back attributes computed in part c
 g.  let C and C' be two different BCCs, f ∈ C, g ∈ C'
     if there is an edge e in both C and C', there is a cycle passing f and g
     have no idea how to reduce the cycle to a simple cycle
-h.  articulation points seperates biconnected components
+h.  articulation points separates biconnected components
     each path connecting two BCCs must visit an articulation point
     assume two BCCs C and C' has a path that does not visit any articulation point
     removing any vertex on the path will not disconnect the graph
@@ -7314,7 +7314,7 @@ claim:
 proof:
     u and v are in the same set iff the edges evaluated so far puts them in the same connected component
     by definition of L', upon evaluation of (x, y)
-    the edges evaluated in MST-KRUSKAL(G') is a superset of edges evaluated in MST-KRUSKAL(G)
+    the edges evaluated in MST-KRUSKAL(G') is a super set of edges evaluated in MST-KRUSKAL(G)
     adding an edge never disconnects a component
     u and v must be in the same connected component in MST-KRUSKAL(G') too
 claim:
@@ -7385,7 +7385,7 @@ d.  follow argument in part b
 a.  in the loop between line 4-9:
         u is chosen iff u.mark == false
         as u.mark is set to true if an edge (u, v) is added to T, there's no edge in T that incidents u
-        ({u}, V - {u}) then is a cut repects T
+        ({u}, V - {u}) then is a cut respects T
         by the way (u, v) is chosen, (u, v) is a light edge crossing the cut ({u}, V - {u})
         thereby (u, v) is safe to T
     after line 9, T contains the subset of some MST since only safe edges are added
@@ -7528,7 +7528,7 @@ by the text, after m iterations, all vertices will have v.d = δ(s, v), updated 
 by immediately terminate the loop when updated == false, the algorithm runs for at most m+1 iterations
 
 24.1-4
-run the check on line 5-7 |V| iterations, update both u.d and v.d to -∞ everytime v.d > u.d + w(u, v)
+run the check on line 5-7 |V| iterations, update both u.d and v.d to -∞ every time v.d > u.d + w(u, v)
 in the first iteration, if v.d > u.d + w(u, v), v and u are on a negative cycle reachable from s by the text
 let V0 be the set of vertices on the negative cycle detected in the first iteration
 at least one vertex on each negative cycle reachable from s is in V0 by Theorem 24.4
@@ -7559,9 +7559,9 @@ O(VE) in total
 
 24.1-6
 thanks https://people.cs.nctu.edu.tw/~tjshen/doc/ne.pdf
-first detect the existance of a negative cycle by BELLMAN-FORD method
-each cycle in the shorest path graph will be a negative cycle, otherwise removing it reduces the path weight
-if (u, v) still can be relaxed afer |V| - 1 passes of BELLMAN-FORD, the new shortest path must not be simple
+first detect the existence of a negative cycle by BELLMAN-FORD method
+each cycle in the shortest path graph will be a negative cycle, otherwise removing it reduces the path weight
+if (u, v) still can be relaxed after |V| - 1 passes of BELLMAN-FORD, the new shortest path must not be simple
 following v.π in the shortest path graph thereby will end up in a negative cycle
 by coloring vertices BLACK when following v.π, at some point v.π will be BLACK
 which means v is an ancestor of v.π in the shortest path graph, (v.π, v.π.π .. v) is a negative cycle
@@ -7585,17 +7585,17 @@ define a new graph G' = (V', E') that
 define the weight function on E' as
     w'(u, v) = the weight of u
 run DAG-SHORTEST-PATHS(G', w', s) with negated weight function w' then computes the critical path
-if the critial path in G has weight w(p):
+if the critical path in G has weight w(p):
     let p = (v0, v1 .. vk)
     w(p) = Σw(vi)
     there is a path p' = (v0, v1 .. vk, void) in G' that
     w'(p')  = Σw'(vi, vi+1)
-            = Σw(vi)    // void is exluded from the sum
+            = Σw(vi)    // void is excluded from the sum
             = w(p)
 if the critical path in G' has weight w'(p'):
     let p' = (v0, v1 .. vk)
     vk must be void, otherwise add void to the end of the path increases w'(p') by w(vk)
-    none of v0 .. vk-1 can be void since void has out-dgree 0
+    none of v0 .. vk-1 can be void since void has out-degree 0
     all other edges are in E, therefore there is a path p = (v0, v1 .. vk-1) in G that
     w(p)    = Σw(vi)
             = Σw'(vi, vi+1)
@@ -7742,7 +7742,7 @@ at first all vertices are in the same list with key +∞
 EXTRACT-MIN can be simulated by
     search the minimum of the set, O(lgW)
     extract the head of the list, O(1)
-    delete the key if the list becames empty, O(lgW)
+    delete the key if the list became empty, O(lgW)
 DECREASE-KEY can be simulated by
     removing the vertex from the original list, O(1)
     delete the list from the dynamic set if the list is empty, O(lgW)
@@ -7847,7 +7847,7 @@ modify each b to an integer
 if xi and xj are both integer, xi - xj must also be an integer
 let b = b' + f, where b' is an integer and 0 <= f < 1
 if xi - xj = k <= b, k <= b' as b' + 1 > b
-run BELLMAN-FORD on the modified constraints, correctness is guarenteed by Theorem 24.9
+run BELLMAN-FORD on the modified constraints, correctness is guaranteed by Theorem 24.9
 
 24.4-12
 -
@@ -7864,7 +7864,7 @@ assume otherwise there's no path s ~> v, δ(s, v) = +∞
 if for an edge (u, v), δ(s, u) != +∞, s ~> u -> v will be a path s ~> v, contradiction
 thus for all (u, v) ∈ E, δ(s, u) = +∞, δ(s, v) <= δ(s, u) + w(u, v)
 if there is a negative cycle reachable from s, v is reachable from the negative cycle, δ(s, v) = -∞
-δ(s, v) <= δ(s, u) + w(u, v) guarenteed no matter the value of δ(s, u)
+δ(s, v) <= δ(s, u) + w(u, v) guaranteed no matter the value of δ(s, u)
 
 24.5-4
 right before s.π is updated for the first time, s.d = 0 > u.d + w(u, s) >= δ(s, u) + w(u, s)
@@ -7882,7 +7882,7 @@ maintenance:
     by invariant, each u ∈ Vπ has a path s ~> u with edges in Gπ
     if v.π is updated by relaxing (u, v) for u ∈ Vπ, (u, v) is added to Gπ, s ~> u -> v is a path from s to v in Gπ
     for u ∉ Vπ, u.π = NIL and u != s, u.d = +∞ as relaxation always updates u.d and u.π at the same time
-    relaxing (u, v) will not set v.π since v.d <= u.d + w(u, v) is guarenteed by u.d = +∞
+    relaxing (u, v) will not set v.π since v.d <= u.d + w(u, v) is guaranteed by u.d = +∞
 termination:
     not important
 
@@ -8163,7 +8163,7 @@ predecessor graph constructed in this way may also contain a cycle
 this case can be avoided by an explicit check that j is not an ancestor of Π[i, k]
 doing the check for each k may cost O(n^2), O(n^4) in total
 when traversing Π[i, k], if j is an ancestor of k in Gπ,i, all the ancestors of k up to i cannot be predecessor of i
-thest vertices can be cached in an auxiliary binary array A of size n
+these vertices can be cached in an auxiliary binary array A of size n
 a check refers the array first, traverse predecessors only when A[k] is not set
 set all predecessors of k up to i after the traverse
 each vertex is thus checked at most once, all n checks can be done in O(n) amortized time, O(n^3) in total
@@ -8389,7 +8389,7 @@ b.  using Dijkstra's algorithm
     O(V + E + E) = O(E) combined
 c.  run the algorithm described in part b from each vertex
     O(VE) in total
-d.  reweight edges in the same way to Johnson's algorithm in O(VE) before running algorithm in part c, O(VE) in total
+d.  re-weight edges in the same way to Johnson's algorithm in O(VE) before running algorithm in part c, O(VE) in total
 
 Chapter 26
 26.1-1
@@ -8449,7 +8449,7 @@ also for any u ∈ V - {s, t}
     Σf'(v, u)   = αΣf1(v, u) + (1-α)Σf2(v, u)
                 = αΣf1(u, v) + (1-α)Σf2(u, v)
                 = Σf'(u, v)
-f' also satisfies flow conservation, f' is a valid flow defind on the graph
+f' also satisfies flow conservation, f' is a valid flow defined on the graph
 
 26.1-5
 define an unknown for each edge
@@ -8612,7 +8612,7 @@ after at most |E| such augmentation, |f| = 0
 by assumption no flow enters the source, Σf(s, v) - Σf(v, s) = Σf(s, v) = 0, f(s, v) = 0 for all v ∈ V
 if f(u, v) > 0 for some (u, v), it must be on a loop without reaching s or t
 since the procedure only decreases flows, it must contain such a loop back when it is still the maximum flow
-choose a maximum flow with no redundent loop of flow then guarentees f(u, v) = 0 for all (u, v) ∈ E after |E| steps
+choose a maximum flow with no redundant loop of flow then guarantees f(u, v) = 0 for all (u, v) ∈ E after |E| steps
 reverse the process, an initial empty flow can be augmented to a maximum flow with at most |E| augmentation
 
 26.2-11
@@ -8784,7 +8784,7 @@ s.e = Σc(s, v) = c(s, V - {s}), by min-cut max-flow theorem s.e >= |f*|
 ./CLRS/graph/maximum-flow.ts#pushRelabel
 relabel can be implemented by explicitly examining all edges in Adj[u] in Gf
     |Adj[u]| <= |V|, relabel can be done in O(V)
-    additionally relabel searchs for new pushable edges and edges no longer pushable after the relabel
+    additionally relabel searches for new pushable edges and edges no longer pushable after the relabel
     remove and append them to corresponding lists described below
     both can be done in O(1) traversal of Adj[u], O(V) in total
 by taking pointer to an edge, all operations within push takes constant time
@@ -8795,7 +8795,7 @@ maintain
     an array of doubly linked list of edges pushable from each vertex
 by lemma 26.14, if u.e > 0, either push or relabel applies
 by theorem 26.18, if no u.e > 0, the procedure terminates with a valid maximum flow
-by checking the head of the corrsponding pushable list of a node is NIL or not (in O(1))
+by checking the head of the corresponding pushable list of a node is NIL or not (in O(1))
 the procedure can determine whether a push or a relabel operation may apply, and the edge to apply push operation
 (it's equivalent to maintaining a dynamic admissible graph)
 
@@ -8837,7 +8837,7 @@ O(VE) in total
 26.4-6
 by claim in 26.4-5, a nonsaturating push decreases cf(u, v) by at least 1
 at most k nonsaturating push can be performed before a relabel which makes v.h = u.h + 1
-by a similar argument to lemma 26.22, each edge may support no more than 2k|V| nonsaturating pushs
+by a similar argument to lemma 26.22, each edge may support no more than 2k|V| nonsaturating pushes
 the total cost will be O(VE + VE + kVE) = O(kVE)
 
 26.4-7
@@ -8893,7 +8893,7 @@ maintenance:
 26.4-9
 still set s.h = |V| and t.h = 0 on initialization, s.h - |V| = 0 = δf(s, s), t.h = 0 = δf(t, t)
 Ef contains no (s, v) and an edge (v, s) for each (s, v) ∈ E as (s, v) ∈ E are saturated
-run bfs on transpose of current Gf from t, assign u.h to the minimial distance computed by bfs = δf(u, t)
+run bfs on transpose of current Gf from t, assign u.h to the minimal distance computed by bfs = δf(u, t)
 by triangle property, if (u, v) ∈ Ef
     for u.h < |V|, 
         if v.h < |V|, u.h = δf(u, t) <= δf(v, t) + 1 = v.h + 1 for all (u, v)
@@ -8963,7 +8963,7 @@ combine both RELABEL and PUSH,
     <= 4|V|^2|E| - 6|V|^2 + 7|V|
     when |V| >= 4, - 6|V|^2 + 7|V| < 0
     <= 4|V|^2|E|
-which is an upper bound of unsaturating pushes
+which is an upper bound of nonsaturating pushes
 
 26.5-1
 too long, see ./CLRS/graph/index.ts#problem_26_5_1
@@ -9311,10 +9311,10 @@ if a greedy scheduler executes strand on (v2, v3), (v1, v3), (v1, v2) alternatel
 the scheduler executes a portion of length 2 from each chain in every 3 steps
 3k / 2 steps are performed in total
 otherwise if a greedy scheduler executes (v1, v2) until the two chains are exhausted
-works on chain v3 have to be performed seperately, k + k = 2k steps are performed in total
+works on chain v3 have to be performed separately, k + k = 2k steps are performed in total
 generally if it has P = p and p+1 chains of length k
 the two strategies will perform (p+1)k / p and 2k steps
-2k / ((p+1)k / p) = 2p / (p+1) approachs 2 as p -> ∞
+2k / ((p+1)k / p) = 2p / (p+1) approaches 2 as p -> ∞
 
 27.1-5
 work law gives T1 <= T4 * 4 = 80 * 4 = 320
@@ -9483,7 +9483,7 @@ T1 / T∞ = Θ(n)
 
 27.3-5
 ./CLRS/multithreaded/p-merge-sort.ts#pRandomizedSelect
-a stright forward translation of RANDOMIZED-SELECT
+a straight forward translation of RANDOMIZED-SELECT
 by the same argument in 9.2
     E[T1(n)] = O(n)
     E[T∞(n)] <= 2/n * Σ(k = {n/2 .. n - 1})E[T∞(k)] + O(lgn)
@@ -9583,7 +9583,7 @@ d.  P-SCAN-UP:
         t[k] = P-SCAN-UP(x, t, i, k) = Σ(p ∈ {i .. k})x[p]
         right = P-SCAN-UP(x, t, k+1, j) = Σ(p ∈ {k+1 .. j})x[p]
         t[k] * right = Σ(p ∈ {i .. j})x[p]
-    P-SCAN-UP and P-SCAN-DOWN have exacly the same computation graph
+    P-SCAN-UP and P-SCAN-DOWN have exactly the same computation graph
     upon calling P-SCAN-DOWN(v, x, t, y, i, j), P-SCAN-UP(x, t, i, j) is already computed
     k = [(i + j) / 2], t[k] = Σ(p ∈ {i .. k})x[p] for each call to P-SCAN-DOWN(v, x, t, y, i, j)
     induct on depth of recurrence: v = Σ(p = {1 .. i - 1})x[p] upon calling P-SCAN-DOWN(v, x, t, y, i, j)
@@ -9665,7 +9665,7 @@ Chapter 28
 
 28.1-4
 for a diagonal matrix A
-P = I since there are exacly one non-zero entry on each column
+P = I since there are exactly one non-zero entry on each column
 a LUP decomposition of diagonal matrix is equivalent to a LU decomposition
 both v = w = 0, L = ((1 0) (0 L')), U = ((a11 0) (0 U'))
 L'U' = A' - vw' / a11 = A' is also a diagonal matrix
@@ -10071,7 +10071,7 @@ fsv1 + fv1v1 + fv2v1 + fv3v1 + fv4v1 + ftv1 = fv1s + fv1v1 + fv1v2 + fv1v3 + fv1
 fsv2 + fv1v2 + fv2v2 + fv3v2 + fv4v2 + ftv2 = fv2s + fv2v1 + fv2v2 + fv2v3 + fv2v4 + fv2t
 fsv3 + fv1v3 + fv2v3 + fv3v3 + fv4v3 + ftv3 = fv3s + fv3v1 + fv3v2 + fv3v3 + fv3v4 + fv3t
 fsv4 + fv1v4 + fv2v4 + fv3v4 + fv4v4 + ftv4 = fv4s + fv4v1 + fv4v2 + fv4v3 + fv4v4 + fv4t
-//  nonnegativity constraints
+//  non-negativity constraints
 fss >= 0
 fsv1 >= 0
 fsv2 >= 0
@@ -10112,7 +10112,7 @@ ftt >= 0
 29.2-5
 define fuv iff c(u, v) > 0
 if (u, v) ∉ E, fuv >= 0, fuv <= c(u, v) = 0, fuv = 0 and can be safely eliminated from objective function
-there are at most O(E) capacity constraints, O(V) conservation constraints and O(E) nonnegativity constraints
+there are at most O(E) capacity constraints, O(V) conservation constraints and O(E) non-negativity constraints
 O(V + E) constraints in total
 
 29.2-6
@@ -10139,19 +10139,19 @@ let x be a feasible solution to the slack form before pivot, xi >= 0 for all i �
 there are two operations in the pivot
 switching the roles of two variable in a constraint will not change the meaning of the constraint
 x is still a feasible solution to the slack form after pivot
-xe is replaced by b'e - Σa'ejxj, which the new constraint guarentees xe = b'e - Σa'ejxj
+xe is replaced by b'e - Σa'ejxj, which the new constraint guarantees xe = b'e - Σa'ejxj
 the objective value z' = z 
 similarly if x' is a feasible solution after the pivot
 x' is a feasible solution before the pivot with identical objective value
 
 29.3-4
-the basic solution sets all nonbasic variables to 0, nonnegativity constraints on basic variables are satisfied
+the basic solution sets all nonbasic variables to 0, non-negativity constraints on basic variables are satisfied
 each equality constraint corresponds to a basic variable
 for each basic variable xi, xi is only involved in two constraints:
     the equation constraint xi = bi - Σaijxj = bi and 
-    the nonnegativity constraint xi >= 0
-if bi >= 0, xi = bi >= 0, the nonnegativity constraint is satisfied
-if bi < 0, xi = bi < 0, the nonnegativity constraint is violated
+    the non-negativity constraint xi >= 0
+if bi >= 0, xi = bi >= 0, the non-negativity constraint is satisfied
+if bi < 0, xi = bi < 0, the non-negativity constraint is violated
 therefore the basic solution is feasible iff bi >= 0 for all i ∈ B, or bi >= 0 for all i ∈ {1 .. m} in standard form
 
 29.3-5
@@ -10180,7 +10180,7 @@ y1, y2, y3 >= 0
 29.4-2
 if the objective function is a minimization:
     the constant in each constraint is defined by -c instead of c
-if there is a variable xi which has no nonnegativity constraint:
+if there is a variable xi which has no non-negativity constraint:
     repeat the constraint in the dual program defined by xi with inverse coefficients and constant
     or equivalently the constraint in dual corresponds to xi is an equality instead of an >=
 if there is an equality constraint Σaijxj = ci:
@@ -10246,7 +10246,7 @@ subject to
     yuv - yu + yu' >= -a(u, v) if v = t
     yuv + yv - yv' >= -a(u, v) if u = t
     yuv, yu, yu' >= 0
-merge each (yu - yu') to a single variable without nonnegativity constraint
+merge each (yu - yu') to a single variable without non-negativity constraint
 minimize Σc(u, v)yuv - dys
 subject to
     yuv - yu + yv >= -a(u, v) for u, v != t
@@ -10407,7 +10407,7 @@ a.  inequalities 29.84 and 29.17 still holds, the proof of lemma 29.8 can be reu
 b.  define a single variable linear program as
         maximize cx
         subject to x <= b, x >= 0
-    the dual is defineds as 
+    the dual is defined as 
         minimize by
         subject to y >= c, y >= 0
     let b = c = 1/2
@@ -10424,7 +10424,7 @@ c.  P = D by Theorem 29.10
 29-4
 define a linear program as
     maximize cTx
-    subject to Ax <= 0 (without nonnegativity constraints)
+    subject to Ax <= 0 (without non-negativity constraints)
 by 29.4-2, the dual can be directly given as 
     minimize 0
     subject to ATy = c, y >= 0
@@ -10474,7 +10474,7 @@ d.  the dual of a multiple-source single-sink minimum-cost flow problem is a sin
         -yv <= a(u, v) if u = t
     define a(u, v) = w(v, u), yt = 0
         yu <= yv + w(v, u) for all u, v ∈ V
-    when S = V - {t}, this program is exactly the single-source shorest-path problem
+    when S = V - {t}, this program is exactly the single-source shortest-path problem
     the multiple-source single-sink minimum-cost problem can be converted to a normal minimum-cost problem
     by adding a new source ss and edges (ss, si) from the supersource to each sources in the original graph
     c(ss, si) = +∞, a(ss, si) = 0
@@ -10698,7 +10698,7 @@ a.  sum of two Toeplitz matrices must be a Toeplitz matrix
             = ci-1,j-1
     let A = ((1 2 3) (2 1 2) (3 2 1)), a Toeplitz matrix
     A^2 = ((14 10 10) (10 9 10) (10 10 4)) is not a Toeplitz matrix
-b.  each entry in a Toeplitz matrix equals to its top-left neighbour
+b.  each entry in a Toeplitz matrix equals to its top-left neighbor
     if i >= j,
         aij = ai-1,j-1 = .. = ai-j+1,1
     if i <= j,
@@ -10726,8 +10726,8 @@ d.  let C = AB, for i, j > 1,
             = Σ(k = {1 .. n-1})ai-1,k * bk,j-1 + ai1b1j
             = ci-1,j-1 - aj-1,n * bn,j-1 + ai1b1j
     cij can be computed from ci-1,j-1 in O(1)
-    first row and column of C can be computed strightforwardly in O(n^2)
-    each other entries can be derived from its top-left neighbour in O(1)
+    first row and column of C can be computed straightforwardly in O(n^2)
+    each other entries can be derived from its top-left neighbor in O(1)
     O(n^2) in total
 
 30-3
@@ -10915,7 +10915,7 @@ x ≡ y mod b => x = y + kb for k ∈ Z
 31.1-8
 by techniques that will be introduced later
 a power a^b can be computed in time O(lg^algb)
-if n is a kth nontrival power of an integer, as 2^β has β+1 bits, 1 < k < β
+if n is a kth nontrivial power of an integer, as 2^β has β+1 bits, 1 < k < β
 testing if n is a kth power for some particular k can be done by binary search a that a^k = n
 a^k can be computed in O(lg^2algk), the binary search can be done in O(lg^3nlgk) = O(β^3lgk)
 for all possible k, the test can be done in O(β^3Σlgk) = O(β^4lgβ) = POLY(β)
@@ -10988,7 +10988,7 @@ a   = qb' + (q'b + r')
     = qb2^s + q'b + r'
     = (q2^s + q')b + r'
 the most significant bit (s+1th least significant bit) is q, attach q to q' gives quotient of a/b
-comparsion and addition take time O(β), the quotient can be computed in
+comparison and addition take time O(β), the quotient can be computed in
     T(β)    = T(β-1) + O(β)
             = O(β^2)
 given q, r = a - q * b can be computed in O(β^2)
@@ -11135,7 +11135,7 @@ extend P to P' such that
     if 1 <= i, j <= k, by definition of P, R(ni, nj, P) and R(ni, nj, P')
     if k+1 <= i, j <= 2k, by definition of P, R(ni-k, nj-k, P)
     there is a pair (a, b) ∈ P that contains ni-k, nj-k on different sides
-    by defintion of P', (a, b) is extended so it contains ni, nj on different sides, R(ni, nj, P')
+    by definition of P', (a, b) is extended so it contains ni, nj on different sides, R(ni, nj, P')
     if ni ∈ {n1 .. nk}, nj ∈ {nk+1 .. n2k}, j != i + k
     R(ni, nj-k, P), there is a pair (a, b) ∈ P that contains ni and nj-k on different sides
     similarly by how (a, b) is extended, R(ni, nj, P')
@@ -11248,7 +11248,7 @@ if f(x) = (x - a)g(x) mod p,
 the above condition can be achieved by setting
     fi  = gi-1 - agi mod p, agi = gi-1 - fi mod p if i >= 1
         = -agi mod p, agi = -fi mod p if i = 0
-seperately
+separately
 by Theorem 31.25, agi = -fi mod p has a unique solution since gcd(a, p) = 1
 given gi-1, agi = agi-1 - fi mod p also has a unique solution
 such a g(x) exists that f(x) = (x - a)g(x) mod p
@@ -11354,12 +11354,12 @@ when k = 500, p > 0.99
 
 31.8-1
 let n be an odd number that's not a prime power, n >= 3, n has at least two prime factors
-then by spliting the prime factorization of n, n = n1n2 where gcd(n1, n2) = 1, n1, n2 >= 3
+then by splitting the prime factorization of n, n = n1n2 where gcd(n1, n2) = 1, n1, n2 >= 3
 let w be a number that w = 1 mod n1 and w = -1 mod n2
 as n2 >= 3, w != 1 mod n2, w <-> (1, -1)
 since 1 <-> (1, 1) and -1 <-> (-1, -1), w != ±1 mod n
 w^2 mod n <-> (1^2, (-1)^2) = (1, 1) <-> 1, w^2 = 1 mod n
-w is a nontrival root of 1 mod n
+w is a nontrivial root of 1 mod n
 
 31.8-2
 by Chinese remainder theorem, there is a bijection between Zn* and Zp1^ei* x .. x Zpr^er*
@@ -11383,7 +11383,7 @@ but 3 * 5 = 15 is not a Carmichael number since
 therefore a Carmichael number has to be the product of at least three prime numbers
 
 31.8-3
-x is a nontrival square root of 1 mod n, x != 1 and x != -1 mod n
+x is a nontrivial square root of 1 mod n, x != 1 and x != -1 mod n
 1 < x-1, x+1 < n, gcd(x+1, n) and gcd(x-1, n) < n
 (x-1)(x+1) = x^2 - 1 = 0 mod n, gcd((x-1)(x+1), n) = n
 if either gcd(x-1, n) or gcd(x+1, n) = 1, gcd((x-1)(x+1), n) = gcd(x-1, n) or gcd(x+1, n) < n, contradiction
@@ -11398,7 +11398,7 @@ compute xi+1 = f(xi), save y = xi whenever i = 2^k for some k
 compare y and xi afterwards before i = 2^(k+1)
 when 2^k >= u and 2^k >= t, some i between 2^k + 1 and 2^(k+1) will have xi = y
 u = i - 2^k, u can be found in time O(max(t, u) + u) = O(t + u)
-from then t can be found by binary search minimial t that xt+u = xt for 1 <= t <= 2^k
+from then t can be found by binary search minimal t that xt+u = xt for 1 <= t <= 2^k
 if all previous xi is stored, t can be found in time O(lg(t + u)), O(t + u) in total
 
 31.9-3
@@ -11439,8 +11439,8 @@ d.  apply the three cases above
     ./CLRS/number/euclid.ts#binaryGcd
 
 31-2
-a.  the long division method does a trivial substraction for each bit of the quotient
-    each substraction takes time O(lgb), O((1 + lgq)lgb) in total
+a.  the long division method does a trivial subtraction for each bit of the quotient
+    each subtraction takes time O(lgb), O((1 + lgq)lgb) in total
 b.  let a = qb + a mod b, computing a mod b takes time equal to a long division, which is O((1 + lgq)lgb)
     μ(a, b) - μ(b, a mod b)
     = (1 + lga)(1 + lgb) - (1 + lgb)(1 + lg(a mod b))
@@ -11551,16 +11551,16 @@ if k = 1, T[s+1] != P[1], s can be incremented by 1
 if k > 1, none of the characters in T[s+2, s+k-1] equals P[1]
 the next shift that's possibly valid is s+k-1, s may be incremented by k-1
 a character in T is at most compared to P twice
-the total number of comparsions done <= 2n = O(n)
+the total number of comparisons done <= 2n = O(n)
 
 32.1-3
 at each shift s, there are probability 1/d that T[s+1] = P[1], T[s+2] = P[2] ...
-the probability that at least comparsions will be made at shift s is then P(k) = 1/d^(k-1)
-the probability that exact k comparsions will be made is p(k) = 1/d^(k-1) - 1/d^k for k < |P| and 1/d^(k-1) for k = |P|
-the expected number of comparsions is 
+the probability that at least comparisons will be made at shift s is then P(k) = 1/d^(k-1)
+the probability that exact k comparisons will be made is p(k) = 1/d^(k-1) - 1/d^k for k < |P| and 1/d^(k-1) for k = |P|
+the expected number of comparisons is 
     Σkp(k) = Σ{i = {1 .. m})1/d^(k-1) = (1 - (1/d)^m) / (1 - (1/d))
     p(k) is maximized where d = 2, Σkp(k) <= lim(m -> ∞)Σkp(k) = 1/(1 - (1/2)) = 2
-the expected total number of comparsions <= 2(n - m + 1)
+the expected total number of comparisons <= 2(n - m + 1)
 
 32.1-4
 let P = P'♢S, where S contains no gap characters
@@ -11590,7 +11590,7 @@ spurious hit at offset 5: t = 92, t mod q = 4 = p mod q
 
 32.2-2
 compare t to each of p computed from the patterns on line 10 of RABIN-KARP-MATCHER
-test each possible match seperately
+test each possible match separately
 if patterns have different lengths: maintain several t of different length
 
 32.2-3
@@ -11711,7 +11711,7 @@ the only way to transfer from q0 to a state in Q' is from a state in A
 C must enter q ∈ A when envaluating a prefix p that w = p||s, then
     δc(q0, p||s) = δc(δc(q0, p), s) = δc(q0', s) = δ'(q0', s) ∈ A'
 M accepts p and M' accepts s
-instead of accumulate a big DFA for the concatenation, automatas for each pattern can be built seperately
+instead of accumulate a big DFA for the concatenation, automatas for each pattern can be built separately
 once a machine is accepted, immediately start running the next one
 ./CLRS/string/automaton.ts#automatonGapMatcher
 
@@ -12007,7 +12007,7 @@ L1*:
 ~L1:
     ~L1 = {x | ~∃y A(x, y) = 1} = {x | ∀y A(x, y) = 0}
     different to deterministic machines, the definition of acception in NTMs are not symmetric
-    there's no strightforward way to construct a machine that decides the complement of a language ∈ NP
+    there's no straightforward way to construct a machine that decides the complement of a language ∈ NP
 
 34.2-5
 by definition if w ∈ L, A(w, y) = 1 for some |y| = O(n^k)
@@ -12144,7 +12144,7 @@ F only depends on |x| = n, once the circuit is built it can be applied to any in
 34.4-1
 take any circuit which has a single output 
 extend two wires from the output to an and gate
-by adding a constant size of circuit, size of the strightforward reduction is doubled
+by adding a constant size of circuit, size of the straightforward reduction is doubled
 inductively the size of the reuduction is exponential
 
 34.4-2
@@ -12466,7 +12466,7 @@ e.  x---1---┐
         if both c(x) and c(y) = c(TRUE), c(3) = c(TRUE), c(1) = c(RED), c(2) = c(FALSE)
         if both c(x) and c(y) = c(FALSE), c(3) = c(FALSE), c(1) = c(RED), c(2) = c(TRUE)
         if c(x) = c(TRUE) and c(y) = c(FALSE), c(3) = c(FALSE), c(1) = c(RED), c(2) = c(TRUE)
-        if c(x) = c(FALSE) and c(y) = c(TRUE), symmatric
+        if c(x) = c(FALSE) and c(y) = c(TRUE), symmetric
 f.  NP: similar to certificate of COLOR
     NP-hard:
         3-CNF-SAT <=p 3-COLOR
@@ -12540,7 +12540,7 @@ degree(l3) = 4, remove l3 and r1 - r5 have degree (3, 3, 2, 2, 2)
 degree(l4) = 3, remove l4 and r1 - r5 have degree (2, 2, 2, 2, 1)
 degree(l5) = 2, remove l5 and r1 - r5 have degree (2, 2, 1, 1, 1)
 degree(l6) = 2, remove l6 and r1 - r5 have degree (1, 1, 1, 1, 1)
-now the remaining edges is a matching, each of them must be covered by a vertex seperately
+now the remaining edges is a matching, each of them must be covered by a vertex separately
 the algorithm gives a vertex cover of size 11 >= 2 * 5, where 5 = |R|
 
 35.1-4

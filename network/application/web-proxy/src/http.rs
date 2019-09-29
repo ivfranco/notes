@@ -148,7 +148,7 @@ impl HTTPRequest {
         })
     }
 
-    /// Host domain name of the proxified request.
+    /// Host domain name of the request.
     pub fn host(&self) -> &str {
         &self.host
     }
@@ -421,7 +421,7 @@ where
         }
     }
     debug!("Terminate chunk hit");
-    // the test server appearently left out the last CRLF required by RFC7230
+    // the test server apparently left out the last CRLF required by RFC7230
     buf.extend_from_slice(CRLF);
     // skip all trailers
     Ok(buf)

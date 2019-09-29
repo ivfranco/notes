@@ -1,9 +1,6 @@
 use curl::easy::Easy;
-use web_proxy::{
-    Result,
-    server::run_server,
-};
 use std::thread;
+use web_proxy::{server::run_server, Result};
 
 #[test]
 fn http_get_test() -> Result<()> {
@@ -18,10 +15,12 @@ fn http_get_test() -> Result<()> {
 
     {
         let mut transfer = client.transfer();
-        transfer.write_function(|chunk| {
-            buf.extend_from_slice(chunk);
-            Ok(chunk.len())
-        }).unwrap();
+        transfer
+            .write_function(|chunk| {
+                buf.extend_from_slice(chunk);
+                Ok(chunk.len())
+            })
+            .unwrap();
         transfer.perform().unwrap();
     }
 

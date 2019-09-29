@@ -1,4 +1,4 @@
-/// min heap with seperated key and value
+/// min heap with separated key and value
 /// a wrapper around std::collections::BinaryHeap
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;

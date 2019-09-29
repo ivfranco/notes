@@ -225,7 +225,7 @@ b.  prove by induction that if z ∈ x || y, then |z| = |xy| by induction on the
 
 3.
 a.  the first DFA: 7 and 8 inaccessible
-    the second DFA: there is no inacccessible state
+    the second DFA: there is no inaccessible state
 b.  the first DFA: {1, 6}, {3, 4}, {2, 5}
     the second DFA: {1, 2}, {3, 4, 8}, {5, 6, 7}
 c.  the first: M = {Q, {a, b}, δ, s, F}
@@ -304,7 +304,7 @@ b.  denote the set of strongly right linear grammars as R*
             if A -> ε ∉ P and A -> ε ∈ P', removing A -> ε from P' and P' still satisfies the definition
             so P' is not minimal and contradiction
             (A -> aB case: similar)
-    similarly define g: L* -> R* symmatrically
+    similarly define g: L* -> R* symmetrically
     then g o f is the identity function on R*. define G' = f(G) and G'' = g(G'):
         A -> ε ∈ P  <=> A -> ε ∈ P'
                     <=> A -> ε ∈ P''
@@ -312,7 +312,7 @@ b.  denote the set of strongly right linear grammars as R*
                     <=> A -> aB ∈ P''
         thus G = G'' since only the production in the four tuple is changed by f and g
     similarly, f o g is the identity function on L*
-    so f, g is an isomorphism between L* and R*, f and g are bijections, especially:
+    so f, g is an isomorphism between L* and R*, f and g are bijection, especially:
         L* = {f(G) | G ∈ R*}
     now prove by induction that A G->* x <=> A G'->* rev x
     base case: |x| = 0, x = ε
@@ -339,7 +339,7 @@ b.  denote the set of strongly right linear grammars as R*
 c.  every right linear grammar have a corresponding strictly right linear grammar that generates same string sets
     for A -> x and x = x1..xn, define A -> x1A1, A1 -> x2A2, ... An -> ε
     for A -> xB and x = x1..xn, define A -> x1B1, B1 -> x2B2, ... Bn-1 -> xnB
-    symmatrical for left linear grammars
+    symmetrical for left linear grammars
         
 2.
 =>. if S G->* x, x ∈ (N ∪ ∑)*, then #a(x) = #b(x)
@@ -392,7 +392,7 @@ S -> (S) | [S] | SS | ε
 
 4.
 M = ({q}, {[, (, ), ]}, {[, (}, δ, q, ⊥, F)
-accept by empty stack so F is irrelevent
+accept by empty stack so F is irrelevant
 δ = { ((q, [, Γ), (q, [Γ))
     , ((q, (, Γ), (q, (Γ))
     , ((q, ], [), (q, ε))
@@ -426,7 +426,7 @@ induction: assume n >= 2, for all k <= n, if there is some x ∈ ∑*, x != ε
             #a(v) = #b(v) + 1, #a(w) = #b(w) + 1
         thus #a(bvw) = #b(bvw) + 1
     if B G->n+1 x,
-        symmatric
+        symmetric
 conversely, induction on the length of x that 
     for x ∈ ∑*, x != ε,
     S G->* x <= #a(x) = #b(x)
@@ -447,7 +447,7 @@ induction: assume for n >= 2 is even, for all x that |x| <= n,
             then #a(w) - #b(w) = 1 and w != ε since #a(x) - #b(x) = 2
             by induction A G->1 bAA G->* bvw = bx
     if for |y| = n+1, #a(y) + 1 = #b(y)
-        symmatrically, B G->* y
+        symmetrically, B G->* y
     if for |y| = n+2, #a(y) = #b(y)
         if y = ax, then #a(x) + 1 = #b(x), S G->1 aB G->* ax
         if y = bx, similar
@@ -466,7 +466,7 @@ a.  for any k >= 0, let n = 2^(k+1) + 2^2(k+1) - 1
     z = b(n)$b(n+1) ∈ L(G), |z| = 4k+9 >= k
     let z = uvwxy that vx != ε, |vwx| <= k
     if all vwx are in b(n) or b(n+1), v^2wx^2 will change one number but leave the other intact
-    if v or x contains $, v^2wx^2 will have two occurance of $
+    if v or x contains $, v^2wx^2 will have two occurrence of $
     thus $ is in w and v in the last k bits of b(n), w in the first k bits of b(n+1)
     where v ∈ 1* and w = 10* + 0*
     if v != ε, v^2 appends some 1s to the end of b(n) forms b(n')
@@ -593,7 +593,7 @@ a.  a deterministic LBA is a 9-tuple that
         if c M->n c' and c' M->1 c'', then c M->n+1 c''
         and c M->* c' if ∃n that c M->n c'
     define starting configuration cs = (s, |-x-|, 0) where x ∈ ∑* is the input string
-    define acceptence as
+    define acceptance as
         cs M->* (t, _, _)
 b.  for any particular input string x, the length of tape is fixed as |x| + 2
     so there are |Γ|^|x| possible tape strings as endmarkers cannot be overwritten
@@ -611,7 +611,7 @@ d.  thanks http://www.cs.cornell.edu/courses/cs381/2002su/Materials/Homeworks/hw
         thus turing machines can be enumerated in some way
         LBAs are just turing machines with some restrictions, so them can be verified and enumerated as well
     with a matrix that top axis be strings in ∑* enumerated in some way and left axis LBAs
-    let matrix entries be acceptence of strings in corresponding machines
+    let matrix entries be acceptance of strings in corresponding machines
     by taking complement of diagonal there is a set L that is not recognized by any LBA
     to verify x ∈ L, one can build a machine that 
         enumerates strings in the way of the top axis and find i, the index of x
@@ -623,30 +623,30 @@ see Homework 9/5
 
 Homework 9
 1.
-short prove: It's nontrival
+short prove: It's nontrivial
 reuse the reduction from HP to FIN
 if M does not halts on x, L(M') = ∅, or it never enter accept states
 if M halts on x, L(M') = ∑*, or it enters accept states for any input 
 so FIN can be reduced to "if M' ever enters the accept state"
 
 2.
-short prove: It's nontrival
+short prove: It's nontrivial
 reuse the reduction from HP to FIN
 if M does halt on x, L(M') = ∑*, otherwise L(M') = ∅
-by compare whether M' accepts the same set with a trival machine that starts in accept state
-FIN can be reduced to this comparsion
+by compare whether M' accepts the same set with a trivial machine that starts in accept state
+FIN can be reduced to this comparison
 
 3.
 the membership of VALCOMPS can be computed by a LBA 
 for the conditions (1) to (5) in Lecture 35, non of them requires semi-infinite tape
 so for any turing machine M, there exists a LBA M' that
     give x = #a0#...#an, determines if x is a valid computation history of M 
-then halting problem can be reduced to emptyness of L(M')
+then halting problem can be reduced to emptiness of L(M')
 
 4.
 thanks http://www.cs.cornell.edu/courses/cs381/2000FA/Assignments/hw11_soln.pdf
 "increasing order" here means a total order on strings?
-=>  build a string that enumerates strings in lexicographical order and filter-print them with acceptence of M
+=>  build a string that enumerates strings in lexicographical order and filter-print them with acceptance of M
     since M is total, membership test of M always halts, any accepted string will be enumerated in finite time 
 <=  given a enumerator of M that enumerates member of L(M) in increasing order
     for any given string x, keep the enumerator running until it enumerates some y > x in that total order
@@ -665,7 +665,7 @@ a.  let M = (Q, ∑, δ, s, F) and L(M) = A
 b.  let M = {{q}, ∑, δ, q, {q}} and δ(q, _) = q, for A/B:
         if L(B) = ∅, then F' = ∅ 
         if L(B) is not empty, then F' = {q}
-    so the emptyness of a r.e. set reduces to the membership of F', which is undecidable
+    so the emptiness of a r.e. set reduces to the membership of F', which is undecidable
 
 Homework 10
 1.
@@ -688,7 +688,7 @@ this variant of VALCOMPS can be described as intersection of two CFLs
 one generates configurations with proper next configuration relations on position (1,2) (3,4) (5,6)...
 the other generates configurations with proper next configuration relations on position (2,3) (4,5) (6,7)...
 then their intersection has proper next configuration relations on all neighboring pairs (i, i+1)
-and HP can be reduced to the emptyness of VALCOMPS, so the emptyness of intersection of CFLs is undecidable
+and HP can be reduced to the emptiness of VALCOMPS, so the emptiness of intersection of CFLs is undecidable
 the language will be something like:
     // strings in VALCOMPS is delimited by #s
     S -> #C#
