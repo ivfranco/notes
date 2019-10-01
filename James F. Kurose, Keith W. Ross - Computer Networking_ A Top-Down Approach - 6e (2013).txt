@@ -1553,3 +1553,213 @@ c.  S/R > RTT
     server at full speed from now on
     pkt 1 is sent at 2S/R + 2.5RTT, pkt 14 will be sent at 15S/R + 2.5RTT and received at 15S/R + 3RTT
 
+Assignment
+./network/transport/gbn
+log of a test run, sending u32 numbers from 0 to 19
+rtt: 100ms, loss rate: 10%, corrupt rate: 10%, sending window: 4, sending timeout: 1000ms
+[2019-09-30T14:05:43Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 0]
+[2019-09-30T14:05:43Z INFO  gbn::protocol] Send packet: Packet { sn = 0, data = [0, 0, 0, 0] }
+[2019-09-30T14:05:43Z INFO  gbn::channel] Channel lost packet: Packet { sn = 0, data = [0, 0, 0, 0] }
+[2019-09-30T14:05:43Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 1]
+[2019-09-30T14:05:43Z INFO  gbn::protocol] Send packet: Packet { sn = 1, data = [0, 0, 0, 1] }
+[2019-09-30T14:05:43Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 2]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Send packet: Packet { sn = 2, data = [0, 0, 0, 2] }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 3]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Send packet: Packet { sn = 3, data = [0, 0, 0, 3] }
+[2019-09-30T14:05:44Z INFO  gbn::channel] Channel corrupted packet: Packet { sn = 3, data = [0, 0, 0, 3] }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 4]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 5]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 6]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 1, data = [0, 0, 0, 1] }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 7]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver send ACK 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 8]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 9]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 10]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 11]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 12]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 13]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 14]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 15]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 16]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 17]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 18]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Received data from upper layer: [0, 0, 0, 19]
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 2, data = [0, 0, 0, 2] }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver send ACK 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver received packet: CORRUPTED
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver send ACK 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Sender received packet: ACK { sn = 4294967295 }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Duplicated ACK to packet 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Sender received packet: ACK { sn = 4294967295 }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Duplicated ACK to packet 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Sender received packet: ACK { sn = 4294967295 }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Duplicated ACK to packet 4294967295
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Sender timed out, retransmitting unacknowledged packets
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Retransmitting packet 0
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Retransmitting packet 1
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 0, data = [0, 0, 0, 0] }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Retransmitting packet 2
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Receiver send ACK 0
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Retransmitting packet 3
+[2019-09-30T14:05:44Z INFO  gbn::channel] Channel lost packet: ACK { sn = 0 }
+[2019-09-30T14:05:44Z INFO  gbn::protocol] Retransmission done, restart sender timer
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 1, data = [0, 0, 0, 1] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 1
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 2, data = [0, 0, 0, 2] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 2
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 3, data = [0, 0, 0, 3] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 3
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 1 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 0
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 1
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 4, data = [0, 0, 0, 4] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 5, data = [0, 0, 0, 5] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 2 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 2
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 6, data = [0, 0, 0, 6] }
+[2019-09-30T14:05:45Z INFO  gbn::channel] Channel corrupted packet: Packet { sn = 6, data = [0, 0, 0, 6] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 3 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 3
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 7, data = [0, 0, 0, 7] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 4, data = [0, 0, 0, 4] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 4
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 5, data = [0, 0, 0, 5] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:45Z INFO  gbn::channel] Channel lost packet: ACK { sn = 5 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: CORRUPTED
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 7, data = [0, 0, 0, 7] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 4 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 4
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 8, data = [0, 0, 0, 8] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] ACKed packet 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Send packet: Packet { sn = 9, data = [0, 0, 0, 9] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 8, data = [0, 0, 0, 8] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 9, data = [0, 0, 0, 9] }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:45Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Sender timed out, retransmitting unacknowledged packets
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Retransmitting packet 6
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Retransmitting packet 7
+[2019-09-30T14:05:46Z INFO  gbn::channel] Channel lost packet: Packet { sn = 6, data = [0, 0, 0, 6] }
+[2019-09-30T14:05:46Z INFO  gbn::channel] Channel corrupted packet: Packet { sn = 7, data = [0, 0, 0, 7] }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Retransmitting packet 8
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Retransmitting packet 9
+[2019-09-30T14:05:46Z INFO  gbn::channel] Channel corrupted packet: Packet { sn = 8, data = [0, 0, 0, 8] }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Retransmission done, restart sender timer
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver received packet: CORRUPTED
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver received packet: CORRUPTED
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 9, data = [0, 0, 0, 9] }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Receiver send ACK 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Sender received packet: ACK { sn = 5 }
+[2019-09-30T14:05:46Z INFO  gbn::protocol] Duplicated ACK to packet 5
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender timed out, retransmitting unacknowledged packets
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Retransmitting packet 6
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Retransmitting packet 7
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Retransmitting packet 8
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Retransmitting packet 9
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Retransmission done, restart sender timer
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 6, data = [0, 0, 0, 6] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 6
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 7, data = [0, 0, 0, 7] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 7
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 8, data = [0, 0, 0, 8] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 8
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 9, data = [0, 0, 0, 9] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 9
+[2019-09-30T14:05:47Z INFO  gbn::channel] Channel lost packet: ACK { sn = 9 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 6 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 6
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 10, data = [0, 0, 0, 10] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 7 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 7
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 11, data = [0, 0, 0, 11] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 8 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 8
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 12, data = [0, 0, 0, 12] }
+[2019-09-30T14:05:47Z INFO  gbn::channel] Channel corrupted packet: Packet { sn = 12, data = [0, 0, 0, 12] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 10, data = [0, 0, 0, 10] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 10
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 11, data = [0, 0, 0, 11] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: CORRUPTED
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 10 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 9
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 10
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 13, data = [0, 0, 0, 13] }
+[2019-09-30T14:05:47Z INFO  gbn::channel] Channel lost packet: Packet { sn = 13, data = [0, 0, 0, 13] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 14, data = [0, 0, 0, 14] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 11 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] ACKed packet 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Send packet: Packet { sn = 15, data = [0, 0, 0, 15] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 11 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Duplicated ACK to packet 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 14, data = [0, 0, 0, 14] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 15, data = [0, 0, 0, 15] }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Receiver send ACK 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 11 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Duplicated ACK to packet 11
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Sender received packet: ACK { sn = 11 }
+[2019-09-30T14:05:47Z INFO  gbn::protocol] Duplicated ACK to packet 11
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender timed out, retransmitting unacknowledged packets
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Retransmitting packet 12
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Retransmitting packet 13
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Retransmitting packet 14
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Retransmitting packet 15
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Retransmission done, restart sender timer
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 12, data = [0, 0, 0, 12] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 12
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 13, data = [0, 0, 0, 13] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 13
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 14, data = [0, 0, 0, 14] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 14
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 15, data = [0, 0, 0, 15] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 15
+[2019-09-30T14:05:48Z INFO  gbn::channel] Channel lost packet: ACK { sn = 15 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 12 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 12
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Send packet: Packet { sn = 16, data = [0, 0, 0, 16] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 13 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 13
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Send packet: Packet { sn = 17, data = [0, 0, 0, 17] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 14 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 14
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Send packet: Packet { sn = 18, data = [0, 0, 0, 18] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 16, data = [0, 0, 0, 16] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 16
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 17, data = [0, 0, 0, 17] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 17
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 18, data = [0, 0, 0, 18] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 18
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 16 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 15
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 16
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Send packet: Packet { sn = 19, data = [0, 0, 0, 19] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 17 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 17
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Sender received packet: ACK { sn = 18 }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] ACKed packet 18
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver received packet: Packet { sn = 19, data = [0, 0, 0, 19] }
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Receiver send ACK 19
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Channel disconnected / terminate signal received, tear down sender
+[2019-09-30T14:05:48Z INFO  gbn::channel] Channel disconnected
+[2019-09-30T14:05:48Z INFO  gbn::protocol] Terminate signal received, tear down receiver
+[2019-09-30T14:05:48Z INFO  gbn::channel] Channel disconnected
+[2019-09-30T14:05:48Z WARN  gbn::channel] Send terminate but the receiver was already dropped

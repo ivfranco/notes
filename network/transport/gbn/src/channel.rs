@@ -1,4 +1,5 @@
 use crate::protocol::{Message, Packet};
+use log::{error, info, warn};
 use rand::{thread_rng, Rng};
 use std::{
     collections::VecDeque,
@@ -51,7 +52,9 @@ impl Channel {
         let now = Instant::now();
         while let Some((packet, deadline)) = self.queue.pop_front() {
             if deadline <= now {
-                to.send(Message::Packet(packet)).unwrap();
+                to.send(Message::Packet(packet)).unwrap_or_else(|_| {
+                    error!("Channel::pop_packets: receiver dropped");
+                })
             } else {
                 self.queue.push_front((packet, deadline));
                 break;
@@ -68,9 +71,11 @@ impl Channel {
                 match from.recv_timeout(self.next_duration()) {
                     Ok(mut packet) => {
                         if self.loss_rate >= rng.gen() {
+                            info!("Channel lost packet: {:?}", packet);
                             continue;
                         }
                         if self.corrupt_rate >= rng.gen() {
+                            info!("Channel corrupted packet: {:?}", packet);
                             corrupt(&mut packet);
                         }
                         // one way delay, half the rtt
@@ -78,7 +83,13 @@ impl Channel {
                             .push_back((packet, Instant::now() + self.rtt / 2));
                     }
                     Err(Timeout) => self.pop_packets(&to),
-                    Err(Disconnected) => break,
+                    Err(Disconnected) => {
+                        info!("Channel disconnected");
+                        to.send(Message::Terminate).unwrap_or_else(|_| {
+                            warn!("Send terminate but the receiver was already dropped");
+                        });
+                        break;
+                    }
                 }
             }
         });
@@ -98,12 +109,12 @@ fn corrupt(packet: &mut Packet) {
 #[test]
 fn corrupt_test() {
     let mut rng = thread_rng();
-    for _ in 0 .. 100 {
+    for _ in 0..100 {
         let sn = rng.gen();
         let mut data = vec![0; rng.gen_range(10, 100)];
         rng.fill(data.as_mut_slice());
 
-        let mut packet = Packet::new(sn, &data);
+        let mut packet = Packet::new_packet(sn, &data);
         assert!(!packet.corrupted());
         corrupt(&mut packet);
         // one byte error should always be detectable

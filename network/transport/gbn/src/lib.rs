@@ -16,7 +16,7 @@ pub fn checksum(bytes: &[u8]) -> [u8; 2] {
 
     let mut sum = bytes.chunks(size_of::<u16>()).fold(0u32, |mut sum, chunk| {
         sum += u32::from(chunk[0]) << 8;
-        sum += u32::from(chunk.get(1).copied().unwrap_or_default());
+        sum += u32::from(chunk.get(1).copied().unwrap_or(0));
         sum
     });
 
