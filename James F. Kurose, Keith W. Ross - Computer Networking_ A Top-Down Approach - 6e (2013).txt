@@ -1763,3 +1763,64 @@ rtt: 100ms, loss rate: 10%, corrupt rate: 10%, sending window: 4, sending timeou
 [2019-09-30T14:05:48Z INFO  gbn::protocol] Terminate signal received, tear down receiver
 [2019-09-30T14:05:48Z INFO  gbn::channel] Channel disconnected
 [2019-09-30T14:05:48Z WARN  gbn::channel] Send terminate but the receiver was already dropped
+
+4.1
+a.  in favor of datagram. a single point of failure usually will break a whole VC which must then be reestablished
+    according to lengthy and complicated protocol, while datagram architecture may detect the point of failure and 
+    route packets through an other router
+b.  in favor of VC, one may even argue that any protocol that reserves resource on router for a particular connection
+    is indeed VC
+c.  VC will have more overhead, a VC have to be established somehow before transmitting packets, on the other hand
+    datagram protocol can send packets from the start
+
+4.2
+a.  2^8 = 256
+b.  impossible, all link along the path is assigned the same VC number, if < 256 VCs are in progress there must be free
+    VC numbers
+c.  for a router B on the path, let A be the previous router on the path and be C the succeeding router on the path 
+    B is informed about the VC number x along A -> B link of this particular VC 
+    B chooses an arbitrary unused VC number y on the link B -> C, informs C about this number
+    B adds an entry that sends packets from (the corresponding interface of) A with VC number x to C with VC number y
+
+4.3
+VC:
+    incoming interface, incoming VC number, outgoing interface, outgoing VC number
+datagram:
+    destination IP, outgoing interface
+
+4.4
+a.  H3 -> 3
+b.  no, datagram forwarding table is independent to source IP
+c.  1, <VC number H1A>, 3, <VC number AB>
+    2, <VC number H2A>, 4, <VC number AC>
+d.  B:
+        1, <VC number AB>, 2, <VC number BD>
+    C:
+        1, <VC number AC>, 2, <VC number CD>
+    D:
+        1, <VC number BD>, 3, <VC number DH3-1>
+        2, <VC number CD>, 3, <VC number DH3-2>
+
+4.5
+a.  no VC number can be assigned, all VC number is occupied in at least one of the links
+b.  2^4 = 16
+
+4.6
+in a connection-oriented service, there may not be an actual underlying connection in network-layer, e.g. TCP can be
+built on IP protocol and datagram, while in a connection service like VC there is a connection in network-layer
+
+4.7
+a.  no, only one packet may enter a shared bus at a time
+b.  yes as described in section 4.3.2 
+c.  no as described in section 4.3.2, only one packet can be sent through a bus, the second has to wait
+
+4.8
+a.  (n-1)D, where D = t_read + t_process + t_write for a single packet
+    all n - 1 packets before the last one must be read, processed and written to the output bus until the final packet 
+    may be forwarded
+b.  (n-1)D, where D = t_prepend_tag + t_bus_read + t_output
+    almost the same to memory switch, t_bus_read and t_prepend_tag may be significantly faster than t_read and t_process
+c.  0 in most optimistic case, all packets can be sent to their destination concurrently
+
+4.9
+
