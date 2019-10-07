@@ -1823,4 +1823,39 @@ b.  (n-1)D, where D = t_prepend_tag + t_bus_read + t_output
 c.  0 in most optimistic case, all packets can be sent to their destination concurrently
 
 4.9
+minimal:
+    ([x], [xy], [zy])
+    ([], [x], [z])
+    ([], [], [])
+worst:
+    ([x], [xy], [zy])
+    ([], [xy], [y])     // input 2 blocking on x
+    ([], [y], [])
+    ([], [], [])
 
+4.10
+a.  224.0.0.0/10    0
+    224.64.0.0/16   1
+    224.65.0.0/16   2
+    224.32.0.0/10   2
+    otherwise       3
+b.  11001000 10010001 01010001 01010101
+    no prefix matches, otherwise -> interface 3
+    11100001 01000000 11000011 00111100
+    matches 224.32.0.0/10, interface 2
+    11100001 10000000 00010001 01110111
+    no prefix matches, otherwise -> interface 3
+
+4.11
+00000000 - 00111111     0
+01000000 - 01011111     1
+01100000 - 10111111     2
+11000000 - 11111111     3
+
+4.12
+10000000 - 10111111     1
+11000000 - 11011111     0
+11100000 - 11111111     2
+otherwise               3
+
+4.13
