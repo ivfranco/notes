@@ -1859,3 +1859,148 @@ b.  11001000 10010001 01010001 01010101
 otherwise               3
 
 4.13
+223.1.17.0/28   Subnet 3    // 16 IPs
+223.1.17.0/25   Subnet 1    // 128 - 16 = 112 IPs
+223.1.17.128/25 Subnet 2    // 128 IPs
+
+4.14
+200.23.16.0/21  0
+200.23.24.0/24  1
+200.23.24.0/21  2
+otherwise       3
+
+4.15
+already in decimal notation
+
+4.16
+128.119.40.128 is itself an IP can be assigned to this network
+128.119.40.64/28
+128.119.40.80/28
+128.119.40.96/28
+128.119.40.112/28
+
+4.17
+214.97.254.0/31     Subnet D    // 2 IPs
+214.97.254.2/31     Subnet E    // 2 IPs
+214.97.254.4/31     Subnet F    // 2 IPs
+214.97.254.0/25     Subnet B    // 128 - 2 * 3 = 122 IPs
+214.97.254.128/25   Subnet C    // 128 IPs
+214.97.255.0/24     Subnet A    // 256 IPs
+
+4.18
+Wellesley College (https://www.wellesley.edu/)
+    107.20.0.0/14 (AWS)
+    Ashburn,
+    Virginia,
+    United States,
+    North America
+Williams College (https://www.williams.edu/)
+    104.16.0.0/12 (Cloudflare cloud)
+    United States,
+    North America	
+Vassar College (https://www.vassar.edu/)
+    143.229.0.0/16 (the only one not hosted on cloud services)
+    Poughkeepsie,
+    New York,
+    United States,
+    North America	
+Both services seems cannot provide precise location of an IP address, only for a range (CIDR) of IPs
+
+4.19
+4 fragments are generated
+assuming no option fields
+ID      Length      Offset      Flag
+422     680         0           0
+422     680         85          0
+422     680         170         0
+422     360         255         1
+
+4.20
+if the file is transferred by UDP and link is reliable:
+    ceil(5e6 / (1500 - IP_HEADER - UDP_HEADER)) = 3397
+if the file is transferred by TCP:
+    no idea, ACK packets may be nondeterministic
+
+4.21
+a.  192.168.0.0     router
+    192.168.0.1-3   3 hosts
+b.  24.34.112.235, <PORT_MAPPED_A1>    192.168.1, <PORT_A1>
+    24.34.112.235, <PORT_MAPPED_A2>    192.168.1, <PORT_A2>
+    24.34.112.235, <PORT_MAPPED_B1>    192.168.2, <PORT_B1>
+    24.34.112.235, <PORT_MAPPED_B2>    192.168.2, <PORT_B2>
+    24.34.112.235, <PORT_MAPPED_C1>    192.168.3, <PORT_C1>
+    24.34.112.235, <PORT_MAPPED_C2>    192.168.3, <PORT_C2>
+    PORT_MAPPED_* must be distinct but PORT_A1 may be equal to PORT_B1
+
+4.22
+a.  assume packet is frequently sent that all hosts send at least one packet 
+    meantime packets are sparse enough that there's duplicated IDs 
+    record each ID, group into consecutive ranges, count the number of ranges
+b.  it's now indistinguishable between a single host generating a huge number of packets
+    and many hosts generating a few packets each
+
+4.23
+it may be possible with reverse connection and a server in the middle
+both hosts connect to the server's open ports, and the server tunnels packets between them
+
+4.24
+./network/network/problems
+yzwxvu
+yzwxu
+yzwvxu
+yzwvu
+yzwu
+yxwvu
+yxwu
+yxvwu
+yxvu
+yxu
+ywxvu
+ywxu
+ywvxu
+ywvu
+ywu
+
+4.25
+./network/network/problems
+x ~> z
+    xyz
+    xywz
+    xwz
+    xwyz
+    xvwz
+    xvwyz
+    xvuwz
+    xvuwyz
+    xuwz
+    xuwyz
+    xuvwz
+    xuvwyz
+z ~> u
+    zyxwvu
+    zyxwu
+    zyxvwu
+    zyxvu
+    zyxu
+    zywxvu
+    zywxu
+    zywvxu
+    zywvu
+    zywu
+    zwyxvu
+    zwyxu
+    zwxvu
+    zwxu
+    zwvxu
+    zwvu
+    zwu
+z ~> w
+    zyxw
+    zyxvw
+    zyxvuw
+    zyxuw
+    zyxuvw
+    zyw
+    zw
+
+4.26
