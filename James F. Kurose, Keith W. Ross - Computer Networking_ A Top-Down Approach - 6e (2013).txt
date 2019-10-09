@@ -2004,3 +2004,88 @@ z ~> w
     zw
 
 4.26
+./network/network/problems
+   D(t),p(t)   D(u),p(u)   D(v),p(v)   D(w),p(w)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+           ∞           ∞         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+
+4.27
+./network/network/problems
+Shortest paths from t
+   D(u),p(u)   D(v),p(v)   D(w),p(w)   D(x),p(x)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+         2,t         4,t           ∞           ∞         7,t           ∞
+         2,t         4,t         5,u           ∞         7,t           ∞
+         2,t         4,t         5,u         7,v         7,t           ∞
+         2,t         4,t         5,u         7,v         7,t           ∞
+         2,t         4,t         5,u         7,v         7,t        15,x
+         2,t         4,t         5,u         7,v         7,t        15,x
+         2,t         4,t         5,u         7,v         7,t        15,x
+Shortest paths from u
+   D(t),p(t)   D(v),p(v)   D(w),p(w)   D(x),p(x)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+         2,u         3,u         3,u           ∞           ∞           ∞
+         2,u         3,u         3,u           ∞         9,t           ∞
+         2,u         3,u         3,u         6,v         9,t           ∞
+         2,u         3,u         3,u         6,v         9,t           ∞
+         2,u         3,u         3,u         6,v         9,t        14,x
+         2,u         3,u         3,u         6,v         9,t        14,x
+         2,u         3,u         3,u         6,v         9,t        14,x
+Shortest paths from v
+   D(t),p(t)   D(u),p(u)   D(w),p(w)   D(x),p(x)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+         4,v         3,v         4,v         3,v         8,v           ∞
+         4,v         3,v         4,v         3,v         8,v           ∞
+         4,v         3,v         4,v         3,v         8,v        11,x
+         4,v         3,v         4,v         3,v         8,v        11,x
+         4,v         3,v         4,v         3,v         8,v        11,x
+         4,v         3,v         4,v         3,v         8,v        11,x
+         4,v         3,v         4,v         3,v         8,v        11,x
+Shortest paths from w
+   D(t),p(t)   D(u),p(u)   D(v),p(v)   D(x),p(x)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+           ∞         3,w         4,w         6,w           ∞           ∞
+         5,u         3,w         4,w         6,w           ∞           ∞
+         5,u         3,w         4,w         6,w        12,v           ∞
+         5,u         3,w         4,w         6,w        12,v           ∞
+         5,u         3,w         4,w         6,w        12,v        14,x
+         5,u         3,w         4,w         6,w        12,v        14,x
+         5,u         3,w         4,w         6,w        12,v        14,x
+Shortest paths from x
+   D(t),p(t)   D(u),p(u)   D(v),p(v)   D(w),p(w)   D(y),p(y)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+           ∞           ∞         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+         7,v         6,v         3,x         6,x         6,x         8,x
+Shortest paths from y
+   D(t),p(t)   D(u),p(u)   D(v),p(v)   D(w),p(w)   D(x),p(x)   D(z),p(z)
+           ∞           ∞           ∞           ∞           ∞           ∞
+         7,y           ∞         8,y           ∞         6,y        12,y
+         7,y           ∞         8,y        12,x         6,y        12,y
+         7,y         9,t         8,y        12,x         6,y        12,y
+         7,y         9,t         8,y        12,x         6,y        12,y
+         7,y         9,t         8,y        12,x         6,y        12,y
+         7,y         9,t         8,y        12,x         6,y        12,y
+         7,y         9,t         8,y        12,x         6,y        12,y
+Shortest paths from z
+   D(t),p(t)   D(u),p(u)   D(v),p(v)   D(w),p(w)   D(x),p(x)   D(y),p(y)
+           ∞           ∞           ∞           ∞           ∞           ∞
+           ∞           ∞           ∞           ∞         8,z        12,z
+           ∞           ∞        11,x        14,x         8,z        12,z
+        15,v        14,v        11,x        14,x         8,z        12,z
+        15,v        14,v        11,x        14,x         8,z        12,z
+        15,v        14,v        11,x        14,x         8,z        12,z
+        15,v        14,v        11,x        14,x         8,z        12,z
+        15,v        14,v        11,x        14,x         8,z        12,z
+
+4.28

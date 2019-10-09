@@ -1,9 +1,11 @@
 use petgraph::prelude::*;
-use problems::print_all_paths;
+use problems::{print_all_paths, print_dijkstra};
 
 fn main() {
     problem_24();
     problem_25();
+    problem_26();
+    problem_27();
 }
 
 #[allow(clippy::many_single_char_names)]
@@ -77,4 +79,22 @@ fn figure_p26() -> (UnGraph<char, u32>, [NodeIndex; 7]) {
     }
 
     (graph, [t, u, v, w, x, y, z])
+}
+
+fn problem_26() {
+    println!("\nP26");
+
+    let (graph, nodes) = figure_p26();
+    print_dijkstra(&graph, nodes[4]);
+}
+
+fn problem_27() {
+    println!("\nP27");
+
+    let (graph, nodes) = figure_p26();
+    for &node in &nodes {
+        let chr = graph.node_weight(node).unwrap();
+        println!("Shortest paths from {}", chr);
+        print_dijkstra(&graph, node);
+    }
 }
