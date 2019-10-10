@@ -1,11 +1,21 @@
-use petgraph::prelude::*;
-use problems::{print_all_paths, print_dijkstra};
+#![allow(clippy::many_single_char_names)]
+
+use petgraph::{
+    prelude::*,
+    dot::Dot,
+    data::FromElements,
+    algo::min_spanning_tree,
+};
+use problems::{print_all_paths, print_dijkstra, dv::DVGraph};
 
 fn main() {
     problem_24();
     problem_25();
     problem_26();
     problem_27();
+    problem_28();
+    problem_31();
+    problem_44();
 }
 
 #[allow(clippy::many_single_char_names)]
@@ -50,7 +60,6 @@ fn problem_25() {
     print_all_paths(&graph, z, w);
 }
 
-#[allow(clippy::many_single_char_names)]
 fn figure_p26() -> (UnGraph<char, u32>, [NodeIndex; 7]) {
     let mut graph = UnGraph::new_undirected();
     let t = graph.add_node('t');
@@ -97,4 +106,51 @@ fn problem_27() {
         println!("Shortest paths from {}", chr);
         print_dijkstra(&graph, node);
     }
+}
+
+fn problem_28() {
+    println!("\nP28");
+
+    let mut dv_graph = DVGraph::new(5);
+    let u = dv_graph.add_node('u');
+    let v = dv_graph.add_node('v'); 
+    let x = dv_graph.add_node('x'); 
+    let y = dv_graph.add_node('y'); 
+    let z = dv_graph.add_node('z');
+
+    dv_graph.add_edge(u, v, 1); 
+    dv_graph.add_edge(u, y, 2); 
+    dv_graph.add_edge(v, x, 3); 
+    dv_graph.add_edge(v, z, 6);
+    dv_graph.add_edge(y, x, 3); 
+    dv_graph.add_edge(x, z, 2);
+
+    while dv_graph.sync_update() {
+        println!("{:?}", dv_graph);
+    }
+}
+
+fn problem_31() {
+    println!("\nP31");
+
+    let mut dv_graph = DVGraph::new(3);
+    let x = dv_graph.add_node('x'); 
+    let y = dv_graph.add_node('y'); 
+    let z = dv_graph.add_node('z'); 
+
+    dv_graph.add_edge(x, y, 3);
+    dv_graph.add_edge(x, z, 4);
+    dv_graph.add_edge(y, z, 6);
+
+    while dv_graph.sync_update() {
+        println!("{:?}", dv_graph);
+    }
+}
+
+fn problem_44() {
+    println!("\nP44");
+
+    let (graph, _) = figure_p26();
+    let mst: UnGraph<_, _> = Graph::from_elements(min_spanning_tree(&graph));
+    println!("{}", Dot::new(&mst));
 }

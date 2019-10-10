@@ -2089,3 +2089,179 @@ Shortest paths from z
         15,v        14,v        11,x        14,x         8,z        12,z
 
 4.28
+// assume sync update
+./network/network/problems
+init:
+       u   v   x   y   z
+   u   0   1   ∞   2   ∞
+   v   1   0   3   ∞   6
+   x   ∞   3   0   3   2
+   y   2   ∞   3   0   ∞
+   z   ∞   6   2   ∞   0
+first iter:
+       u   v   x   y   z
+   u   0   1   4   2   7
+   v   1   0   3   3   5
+   x   4   3   0   3   2
+   y   2   3   3   0   5
+   z   7   5   2   5   0
+second iter:
+       u   v   x   y   z
+   u   0   1   4   2   6
+   v   1   0   3   3   5
+   x   4   3   0   3   2
+   y   2   3   3   0   5
+   z   6   5   2   5   0
+
+4.29
+// thanks solutions manual
+invariant: 
+    after k iteration, DV of a node contains shortest path cost to other nodes consist of at most k + 1 links
+initialization:
+    k = 0, all nodes know the link cost to (path cost of length 1) their neighbors
+    as link cost is non-negative, that's the shortest path to these neighbors
+maintenance:
+    at the start of iteration k, all nodes know the shortest path cost to nodes with length <= k
+    for a specific node A, a path of length <= k + 1 must first traverse one of one of A's neighbor then 
+    take the shortest path of length <= k from its neighbor to the destination
+    in iteration k, all of A's neighbors pass message of shortest path of length <= k to A
+    A hence calculates shortest paths with length <= k + 1 with Bellman-Ford equation
+the DVs will converge after at most d - 1 iterations, where d is the longest simple path in the graph
+
+4.30
+a.  w   y   u
+    2   4   7
+b.  c(x, w): 2 -> 3
+c.  c(x, y): 5 -> 6
+
+4.31
+./network/network/problems
+init:
+       x   y   z
+   x   0   3   4
+   y   3   0   6
+   z   4   6   0
+no update
+
+4.32
+unlike increasing link cost, decreasing link cost will not cause routing loop
+let the link be (u, v), the DV of u and v will be updated immediately to the correct result since
+any simple path from u that traverses (u, v) must visit v first, otherwise the path is not simple
+the remaining path from v cannot traverse (u, v) again in any direction
+the old DV of v (which u is already informed about) will suffice
+the information of the updated c(u, v) will then be propagated to other nodes
+in turn of their number of hops from u or v
+connecting two nodes is equivalent to decreasing the link cost from infinity to a finite number
+
+4.33
+can be derived from proof in 4.29
+non-increasing: minimum path cost of length <= k + 1 cannot exceed minimum path cost of length <= k by subset relation
+stable: no simple path can have length greater than d, after d iterations the costs will no longer change
+
+4.34
+a.  w to z: c(w, x) = 5, w to y: c(w, x) = None
+    y to z: c(y, x) = 4, y to w: c(y, x) = 4
+    z to w: c(z, x) = None, z to y: c(z, x) = 6
+b.  count-to-infinity will still happen between y and z
+    z is unaware of the next hop of w being y so will inform y the already out-of-date information of path costs 
+    in a 3-step loop:
+        y update c(y, x) = c(z, x) + c(y, z) = 9, to w: c(y, x) = 9, to z: c(y, x) = None
+        w update c(w, x) = c(y, x) + c(w, y) = 10, to y: c(w, x) = None, to z: c(w, x) = 10
+        z update c(z, x) = c(w, x) + c(z, w) = 11, to w: c(z, x) = None, to y: c(z, x) = 11
+    at iteration 33, c(z, y) + c(y, x) = 51, z will route via (z, x) instead, DV will stabilize next iteration
+c.  set c(y, z) >= 60 - 6 = 54
+    y will choose to route via (y, x) in the first iteration, no routing loop will be formed
+
+4.35
+by AS-PATH attributes
+if ASN of a router is included in AS-PATH of an advertisement it will drop it
+
+4.36
+no, it's affected by the import policy of the AS
+
+4.37
+a.  eBGP from 4c
+b.  iBGP from 3b
+c.  eBGP from 3a
+d.  iBGP
+
+4.38
+// assume no local preference
+a.  I1, AS-PATH is the same, NEXT-HOP distance to 3a -> 1c interface in RIP is measured by number of hops, 
+    and I1 points to the path of minimum length
+b.  I2, AS-PATHs have the same length, NEXT-HOP distance via I2 to 2a is shorter than via I1 to 3a
+c.  I1, AS-PATH via AS4 -> AS3 is shorter than via AS4 -> AS5 -> AS2
+
+4.39
+in B:   
+    the administrator of B may adjust the LOCAL_PREF attribute of routers in B to send packets with destination D
+    via its west coast exit
+in C:
+    the administrator of C may adjust the MULTI_EXIT_DISC attribute of BGP messages from D, thus the routers in B may
+    prefer sending through the east coast entry of C all other factors being equal
+
+4.40
+// assume providers do not advertise unnecessary paths
+view of W:
+    no link between B and C, otherwise B or C provides free rides to another
+view of Y:
+    no link between B and C, B will not shoulder traffic from C to X, the same below
+    no link between B and X
+    no link between A and B
+
+4.41
+bittorrent, X receives segments of a data from W via B, then send it through another TCP link via C to Y
+effectively routes the segment on the path W -> A -> B -> X -> C -> Y
+
+4.42
+A to B: A-W and A-V 
+A to C: A-V
+C receives: B-A-W, B-A-V, A-V
+
+4.43
+Y and Z are in a peering agreement, Z will advertise all its paths to Y
+Y and X are in a peering agreement, Y will advertise all its paths, including paths via Z, to X
+there's nothing Z can do to prevent X routes its traffic to Z
+
+4.44
+./network/network/problems
+graph {
+    0 [label="t"]
+    1 [label="u"]
+    2 [label="v"]
+    3 [label="w"]
+    4 [label="x"]
+    5 [label="y"]
+    6 [label="z"]
+    0 -- 1 [label="2"]
+    2 -- 4 [label="3"]
+    1 -- 2 [label="3"]
+    1 -- 3 [label="3"]
+    4 -- 5 [label="6"]
+    4 -- 6 [label="8"]
+}
+by documentation (https://docs.rs/petgraph/0.4.13/petgraph/algo/fn.min_spanning_tree.html) 
+it's calculated by Kruskal's algorithm
+
+4.45
+unicast:
+    each packet traverses 5 links, 32 * 5 = 160 cost
+broadcast:
+    each link is traversed once
+    2 + 4 + 8 + 16 + 32 = 64 - 2 = 62 cost
+a long simple path of routers with all receivers attached to the last router 
+if there are n receivers, each packet will be sent n times through the path with unicast
+but only once with broadcast
+
+4.46
+B: // B will always receive package from A
+C: A -> C
+D: A -> C -> E -> D
+
+4.47
+skipped
+
+4.48
+skipped
+
+4.49
