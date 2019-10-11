@@ -2259,9 +2259,60 @@ C: A -> C
 D: A -> C -> E -> D
 
 4.47
-skipped
+path not in shortest-path tree:
+    (E, F), (E, D), (E, C), (C, A), {(D, B) or (C, B)}, (D, G)
 
 4.48
-skipped
+./network/network/problems
+shortest path tree:
+    (z, x), (z, y), (x, v), (x, w), (v, t), (v, u)
 
 4.49
+./network/network/problems
+p(A) = Some('C')
+p(B) = Some('C')
+p(C) = None
+p(D) = Some('E')
+p(E) = Some('C')
+p(F) = Some('C')
+p(G) = Some('D')
+it's a shortest path tree, in general may not be the minimum spanning tree
+
+4.50
+./network/network/problems
+p(t) = Some('v')
+p(u) = Some('v')
+p(v) = None
+p(w) = Some('v')
+p(x) = Some('v')
+p(y) = Some('v')
+p(z) = Some('x')
+
+4.51
+a 4-node graph:
+    c(A, B) = 2, c(A, C) = 2, c(A, D) = 2, c(B, C) = 1, c(C, D) = 1
+{(A, B), (A, C), (A, D)} is a shortest path tree with total link cost 6
+a minimum spanning tree {(A, C), (B, C), (C, D)} has total link cost 4
+
+4.52
+each time step a node receiving a packet will duplicate and send the packet to two neighbors
+in time step t, 2^(t - 1) packets are transmitted
+
+4.53
+with transport or application layer information embedded in the data section of network layer packets
+
+4.54
+the description of multicast in this chapter is too vague to design anything on it
+if the multicast protocol permits any participant to be a sender
+each host may broadcast it's identity to the multicast group 
+otherwise the only sender may broadcast its IP in the multicast group and receivers can send back their identity 
+through out-of-band unicast channel
+
+4.55
+according to RFC5771, IPv4 multicast addresses ranges from 224.0.0.0 to 239.255.255.255, 265302000 in total
+2 group collision probability is 1/265302000
+1000 group collision probability is, by approximation,
+    1 - e^(-k(k - 1) / 2N)
+    = 0.00188098874
+
+Assignment 5

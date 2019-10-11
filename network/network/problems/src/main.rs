@@ -1,10 +1,12 @@
 #![allow(clippy::many_single_char_names)]
+#![allow(non_snake_case)]
 
 use petgraph::{
     prelude::*,
     dot::Dot,
     data::FromElements,
-    algo::min_spanning_tree,
+    algo::{min_spanning_tree, bellman_ford},
+    visit::IntoNodeReferences,
 };
 use problems::{print_all_paths, print_dijkstra, dv::DVGraph};
 
@@ -16,6 +18,9 @@ fn main() {
     problem_28();
     problem_31();
     problem_44();
+    problem_48();
+    problem_49();
+    problem_50();
 }
 
 #[allow(clippy::many_single_char_names)]
@@ -154,3 +159,57 @@ fn problem_44() {
     let mst: UnGraph<_, _> = Graph::from_elements(min_spanning_tree(&graph));
     println!("{}", Dot::new(&mst));
 }
+
+fn figure_4_46() -> (UnGraph<char, u32>, [NodeIndex; 7]) {
+    let mut graph = UnGraph::new_undirected();
+
+    let A = graph.add_node('A');
+    let B = graph.add_node('B'); 
+    let C = graph.add_node('C'); 
+    let D = graph.add_node('D'); 
+    let E = graph.add_node('E'); 
+    let F = graph.add_node('F'); 
+    let G = graph.add_node('G');
+
+    graph.add_edge(A, B, 1); 
+    graph.add_edge(A, C, 1); 
+    graph.add_edge(B, C, 1); 
+    graph.add_edge(B, D, 1); 
+    graph.add_edge(C, E, 1); 
+    graph.add_edge(C, F, 1); 
+    graph.add_edge(D, E, 1); 
+    graph.add_edge(D, G, 1); 
+    graph.add_edge(E, F, 1); 
+
+    (graph, [A, B, C, D, E, F, G])
+}
+
+fn prev_map(graph: &UnGraph<char, u32>, source: NodeIndex) {
+    let (_, prevs) = bellman_ford(&graph.map(|_, &n| n, |_, &e| f64::from(e)), source).unwrap();
+    for (node, symbol) in graph.node_references() {
+        println!("p({}) = {:?}", symbol, prevs[node.index()].and_then(|prev| graph.node_weight(prev)));
+    }
+}
+
+fn problem_48() {
+    println!("\nP48");
+
+    let (graph, nodes) = figure_p26();
+    let source = nodes[6];
+    prev_map(&graph, source);
+}
+
+fn problem_49() {
+    println!("\nP49");
+
+    let (graph, nodes) = figure_4_46();
+    prev_map(&graph, nodes[2]);
+}
+
+fn problem_50() {
+    println!("\nP50");
+
+    let (graph, nodes) = figure_p26();
+    prev_map(&graph, nodes[2]);
+}
+

@@ -1,13 +1,12 @@
-# Disclaimer
-
+## Disclaimer
 Notes and exercise answers in this repository are side products of informal and unsupervised self-teaching. 
 Who produced these notes is not a graduate in computer or mathematics related fields, nor a native English speaker.
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
-# Reading:
+## Reading:
 - Computer Networking: A Top-Down Approach, James F. Kurose & Keith W. Ross, 6th Edition, in Rust
 
-# Read (in temporal order):
+## Read (in temporal order):
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
 - Types and Programming Languages, Benjamin C. Pierce, in Haskell
 - Automata and Computability, Dexter C. Kozen
