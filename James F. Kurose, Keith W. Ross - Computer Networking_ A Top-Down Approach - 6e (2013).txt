@@ -2316,3 +2316,70 @@ according to RFC5771, IPv4 multicast addresses ranges from 224.0.0.0 to 239.255.
     = 0.00188098874
 
 Assignment 5
+./network/network/icmp-ping
+
+5.1
+1110 1
+0110 0
+1001 0
+1101 1
+1100 0
+
+5.2
+a single bit frame with 2-d even parity scheme:
+    1 0
+    1 0
+assume one-bit error, the error must be the column parity bit 
+(switch any other bit and the frame would  still be invalid)
+or both the data bit and the column parity bit is wrong but it's indistinguishable from the single bit error
+
+5.3
+./network/link/problems
+11110011 11011111
+
+5.4
+./network/link/problems
+a.  11100110 11100001
+b.  10100000 10011011
+c.  11111111 11111010
+
+5.5
+// assume 4-bit remainder, according to most textbooks & wikipedia remainder has order one lower than the generator
+// (i.e. one bit shorter than the generator)
+// see Computer Networks: A Systems Approach, Larry L. Peterson & Bruce S. Davie, 5e
+// also https://en.wikipedia.org/wiki/Mathematics_of_cyclic_redundancy_checks
+./network/link/problems
+0100
+
+5.6
+./network/link/problems
+a.  0000
+b.  1111
+c.  1001
+
+5.7
+a.  let D * 2^r + R be the frame, it must have D * 2^r + R = nG
+    if the ith bit is altered by the channel, the frame received is D * 2^r + R + 2^i = nG + 2^i
+    with G = 1001, there's no 2^i = nG for any n:
+        for any n, let the lowest 1-bit in n be 2^p, the highest 1-bit in n be 2^q
+        p <= q, the lowest 1-bit in nG 2^p * 1 = 2^p, the highest 1-bit in nG is 2^q * 1000 = 2^(q + 3)
+        no other bits in n can override these two 1-bits, nG contains at least 2 1-bits, nG != 2^i
+    // polynomial remainder is unique over GF(p^m) when p is prime, GF(p^m) is the Galois Field, proof not given
+    there must be unique (m, R') pair where 2^i = mG + R' and R is a polynomial lower than G
+    nG + 2^i = (n + m)G + R', D * 2^r + R + 2^i is not divisible by G, one bit error will always be detected
+b.  again the frame received is D * 2^r + R + E = nG + E, where E has odd number of 1-bits
+    with G = 1001, one step of long division (XOR) will not change the parity of the remaining data:
+        // ./network/link/problems
+        1000 XOR 1001 = 0001
+        1001 XOR 1001 = 0000
+        1010 XOR 1001 = 0011
+        1011 XOR 1001 = 0010
+        1100 XOR 1001 = 0101
+        1101 XOR 1001 = 0100
+        1110 XOR 1001 = 0111
+        1111 XOR 1001 = 0110
+    but the order of the data is reduced by at least 1
+    also any E with order <= 3 and odd number of 1-bits is not divisible by 1001
+    therefore E and D * 2^r + R + E is not divisible by 1001, odd number of bit error will always be detected
+
+5.8

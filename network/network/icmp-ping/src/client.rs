@@ -30,7 +30,10 @@ pub fn ping(ip: &str) -> Result<()> {
     );
     if let Some((min, max, avg)) = minmaxavg(&results) {
         println!("Approximate round trip times in milli-seconds:");
-        println!("    Minimum = {}ms, Maximum = {}ms, Average = {}ms", min, max, avg);
+        println!(
+            "    Minimum = {}ms, Maximum = {}ms, Average = {}ms",
+            min, max, avg
+        );
     }
     Ok(())
 }
@@ -42,7 +45,8 @@ fn received(results: &[Option<Duration>]) -> usize {
 fn minmaxavg(results: &[Option<Duration>]) -> Option<(u128, u128, u128)> {
     let min = results.iter().filter_map(|rtt| *rtt).min()?.as_millis();
     let max = results.iter().filter_map(|rtt| *rtt).max()?.as_millis();
-    let avg = (results.iter().filter_map(|rtt| *rtt).sum::<Duration>() / results.len() as u32).as_millis();
+    let avg = (results.iter().filter_map(|rtt| *rtt).sum::<Duration>() / results.len() as u32)
+        .as_millis();
     Some((min, max, avg))
 }
 
