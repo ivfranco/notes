@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 checksum = { path = "../../transport/checksum" }
+textplots = "=0.4.1"

@@ -280,12 +280,12 @@ p(loss) = 1 - (1-p)^N
 X ~ Geometric((1-p)^N), E[X] = 1 / (1-p)^N
 
 1.23
-a.  trace of last bit of package 1 
+a.  trace of last bit of packet 1 
         L/Rs:   leaves A
         +d_prop: reaches switch
         +L/Rc:  leaves switch
         +d_prop: reaches B
-    trace of last bit of package 2
+    trace of last bit of packet 2
         // no queueing in between: Rc >= Rs
         2L/Rs: leaves A
         +d_prop: reaches switch
@@ -320,7 +320,7 @@ c.  1Gb/s / 2.5e8m/s = 4.295m
 
 1.28
 a.  d = L/R + d_prop = 800_000 / 2 * 1024^2 + 0.08s = 0.381s + 0.08s = 0.461s
-b.  one package:
+b.  one packet:
         L/R:    last bit sent
         +d_prop: last bit received, acknowledge sent
         +d_prop: acknowledge received 
@@ -2254,7 +2254,7 @@ if there are n receivers, each packet will be sent n times through the path with
 but only once with broadcast
 
 4.46
-B: // B will always receive package from A
+B: // B will always receive packet from A
 C: A -> C
 D: A -> C -> E -> D
 
@@ -2362,7 +2362,7 @@ a.  let D * 2^r + R be the frame, it must have D * 2^r + R = nG
     if the ith bit is altered by the channel, the frame received is D * 2^r + R + 2^i = nG + 2^i
     with G = 1001, there's no 2^i = nG for any n:
         for any n, let the lowest 1-bit in n be 2^p, the highest 1-bit in n be 2^q
-        p <= q, the lowest 1-bit in nG 2^p * 1 = 2^p, the highest 1-bit in nG is 2^q * 1000 = 2^(q + 3)
+        p <= q, the lowest 1-bit in nG is 2^p * 1 = 2^p, the highest 1-bit in nG is 2^q * 1000 = 2^(q + 3)
         no other bits in n can override these two 1-bits, nG contains at least 2 1-bits, nG != 2^i
     // polynomial remainder is unique over GF(p^m) when p is prime, GF(p^m) is the Galois Field, proof not given
     there must be unique (m, R') pair where 2^i = mG + R' and R is a polynomial lower than G
@@ -2383,3 +2383,354 @@ b.  again the frame received is D * 2^r + R + E = nG + E, where E has odd number
     therefore E and D * 2^r + R + E is not divisible by 1001, odd number of bit error will always be detected
 
 5.8
+a.  dNp(1-p)^(N-1)/dp 
+    = N(1-p)^(N-1) - N(N-1)p(1-p)^(N-2)
+    = N(1 - p - (N-1)p)(1-p)^(N-2)
+    = N(1 - p - Np + p)(1-p)^(N-2)
+    = N(1-Np)(1-p)^(N-2) = 0
+    p = 1/N
+b.  lim(N -> ∞)Np(1-p)^(N-1)
+    = lim(N -> ∞)(1-1/N)^(N-1)
+    = lim(N -> ∞)(1-1/N)^N * 1/(1 - 1/N)
+    = 1/e
+
+5.9
+// skipped, similar to 5.8
+
+5.10
+a.  throughput: pa(1 - pb) frame / slot
+    efficiency: pa(1 - pb) + pb(1 - pa)
+b.  throughput of A:  pa(1 - pb) = 2pb(1 - pb)
+    throughput of B:  pb(1 - pa) = pb(1 - 2pb)
+    not always twice as large, only when 
+        pa(1 - pb) = 2pb(1 - pa)
+        pa - papb = 2pb - 2papb
+        papb = 2pb - pa
+        pa = (2pb - pa)/pb
+c.  throughput of A:    2p(1 - p)^(N-1) frame / slot 
+    throughput of other: p(1 - p)^(N-2)(1 - 2p) frame / slot
+
+5.11
+a.  (1 - p(1 - p)^4)^4 * p(1 - p)^4
+b.  4p(1 - p)^4
+c.  (1 - 4p(1 - p)^4)^2 * 4p(1 - p)^4
+d.  4p(1 - p)^4 frame / slot
+
+5.12
+N = 15
+⡁ ⢀⠎⠉⢆                                                        0.4
+⠄ ⢸  ⠘⡄
+⠂ ⡇   ⢱
+⡁⢀⠇   ⠈⢆
+⠄⢸      ⡇
+⠂⡇      ⢸
+⣱⠁       ⢇
+⢼⢀⢤      ⠘⡄
+⢺⠃ ⢇      ⠘⡄
+⣹  ⠘⡄      ⠸⡀
+⡿   ⠘⡄      ⢣
+⡇    ⢱       ⠑⡄
+⡇     ⢣       ⠈⢆
+⡇      ⠑⢄       ⠉⠢⡀
+⡇        ⠑⠤⢄⣀     ⠈⠒⠢⠤⣀⣀⣀
+⠁⠈ ⠁⠈ ⠁⠈ ⠁⠈ ⠁⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      1.0
+N = 25
+⡁⢀⠞⡄                                                          0.4
+⠄⡸ ⢣
+⠂⡇ ⠸⡀
+⣹   ⢣
+⢼   ⠈⡆
+⢺    ⢇
+⣹    ⢸
+⣜⢄    ⡇
+⣿ ⡇   ⢱
+⡇ ⢱   ⠘⡄
+⡇ ⠸⡀   ⠘⡄
+⡇  ⡇    ⢱
+⡇  ⠸⡀    ⢣
+⡇   ⠑⡄    ⠑⢄
+⡇    ⠈⠢⣀⡀   ⠑⠤⢄⣀⣀
+⠁⠈ ⠁⠈ ⠁⠈⠈⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      1.0
+N = 35
+⡁⡔⡇                                                           0.4
+⢼ ⢸
+⢺ ⠸⡀
+⣹  ⡇
+⢼  ⢇
+⡎  ⢸
+⡇  ⠸⡀
+⡇⡀  ⢇
+⡏⢇  ⠘⡄
+⡇⠸⡀  ⢇
+⡇ ⡇  ⢸
+⡇ ⢣   ⡇
+⡇ ⠸⡀  ⠸⡀
+⡇  ⢇   ⠑⢄
+⡇  ⠈⠒⢄  ⠈⠢⠤⣀⡀
+⠁⠈ ⠁⠈ ⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠉⠁ 0.0
+0.0                                                      1.0
+
+5.13
+Q / (Q/R + d_poll)
+
+5.14
+// assume the square boxes are switches
+a.  Host A: 192.168.1.1
+    Host B: 192.168.1.2
+    R1 -> Subnet 1: 192.168.1.0
+    R1 -> Subnet 2: 192.168.2.0
+    R2 -> Subnet 2: 192.168.2.1
+    Host C: 192.168.2.2
+    Host D: 192.168.2.3
+    R2 -> Subnet 3: 192.168.3.0
+    Host E: 192.168.3.1
+    Host F: 192.168.3.2
+b.  Host A: AA-AA-AA-AA-AA-AA
+    Host B: BB-BB-BB-BB-BB-BB
+    R1 -> Subnet 1: 00-00-00-00-00-11
+    R1 -> Subnet 2: 00-00-00-00-00-12
+    R2 -> Subnet 2: 00-00-00-00-00-22
+    Host C: CC-CC-CC-CC-CC-CC
+    Host D: DD-DD-DD-DD-DD-DD
+    R2 -> Subnet 3: 00-00-00-00-00-23
+    Host E: EE-EE-EE-EE-EE-EE
+    Host F: FF-FF-FF-FF-FF-FF
+c.  1.  Host E looks for entry for IP address of Host B in its forward table, finds the interface of R2 in Subnet 3
+    2.  Host E looks for 192.168.3.0 in its ARP table, finds 00-00-00-00-00-23
+    3.  Host E insert IP datagram in a frame with destination MAC above to the link
+    4.  R2 receives the frame, extract datagram and destination IP, looks for 192.168.1.2 in its forwarding table
+    repeat between R2 -> R1 and R1 -> B
+d.  1.  same to above
+    2.  Host E looks for 192.168.3.0 in its ARP table and find nothing
+    3.  Host E sends ARP query for 192.168.3.0 to FF-FF-FF-FF-FF-FF from EE-EE-EE-EE-EE-EE
+    4.  R2 receives the query, find out 192.168.3.0 is the IP address of its interface
+        sends the IP and MAC address (00-00-00-00-00-23) of its interface back to EE-EE-EE-EE-EE-EE
+    5.  Host E updates its ARP table upon receiving the ARP response
+    same to part c from now on
+
+5.15
+a.  the switch between E and F is transparent to them and R1 will not response to ARP queries from E for the IP of F
+    ARP table of Host E should have an entry (<IP of F>, <MAC of F>) in it after ARP query
+    source IP: <IP of Host E>
+    source MAC: <MAC of Host E>
+    destination IP: <IP of Host F>
+    destination MAC: <MAC of Host F>
+b.  no, Host E will perform an ARP query to find next-hop of B's IP in its forwarding table
+    in this case R1's interface to Subnet 3
+    source IP: <IP of Host E>
+    source MAC: <MAC of Host E>
+    destination IP: <IP of Host B>
+    destination MAC: <MAC of R1 -> Subnet 3 interface>
+c.  S1 will find a match of B's MAC address and forward the frame only to the channel between itself and B
+    also S1 will update is ARP table with the MAC and IP address of A
+    R1 will not receive the frame containing this message
+    B will not send ARP query for A's MAC address, the source of the query is contained in the query
+    once S1 receives the ARP response, as it now has the MAC and IP address of A in its ARP table
+    it will forward the frame to the channel between itself and A
+
+5.16
+a.  the same if the switch between E and F has ARP entry of both E and F
+b.  now E and B are in the same subnet, E will perform an ARP query to find B's MAC address
+    source IP: <IP of Host E>
+    source MAC: <MAC of Host E>
+    destination IP: <IP of Host B>
+    destination MAC: <MAC of Host B>
+c.  the same
+
+5.17
+10Mbps: 100 * 512 / (10 * 1024^2) = 0.0048828125s
+10Mbps: 100 * 512 / (100 * 1024^2) = 0.00048828125s
+
+5.18
+the channel would appear to B to be idle before t = 325
+if A has less than 325 bits to transmit at t = 325 and B started transmission at t = 324
+A will detect the collision only after finish transmitting
+at worst case B's signal reach A at t = 325 - 1 + 325 = 649
+
+5.19
+the retransmission may collide again if their value of K is close enough
+the channel would be idle again at t = 245 + 245 = 490
+then A immediately starts the retransmission at t = 490
+B schedules the retransmission to begin at t = 490 + 512 = 1002
+at t = 490 + 245 = 735 A's signal reaches B
+minimum frame size is 576 bits > 1002 - 735 = 267 bits, B will abort retransmission and wait for the channel to be idle
+
+5.20
+a.  p_success = Np(1-p)^(N-1)
+    x = E[X], X ~ Geometric(p_success) 
+    = (1 - p_success) / p_success
+    = (1 - Np(1-p)^(N-1)) / Np(1-p)^(N-1)
+    = 1/Np(1-p)^(N-1) - 1
+b.  dx/dp = (Np - 1) / (Np^2(1-p)^N) = 0
+    p = 1/N
+c.  x = 1/Np(1-p)^(N-1) - 1
+    = 1/(1-1/N)^(N-1) - 1
+    lim(N -> ∞)x = e - 1
+    lim(N -> ∞)(k / (k + x)) = k / (k + e - 1)
+d.  lim(k -> ∞)(k / (k + e - 1)) = 1
+
+5.21
+i.  src IP: <IP of A>
+    src MAC: <MAC of A>
+    dest IP: <IP of F>
+    dest MAC: <IP of R1>
+ii. src IP: <IP of A>
+    src MAC: <MAC of R1>
+    dest IP: <IP of F>
+    dest MAC: <IP of R2>
+iii.src IP: <IP of A>
+    src MAC: <MAC of R2>
+    dest IP: <IP of F>
+    dest MAC: <MAC of F>
+
+5.22
+i.  src IP: <IP of A>
+    src MAC: <MAC of A>
+    dest IP: <IP of F>
+    dest MAC: <MAC of R2>
+ii. src IP: <IP of A>
+    src MAC: <MAC of A>
+    dest IP: <IP of F>
+    dest MAC: <IP of R2>
+iii.src IP: <IP of A>
+    src MAC: <MAC of R2>
+    dest IP: <IP of F>
+    dest MAC: <MAC of F>
+
+5.23
+// assume all links are full-duplex
+1100Mbps, 200Mbps between two servers (each downloading the other at rate 100Mbps)
+900Mbps among hosts: among each department, each host downloads from other 2 at rate 50Mbps per host
+
+5.24
+500Mbps, 200Mbps between two servers as before
+300Mbps among hosts: among each department, only one download of 100Mbps can be achieved at a time
+
+5.25
+the entire network is a single bus with maximum throughput 100Mbps
+
+5.26
+i.  B -> E
+    + B_IP, B_MAC
+    broadcasted to all links except S -> B
+ii. E -> B
+    + E_IP, E_MAC
+    only send to S -> B link
+iii.A -> B
+    + A_IP, A_MAC
+    only send to S -> B link
+iv. B -> A 
+    only send to S -> A link
+
+5.27
+a.  8P / (128 * 1024)
+b.  L = 1500 bytes, P = L - 5 = 1495 bytes
+    1495 * 8 / (128 * 1024) = 0.09124755859375s
+    L = 50 bytes, P = L - 5 = 45 bytes
+    45 * 8 / (128 * 1024) = 0.00274658203125s
+c.  Ethernet header is 6 + 6 + 2 + 4 + 8 = 26 bytes
+    (1500 + 26) * 8 / (622 * 1024 ^ 2) = 0.0000187s
+    (50 + 26) * 8 / (622 * 1024 ^ 2) = 9.322e-7s
+d.  when transmission delay is negligible, smaller packet can greatly reduce total delay 
+
+5.28
+1.  EE host send a frame:
+        src (<IP of EE>, <MAC of EE>)
+        dest (<IP of CS>, <MAC of R>)
+    to the VLAN switch at one of port 2-8
+2.  VLAN switch (with a complete ARP table) forwards the frame: 
+        src (<IP of EE>, <MAC of EE>)
+        dest (<IP of CS>, <MAC of R>)
+    to port 1
+3.  R receives the frame and send a frame:
+        src (<IP of EE>, <MAC of R>)
+        dest (<IP of CS>, <MAC of CS>)
+    back to to port 1
+4.  VLAN switch forwards the frame:
+        src (<IP of EE>, <MAC of R>)
+        dest (<IP of CS>, <MAC of CS>)
+    to one of port 9-15
+5.  CS host receives the frame
+
+5.29
+R5:
+    _   0   A   0
+R6:
+    _   1   A   0
+R4:
+    0   10  A   0
+    1   8   A   1
+    _   12  D   0
+
+5.30
+R5:
+    _   2   D   0
+R6:
+    _   3   D   0
+R4:
+    3   12  D   0
+    2   2   D   1
+R2:
+    2   2   D   0
+R1:
+    2   12  D   1
+
+5.31
+1.  PC sends a DHCP request in UDP segment
+        src: (68, <0.0.0.0>, <PC_MAC>)
+        dest: (67, <255, 255, 255, 255>, <FF-FF-FF-FF-FF-FF>)
+    to the link
+2.  local DHCP server receives the request, allocates a new <PC_IP>, send response in UDP segment
+        src: (67, <DHCP_IP>, <DHCP_MAC>)
+        dest: (68, <PC_IP>, <PC_MAC>)
+    containing local gateway and DNS server IP to the link
+3.  PC want to query DNS server for the domain name but doesn't know the MAC address of DNS server
+    sends ARP query to the link
+        src: (<PC_IP>, <PC_MAC>)
+        dest: (<DNS_IP>, <FF-FF-FF-FF-FF-FF>)
+4.  ARP query picked up by the DNS server, server sends ARP response
+        src: (<DNS_IP>, <DNS_MAC>)
+        dest: (<PC_IP>, <PC_MAC>)
+5.  PC receives ARP response and updates its ARP table
+    sends DNS query to DNS server in UDP segment 
+        src: (<PORT>, <PC_IP>, <PC_MAC>)
+        dest: (53, <DNS_IP>, <DNS_MAC>)
+    containing the domain name of the web server
+6.  DNS query is routed to the DNS server with forwarding tables established by some intra network routing protocol
+    DNS server send response in UDP segment 
+        src: (53, <DNS_IP>, <DNS_MAC>)
+        dest: (<PORT>, <PC_IP>, <PC_MAC>)
+    containing the IP of the web server 
+7.  PC does another ARP query to find the MAC address of the local gateway
+8.  PC send TCP SYN to the web server in TCP segment
+        src: (<PORT>, <PC_IP>, <PC_MAC>)
+        dest: (80, <SERVER_IP>, <GATEWAY_MAC>)
+9.  after inter and intra network forwarding web server receives the SYN, sends SYNACK
+        src: (80, <SERVER_IP>, <SERVER_MAC>)
+        dest: (<PORT>, <PC_IP>, <SERVER_GATEWAY_MAC>)
+10. PC receives SYNACK and sends HTTP request in TCP stream
+        // same to 8.
+11. web server receives HTTP request in TCP stream
+        // same to 9.
+    
+5.32
+a.  all the flows have to go all the way up to the border router and all the way down to rack 9 - 12
+    sharing the same link of 10Gbps, 10Gbps / 80 = 125Mbps
+b.  there are 4 * 10Gbps links from Tier-2 switch of rack 9-12 to the network
+    in full speed each flow can transmit at rate 40Gbps / 80 = 500Mbps
+c.  bottle necks:
+        host to TOR: 1Gbps / 2 = 500Mbps
+        TOR to Tier-2: 10Gbps / 20 = 500Mbps
+        Tier-2 outgoing: 4 * 10Gbps / 80 = 500Mbps
+        Tier-2 incoming: 4 * 10Gbps / 160 = 250Mbps
+    each flow cannot have rate exceeding 250Mbps
+
+5.33
+a.  100% - 99.9% = 0.1%
+b.  0.1%^2 = 0.0001%
+c.  not enough information: 
+    how to share a rack between two applications? 
+    how to lock and release the rack to one application so it's temporarily unavailable to another?
+    some protocol is missing here
