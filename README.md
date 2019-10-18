@@ -14,6 +14,6 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 - Design Patterns, Gang of Four, in Typescript
 - Introduction to Modern Cryptography, Johnathan Katz & Yehuda Lindell
 - Cryptography Engineering: Design Principles and Practical Applications, Niels Ferguson et al., in Rust
-- Computer Systems: A Programmer’s Perspective, Randal E. Bryant & David R. O’Hallaron, 2rd Edition, in Rust
+- Computer Systems: A Programmer’s Perspective, Randal E. Bryant & David R. O’Hallaron, 2nd Edition, in Rust
 - Compilers: Principles, Techniques, & Tools, Alfred V. Aho et al., 2nd Edition, in Rust
 - Artificial Intelligence: A Modern Approach, Stuart J. Russell & Peter Norvig, 3rd Edition, in Rust

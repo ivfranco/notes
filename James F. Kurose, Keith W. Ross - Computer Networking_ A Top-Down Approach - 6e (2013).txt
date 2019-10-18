@@ -2734,3 +2734,67 @@ c.  not enough information:
     how to share a rack between two applications? 
     how to lock and release the rack to one application so it's temporarily unavailable to another?
     some protocol is missing here
+
+6.1
+(-1, 1, -1, 1, -1, 1, -1, 1)
+(1, -1, 1, -1, 1, -1, 1, -1)
+
+6.2
+(1, -1, 1, 1, 1, -1, 1, 1)
+(1, -1, 1, 1, 1, -1, 1, 1)
+
+6.3
+d0 = ΣZ*0,m * c2m / M = (2 + 2 + 2 + 2) / 8 = 1
+d1 = ΣZ*1,m * c2m / M = (2 + 2 + 2 + 2) / 8 = 1
+
+6.4
+(1, 1, 1, 1, -1, -1, -1, -1) and the complement
+d0 would be 0 at receiver by both code
+
+6.5
+a.  under CSMA/CA, if both AP transmit at the same time, collision will occur
+    none of them will receive the CSMA/CA ACK from the mobile station
+    both of them enter the backoff phase and wait for a random interval
+    the AP with a shorter interval will retransmit first, the other will freeze the count down after sensing the signal
+    both of them will operate at a rate lower than the physical limit
+b.  there will be no collision, channel 1 and 11 are separated by more than 4 channels
+    both AP may operate normally
+
+6.6
+fairness, if the second frame is sent immediately, this AP will occupy the channel as long as it has frames to send
+
+6.7
+according to Figure 6.12
+DIFS + s_RTS/R + SIFS + s_CTS/R + SIFS + 1000/R + SIFS + s_ACK/R
+where
+    s_RTS, s_CTS, s_ACK: size of the named frames
+    R: transmission rate
+
+6.8
+a.  0.5 message / slot
+    the message must be relayed by B, which can only receive or send the message in each time slot
+    a loop of 2 states transmits at the maximum possible rate:
+    1.  C send, B receive, A silent
+    2.  C silent, B send, A receive
+b.  2 messages / slot
+    only B can hear A, only C can hear D, their sending signals will not collide
+    a loop of 1 state:
+    1.  A send, B receive, C receive, D send
+c.  1 message / slot
+    only one of A and C can send at the same time otherwise their signals collide at B
+    a loop of 2 states transmits at the maximum possible fair rate:
+    1.  A send, B receive, C silent, D silent
+    2.  A silent, B silent, C send, D receive
+d.  a.  the same
+    b.  the same
+    c.  2 messages/ slot, no collision at B
+e.  a.  0.25 message / slot
+        no collision, each message traverses two links, each link costs two time slots (forward & ACK)
+    b.  1 message / slot, same to above
+    c.  1 message / slot
+        B and C can send at the same time, their destinations cannot hear the other sender
+        a loop of 2 states transmits at the maximum possible rate:
+        1.  A send, B receive, C receive, D ACK
+        2.  A receive, B ACK, C send, D receive
+    
+6.9
