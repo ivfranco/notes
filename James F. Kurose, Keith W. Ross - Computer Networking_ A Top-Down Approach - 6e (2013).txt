@@ -2798,3 +2798,88 @@ e.  a.  0.25 message / slot
         2.  A receive, B ACK, C send, D receive
     
 6.9
+Access Code: 72
+    preamble: 4
+    sync word: 64
+    trailer: 4
+Header: 54
+    AM_ADDR: 3
+        active member address, limited to 2^3 = 8 active members
+    TYPE: 4
+    FLOW: 1
+        flow control bit, 0 when the receive buffer is full
+    ARQN: 1
+        ARQ response
+    SEQN: 1
+        sequential number 
+    HEC: 8
+        error check code
+Payload: 0-2754
+
+6.10
+a.  10Mbps, all time and frequency slots to A
+    it's not fair as only A receives anything at all
+    fairness: equal chance (in terms of time slots) to be served
+b.  let w, x, y, z be the fraction of slots assigned to A, B, C and D
+    10w = 5x = 2.5y = z
+    w + x + y + z = 1
+    w + 2w + 4w + 10w = 1
+    w = 1/17
+    average transmission rate = 10w + 5x + 2.5y + z = 4 * 10w = 40/17Mbps
+c.  average transmission rate = 3Mbps
+    by linear programming 
+    https://online-optimizer.appspot.com/?model=ms:JX8oXtNAlygHhOvph9NrZnF1F3nAu2hn
+    var w >= 0;
+    var x >= 0;
+    var y >= 0;
+    var z >= 0;
+    maximize t: 10*w + 5*x + 2.5*y + z;
+    subject to c1: w + x + y + z == 1;
+    subject to c2: 2*z - 10*w >= 0;
+    subject to c3: 2*z - 2.5*y >= 0;
+    subject to c4: 2*z - 5*x >= 0;
+    subject to c5: 5*y - 10*w >= 0;
+    subject to c6: 5*y - 5*x >= 0;
+    subject to c7: 5*y - z >= 0;
+    subject to c8: 10*x - 10*w >= 0;
+    subject to c9: 10*x - 2.5*y >= 0;
+    subject to c10: 10*x - z >= 0;
+    subject to c11: 20*w - 5*x >= 0;
+    subject to c12: 20*w - 2.5*y >= 0;
+    subject to c13: 20*w - z >= 0;
+    end;
+    w = 0.1, x = 0.2, y = 0.2, z = 0.5
+
+6.11
+a.  no, the route information have to be propagated through the network
+b.  a natural consequence of a
+c.  10s of seconds with BGP
+
+6.12
+the same as Figure 6.24
+mobile -> correspondent home agent
+    <CORRES_PERMA_IP>
+-> correspondent foreign agent
+    <CORRES_COA> | <CORRES_PERMA_IP>
+-> correspondent 
+    <CORRES_PERMA_IP>
+
+6.13
+the packets from correspondent is now routed through home agent -> foreign agent -> mobile agent, it may not be the 
+least-cost route to the foreign agent hence may have higher RTT
+encapsulation / decapsulation at home and foreign agents may further increase the delay
+
+6.14
+chaining:
+    no protocol specified in the text
+    in theory only messages between BSs are necessary, neither B nor C has to inform the MSC
+no chaining:
+    the same sequence of messages in Figure 6.31, repeated twice (A -> B and B -> C)
+
+6.15
+possible if they registered themselves to the foreign agent at different time
+the same COA may be recycled and reused
+
+6.16
+by sending VLR address instead of MSRN to HLR, the system is more distributed
+but a call incurs more initial delay from more indirection
