@@ -2883,3 +2883,72 @@ the same COA may be recycled and reused
 6.16
 by sending VLR address instead of MSRN to HLR, the system is more distributed
 but a call incurs more initial delay from more indirection
+
+7.1
+time of arrival
+    b1: t1
+    b2: +(1D, 2D)
+    b3: +(2D, 3D)
+    b4: +(2D, 3D)
+    b5: +(2D, 3D)
+    b6: +(3D, 4D)
+    b7: +(4D, 5D)
+    b8: +(8D, 9D)
+a.  5: b1, b4, b5, b6, b7 will arrive in time
+b.  7: all except b8
+c.  t1:     [b1]
+    +D:     []
+    +2D:    [b2]
+    +3D:    [b3, b4, b5]
+    +4D:    [b4, b5, b6]
+    +5D:    [b5, b6, b7]
+    +6D:    [b6, b7]
+    +7D:    [b7]
+    +8D:    []
+    +9D:    [b8]
+    +10D:   []
+    3 at most
+d.  2Δ, b8 arrives at t > t1 + 8Δ
+
+7.2
+a.  assume no delay, no lost, no jitter
+    Q/x before playout
+    Q/(r - x) before freezing
+b.  at first Q/x the buffer won't be consumed 
+    then the buffer is full after (B - Q) / (x - r)
+    Q/x + (B - Q) / (x - r) in total
+
+7.3
+a.  H/2
+b.  if H > 2r, the client will experience no freezing after T/2
+    otherwise there will be freezing from time to time
+c.  floor(Q / (HT / 2)) * T + ((2 * frac(Q / (HT / 2)) * T) / H)^(1/2)
+d.  Q = HT/2, initial playout delay will be T
+    in a period rT is consumed where HT/2 is received
+    H > 2r, rT < HT/2, the buffer will never be empty
+e.  Q = (r^2 * T) / 8H
+    initial delay = rT / 2H, at when x(t) = r/2
+    at when x(t) = r, t = rT / H, the buffer is empty and start to grow until t = T
+    at t = T, the accumulated buffer is (T - rT/H)^2 * (H/T) / 2
+    before next time x(t) = r, (rT/H)^2 * (H/T) / 2 bits in the buffer will be consumed
+    since H > 2r, T - rT/H > rT/H, the buffer will not be depleted in the next period and any period after
+    if Q < (r^2 * T) / 8H, the buffer will be depleted before rT/H
+f.  // skipped
+
+7.4
+a.  (x - r)E
+b.  min((x - r)E, r(T - E))
+
+7.5
+a.  N^2
+b.  2N
+
+7.6
+a.  h * (1000 / 20) + 8000 = 50h + 8000
+b.  RTP header: 12 bytes
+    UDP header: 8 bytes
+    IP header: 20 bytes
+    h = 40 
+
+7.7
+
