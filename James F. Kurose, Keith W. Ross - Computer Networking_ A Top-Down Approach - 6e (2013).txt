@@ -2951,4 +2951,156 @@ b.  RTP header: 12 bytes
     h = 40 
 
 7.7
+// skipped, similar to 3.32
 
+7.8
+// skipped
+
+7.9
+a.  dn  = Σ(ri - ti)/n = (Σ(i<n)(ri - ti) + (rn - tn)) / n
+        = (Σ(i<n)(ri - ti)/(n-1) * (n-1) + (rn - tn)) / n
+        = (dn-1(n-1) + (rn - tn)) / n
+b.  network fluents over time instead of being random sample around a constant average
+    delay estimate in 7.3 give more recent delays more weights, better reflects the nature of Internet delays
+
+7.10
+they are almost the same, while TCP estimates round-trip delay but multimedia applications estimate one-way delays
+
+7.11
+a.  [7, 9, 8, 7, 9, 8, 8]
+b.  packet 3, 4, 6, 7, 8
+c.  packet 3, 6
+d.  2
+
+7.12
+./network/multimedia/problems
+a.  [7.000, 7.200, 7.280, 7.252, 7.427, 7.484, 7.536]
+b.  [0.000, 0.180, 0.234, 0.236, 0.370, 0.384, 0.392]
+
+7.13
+a.  both adds 25% to the transmission rate
+    the first scheme may only start playout after receiving 5 chunks, maximum additional delay equals to the 
+    transmission time of four chunks, while the second scheme add delay at most transmission time of 1/4 chunk
+b.  first:
+        the first packet is recovered by xor-ing all the four packets following
+        the audio quality is not affected
+    second:
+        the first packet is replaced by a low bit rate version
+        the audio quality is lower
+c.  first:
+        the lost packet cannot be recovered, user will experience gaps between sounds
+    second:
+        every packet is replaced by the low bit rate version
+        audio is of lower quality but complete
+
+7.14
+a.  initiator: r(N-1) bits
+    participants: r bits
+    r(N-1) + r(N-1) = 2r(N-1) bits in total
+b.  r bits per participant, rN in total
+c.  r(N-1) per participant, rN(N-1) in total
+
+7.15
+a.  UDP sockets have unique (IP, PORT) tuple so yes
+b.  by synchronization source identifier in RTP header
+
+7.16
+a.  false, it may be streaming over UDP
+b.  true, different media type can be specified in each RTP packet
+c.  false, not specified in RFC3550
+d.  not always, according to RFC3550:
+    "A participant need not use the same SSRC identifier for all the RTP sessions in a multimedia session"
+e.  true, it's the definition of Diffserv
+f.  false, a INVITE message indicates the media type the sender want to receive
+g.  false, that indicates Alice want to receive at port 48753
+h.  true
+i.  true
+j.  false, didn't find G.711 in RFC3261
+
+7.17
+a.  1123
+b.  112
+
+7.18
+./network/multimedia/problems
+a.  Departure times: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    Delays: [1, 2, 2, 3, 3, 3, 4, 3, 4, 3, 3, 4]
+    Avg delay: 2.917
+b.  Departure times: [1, 5, 2, 7, 3, 8, 4, 10, 6, 11, 9, 12]
+    Delays: [1, 5, 1, 6, 1, 5, 1, 5, 1, 4, 1, 4]
+    Avg delay: 2.917
+c.  Departure times: [1, 2, 3, 5, 6, 4, 7, 8, 9, 10, 12, 11]
+    Delays: [1, 2, 2, 4, 4, 1, 4, 3, 4, 3, 4, 3]
+    Avg delay: 2.917
+d.  packet is chosen so that the served ratio after the packet's departure is closer to 2:1
+    Departure times: [3, 1, 4, 2, 7, 5, 10, 6, 11, 8, 12, 9]
+    Delays: [3, 1, 3, 1, 5, 2, 7, 1, 6, 1, 4, 1]
+    Avg delay: 2.917
+e.  they are all the same
+    sum of the departure time is fixed at Σ(1..12)
+    sum of the arrival time is also fixed, sum of the delay = the difference is fixed as well as the average delay
+
+7.19
+./network/multimedia/problems
+a.  Departure times: [1, 5, 6, 2, 3, 4, 7, 8, 10, 11, 9, 12]
+    Delays: [1, 5, 5, 1, 1, 1, 4, 3, 5, 4, 1, 4]
+    Avg delay: 2.917
+b.  Departure times: [1, 5, 6, 2, 3, 4, 7, 8, 9, 10, 12, 11]
+    Delays: [1, 5, 5, 1, 1, 1, 4, 3, 4, 3, 4, 3]
+    Avg delay: 2.917
+c.  Departure times: [3, 1, 2, 5, 10, 11, 4, 6, 7, 8, 12, 9]
+    Delays: [3, 1, 1, 4, 8, 8, 1, 1, 2, 1, 4, 1]
+    Avg delay: 2.917
+
+7.20
+./network/multimedia/problems
+t = 0, In queue: [0, 1, 2], tokens: 2, output = [0, 1]
+t = 1, In queue: [2, 3], tokens: 1, output = [2]
+t = 2, In queue: [3, 4], tokens: 1, output = [3]
+t = 3, In queue: [4, 5], tokens: 1, output = [4]
+t = 4, In queue: [5], tokens: 1, output = [5]
+t = 5, In queue: [], tokens: 1, output = []
+t = 6, In queue: [6, 7], tokens: 2, output = [6, 7]
+t = 7, In queue: [8, 9], tokens: 1, output = [8]
+t = 8, In queue: [9], tokens: 1, output = [9]
+
+7.21
+./network/multimedia/problems
+t = 0, In queue: [0, 1, 2], tokens: 2, output = [0, 1]
+t = 1, In queue: [2, 3], tokens: 2, output = [2, 3]
+t = 2, In queue: [4], tokens: 2, output = [4]
+t = 3, In queue: [5], tokens: 2, output = [5]
+t = 4, In queue: [], tokens: 2, output = []
+t = 5, In queue: [], tokens: 2, output = []
+t = 6, In queue: [6, 7], tokens: 2, output = [6, 7]
+t = 7, In queue: [8, 9], tokens: 2, output = [8, 9]
+
+7.22
+won't change, the bucket cannot hold more than 2 tokens
+
+7.23
+let burst size be b, average rate be r, peak rate be p
+the first bucket has size = b and rate = r
+the second bucket has size = rate = p
+the first bucket can police the average rate and size as always
+the second bucket mandates that no more than p packets can be outputted in each slot
+
+7.24
+invariant:
+    with b initial token, for any integer t a packet flow conforms to (r, b) specification does not have to wait
+initialization:
+    t = 1, r + b packets at most in a time interval of 1
+    b packets can be relayed immediately, r packets can be sent through with tokens generated during that time interval
+induction:
+    assume invariant hold for all length k, let t = k + 1
+    let r0 be the number of packets arrived at the first time interval of length 1
+    if r0 <= r,
+        the remaining flow has <= rt + b - r0 <= rk + b packets, it is a (r, b) flow of length k 
+        the token at t = 1 is at least b, by induction no packet has to wait
+    if r0 > r,
+        by definition of (r, b) flow, r + b >= r0 > r, packets don't have to wait in the first slot
+        the remaining flow has <= rt + b - r0 = rk + (b - (r0 - r)) packets, it is a (r, b - (r0 - r)) flow of length k
+        the bucket has at least b - (r0 - r) tokens at t = 1, by induction no packet has to wait
+
+7.25
+immediate result if the WFQ serves each class FIFO
