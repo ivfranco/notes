@@ -3104,3 +3104,32 @@ induction:
 
 7.25
 immediate result if the WFQ serves each class FIFO
+
+8.1
+uasi si mj cmiw lokngch
+wasn't that fun
+
+8.2
+26! / (26 - 7)! = 3315312000 = 3e9
+
+8.3
+it's sufficient. shift of the two ciphers can be determined as well as the pattern
+(if the pattern is shorter than the sentence)
+
+8.4
+a.  [05, 05, 05, 05, 05, 05, 05, 05]
+b.  [05, 05, 05, 05, 05, 05, 05, 85]
+c.  [05, 05, 05, 05, 05, 05, 05, 05]
+    [85, 05, 05, 05, 05, 05, 05, 05]
+
+8.5
+an 8 to 8 table is of size 2^8 * 8 = 2048 bits
+2048 * 8 = 16384 bits in total
+much smaller than 2^64 * 64
+
+8.6
+a.  011 011 011
+b.  it's the same 3-bit pattern repeated 3 times
+c.  100 110 101
+
+8.7
