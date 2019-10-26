@@ -3106,6 +3106,7 @@ induction:
 immediate result if the WFQ serves each class FIFO
 
 8.1
+./network/security
 uasi si mj cmiw lokngch
 wasn't that fun
 
@@ -3117,6 +3118,7 @@ it's sufficient. shift of the two ciphers can be determined as well as the patte
 (if the pattern is shorter than the sentence)
 
 8.4
+./network/security
 a.  [05, 05, 05, 05, 05, 05, 05, 05]
 b.  [05, 05, 05, 05, 05, 05, 05, 85]
 c.  [05, 05, 05, 05, 05, 05, 05, 05]
@@ -3133,3 +3135,123 @@ b.  it's the same 3-bit pattern repeated 3 times
 c.  100 110 101
 
 8.7
+n = 33, z = 20, e = 3, d = 7
+a.  cannot be encrypted: message in ASCII encoding is greater than n
+b.  same to part a
+
+8.8
+a.  n = 55, z = 40
+b.  gcd(3, 40) = 1
+c.  d = 27
+d.  m^e = 8^3 = 2^9 = 512
+    c = 512 % 55 = 17
+
+8.9
+a.  S = TB^SA = g^SB^SA = g^SA^SB = TA^SB = S' mod p
+b.  TA = g^SA = 2^5 = 32 = 10 mod 11
+    TB = g^SB = 2^12 = 4 mod 11
+c.  S = TB^SA = 1 mod 11
+d.  Trudy can impersonate Alice to Bob and impersonate Bob to Alice
+    do the DH key exchange separately with Alice and Bob using its own private key ST
+    end up sharing S and S' (possibly different) with Alice and Bob
+
+8.10
+// without a nonce this protocol is vulnerable to replay attacks
+a.  (K_A_KDC(A, B, KS), K_B_KDC(A, B, KS))
+b.  K_B_KDC(A, B, KS)
+
+8.11
+IOU990.10BOB
+
+8.12
+according to [Katz & Lindell, 2007], a CCA-secure encryption scheme is 
+    compute c = enc(S2, m)
+    compute t = mac(S1, c)
+    send <c, t>
+if enc is CPA-secure, mac is secure message authentication code with unique tags, the resulting scheme is CCA-secure
+
+8.13
+the .torrent file contains hash of all blocks
+peers downloading a block first checks the hash of the block
+
+8.14
+the network layer protocol is usually implemented on hardware level
+where digital signatures are too slow compared to MAC
+
+8.15
+Trudy -> Bob: I'm Alice
+Bob -> Trudy: R
+Bob -> Trudy: I'm Bob
+Trudy -> Bob: R
+Bob -> Trudy: K_AB(R)
+Trudy -> Bob: K_AB(R) // replay
+
+8.16
+a.  // skipped
+b.  Alice -> Bob: I'm Alice (intercepted)
+    Trudy -> Bob: I'm Alice
+    Bob -> Alice: R
+    Alice -> Bob: K_Priv(R) (intercepted)
+    Trudy -> Bob: K_Priv(R)
+
+8.17
+// skipped, already on Figure 8.19
+
+8.18
+// reference: https://en.wikipedia.org/wiki/Transport_Layer_Security#Protocol_details
+a.  impossible, nothing distinguishes Alice from anyone else
+b.  the public key of Bob is contained in his certificate
+
+8.19
+a.  by client, client key exchange messages are send by clients
+b.  216.75.194.220:443
+c.  79 + 204 = 283
+d.  3
+e.  contains the PMS encrypted by the server's public key
+f.  first byte: bc, last byte: 29
+g.  6: client hello, server hello, certificate, server hello done, client key exchange, change cipher spec
+h.  7: + change cipher spec (server)
+
+8.20
+Trudy has to modify sequence numbers of all the following packets and ACKs during this session
+otherwise the deleted packet will be retransmitted
+
+8.21
+the attacker cannot authenticate the packet with correct authentication key
+the packet won't pass unnoticed
+
+8.22
+a.  false, only datagram to hosts in the same VPN will be sent in IPSec
+b.  false, it will encapsulate the IP datagram in a new IP datagram with different source / dest IP address
+    IP address in the original datagram is not touched
+c.  false, IP / IPSec protocol is in network layer, they know no port number
+d.  false, R1 will resend with a new sequence number
+
+8.23
+R2 will detect a reused sequence number in ESP header and discard the packet / alert the administrator
+
+8.24
+a.  11 01011010 1010
+b.  // skipped
+c.  the 5th bit
+d.  let the data be AB, both A and B are 4-bit long
+    let the first 8 bits of the key stream be CD
+    (A ^ C ^ 0x80 ^ C) ^ (B ^ D ^ 0x80 ^ D)
+    = (A ^ 0x80) ^ (B ^ 0x80)
+    = A ^ B ^ 0x0 = A ^ B
+
+8.25
+a.  allow 222.22/16 outside TCP >1023 53 _ X
+    allow outside 222.22/16 53 >1023 _ X
+b.  allow outside 222.22.0.12 TCP >1023 80 any X
+    allow 222.22.0.12 outside TCP 80 >1023 ACK X
+c.  deny all all all all
+
+8.26
+// only confidentiality
+a.  Alice -> Proxy1: K1+(S1)
+b.  Alice -> Proxy1: K1+(K2+(S2))
+    Proxy1 -> Proxy2: K2+(S2)
+c.  Alice -> Proxy1: S1(S2(R))
+    Proxy1 -> Proxy2: S2(R)
+
