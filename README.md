@@ -4,7 +4,6 @@ Who produced these notes is not a graduate in computer or mathematics related fi
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
 ## Reading:
-- Computer Networking: A Top-Down Approach, James F. Kurose & Keith W. Ross, 6th Edition, in Rust
 
 ## Read (in temporal order):
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
@@ -17,3 +16,4 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 - Computer Systems: A Programmer’s Perspective, Randal E. Bryant & David R. O’Hallaron, 2nd Edition, in Rust
 - Compilers: Principles, Techniques, & Tools, Alfred V. Aho et al., 2nd Edition, in Rust
 - Artificial Intelligence: A Modern Approach, Stuart J. Russell & Peter Norvig, 3rd Edition, in Rust
+- Computer Networking: A Top-Down Approach, James F. Kurose & Keith W. Ross, 6th Edition, in Rust

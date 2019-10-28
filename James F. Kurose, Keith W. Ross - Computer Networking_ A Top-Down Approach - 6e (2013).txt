@@ -3164,11 +3164,11 @@ b.  K_B_KDC(A, B, KS)
 IOU990.10BOB
 
 8.12
-according to [Katz & Lindell, 2007], a CCA-secure encryption scheme is 
+according to [Katz & Lindell, 2007], an encryption scheme
     compute c = enc(S2, m)
     compute t = mac(S1, c)
     send <c, t>
-if enc is CPA-secure, mac is secure message authentication code with unique tags, the resulting scheme is CCA-secure
+is CCA-secure if enc is CPA-secure and mac is secure message authentication code with unique tags
 
 8.13
 the .torrent file contains hash of all blocks
@@ -3255,3 +3255,39 @@ b.  Alice -> Proxy1: K1+(K2+(S2))
 c.  Alice -> Proxy1: S1(S2(R))
     Proxy1 -> Proxy2: S2(R)
 
+9.1
+overhead:
+    request and response has bigger overhead for the extra request messages
+notification time:
+    trapping messages will be sent immediately on events
+    request-response model will only be informed periodically
+robustness:
+    when a trapping messages is lost it will never reach the managing entity
+    a lost request or response will not go unnoticed, the managing entity can retransmit on timeout
+
+9.2
+SNMP is designed to monitor and control attributes of network nodes
+as a consequence it should rely on as less capacity of the target node as possible while remain in application layer
+TCP in contrary to UDP is more complicated and more vulnerable to network and software conditions 
+e.g. congestion, out of memory
+
+9.3
+1.3.6.1.2.1.5
+
+9.4
+http://oid-info.com/get/1.3.6.1.4.1
+1.3.6.1.4.1
+
+9.5
+1.3.6.1.4.1.2
+http://oid-info.com/get/1.3.6.1.4.1.2
+
+9.6
+length may not be necessary given the type
+for instance a 32-bit integer is always 4 octets
+
+9.7
+47Michael23165
+
+9.8
+47Sridhar23145
