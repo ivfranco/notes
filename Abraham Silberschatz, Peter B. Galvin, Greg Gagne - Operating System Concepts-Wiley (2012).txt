@@ -1,0 +1,66 @@
+1.1
+as stated in the text,
+    "In general, we have no completely adequate definition of an operating system."
+more or less an operating system has to
+    1.  provide an interface of hardwares to softwares (may not be the case for embedded systems)
+    2.  run the user applications in a safe manner (again may not be the case for embedded systems)
+    3.  manage hardware resources
+
+1.2
+1.  when strictly uniform performance is of importance
+    e.g. the operating system has to perform exactly the same on different hardwares, maybe for real-time purpose
+2.  for security reasons
+    e.g. the recent Intel CPU exploits which operating systems sacrifices ~15% performance to patch
+3.  to provide a backward-compatible user interface to softwares
+    the operating system have to support legacy softwares and run in a mode designed for hardwares decades ago 
+all these "waste" are necessary to fulfill their design requirements
+
+1.3
+the running time of all the instructions must be deterministic, which means:
+    GC is almost impossible: the operating system cannot randomly pause for a milliseconds and collect garbages
+    the language in use must have a very strict semantic model, mapping program to instructions in a well-defined manner
+    some probabilistic algorithms and data structures cannot be utilized, e.g. hashtable
+
+1.4
+should:
+    web browser is an absolutely necessary utility which should be provided by an operating system out-of-box
+    compiling an entire web browser is both painful and difficult, web browsers are usually distributed in binary
+shouldn't:
+    it isn't really part of an operating system, web browser definitely doesn't run in kernel mode
+    for linux distros most of their users should know how to fetch a web browser with wget or curl
+
+1.5
+user applications cannot run kernel mode privileged instructions directly which may potentially interfere the operating 
+system and other user applications
+they may only delegate access to these instructions to the operating system by means of well-defined syscalls
+so these syscalls can be analyzed and verified by the operating system in the context of processes
+
+1.6
+a.  privileged, otherwise a user application can hold the CPU forever
+b.  not privileged
+c.  privileged, otherwise user applications can interfere with each other unchecked
+d.  not privileged, by design
+e.  privileged, otherwise a user application can deny syscalls from other applications and hold the CPU forever
+f.  privileged, hardware is managed by the operating system, not directly by the user applications
+g.  privileged, otherwise renders the whole dual-mode system useless
+h.  privileged, IO devices are managed by the operating system, user applications should use syscalls
+
+1.7
+1.  the operating system, loaded into memory by the firmware on startup from secondary storage, cannot be modified by 
+    the operating system itself, i.e. no update
+2.  the protection is not complete: an operating system is not entirely static, it has to hold dynamic memories 
+    for e.g. file system
+
+1.8
+ring -3: Intel ME, a separated chip beside Intel CPU which control and monitor the entire computer from beneath
+ring -2: processor microcode, under machine code instructions, the real instructions running on the chip
+ring -1: hypervisor of the virtual machine environment, manage multiple virtualized operating systems   
+ring 0: kernel, operating system
+
+1.9
+starting from a time set by the user or synced from a remote server:
+    the process asks the kernel to wake it a fixed time later by a syscall and go to sleep
+    the operating system schedules the process to run after the fixed time
+    the process upon wake up and increment the time by the fixed time
+
+1.10
