@@ -64,3 +64,129 @@ starting from a time set by the user or synced from a remote server:
     the process upon wake up and increment the time by the fixed time
 
 1.10
+cache is useful due to the fact that:
+    they are faster in term of access time compared to the storage on levels below
+    by caching multiple small read / write can be performed in batch, possibly extending the lifetime of the storage 
+    if it can only survive a finite time of read / write operations
+cons: caching complicates access to the storage, also cache invalidation is one of the only two hard things in compsci
+even if the cache is as big as the storage device, it may not be persistent, the content still have to be written to the 
+storage device before power off
+
+1.11
+in client-server distributed systems hosts either generate or satisfy requests, in peer-to-peer distributed systems
+every host do both of them
+
+1.12
+a.  1.  without proper isolation one user may have access to all the sensitive contents belongs to another user
+    2.  critical failure of one user process may affect or even terminate other processes 
+b.  virtualization may be able to provide the security, but in practice there's always another exploit yet to be found
+
+1.13
+a.  CPU, memory, storage devices
+b.  CPU, memory, IO devices, network links
+c.  (in addition to workstations) battery 
+
+1.14
+1.  when the user only use no more than a fraction of the hardware capacity, part of a time-sharing system can be 
+    rented instead of an entire PC or workstation
+2.  when the user works in a group and have to share read / write access to some files within the group, it's cheaper to 
+    work on a time-sharing system then doing so via network links
+
+1.15
+symmetric: 
+    all CPU cores are equal in functionality, with the same amount of SRAM cache, computing power and access to the 
+    main memory, tasks are distributed in software level as well as communication between cores
+    common design of desktop CPUs
+asymmetric: 
+    CPUs have different functionality: a main CPU controls how work is distributed among worker CPUs
+    software software communicates solely to the main CPU
+    common design of mobile CPUs
+pros (compared to multiple single-processor PC):
+    cheaper, no duplicated IO device and IO bus
+    communication / memory sharing among processors are faster by magnitudes 
+    easier to program: just spawn threads and the operating system can distribute them evenly among processors
+cons:
+    it is a single PC with a single set of IO device at the end, cannot be used by two people at the same time
+
+1.16
+instead of multiple processors managed by a single operating system, clustered systems "are composed of two or more 
+individual systems—or nodes—joined together"
+hardware: a network, wired or wireless
+software: a distributed operating system, running on hosts and monitors each other
+
+1.17
+1.  duplicate each write to the two nodes, distribute reads evenly, higher availability, half efficiency
+2.  distribute write evenly between two nodes, properly guide reads to the correct node (e.g. by DHT)
+    full efficiency, a hardware failure permanently wipes data
+
+1.18
+a network computer (thin client) passes most of its tasks, which would be computed locally by a traditional PC, to a 
+remote server assigned to it
+by handing over its tasks, network computer consumes less energy thus has longer battery lifetime
+if the data is stored in the server as well, users may access their data from different terminals seamlessly
+
+1.19
+to inform the CPU about a software / hardware event so it can handle it
+traps are software generated interrupts, indicating either an software error (e.g. divide by zero) or a request of 
+operating system service (syscalls)
+
+1.20
+a.  CPU sets up buffers, pointers and counters for the DMA controller, which copies a whole block of data into the
+memory accordingly, meanwhile the CPU can do something else
+b.  by a hardware interrupt
+c.  thanks https://en.wikipedia.org/wiki/Direct_memory_access#Cache_coherency
+    the memory transfer is invisible to the CPU before completion, DMA may cause cache incoherency between CPU cache and 
+    the main memory 
+
+1.21
+the published instruction sets may be an abstraction over the real instructions running on the hardware (microcode), 
+hence a dual-mode instruction set can be build on a mode-less hardware
+such an architecure may be exploitable to adversaries with physical access to the computer
+
+1.22
+to better handle the typical computing tasks: in practice user applications works on both shared and isolated memories
+
+1.23
+depends on the memory ordering of read / write accesses, a write operation performed by one processors may or may not 
+be visible to other processors immediately
+refer https://doc.rust-lang.org/stable/std/sync/atomic/enum.Ordering.html
+
+1.24
+a.  DMA may perform memory write temporarily invisible to CPU and cache
+b.  different cores may perform independent read / write thus have different cache before synchronization
+c.  same to multiprocessor
+
+1.25
+dual-mode instructions
+memory access is privileged instruction, user applications can only perform memory access through syscalls, operating 
+system maintains memory region of each process, upon receiving a syscall examines if the process is accessing its own 
+memory or not, if not return the the infamous segmentation fault error to the user application
+
+1.26
+a.  LAN, all devices are physically reachable by a network administrator
+b.  WAN
+c.  WAN, a neighborhood in general is not an organization
+
+1.27
+limited power supply
+limited computing power
+different IO devices (touch screen instead of keyboard & mouse)
+higher requirement of stability (phones are rarely turned off)
+
+1.28
+higher availability: client-server architecure has a single point of failure which is the server
+better scalability: peer-to-peer architecure in nature is more scalable compared to extending the capacity of a server 
+
+1.29
+file distribution (e.g. bittorrent)
+video streaming 
+network traffic tunneling (e.g. TOR)
+
+1.30
+pros:
+    more participants, earlier bug detection, more agile response to needs (for developers)
+    lower cost (for consumers)
+    provides learning material to students
+cons:
+    bigger attack surface
+    copies cannot be sold
