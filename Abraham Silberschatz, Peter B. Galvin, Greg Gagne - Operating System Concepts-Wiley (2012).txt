@@ -1,3 +1,6 @@
+// solutions to practice exercises:
+// http://os-book.com/OS9/practice-exer-dir/
+
 1.1
 as stated in the text,
     "In general, we have no completely adequate definition of an operating system."
@@ -190,3 +193,147 @@ pros:
 cons:
     bigger attack surface
     copies cannot be sold
+
+2.1
+provide an compatible and easy-to-use interface to user softwares and higher layer system components
+hide the real implementation of system functionalities which is subject to change
+
+2.2
+// section 1.6
+create and deletion
+suspension and resumption
+synchronization
+communication
+deadlock handling
+
+2.3
+// section 1.7
+keeping track of which parts of memory are currently being used and who is using them
+deciding which processes (or parts of processes) and data to move into and out of memory
+allocating and deallocating memory space as needed
+
+
+2.4
+// section 1.8
+free space management 
+storage allocation
+disk scheduling
+
+2.5
+to provide a programmable, concise and unambiguous user interface to run system and user applications
+it's not implemented as a module of the kernel because it doesn't have to, a shell can be built on top of syscalls
+
+2.6
+fork() to create a process inheriting the stack of the current one
+execve() to create a process from a file, environment variables and arguments
+
+2.7
+enhance modularity of the operating system, part of the operating system can be built upon the kernel instead of in it
+
+2.8
+modularity, the operating system can be implemented, reasoned and debugged one part of a time
+but layered approach increases the overhead of syscalls
+
+2.9
+GUI
+    human friendly access to user and system programs
+    a user program in Linux land but a system program in Windows and OSX
+    in a closed-source OS, the GUI usually is hard-coded into the system
+program execution
+    OS essential
+    user program cannot access the layer under syscall
+IO operation
+    OS essential
+    user program cannot access the layer under syscall
+file system manipulation
+    organize file in a human readable way
+    it must be part of the OS, user program cannot define their own flavor of file system on the one provided by the OS
+resource allocation
+    OS essential
+    kind of doable in user land if the OS exposes lower level syscalls to memory management functions
+    earlier version of Rust used a custom memory allocator instead of the OS default
+
+2.10
+in that way the OS doesn't have to be loaded into the main memory
+those hardwares simply have no enough memory to load the system
+
+2.11
+operating systems write their location on the disk to a special boot block on the disk during installation
+on startup the boot loader reads these locations then let the user choose one from them
+
+2.12
+1.  UI and exposed API: load, IO, file system, communication, error detection
+2.  internal system functions: resource allocation, resource accounting, memory protection
+functions in the first category is visible to the user in form of exposed API and syscalls
+functions in the second category is not visible but a promise the OS makes to the user
+
+2.13
+1.  put in a predefined sequence of registers, e.g. first few parameters in Linux ABI
+2.  pushed to stack, e.g. after a few parameters in Linux ABI
+3.  stored in a table in the memory
+
+2.14
+build the program with debug symbols, let the operating system interrupt the program frequently with a timer, record
+where the execution is each time the program is interrupted
+without time profiling optimization of a program of decent complexity is nearly impossible
+
+2.15
+// section 1.8.1
+creating and deleting files
+creating and deleting directories
+file and directory manipulating primitives
+mapping files onto secondary storage (mmap?)
+backup to stable storage media
+
+2.16
+pros:
+    these two concepts share a lot of resemblance
+    a common API to both of them simplifies the system design and its interface
+cons:
+    not all file operations are possible to all devices
+    e.g. seek a tty device results in an error
+    certain devices are too danger to be manipulated as a file, pipe something to /dev/hda will wipe the boot block
+
+2.17
+possible if the default one is implemented in user land, i.e. all it does is call system programs
+
+2.18
+message passing: safer with bigger overhead and requires extra memory
+shared memory: faster but must be done right carefully or will cause data race / deadlock
+
+2.19
+like any other program, the resulting operating system will be more configurable
+
+2.20
+device driver and memory management
+memory management must be built upon drivers, but drivers may also need access to the memory
+
+2.21
+all but the bare minimum functions of the operating system is implemented as separate programs
+user program requests services from the kernel
+which in turn passes these requests to the corresponding module program
+kernel components in microkernel architecure communicates by inter-process communication, much slower than function
+calls in the same program
+
+2.22
+so these functions can be implemented and compiled separately and dynamically
+installation of a new device can be done without recompiling or even restarting the system
+
+2.23
+they are both mobile operating system, serving roughly the same set of hardware and market 
+iOS is closed-source, Android is partially open-source
+
+2.24
+https://web.archive.org/web/20080604070631/http://blogs.sun.com/jrose/entry/with_android_and_dalvik_at
+main reason listed: GPL of openJDK, power consumption of JVM, efficiency of assembly v.s. Java bytecode
+
+2.25
+https://www.semanticscholar.org/paper/An-Overview-of-the-Synthesis-Operating-System-Pu-Massalin/c8f49d5d94e1f9adf608b7c99e1e731c2381d82a
+Factoring Invariants method
+    if a system service is called frequently with the same parameters, the execution path of the call is cached and
+    carried out next time the same service is called
+Collapsing Layers method
+    lower layer of services can be invoked directly in execution
+Executable Data Structures method 
+    traversal order is stored alongside the data in data structures
+faster syscalls in exchange of less flexible operating system architecure
