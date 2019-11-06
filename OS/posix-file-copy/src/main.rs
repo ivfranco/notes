@@ -1,3 +1,5 @@
+#![feature(start)]
+
 use libc::{
     __error, c_char, c_int, c_uint, c_void, exit, fdopen, getline, open, printf, read, strerror,
     write, FILE, O_CREAT, O_EXCL, O_RDONLY, O_WRONLY, STDERR_FILENO, STDIN_FILENO, S_IRUSR,
@@ -9,7 +11,8 @@ const READ: *const c_char = b"r\0" as *const u8 as *const c_char;
 const WRITE: *const c_char = b"w\0" as *const u8 as *const c_char;
 const BUF_LEN: usize = 0x100;
 
-fn main() {
+#[start]
+fn main(_argc: isize, _argv: *const *const u8) -> isize {
     unsafe {
         let stdin = fdopen(STDIN_FILENO, READ);
         if stdin.is_null() {
@@ -37,6 +40,8 @@ fn main() {
         };
 
         copy_file(source_file, target_file);
+
+        0
     }
 }
 

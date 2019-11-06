@@ -337,3 +337,36 @@ Collapsing Layers method
 Executable Data Structures method 
     traversal order is stored alongside the data in data structures
 faster syscalls in exchange of less flexible operating system architecure
+
+2.26
+./OS/posix-file-copy
+sudo dtrace -n 'syscall:::entry /execname == "posix-file-copy"/ { @[probefunc] = count(); }'
+dtrace: description 'syscall:::entry ' matched 535 probes
+^C
+
+  __mac_syscall                                                     1
+  access                                                            1
+  bsdthread_register                                                1
+  exit                                                              1
+  fcntl                                                             1
+  getrlimit                                                         1
+  issetugid                                                         1
+  shared_region_check_np                                            1
+  sysctlbyname                                                      1
+  thread_selfid                                                     1
+  close                                                             2
+  csops_audittoken                                                  2
+  fcntl_nocancel                                                    2
+  fsgetpath                                                         2
+  fstat64                                                           2
+  getentropy                                                        2
+  getpid                                                            2
+  proc_info                                                         2
+  read_nocancel                                                     2
+  write                                                             2
+  ioctl                                                             3
+  read                                                              3
+  csrctl                                                            4
+  open                                                              4
+  mprotect                                                         10
+  stat64                                                           42
