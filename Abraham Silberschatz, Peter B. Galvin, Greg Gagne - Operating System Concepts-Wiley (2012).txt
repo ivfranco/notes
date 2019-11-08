@@ -225,7 +225,6 @@ it's not implemented as a module of the kernel because it doesn't have to, a she
 
 2.6
 fork() to create a process inheriting the stack of the current one
-execve() to create a process from a file, environment variables and arguments
 
 2.7
 enhance modularity of the operating system, part of the operating system can be built upon the kernel instead of in it
@@ -343,7 +342,6 @@ faster syscalls in exchange of less flexible operating system architecure
 sudo dtrace -n 'syscall:::entry /execname == "posix-file-copy"/ { @[probefunc] = count(); }'
 dtrace: description 'syscall:::entry ' matched 535 probes
 ^C
-
   __mac_syscall                                                     1
   access                                                            1
   bsdthread_register                                                1
@@ -370,3 +368,113 @@ dtrace: description 'syscall:::entry ' matched 535 probes
   open                                                              4
   mprotect                                                         10
   stat64                                                           42
+
+3.1
+PARENT: value = 5
+child process inherits a copy of stack of the parent process, modification in the child process will not reflect to the 
+parent process
+
+3.2
+8
+
+3.3
+context switching 
+short-term process scheduling  
+accounting of process memory and inter-process communication
+
+3.4
+a special syscall switches the CPU to the other register set
+some register set has to be swapped out to the memory to make room for the new context
+
+3.5
+only c. shared memory segments, others are copied
+
+3.6
+similar to the design of TCP
+=>  request
+<=  process call
+    ACK (lost)
+=>  request (resend)
+<=  duplicate sequence number, ignored
+    ACK
+=>  ACK received
+
+3.7
+retransmission
+
+3.8
+short-term scheduling:
+    controls which process in the ready queue could run and allocates CPU time to it
+    executes once every ~100ms
+medium-term scheduling:
+    controls which process should be kept in memory 
+    swaps a process out from memory is it's waiting on an IO event or others
+    executes on every major IO event
+long-term scheduling:
+    controls in which order pooled processes could run
+    executes every time a process terminated
+
+3.9
+saves the context of the current process to its PCB structure
+loads the context of another process from its PCB structure
+
+3.10
+// from a fresh WSL debian
+init(1) -> init(2)
+init(2) -> bash
+bash -> ps
+
+3.11
+when a process is terminated without waiting on its child processes, its child processes become orphans
+the OS assigns init as the new parent of these orphan processes
+init calls wait periodically so these orphan processes can be terminated on completion
+
+3.12
+16
+
+3.13
+in the child process if the call to fork succeeded
+
+3.14
+A: 0
+B: 2603
+C: 2603
+D: 2600
+
+3.15
+ordinary pipe:
+    message passing between parent and child processes
+named pipe:
+    abstract over the functionality of some program to provide an standard file interface to other programs
+    e.g. a pipe that compresses the data passed to it and store them in a file
+        // https://en.wikipedia.org/wiki/Named_pipe
+        mkfifo my_pipe
+        gzip -9 -c < my_pipe > out.gz &
+
+3.16
+at most once:
+    an RPC service on an embedded system controlling a light bulb
+    the bulb blinks instead of being switched on / off
+exactly once:
+    a distributed file system
+    a write operation may be lost due to connection failure
+any use case of UDP is also a use case of unreliable RPC
+
+3.17
+CHILD: 
+    0, -1, -4, -9, -16
+PARENT:
+    0, 1, 2, 3, 4
+
+3.18
+a.  synchronous communication:
+        if blocks on both ends the messages are passed from producer to consumer directly, no buffer required
+        same as other blocking operations wastes cycles
+    asynchronous communication:
+        easier to use for programmers 
+        the messages have to be buffered somewhere
+b.  either the programmer or the kernel has to carry the burden of buffering
+c.  extra memory copy & occupation v.s. danger of dangling pointers & data race
+    OS must be able to mark memory as shared in the latter case
+d.  fixed-sized messages: easier to implement but harder to use
+    variable-sized messages: the opposite
