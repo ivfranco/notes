@@ -4,7 +4,7 @@ Who produced these notes is not a graduate in computer or mathematics related fi
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
 ## Reading:
-- Operating System Concepts, Abraham Silberschatz et al., 9th Edition
+- Operating System Concepts, Abraham Silberschatz et al., 9th Edition, in Rust
 
 ## Read (in temporal order):
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript

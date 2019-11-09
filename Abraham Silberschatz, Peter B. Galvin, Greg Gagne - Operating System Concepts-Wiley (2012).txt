@@ -1,5 +1,6 @@
 // solutions to practice exercises:
 // http://os-book.com/OS9/practice-exer-dir/
+// whenever possible C programming assignment will be done in Rust
 
 1.1
 as stated in the text,
@@ -478,3 +479,30 @@ c.  extra memory copy & occupation v.s. danger of dangling pointers & data race
     OS must be able to mark memory as shared in the latter case
 d.  fixed-sized messages: easier to implement but harder to use
     variable-sized messages: the opposite
+
+3.19
+./OS/process/zombie-child
+% ps -l
+  UID   PID  PPID        F CPU PRI NI       SZ    RSS WCHAN     S             ADDR TTY           TIME CMD
+  501  2037  1916     4006   0  31  0  4297288   2136 -      Ss                  0 ttys001    0:00.03 /bin/zsh -l
+  501  2279  2037     4006   0  31  5  4268544    740 -      SN                  0 ttys001    0:00.05 target/debug/zombie-child
+  501  2289  2279     2006   0   0  5        0      0 -      ZN                  0 ttys001    0:00.00 (zombie-child)
+
+3.20
+// skipped, would be a simple wrapper around a hash set in this stage
+
+3.21
+./OS/process/collatz-child
+
+3.22
+./OS/process/collatz-child-shm
+apparantly there's no way to list and remove shared memories in OSX which one forget to unlink
+
+3.23 - 3.25
+// skipped, entry level application layer programming
+
+3.26
+./OS/process/case-reverse-pipe
+
+3.27
+./OS/process/file-copy-pipe
