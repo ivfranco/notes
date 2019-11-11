@@ -496,7 +496,7 @@ d.  fixed-sized messages: easier to implement but harder to use
 
 3.22
 ./OS/process/collatz-child-shm
-apparantly there's no way to list and remove shared memories in OSX which one forget to unlink
+apparently there's no way to list and remove shared memories in OSX which one forget to unlink
 
 3.23 - 3.25
 // skipped, entry level application layer programming
@@ -506,3 +506,87 @@ apparantly there's no way to list and remove shared memories in OSX which one fo
 
 3.27
 ./OS/process/file-copy-pipe
+
+Project 1 — UNIX Shell and History Feature
+./OS/process/unix-shell
+
+4.1
+1.  a web server, single-threaded server can only handle one client at a time even though each client only need a tiny 
+    amount of computation power and is waiting for IO most of the time
+2.  video compression on a multi-processor computer, a single-threaded program can only ultilize one of many cores, 
+    even middle-range CPUs today has dozens of cores
+
+4.2
+user threads are
+    1.  directly created by user program or a thread library
+    2.  managed solely by user space code
+where kernel threads are
+    1.  created by the operating system in a pre-defined model (M:M, M:N or M:1) to meet the request of user threads
+    2.  managed by kernel space code
+
+4.3
+store and load stack, register and thread local storage
+in contrast to process context switch, file system, VM space, file descriptors and signal handlers are not switched
+
+4.4
+same as above, in general fewer memory is allocated for threads than for processes 
+
+4.5
+it must, otherwise one thread blocking on IO will block the other threads on the same LWP as well
+this kind of blocking and pause is unpredictable and unacceptable in real-time system 
+
+4.6
+1.  when there's only one processor, any CPU bound program will not have better performance with multithreading
+2.  when the program is IO bound but they all access the same IO device and the IO device can only serve one thread at
+    a time in a very slow pace, multithreading will not provide any significantly better performance
+
+4.7
+when they are IO bound accessing different IO devices, instead of the sum of the IO response time, only the maximum of
+the IO response time would be necessary
+
+4.8
+b and c
+
+4.9
+when they are CPU bound, on a multi-processor system all cores can be utilized
+
+4.10
+if the program is carefully designed so that the error in client script won't corrupt memory shared among threads
+the isolation may still be achieved if the signals can be handled locally to the thread
+
+4.11
+as stated in the text: multithreaded program in a single processor system
+
+4.12
+a.  10 / 7
+b.  20 / 11
+
+4.13
+a.  only task, the same data set is shared
+b.  both task and data
+c.  both task and data
+d.  task but not data, the same data (web pages) are accessed by each thread
+
+4.14
+a.  one, this task won't benefit from multithreading
+b.  depends, if the tasks are uniform 4 is enough, otherwise finer granularity is necessary or some CPU would be idle
+
+4.15
+a.  6
+b.  2, or 4 if threads are duplicated by fork()
+
+4.16
+as state in the text, the former manages data associated to a task (process or thread) separately , storing only 
+pointers to the data in the PCB, while the former has different data structure for processes and threads
+
+4.17
+CHILD: value = 5, global variables is shared (unsafely) among threads
+PARENT: value = 0, each process has its own copy of global variables
+
+4.18
+a.  the full computing power of the system will not be made use of
+b and c may not be distinguishable from the view of the program
+
+4.19
+1.  resource release e.g. closing a file descriptor
+2.  write to a log file
