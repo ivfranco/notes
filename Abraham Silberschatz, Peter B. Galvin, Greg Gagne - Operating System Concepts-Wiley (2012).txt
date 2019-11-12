@@ -576,7 +576,7 @@ a.  6
 b.  2, or 4 if threads are duplicated by fork()
 
 4.16
-as state in the text, the former manages data associated to a task (process or thread) separately , storing only 
+as stated in the text, the former manages data associated to a task (process or thread) separately , storing only 
 pointers to the data in the PCB, while the former has different data structure for processes and threads
 
 4.17
@@ -590,3 +590,39 @@ b and c may not be distinguishable from the view of the program
 4.19
 1.  resource release e.g. closing a file descriptor
 2.  write to a log file
+
+// about the difference between pthread API and Rust thread API:
+// they are semantically equivalent but:
+// 1. threads in pthread take input by a void pointer on thread spawning, while Rust threads are a closures
+// 2. Rust thread can return a Sized value, which can be emulated with pthread API by allocate a dedicated chunk of 
+//    memory for the thread to store the return value and later accessed by the main thread
+4.20
+./OS/process/pid-manager
+a lock (mutex) is necessary to prevent data race
+not sure if such a lock or variable length vector is available in kernel space
+
+4.21
+./OS/process/multi-thread-statistic
+
+4.22
+./OS/process/monte-carlo-pi
+
+4.23
+// skipped
+
+4.24
+./OS/process/prime-numbers
+
+4.25
+// skipped, similar exercise in CSAPP
+
+4.26
+./OS/process/fibonacci
+
+4.27
+// skipped, similar exercise in CSAPP
+
+Project 1
+
+Project 2
+// skipped, similar exercise in CLRS
