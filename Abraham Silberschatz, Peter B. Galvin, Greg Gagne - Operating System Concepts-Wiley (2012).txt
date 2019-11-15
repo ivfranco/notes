@@ -591,10 +591,10 @@ b and c may not be distinguishable from the view of the program
 1.  resource release e.g. closing a file descriptor
 2.  write to a log file
 
-// about the difference between pthread API and Rust thread API:
+// about the difference between Pthread API and Rust thread API:
 // they are semantically equivalent but:
-// 1. threads in pthread take input by a void pointer on thread spawning, while Rust threads are a closures
-// 2. Rust thread can return a Sized value, which can be emulated with pthread API by allocate a dedicated chunk of 
+// 1. threads in Pthread take input by a void pointer on thread spawning, while Rust threads are a closures
+// 2. Rust thread can return a Sized value, which can be emulated with Pthread API by allocate a dedicated chunk of 
 //    memory for the thread to store the return value and later accessed by the main thread
 4.20
 ./OS/process/pid-manager
@@ -626,3 +626,204 @@ Project 1
 
 Project 2
 // skipped, similar exercise in CLRS
+
+5.1
+system clock is implemented by periodical clock interrupts 
+if interruption is disabled system-wise, the clock interrupts may be delayed, the assumption that these interruption 
+occurs once a fixed time period no longer holds
+either interruptions of the clock thread should not be disabled for too long, or the system time should be synchronized 
+to a remote server from time to time
+
+5.2
+these synchronization primitives have different semantics and diffferent costs
+spin lock:
+    busily wait by testing and modifying a shared variable atomically 
+    used when the critical section is short, i.e. syscalls and interrupts are significant overheads in comparison
+mutex lock:
+    semantically equivalence of spin lock provided by the kernel
+    instead of atomic instructions in a busy loop, the threads waiting for the lock is put to sleep and awaken later
+    more efficient than spin lock if the critical section is long
+semaphore:
+    similar to mutex lock, but instead of a binary lock (one thread working, all other threads waiting), (a fixed
+    number of) multiple threads can enter the critical section at the same time
+    used when a fixed number of resources have to be managed across threads
+adaptive mutex lock:
+    a hybrid implementation of lock as both a spin lock and a mutex lock
+    when the lock is held by a working thread, threads blocking on waiting spin
+    when the lock is held by a sleeping thread, threads blocking on waiting is put to sleep too
+condition variable:
+    a synchronization mechanism defined by two methods: .wait() and .signal()
+    x.wait() blocks the current thread until another thread calls x.signal()
+    x.signal() awakes a thread or all threads blocking on x.wait()
+
+5.3
+waiting by busily trying to acquire a lock in a loop
+alternatively a thread can be put to sleep (by a syscall or a kernel mutex lock) and be awaken later by the OS when the
+resources become available
+it's not always efficient to avoid busy waiting, these syscalls and interrupts have their own costs
+
+5.4
+usually the kernel cannot tell the difference between a thread doing meaningful job and a spinning thread
+on single-processor system the spinning thread when active will consume 100% of the computing power of the CPU
+also for a resource to be released, the spinning thread must be switched out for another thread to make progress
+on multi-processor system the spinning thread will only consume 1/N of the computing power where N is the number of 
+processors in the system
+the resource may be released by another thread running on another processor, switching out the spinning thread may be
+much more expansive compared to spinning a few hundred instructions 
+
+5.5
+without atomic operations the memory order may be arbitrary, decrementation of the counter in one thread may not be 
+visible from another thread in time, two or more threads may acquire the resource guarded by a binary semaphore
+
+5.6
+a binary semaphore is semantically equivalent to a mutex lock
+
+5.7
+assume the instructions are interleaved in order:
+LD R0 BAL   LD R1 ACC
+ADD R0 A0   
+            SUB R1 A1
+ST R0 BAL   
+            ST R0 BAL
+the BAL memory location storing the account balance may have value BAL - A1 or BAL + A0 while it should have value
+BAL + A0 - A1
+the operations to the same account must be guarded by a mutex lock
+
+5.8
+assume turn is initialized to either i or j (otherwise the program causes UB)
+assume all operations on variable turn and flag[i] are atomic
+mutual exclusion:
+    Pi will only enter its critical section when flag[i] && !flag[j] and vice versa
+    the two conditions cannot be satisfied at the same time
+progress:
+    if Pj is absent when Pi is trying to enter the critical section, flag[i] && !flag[j]
+    otherwise flag[i] && flag[j]
+    if turn == i Pi spins, otherwise Pi set flag[i] = false hence Pj can make progress and set turn = i on exit
+bounded waiting:
+    when two threads compete for the resource, only the thread pointed by variable turn can make progress
+    on exit turn is set to another thread, so a blocking thread at most have to wait for another thread to exit
+
+5.9
+// thanks https://personal.cis.strath.ac.uk/sotirios.terzis/classes/CS.304/Remaining%20Contemplation%20Questions.pdf
+mutual exclusion:
+    the first thread Pi entering critical section has checked that 
+        1.  itself has state in_cs
+        2.  all other threads has state != in_cs
+    any thread entering state in_cs later cannot exit the first while loop
+progress:
+    if multiple threads are in state want_in, all but the one immediately after turn is stuck in a spin lock
+bounded waiting:
+    on exit, threads increments turn by at least 1 (skips idle threads)
+    a waiting thread cannot be skipped, after at most n - 1 turns this thread will be served
+
+5.10
+in single-processor system it's important that a single thread should not hold the CPU too long, which is enforced by 
+a timer, otherwise a dead lock will freeze the entire system
+disabling all interrupts will disable the timer interrupt at well, let a single thread hold CPU indefinitely
+
+5.11
+disabling / enabling interrupts to all threads on demand of a single thread is way too expensive
+
+5.12
+// thanks https://stackoverflow.com/questions/4752031/
+trying to acquire a semaphore may put the thread to sleep, which defeats the purpose of spin lock: spin locks should 
+only be used if the critical section is short, sleeping with a spin lock will block all other threads trying to acquire
+the spin lock for a long time
+
+5.13
+linked list:
+    if a thread is deleting a node when another thread is trying to insert a node before it, the pointer to the previous
+    mode may be dangling, the inserting thread would be dereferencing NULL pointers and cause segfault
+bitmap:
+    setting the same field to both 0 and 1 in different threads may have varying result depends on the order of their 
+    instructions
+
+5.14
+assign id 1 to n to n threads 
+each thread acquire the lock by
+    while (compare_and_swap(&lock, i, 0))
+and set the lock to the next non-idle thread based on a flag[n] array
+
+5.15
+void acquire(lock *mutex) {
+    compare_and_swap(&lock->available, 0, 1);
+}
+void release(lock *mutex) {
+    test_and_set(&lock->available, 0);
+}
+
+5.16
+instead of while loop, acquire invokes a syscall with the lock (implemented in the kernel), the kernel then put the 
+thread to sleep and insert it into a waiting list associated to that lock
+
+5.17
+short duration: spin lock
+long duration: mutex or spin lock, depends on the number of cores available and the time 
+sleep while lock: mutex by 5.12
+
+5.18
+2T
+
+5.19
+the second one is much more efficient, the variable hit is never read, its value is of no importance to the service 
+threads, a mutex lock may put threads to sleep while atomic operations will be compiled to a hardware instruction 
+
+5.20
+a.  all operations on number_of_processes may cause data race, the real number of processes exceed MAX_PROCESSES
+b.  before each read and write to number_of_process
+c.  without a mutex lock two threads may call allocate_process() at the same time when 
+        number_of_processes == MAX_PROCESSES - 1
+    the maximum number of processes will be exceeded
+
+5.21
+initialize a semaphore to the maximum number of sockets
+a thread opening a connection has to acquire the semaphore at first, block if the semaphore is 0
+
+5.22
+such a lock may be useful when concurrent quick read is frequent, write is sparse
+if write is as frequent as read or the read operating is long, the threads trying to write may be starving
+
+5.23
+assume read operation to semaphore is atomic
+typedef struct {
+    boolean block;
+    int count;
+} semaphore;
+void wait(semaphore *lock) {
+    while(true) {
+        while (test_and_set(&lock->block))
+            ;
+        // acquired lock
+        if (lock->count > 0) {
+            lock->count -= 1;    
+            break;
+        }
+    }
+}
+void signal(semaphore *lock) {
+    while (test_and_set(&lock->block))
+        ;
+    lock->count += 1;
+}
+
+5.24
+the child thread must inform the parent thread about a ready number in some means (e.g. condvar), or while very 
+inefficient the parent thread can check an atomic count of ready numbers in a loop
+./OS/process/fibonacci-iterative
+
+5.25
+mutual exclusion of a monitor can be emulated by a semaphore guarding all methods of that monitor
+
+5.26
+// skipped, straight forward
+
+5.27
+// thanks solutions manual
+a.  if the content is lengthy, copying it to / from the buffer may take considerable time, another thread trying to 
+    read or write the buffer must wait in between 
+b.  instead of produced buffer elements, the buffer may store pointers to these elements, copying these pointers would
+    be far more efficient
+    threads must be careful that these memories should not be accessed once its put into the shared buffer 
+
+5.28
+
