@@ -823,7 +823,132 @@ a.  if the content is lengthy, copying it to / from the buffer may take consider
     read or write the buffer must wait in between 
 b.  instead of produced buffer elements, the buffer may store pointers to these elements, copying these pointers would
     be far more efficient
-    threads must be careful that these memories should not be accessed once its put into the shared buffer 
+    threads must be careful that these memory region should not be accessed once its put into the shared buffer 
 
 5.28
+in a common use case of read-write lock, there will be much more read threads than write threads
+if the lock does not favor write threads, a write attempt will block until there's no thread reading the resource
+such an event may simply never happen if the resource is read frequently
+a possible solution is, if there are write threads waiting on the lock, all incoming read threads are blocked
+in this case write threads are will starve but read thread may
 
+5.29
+calling signal() on a conditional variable awakes one thread blocking on the corresponding wait() call, it there's no 
+threads blocking on the conditional variable the call to signal() has no effect
+in contrast calling signal() on a semaphore will always release one allowance to the poll
+
+5.30
+threads calling signal() no longer has to wait the awakened thread to exit
+all operations on the next semaphore and next_count variable can be eliminated
+
+5.31
+along with the resources and conditional variable, the monitor maintains a waiting priority queue 
+when no printer is available, incoming threads enter the waiting queue and wait on the conditional variable
+whenever a printer is released, all threads waiting on the conditional variable are awaken (pthread_cond_broadcast)
+they in turn check if they are the top of the priority queue and there's printer available, if so they acquire a 
+printer, otherwise they call wait() again
+
+5.32
+with Rust Condvar and Mutex:
+struct FileSharing {
+    sum_lock: Mutex<u32>,
+    cv: Condvar,
+    limit: u32,
+}
+impl FileSharing {
+    fn new(limit: u32) -> Arc<Self> {
+        Arc::new(Self {
+            sum_lock: Mutex::new(0),
+            cv: Condvar::new(),
+            limit,
+        })
+    }
+    fn acquire(&self, num: u32) {
+        let mut sum = self.sum_lock.lock().unwrap();
+        while *sum + num >= self.limit {
+            sum = self.cv.wait(sum).unwrap();
+        }
+        *sum += num;
+        // acquired file, enter critical section somewhere else
+    }
+    fn release(&self, num: u32) {
+        let mut sum = self.sum_lock.lock().unwrap();
+        *sum -= num;
+        drop(sum);
+        self.cv.notify_all();
+    }
+}
+
+5.33
+upon release the calling thread is no longer holding shared resources, so it makes more sense to continue execution in 
+this case, if the control is transferred to the notified thread the calling thread may have to call release() in 
+async manner, e.g. spawn another thread to call it
+
+5.34
+a.  monitor rw_lock {
+        int read_count;
+        int write_count;
+        initialize() {
+            read_count = 0;
+            write_count = 0;
+        }
+        read() {
+            await(write_count == 0);
+            read_count += 1;
+            // critical section
+            read_count -= 1;
+        }
+        write() {
+            await(read_count == 0 && write_count == 0);
+            write_count += 1;
+            // critical section
+            write_count -= 1;
+        }
+    }
+b.  there's no mechanism there to notify the threads and the await() function that the value of the expression has
+    changed, the expression has to be evaluated from time to time even if the expression is expensive
+    also the system instead of the user program has to decide which thread to awake first when the condition is 
+    satisfied, without specific knowledge of the user program the decision made by the system may not be efficient
+c.  the paper in mention is paywalled 
+    maybe the expression has to be simple boolean expressions of local variables so its value can be tracked
+
+5.35
+with Rust Condvar and Mutex:
+struct AlarmClock {
+    clock_lock: Mutex<u32>,
+    cv: Condvar,
+}
+impl AlarmClock {
+    fn new() -> Arc<Self> {
+        Arc::new(Self {
+            clock_lock: Mutex::new(0),
+            cv: Condvar::new(),
+        })
+    }
+    fn wait(&self, ticks: u32) {
+        let mut clock = self.clock_lock.lock().unwrap();
+        let now = *clock;
+        while clock.wrapping_sub(now) < ticks {
+            clock = self.cv.wait(clock).unwrap();
+        }
+    }
+    fn tick(&self) {
+        let mut clock = self.clock_lock.lock().unwrap();
+        *clock = clock.wrapping_add(1);
+        self.cv.notify_all();
+    }
+}
+
+5.36
+// already done in 4.20
+./OS/process/pid-manager
+
+5.37
+a.  available_resources
+b.  two call to either decrease_count() or increase_count() may cause inconsistent write to the variable
+c.  ./OS/process/resource-counter
+
+5.38
+./OS/process/resource-counter
+
+5.39
