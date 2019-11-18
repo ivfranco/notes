@@ -952,3 +952,15 @@ c.  ./OS/process/resource-counter
 ./OS/process/resource-counter
 
 5.39
+./OS/process/monte-carlo-multi
+
+5.40
+// skipped, no OpenMP in Rust
+
+5.41
+./OS/process/barrier-point
+
+Programming Project 1
+./OS/process/sleeping-ta
+
+Programming Project 2
