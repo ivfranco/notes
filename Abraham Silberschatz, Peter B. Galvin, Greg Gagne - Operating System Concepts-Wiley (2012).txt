@@ -964,3 +964,8 @@ Programming Project 1
 ./OS/process/sleeping-ta
 
 Programming Project 2
+./OS/process/dinning-philosophers
+
+Programming Project 3
+// skipped, simply a VecDeque in a Mutex
+
