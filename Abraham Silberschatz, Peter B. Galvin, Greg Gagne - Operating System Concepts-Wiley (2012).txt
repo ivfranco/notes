@@ -969,3 +969,195 @@ Programming Project 2
 Programming Project 3
 // skipped, simply a VecDeque in a Mutex
 
+6.1
+n! if the system is non-preemptive
+(Σti / q)! if the the system is preemptive, length of ith process is ti, the time quantum is q
+
+6.2
+non-preemptive scheduling will not pause a process and switch context unless it exits / waits on resources by a syscall
+preemptive scheduling may pause a process midway to ensure fair share or to start a process of higher priority
+
+6.3
+a.  P1: 0 -> 8
+    P2: 8 -> 12
+    P3: 12 -> 13
+    avg turnaround: 10.533
+b.  P1: 0 -> 8
+    P3: 8 -> 9
+    P2: 9 -> 13
+    avg turnaround: 9.533
+c.  P3: 1 -> 2
+    P2: 2 -> 6
+    P1: 6 -> 14
+    avg turnaround: 6.866
+
+6.4
+processes with high priority are usually interactive, a shorter time quantum will let it be executed more frequently
+hence reduce the response latency
+processes with low priority are usually CPU bound daemons doing heavy computing job, a longer time quantum will reduce
+the time wasted on context switching
+
+6.5
+a.  SJF is a special form priority scheduling, priority is decided solely by burst time
+b.  FCFS is a special feedback queue with a single queue running FCFS algorithm 
+c.  FCFS is a special priority scheduling where all processes are assigned equal priority and ties are broken by FCFS
+d.  different, RR is preemptive and SJF is non-preemptive
+
+6.6
+a process with low priority (e.g. a CPU-bound processes) will eventually be assigned higher priority since it's never
+executed in the recent past due to its low priority
+
+6.7
+on systems with M:1 or M:N thread model, the thread library uses the PCS scheme to map user threads to LWP where threads
+in a process compete for LWP, then the OS uses SCS scheme to map LWP to a physical CPU where LWPs system-wide compete
+for the hardware
+switch to SCS scheme on an M:1 or M:N system effectively turns its thread model to 1:1
+
+6.8
+same to 4.5
+
+6.9
+P1: 80
+P2: 69
+P3: 65
+lower
+
+6.10
+the same to 6.4: IO-bound programs should have lower response time and CPU-bound programs should be preempted less 
+
+6.11
+a.  lower response time can be enforced by shorter time quantum and preemptive system, but these changes cause more
+    context switch and lower CPU utilization
+b.  as illustrated in 6.3, to minimize average turnaround time the OS should wait for a short period when there's only
+    a few ready processes, which of course increases the average waiting time
+c.  better IO utilization means more syscalls, more interruption and more context switch
+
+6.12
+more than one lottery tickets can be assigned to a process, increasing its winning probability accordingly
+
+6.13
+1.  pros:
+        no shared memory, queues can be safely manipulated by the core at any time
+    cons:
+        without some other inter-core scheduling mechanism, the processes have to wait in the queue of a busy core even
+        if another core is idle, result in worse load balance
+2.  pros:
+        load balance is naturally assured, all idle cores will get processes from the global queue
+    cons:
+        the queue must be protected by synchronization tools, access to the queue may be unsafe or at least take 
+        longer time
+
+6.14
+a.  the prediction is always 100ms
+b.  the CPU burst history has almost no effect on the prediction
+
+6.15
+CPU bound, a process which do not invoke a syscall for IO in its time quantum will have a higher priority and longer 
+time quantum next time it's executed
+
+6.16
+a.  FCFS:
+        0 -> 2: P1
+        2 -> 3: P2
+        3 -> 11: P3
+        11 -> 15: P4
+        15 -> 20: P5
+    SJF:
+        0 -> 1: P2
+        1 -> 3: P1
+        3 -> 7: P4
+        7 -> 12: P5
+        12 -> 20: P3
+    priority:
+        0 -> 8: P3
+        8 -> 13: P5
+        13 -> 15: P1
+        15 -> 19: P4
+        19 -> 20: P2
+    RR (time quantum in order):
+        P1, P2 (t = 1), P3, P4, P5, P3, P4, P5, P3, P5 (t = 1), P3
+b.  see part a
+c.  turnaround time - burst time 
+    result skipped
+
+6.17
+// skipped, unclear how the priority should affect the RR schedule
+
+6.18
+if all the user threads are assigned a 0 nice value, decreasing the nice value of a process without proper permission 
+may be considered as privilege escalation 
+
+6.19
+b and d, a if the system is non-preemptive and the first coming process does not halt
+
+6.20
+a.  the process is executed twice as frequent as other processes
+b.  alongside the pointers store a time quantum specific to that process
+
+6.21
+a.  one round consists of: 11 CPU burst of length 1 and 11 context switch
+    11 + 0.1 * 11 = 12.1 ms in total, CPU utilization is 11 / 12.1 = 0.909
+b.  one round consists of: 10 CPU burst of length 1, 1 CPU burst of length 10, 11 context switch
+    10 + 10 + 0.1 * 11 = 21.1 ms in total, CPU utilization is 20 / 21.1 = 0.948
+
+6.22
+assign higher on priority to their process on creation, invoke dummy syscalls to limit the length of CPU burst so the
+processes remains in the higher priority queue
+
+6.23
+a.  the running process will have highest priority than all waiting processes, the earlier processes in the ready queue
+    have higher priority than later processes, effectively FCFS
+b.  the running process will be preempted by a new coming process, without new processes the running process cannot be
+    preempted by waiting processes, new processes have the highest priority, a preemptive LIFO queue
+
+6.24
+a.  no discrimination at all
+b.  no discrimination at all
+c.  short processes will be assigned higher priority by their short CPU burst
+
+6.25
+// skipped, refer table 6.22
+
+6.26
+HIGH_PRIORITY_CLASS and HIGHEST
+
+6.27
+// skipped, refer table 6.23
+
+6.28
+// thanks https://en.wikipedia.org/wiki/Completely_Fair_Scheduler#Algorithm
+both CPU bound:
+    vruntime of A will decay faster than B
+A IO, B CPU:
+    A will have a slower increasing value of vruntime which also decays faster
+    whenever A is ready B will be preempted after its time quantum
+A CPU, B IO:
+    A will have a faster increasing value of vruntime which decays faster
+    potentially both A and B will have vruntime float around a limit, which depend on their burst time and nice value
+    which ever have a lower stable vruntime value has higher priority
+
+6.29
+as stated in the text, when a higher priority process requires use of a shared resource currently locked by a lower
+priority process, the lower priority process temporarily inherits the higher priority to prevent being preempted by
+another process
+a possible solution is to transfer the shares of the blocking high priority process to the locking lower priority
+process so the lock can be released eariler 
+
+6.30
+priority of a process in rate-monotonic scheduling is fixed, when there are a huge number of processes CPU utilization
+of rate-monotonic scheduling is limited to ~70% but EDF may be able to fully utilize the CPU
+
+6.31
+a.  P1 has higher priority
+    0 -> 25: P1
+    25 -> 50: P2 (5 remaining)
+    50 -> 75: P1
+    P2 miss deadline, cannot be scheduled by rate-monotonic scheduling
+b.  0 -> 25: P1 (d = 50)
+    25 -> 55: P2 (d = 75)
+    55 -> 80: P1 (d = 100)
+    80 -> 110: P2 (d = 150)
+    110 -> 135: P1 (d = 150)
+
+6.32
+they may affect both response and turnaround time
