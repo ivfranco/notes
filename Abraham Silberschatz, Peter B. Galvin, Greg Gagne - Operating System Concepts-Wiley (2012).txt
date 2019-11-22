@@ -1161,3 +1161,32 @@ b.  0 -> 25: P1 (d = 50)
 
 6.32
 they may affect both response and turnaround time
+
+7.1
+1.  a traffic jam in which cars from both sides waiting for the other to yield
+2.  a quarrel between two children, both waiting for the other to apologize
+3.  a draw by threefold repetition in chess, both players waiting for the other to make a mistake
+
+7.2
+when processes do not require and release all the needed resources at once, i.e. the resources locked by a process can
+be partially released so another process can make progress
+
+7.3
+./OS/process/banker
+a.  0   0   0   0
+    0   7   5   0
+    1   0   0   2
+    0   0   2   0
+    0   6   4   2
+b.  is safe
+c.  can be granted immediately
+
+7.4
+there will be no hold and wait situation in this system: any process trying to acquire any resource must first acquire
+F, but F is mutual exclusive thus only one process can acquire F, a process either hold F or no resource at all
+
+7.5
+each iteration of step 2 and 3 takes O(mn) time, each iteration marks one finish[i] as true, O(n) iterations in total
+O(mn^2) operations in total
+
+7.6
