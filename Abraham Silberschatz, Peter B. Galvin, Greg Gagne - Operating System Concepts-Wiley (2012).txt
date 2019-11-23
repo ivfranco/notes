@@ -1183,10 +1183,119 @@ c.  can be granted immediately
 
 7.4
 there will be no hold and wait situation in this system: any process trying to acquire any resource must first acquire
-F, but F is mutual exclusive thus only one process can acquire F, a process either hold F or no resource at all
+F, but F is mutual exclusive thus only one process can acquire F, a process either hold F or no resource at all, but the
+resource utilization is much lower than circular-wait scheme in which resources can be acquired by multiple processes
 
 7.5
 each iteration of step 2 and 3 takes O(mn) time, each iteration marks one finish[i] as true, O(n) iterations in total
 O(mn^2) operations in total
 
 7.6
+a.  if the deadlocks can be completely avoided, the system will save 20 dollar per month
+b.  the turnaround time is increased by 20%, if the jobs are time critical that would be unacceptable
+
+7.7
+if the synchronization tools used by the process is managed by the system (mutex, semaphore, about anything except a
+spin lock), the system can scan periodically over the waiting list of a mutex and detect that a process is never run
+for a long time
+
+7.8
+a.  no, the processes now can be preempted 
+b.  a process may be constantly preempted by incoming new processes, never gain access to needed resources
+
+7.9
+when the state is unsafe, no process can make progress without another thread releasing its resources first, by 
+definition the state is a deadlock
+
+7.10
+if the mutex lock is not recursive, the thread can try to lock the mutex twice and deadlock by itself
+
+7.11
+mutual exclusive: each intersection can only be occupied by traffics from one direction at a time
+hold and wait: all the four line traffics are occupying an intersection and waiting another to be empty
+no preemption: traffics cannot be removed from the intersection without passing it
+circular wait: illustrated by the figure
+
+7.12
+possible, write attempts are still mutual exclusive
+
+7.13
+if only the process running do_work_one is preempted by process running do_work_two after
+    pthread_mutex_lock(&first_mutex);
+for e.g. fairness then the deadlock will occur
+
+7.14
+assign a unique total ordered id to the accounts, always lock the account with a smaller id first
+
+7.15
+a.  circular-wait scheme incurs less overhead than banker's algorithm, no quadratic or higher complexity procedure is 
+    running periodically, the requests can be fulfilled or rejected in O(1) time
+b.  throughput of circular-wait scheme is considerably lower than banker's algorithm as some rejections in circular-wait
+    scheme are totally artificial, indicating no potential unsafe state or deadlock
+
+7.16
+a.  safe, ignore these new resources and the sequence is still safe
+b.  unsafe, after a process releasing its resources the next process in the sequence may not be able to acquire needed
+    resources 
+c.  unsafe, same to b
+d.  safe, the same set of resources can be allocated to the process anyway
+e.  safe as long as they request resources through the deadlock avoidance system
+f.  safe
+
+7.17
+by pigeon hole principle there will be at least one process being allocated two resources and can accomplish its job
+
+7.18
+for a deadlock each process must be holding less than necessary resources and there should be no resources available
+the n processes can only be holding less than m + n - n = m resources, there should be resources available
+
+7.19
+use banker's algorithm and set max resource need to 2 for each philosopher 
+or simply if it's the first request by a philosopher, there should be 2 chopsticks available
+
+7.20
+assume the philosopher holding most chopsticks is holding n, there should be 3 - n available in the system
+
+7.21
+let available = [1, 1], max = [[1, 1], [1, 1]], no request would be rejected but if
+    P0 hold A and request B
+    P1 hold B and request A
+there may be a deadlock
+
+7.22
+./OS/process/banker
+a.  unsafe, no safe sequence
+b.  safe
+
+7.23
+./OS/process/banker
+a.  (P0, P3, P4, P1, P2)
+b.  can be granted
+c.  cannot be granted, unsafe state and possible deadlock
+
+7.24
+processes that acquire resources will eventually releases these resources
+when the programmer is careless a resource may not be released, the system may not be able to recover these resources
+automatically on process exit
+
+7.25
+a state in mutex and a condvar
+enum Bridge {
+    South(u32), // south villager increment counter, north villager block on condvar
+    Empty,      // both pass and change to state above or below
+    North(u32), // south villager block on condvar, north villager increment counter
+}
+when a passenger reached the other end the counter is decremented by 1
+
+7.26
+the state additionally contains a traffic light which switches between two colors periodically (modified by a separate
+thread or implicitly inferred from the system time by villager threads)
+when the light is GREEN only south villagers can pass
+when the light is RED only north villagers can pass
+
+7.27
+./OS/process/vermont-bridge
+
+Programming Project
+./OS/process/banker
+

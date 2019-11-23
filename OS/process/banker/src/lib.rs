@@ -7,6 +7,7 @@ pub enum BankerFailure {
 
 pub type BankerResult<T> = Result<T, BankerFailure>;
 
+#[derive(Clone)]
 pub struct Banker {
     available: Vec<u32>,
     allocation: Vec<Vec<u32>>,
@@ -50,8 +51,9 @@ impl Banker {
         while !running.is_empty() {
             let old_len = running.len();
             running.retain(|&p| {
-                if self.need[p] <= work {
+                if vector_covered_by(&self.need[p], &work) {
                     vector_add(&mut work, &self.allocation[p]);
+                    println!("scheduled process {} to run", p);
                     false
                 } else {
                     true
@@ -66,11 +68,11 @@ impl Banker {
     }
 
     pub fn request(&mut self, process: usize, resources: &[u32]) -> BankerResult<()> {
-        if resources > &self.need[process] {
+        if vector_exceed(resources, &self.need[process]) {
             return Err(BankerFailure::MaxExceeded);
         }
 
-        if resources > &self.available {
+        if vector_exceed(resources, &self.available) {
             return Err(BankerFailure::NotAvailable);
         }
 
@@ -99,4 +101,12 @@ fn vector_sub(lhs: &mut [u32], rhs: &[u32]) {
     for i in 0..lhs.len() {
         lhs[i] -= rhs[i];
     }
+}
+
+fn vector_covered_by(lhs: &[u32], rhs: &[u32]) -> bool {
+    lhs.iter().zip(rhs).all(|(l, r)| l <= r)
+}
+
+fn vector_exceed(lhs: &[u32], rhs: &[u32]) -> bool {
+    lhs.iter().zip(rhs).any(|(l, r)| l > r)
 }
