@@ -1398,3 +1398,106 @@ if the process does not own a page, the page identifier is not contained in its 
 result in a page fault and be trapped to the OS
 logical page in page tables of processes may be mapped to the same frame in physical memory, but the shared memory in 
 most case should be read only
+
+8.15
+backing storage, usually flash memory, in mobile operating systems are not particularly bigger than the main memory, 
+swapping will not significantly enhance multiprogramming and may damage the flash memory which only tolerate very 
+limited number of write compared to magnetic disks
+
+8.16
+following 8.15, the secondary disk is usually more spacious than the built-in memory, and damaging it would not affect 
+the memory storing the operating system 
+
+8.17
+segmentation uses about 2 usize (16 bytes on x64) for each segment id, paging without hierarchical structure for quick 
+access must contain an entry for each page id, possibly occupies megabytes per process
+
+8.18
+first it provides another layer of safety to memory accesses: unmatched ASID is treated the same way as TLB miss, also
+ASID allows a single TLB to store virtual memory mapping for several processes, so the multiple level of TLBs do not 
+have to be flushed after a context switch
+
+8.19
+// thanks solution manual
+a.  if the process cannot be relocated on fly, the amount of stack space must be pre-determined on process creation
+    the amount of stack space must be big enough to house the deepest call, so most of the time a large portion of the 
+    stack space is unused
+b.  the stack segment still have to be big enough to house the deepest calls, but it does not have to be continuous to 
+    the .text and .data segments
+c.  pure paging can handle this scheme with ease
+
+8.20
+a.  (3, 13)
+b.  (41, 111)
+c.  (210, 161)
+d.  (634, 784)
+e.  (1953, 129)
+
+8.21
+a.  2^(21 - 11) = 1024
+b.  2^16 = 65536
+
+8.22
+unlimited
+
+8.23
+a.  8 + 12 = 20
+b.  6 + 12 = 18
+
+8.24
+// errata: http://os-book.com/OS9/errata-dir/os9c-errata.pdf
+a.  2^(32 - 12) = 1048576
+b.  depends on the physical memory installed on the system
+
+8.25
+a.  100ns
+b.  75% * (100 + 2) + 25% * 200 = 126.5
+
+8.26
+// thanks https://faculty.psau.edu.sa/filedownload/doc-6-pdf-214a793090ffcaee487d7c0e1d5d23b0-original.pdf
+paging can totally eliminate external fragmentation which pure segmentation suffers, and a long and sparse page table
+can be segmented to reduce the memory occupation
+
+8.27
+with segmentation the single base-limit pair can be shared among processes, in pure paging each frame of the reentrant  
+module have to be mapped to a page in each process sharing that module
+
+8.28
+a.  649
+b.  2310
+c.  segfault
+d.  1727
+e.  segfault
+
+8.29
+when the logical address space is huge and sparse, a single level page table may be enormous, occupies unacceptable 
+amount of memory, by segment the page entries, lots of the entries in the top level page table can be left empty, pages 
+not used by the process won't have their mapping to physical memory stored in the table
+
+8.30
+if location of the four page tables are stored in registers, each memory load first loads the entry of the right page 
+table, then the frame location stored in that entry, two operations in total
+
+8.31
+if the segmented, hierarchical page table scheme has n level, a memory load is translated to n + 1 memory operations
+when the load factor p is above 1, linked list in a single level hashed page table have average length p, a successful 
+access has to traverse p / 2 nodes on average
+when p < 2n, hashed page table is faster, otherwise hierarchical page table is faster
+
+8.32
+a.  assume 4K page size
+    from the 48-bit logical address <s: 13, g: 1, p: 2, offset: 32>:
+        g determines the descriptor table (local or global) to be searched
+        the segment pair (base limit) corresponding to the segment number s in that descriptor table is extracted
+        CPU checks whether the process has the privilege to access that segment with protection field p
+        the 32-bit offset is compared to the segment limit and added to the segment base, producing a 32-bit linear address
+    from the 32-bit linear address <p1: 10, p2: 10, d: 12>: 
+        the top level page table is accessed with p1, returns the location of the second level page table  
+        the second level page table is accessed with p2, returns the location of the physical frame
+        d is added to the base of the physical frame, producing a 32-bit physical address
+b.  segmentation + hierarchical page tables, 8.26 and 8.29 combined
+c.  accessible physical memory is limited to 32 bit or 4GB, but the main reason IA-32 is not adopted by every single
+    manufacturer is competition for the sake of possible market domination from IBM etc.
+
+8.33
+// skipped, why is this even a programming assignment 
