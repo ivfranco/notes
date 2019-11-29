@@ -1501,3 +1501,92 @@ c.  accessible physical memory is limited to 32 bit or 4GB, but the main reason 
 
 8.33
 // skipped, why is this even a programming assignment 
+
+9.1
+a page of virtual memory is not in physical memory when the process is trying to access it
+1.  the page fault is trapped to the OS
+2.  the process is switched out, its registers and states are saved to its PCB
+3.  if the access is illegal (e.g. out of bound), a signal is thrown to the process and most of the time the process is 
+    terminated on next execution
+4.  assign a free page if any to the process, call the backing store device to read the target frame to the page, put 
+    the process in the waiting queue of that device
+    if no or few free pages are available in the system some processes are suspended, all of their pages are freed
+5.  the CPU is allocated to other processes in ready queue before the read is complete
+6.  the IO device interrupt the CPU, the currently running process is paused and saved to PCB
+7.  the page table is corrected, the page caused the page fault is now in memory 
+8.  once the process is allocated CPU again, it continues execution from the instruction which caused page fault
+
+9.2
+a.  n, each page must be bought into physical memory on first use
+    exactly n page faults occur when the first n references are to each page once, and all following references are to
+    the same page
+b.  if m >= n, all n pages can reside in the physical memory, n page fault at most
+    if m < n, with FIFO replacement algorithm each reference may cause a page fault, p at most
+
+9.3
+9EF -> 0EF
+111 -> 211
+700 -> not in memory
+0FF -> not in memory
+
+9.4
+a.  4, no anomaly
+b.  1, anomaly
+c.  5, no anomaly
+d.  3, anomaly
+
+9.5
+1.  the ability to translate logical memory to physical memory through a page table and possibly multiple level of TLB 
+2.  a large secondary storage to store swapped out processes and pages
+3.  the ability to restart the execution of an instruction after a page fault so that the memory is not left at some
+    inconsistent state
+
+9.6
+seeking time on average is 60/3000/2 = 10 millisecond
+transfer time of a page is 10^3 / 10^6 = 1 millisecond
+99% instructions do not access another page, 1 microsecond
+1% * 80% = 0.8% instructions access another page in memory, 2 microsecond
+1% * 20% * 50% = 0.1% instructions access another page not in memory and the replaced page is clean
+    the page has to be sought and transferred to memory, 11002 microsecond ignoring time spent on interrupt handling
+1% * 20% * 50% = 0.1% instructions access another page not in memory and the replaced page is dirty
+    the page has to be written to the dram first, 22002 microsecond
+34.01 microseconds on average
+
+9.7
+assume the page size is measured in int (word), matrix is stored in row major
+a.  each 4 iterations reference two new pages, the process is in constant using and will never be replaced
+    100 * 100 / 4 = 2500 page faults
+b.  each 400 iterations reference two new pages
+    100 * 100 / 400 = 25 page faults
+
+9.8
+1 physical frames
+    FIFO: 20 page faults
+    LRU: 20 page faults
+    OPT: 20 page faults
+2 physical frames
+    FIFO: 18 page faults
+    LRU: 18 page faults
+    OPT: 15 page faults
+3 physical frames
+    FIFO: 16 page faults
+    LRU: 15 page faults
+    OPT: 11 page faults
+4 physical frames
+    FIFO: 14 page faults
+    LRU: 10 page faults
+    OPT: 8 page faults
+5 physical frames
+    FIFO: 10 page faults
+    LRU: 8 page faults
+    OPT: 7 page faults
+6 physical frames
+    FIFO: 10 page faults
+    LRU: 7 page faults
+    OPT: 7 page faults
+7 physical frames
+    FIFO: 7 page faults
+    LRU: 7 page faults
+    OPT: 7 page faults
+
+9.9
