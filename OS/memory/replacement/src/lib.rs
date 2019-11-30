@@ -1,4 +1,4 @@
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 
 pub trait Replacement {
     /// Return false if the page accessed is not in physical memory.
@@ -142,4 +142,62 @@ fn next_access(references: &[u32], idx: usize, page: u32) -> NextAccess {
         .iter()
         .position(|&access| access == page)
         .map_or(NextAccess::Never, NextAccess::FromNow)
+}
+
+#[derive(Clone)]
+struct FrameCounter {
+    loaded: Option<u32>,
+    counter: usize,
+}
+
+impl FrameCounter {
+    fn new() -> Self {
+        Self {
+            loaded: None,
+            counter: 0,
+        }
+    }
+}
+
+pub struct CNT {
+    frames: Vec<FrameCounter>,
+    assoc: HashMap<u32, usize>,
+}
+
+impl CNT {
+    pub fn new(n_frames: usize) -> Self {
+        Self {
+            frames: vec![FrameCounter::new(); n_frames],
+            assoc: HashMap::new(),
+        }
+    }
+}
+
+impl Replacement for CNT {
+    fn access(&mut self, references: &[u32], idx: usize) -> bool {
+        let page = references[idx];
+        self.frames.iter().any(|frame| frame.loaded == Some(page))
+    }
+
+    fn replace(&mut self, references: &[u32], page_idx: usize) {
+        let page = references[page_idx];
+
+        // disassociate this page from the frame recently stored it if any
+        if let Some(frame_idx) = self.assoc.get(&page) {
+            self.frames[*frame_idx].counter -= 1;
+            self.assoc.remove(&page);
+        }
+
+        // None is smaller than Some(i) for any i, empty frame is replaced first
+        let (frame_idx, replaced_frame) = self
+            .frames
+            .iter_mut()
+            .enumerate()
+            .min_by_key(|(_, frame)| frame.loaded)
+            .expect("CNT::replace: frame number must be positive");
+
+        replaced_frame.loaded = Some(page);
+        replaced_frame.counter += 1;
+        self.assoc.insert(page, frame_idx);
+    }
 }

@@ -1208,7 +1208,7 @@ when the state is unsafe, no process can make progress without another thread re
 definition the state is a deadlock
 
 7.10
-if the mutex lock is not recursive, the thread can try to lock the mutex twice and deadlock by itself
+impossible, the hold and wait condition cannot be satisfied
 
 7.11
 mutual exclusive: each intersection can only be occupied by traffics from one direction at a time
@@ -1517,7 +1517,7 @@ a page of virtual memory is not in physical memory when the process is trying to
 8.  once the process is allocated CPU again, it continues execution from the instruction which caused page fault
 
 9.2
-a.  n, each page must be bought into physical memory on first use
+a.  n, each page must be brought into physical memory on first use
     exactly n page faults occur when the first n references are to each page once, and all following references are to
     the same page
 b.  if m >= n, all n pages can reside in the physical memory, n page fault at most
@@ -1560,6 +1560,7 @@ b.  each 400 iterations reference two new pages
     100 * 100 / 400 = 25 page faults
 
 9.8
+./OS/memory/replacement
 1 physical frames
     FIFO: 20 page faults
     LRU: 20 page faults
@@ -1590,3 +1591,287 @@ b.  each 400 iterations reference two new pages
     OPT: 7 page faults
 
 9.9
+// thanks solutions manual
+the valid / invalid bit can be used as a reference bit 
+when the reference bit has to be cleaned e.g. in second chance algorithm, the valid bit is set to invalid instead, next
+access to the page will be trapped to the OS even the page is in physical memory, OS then set the bit to valid
+under this scheme a memory access would be trapped to the OS even if the page is in physical memory, dramatically
+increasing the cost of memory load
+
+9.10
+it's not optimal
+if a sequence of references can be scheduled with k page faults with n physical frames, the same schedule can be applied 
+to any system with n + p physical frames by simply ignoring the additional p frames, hence a page-replacement algorithm
+that experiences Belady's anomaly cannot be optimal
+
+9.11
+FIFO:
+    segments are allocated physical memory one beside another, when segments must be replaced for a new allocation, the
+    old segments are swapped out one by one from an most_early_segment index until the consecutive free memory is large
+    enough to house the new segment, the physical memory is managed must like the circular buffer in section 5.7.1
+    compaction is performed from time to time if the segments can be rearranged
+LRU:
+    // thanks solutions manual
+    select the oldest segment among the large enough ones (including the holes on two sides of them), if there's no 
+    large enough segment a chunk of oldest neighboring segments by some criteria are swapped out
+    if the segments can be rearranged the segments can be compacted and sorted by last access time, the first 
+    replacement after compaction is exactly the same to FIFO
+
+9.12
+a.  either the processes are thrashing or all of them are IO bound, without additional information e.g. page fault rate
+    it's unsafe to increase the level of multiprogramming of the system, if processes are thrashing the paging system
+    may be improved so that processes are given enough pages or swapped out
+b.  some CPU bound process are busy doing its job, CPU utilization cannot be improved any further by increasing the 
+    level of multiprogramming
+c.  processes are either idle or waiting for some non IO events, increasing the level of multiprogramming is a valid 
+    option to improve CPU utilization
+
+9.13
+it's impossible if the base and limit are not on a page boundary, normally a page table cannot limit accesses to only 
+part of a page 
+
+9.14
+TLB miss, no page fault:
+    the page is loaded but replaced by the TLB replacement algorithm later 
+TLB miss, page fault:
+    the page is not loaded into physical memory and on backing store
+TLB hit, no page fault:
+    an ideal scenario, quick memory load
+TLB hit, page fault:
+    incoherent cache, should be impossible, when a page is replaced its entry in TLB must be flushed, the system or the 
+    hardware has a bug
+
+9.15
+a.  to Blocked state, the page causing fault must be loaded into memory by an IO device and the process has to wait 
+b.  no change, TLB is hardware and should be transparent even to the OS
+c.  no change, a success memory load typically does not go through OS
+
+9.16
+a.  with pure demand paging the only way to brought a page into physical memory is through page fault, all memory 
+    accesses to the program and the first locality will cause page fault, page fault rate would be around 100%
+b.  the process during execution moves from one locality to another, when it first enters a new locality it has to 
+    bring the pages of the locality to physical memory, subsequent accesses in the locality will not cause page fault
+c.  1.  more pages can be assigned to this process (may be handled automatically after the OS observed a higher than
+        threshold page fault rate) taken from other processes
+    2.  no action is taken, this process will fault from time to time during execution
+    3.  there's no free memory in the entire system and this process is chosen to be suspended, it's swapped out to 
+        backing store and its pages are reassigned to other processes
+
+9.17
+when a page is marked as copy-on-write, copying this page by e.g. fork() syscall will not duplicate it in the physical
+memory but only create an entry in the page table pointing to the same frame, only when the process tries to write to 
+the page the associating frame on physical memory will be duplicated to a new free frame
+with copy-on-write a fork() syscall does not have to immediately copy the entire memory space of the parent process for 
+the child process, if the child process calls exec() syscall right after fork() the memory copy would be unnecessary
+the CPU must be able to understand the copy-on-write bit in the page table so while the attempt to write to a copy on
+write page will be trapped to the OS, read attempts will bypass OS and be handled as usual, otherwise the memory access
+latency would be unacceptable
+
+9.18
+page id: 2715, page offset: 2816
+the MMU searches the TLB by the page id, if it found an entry of physical frame location the frame location is combined
+with the page offset to produce a physical address, otherwise it start searching through the in memory page table whose
+location is stored in a special register
+if the entry is found in the page table is found the load is performed as above, otherwise a page fault is trapped to
+the OS and the OS will try load the page from the backing store and update the page table, whose content is later loaded
+into the TLB by the hardware
+
+9.19
+100(1 - p) + (0.3 * 8 * 10^6 + 0.7 * 20 * 10^6)p <= 200
+(16400000 - 100)p <= 100
+p < 1/163999 = 0.00000610
+
+9.20
+since each user thread is mapped to a kernel thread, one thread blocking on IO will not affect the other threads, but 
+the page table is shared among these threads and should be protected somehow or there's possible race condition
+
+9.21
+./OS/memory/replacement
+3 physical frames
+    FIFO: 17 page faults
+    LRU: 18 page faults
+    OPT: 13 page faults
+
+9.22
+a.  E12C -> 312C
+    3A9D -> AA9D
+    A9D9 -> 59D9
+    7001 -> F001
+    ACA1 -> 5CA1
+b.  4000
+c.  anything but page 3, 7, A and E
+
+9.23
+a.  the system is running out of free frames, its trying to reset the reference bit faster to allow more pages to be
+    replaced when necessary
+b.  the system has plentiful of free frames
+
+9.24
+when a page is accessed periodically but infrequently, LRU will keep it in the physical memory but LFU will evict it,
+possibly make rooms for more frequently accessed pages hence increase hit ratio
+when a page experienced a burst of access and is never going to be accessed, LRU will quickly evict it but LRU will keep
+it in the physical memory until its access count decays
+
+9.25
+when the program initializes a large set of pages, do something else and only then works on the pages, LRU will evict 
+these pages from the memory so when the process works on them they have to be brought into memory by page faults, in
+contrary MFU possibly will keep them in the memory
+in almost all other cases LRU are better than MFU
+
+9.26
+a.  a victim page is chosen from resident pages by FIFO, while the victim page is written out to the backing store a
+    free frame is chosen from the free frame pool by LRU, the desired content is read to the chosen free frame then
+    the page table is updated, when the resident page is written out it's frame is added to the free frame pool
+b.  the same frame is reused directly from the free frame pool, the page table is updated without any IO operation 
+c.  a single user system, every new allocation will cause the current loaded page to be written out, the system is 
+    unlikely to be functional at all
+d.  FIFO replacement algorithm
+
+9.27
+a.  no help, the processes are thrashing, a faster CPU cannot manage memory any better than the old one 
+b.  no help, as long as the system has enough disk space to swap out the pages additional disk space has no effect on
+    thrashing
+c.  more processes will be there demanding memory, the state of thrashing would be even worse
+d.  may help, by decreasing the number of processes, the system requires less memory and thrashing may be resolved 
+e.  may help, if the main memory is increased to a point that all pages of thrashing processes can be resided, the pages 
+    will no longer be swapped in and out constantly
+f.  no help, as long as there's no enough memory to reside all these processes pages will go back and forth between
+    memory and backing store, faster disk only makes the processes spin faster in thrashing state
+g.  no help, prepaging will not change the number of pages in a working-set of the program, thrashing still will occur
+h.  no help, thrashing may be worsen as there's more internal fragmentation in the system, more memory are wasted and
+    less can be allocated to processes
+
+9.28
+first the page containing the first instruction of the program is brought into physical memory by a page fault, then
+the program tries to access a location storing another memory location, the indirect memory access will cause another 2
+page faults
+the third page fault will replace the page storing the first instruction if the replacement algorithm is FIFO or LRU and 
+the page is not locked, the process will start to thrash 
+
+9.29
+this algorithm is almost the same as second chance replacement except that reference bit of each page is reset on its
+individual period instead of a global clock
+second chance replacement algorithm can be implemented above this mechanism, also the system can reclaim the pages of 
+a low priority process more frequently, but being a approximation of LRU the hit ratio of this algorithm cannot be
+better in general
+
+9.30
+a.  the initial value of the counter is 0, before a page is loaded into a frame the number of pages associated to a
+        frame is 0
+    the counter is incremented when a frame is replaced with a new page, a page not loaded to the frame before
+    the counter is decremented when a page recently being loaded into it is loaded into another frame
+    the page currently in the frame with smallest counter is replaced
+b.  ./OS/memory/replacement
+    CNT: 15 page faults
+c.  OPT: 11 page faults
+
+9.31
+80% * 1 + 18% * 2 + 2% * (1 + 20000) = 401.18 microsecond
+
+9.32
+a process has no enough pages to load all of the pages in its working set, causing page faults constantly as a result
+the system can record and detect the frequency of page fault of a process, if page fault rate is high the process is
+thrashing
+more page frames can be assigned to this process or this process has to be suspended 
+
+9.33
+it usually cannot, whenever a program is working on a set of data in memory it commonly does it in a particular function
+or loop, so neither its active code nor data section will change during the working set of data, but there may be rare
+cases in which a program works on the same set of data in two different branches of deep and distant function calls,
+only move from one branch to another occasionally
+
+9.34
+if Δ is too small, the working-set window cannot contain a whole locality, processes will be assigned fewer page frames 
+than necessary and will start thrashing 
+if Δ is too big, processes will be assigned too many page frames than necessary, the system will run out of memory 
+sooner, level of multiprogramming will decrease
+
+9.35
+Request 6
+    512
+        256
+            128
+                64
+                    32
+                        16
+                            8
+                            6:8
+Request 250
+    512
+        250:256
+            128
+                64
+                    32
+                        16
+                            8
+                            6:8
+Request 900
+    // not enough memory, rejected
+Request 1500
+    // not enough memory, rejected
+Request 7
+    512
+        250:256
+            128
+                64
+                    32
+                        16
+                            7:8
+                            6:8
+Release 250
+    512
+        256
+            128
+                64
+                    32
+                        16
+                            7:8
+                            6:8
+// other two releases are not allocated at the first place
+
+9.36
+a working set for each thread, each thread may be accessing different data and executing different function
+
+9.37
+the single cache must be shared by all the CPUs, allocation of a kernel object must be protected by mutex and block, 
+that means process creation, opening files, memory mapping and nearly all syscalls can only be processed one at a time,
+diminishes any benefit multiple processors may provide
+either each CPU should have their own object cache, or the system has to be asymmetric (i.e. different tasks and cache
+are handled on different CPU)
+
+9.38
+page size can be decreased to reduce internal fragmentation or increased to reduce the size of page table and the time 
+and the number of IO operations to load a data set, according to the need of a process
+the OS must monitor memory accesses in more details, the translation from logical memory to physical memory using the
+same entry in TLB may be illegal or not depending on the current size of the page in that entry
+
+9.39
+./OS/memory/replacement
+1 physical frames
+    FIFO: 91 page faults
+    LRU: 91 page faults
+    OPT: 91 page faults
+2 physical frames
+    FIFO: 82 page faults
+    LRU: 82 page faults
+    OPT: 63 page faults
+3 physical frames
+    FIFO: 66 page faults
+    LRU: 72 page faults
+    OPT: 49 page faults
+4 physical frames
+    FIFO: 58 page faults
+    LRU: 59 page faults
+    OPT: 41 page faults
+5 physical frames
+    FIFO: 50 page faults
+    LRU: 51 page faults
+    OPT: 33 page faults
+6 physical frames
+    FIFO: 45 page faults
+    LRU: 46 page faults
+    OPT: 27 page faults
+7 physical frames
+    FIFO: 37 page faults
+    LRU: 35 page faults
+    OPT: 21 page faults
