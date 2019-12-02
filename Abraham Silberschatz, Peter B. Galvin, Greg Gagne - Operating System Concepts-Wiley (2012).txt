@@ -1875,3 +1875,10 @@ same entry in TLB may be illegal or not depending on the current size of the pag
     FIFO: 37 page faults
     LRU: 35 page faults
     OPT: 21 page faults
+
+9.40
+./OS/memory/collatz-winapi
+
+9.41
+./OS/memory/mmu
+
