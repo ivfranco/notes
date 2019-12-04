@@ -51,7 +51,7 @@ pub fn cscan(init: i32, end: i32, requests: &[i32]) -> Vec<i32> {
         // there's requests inner to the initial position
         // scan to the innermost of them
         inner.sort();
-        schedule.extend(requests.iter().filter(|&&r| r >= init));
+        schedule.extend(inner);
     }
     let mut outer = requests.iter().filter(|&&r| r < init).collect::<Vec<_>>();
     if !outer.is_empty() {

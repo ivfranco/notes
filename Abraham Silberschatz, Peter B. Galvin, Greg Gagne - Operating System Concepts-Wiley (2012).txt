@@ -1957,7 +1957,7 @@ a complicated scheduling algorithm like SSTF, also FCFS ensures fairness
 FCFS: 13011
 SSTF: 7586
 SCAN: 7492
-C-SCAN: 12485
+C-SCAN: 9917
 LOOK: 7424
 C-LOOK: 9137
 
@@ -1970,7 +1970,7 @@ c.  ./OS/storage/disk-scheduling
     FCFS: 90.058ms
     SSTF: 65.345ms
     SCAN: 68.873ms
-    C-SCAN: 89.823ms
+    C-SCAN: 78.277ms
     LOOK: 66.617ms
     C-LOOK: 70.052ms
 d.  26.0%
@@ -1988,3 +1988,79 @@ cons:
     lower expected lifetime, limited writes, more expensive per gigabyte
 
 10.15
+ignore transfer time or assume transfer time is proportional to the distance traveled, ignore rotation latency, both 
+initial position p and IO request r are uniformly distributed
+let e be the innermost cylinder
+    SCAN:   int(p, 0, e, int(r, 0, e, d(p, r)))
+            where d(p, r) = r - p if r >= p
+                          = (e - p) + (e - r) = 2e - p - r if r < p
+            = int(p, 0, e, (2e - p + 2e - 2p)p/2 + (e - p)^2 / 2)
+            = int(p, 0, e, 2ep - 3p^2/2 + e^2/2 - ep + p^2/2)
+            = int(p, 0, e, ep - p^2 + e^2/2)
+            = 2e^3 / 3
+    C-SCAN: int(p, 0, e, int(r, 0, e, d(p, r)))
+            where d(p, r) = r - p if r >= p
+                          = (e - p) + e + r = 2e - p + r if r < p
+            = int(p, 0, e, (2e - p + 2e)p/2 + (e - p)^2/2)
+            = int(p, 0, e, 2ep - p^2/2 + e^2/2 - ep + p^2/2)
+            = int(p, 0, e, ep + e^2/2)
+            = e^3
+C-SCAN have longer expected response time
+when requests are sparse C-SCAN may suffer from greater response time variation, about half of the requests must wait 
+for the read-write head to go back to cylinder 0 and start over again, but when the IO queue is crowded and higher 
+rotational latency C-SCAN is more fair and has lower variation as requests to the other end have to wait all the other 
+requests elsewhere to be served
+
+10.16
+a.  SSTF would be far better than all the other algorithms, other algorithms must go towards a fixed direction so cannot
+    focus on a small area
+b.  SSTF but waits for a small period of time before leaving the hot spot, so the upcoming requests to the small area 
+    have a higher chance to be handled rapidly
+
+10.17
+a.  one block, the block of data
+b.  9-10 blocks, 7 data blocks and 2-3 parity blocks 
+
+10.18
+a.  RAID 5: read operations on a single block access only one block on a single disk
+    RAID 1: same to above 
+b.  RAID 5: contiguous blocks are interleaved to different disks and can be read in parallel
+    RAID 1: contiguous blocks are stored in the same disk, can only be read sequentially
+
+10.19
+RAID 1: each write operation writes to a single disk
+RAID 5: each write operation writes to at least 2 blocks on 2 different disks, global throughput will be lower than
+        RAID 1, but write to contiguous blocks can be handled in parallel if there are enough disks
+
+10.20
+according to 10.18 and 10.19, file that is frequently read should be stored in RAID 5, while file that is modified by
+processes should be stored in RAID 1
+
+10.21
+a.  once per month, 750000 / 1000 = 750 hours = 31.25 days
+b.  // thanks solutions manual
+    MTBF = 24 * 365 * 1000 = 8760000 hours 
+    nothing is given about the expected lifetime
+c.  warranty of a product is decided by financial consideration and legal requirement
+
+10.22
+sector sparing:
+    less available space, a hard failure of a sector would not reduce the number of available disk space so the disk can
+    maintain the labelled spec for a longer period of time
+sector slipping:
+    less available space, a failed sector will always be mapped to the next available sector, the failure handling
+    controller is more complicated, an entire track have to be read and write to different position on hard failure
+
+10.23
+when the secondary storage is backed by RAID 5, the OS may want to ensure that a frequently accessed file has its blocks
+scattered around all the disks so contiguous read can be performed in parallel 
+the OS may also require a large file to be stored in the same or close cylinders to minimize the seeking time
+
+10.24
+./OS/storage/disk-scheduling
+FCFS: 8222052
+SSTF: 8110
+SCAN: 6884
+C-SCAN: 9997
+LOOK: 6884
+C-LOOK: 9995
