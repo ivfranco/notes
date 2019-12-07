@@ -2064,3 +2064,120 @@ SCAN: 6884
 C-SCAN: 9997
 LOOK: 6884
 C-LOOK: 9995
+
+11.1
+auto reset system may be useful on computers shared by anonymous public users, e.g. in a campus library or internet 
+cafe, they can use a set of pre-installed softwares while have no access to system files or other users' files
+systems that do not reset on user logout is used when the user (partially) owns the computer
+
+11.2
+if the system does not provide the API to read / write different type of files according to their content, all user 
+programs have to parse the files by their own codes or (possibly different) third-party libraries, an approach more 
+bug-prone
+a typed file API on the other hand may be misused or show surprising behavior from time to time, e.g. the difference
+between wb and w on some old platform, programmers have to be more careful than dealing a uniform binary file API
+
+11.3
+same to above, in practice most files are either text or records of fixed size, glibc provides both blocked IO and 
+formatted IO, the same set of functionality can be built on a stream byte API, the system programmer has to decide
+whether the system should provide these API out of box at the expense of bigger image size
+
+11.4
+the real file name can be modified to include the path to that file, for example a file log.txt under directory /etc/
+can be named /etc/log.txt, as long as each file has a unique path they will have a unique name in the single-level
+directory structure, then an external file explorer can simulate the multilevel directory structure from their file name
+if the file name is limited to 7 characters, paths would be to long to be included in file names
+
+11.5
+without open() syscall, each read and write syscall must take file path instead of file descriptor as argument, each
+call to read() and write() must first traverse the file system to find the entry of the file, either the entire file 
+system must be loaded into memory on startup or read() and write() syscall will be much slower
+open() caches file entry in a table, without close() the OS won't know when to remove these entries from the table and
+the table will eventually fill up
+
+11.6
+// thanks solutions manual
+a.  if the structure of the subdirectory is stored in the directory file instead of the file system, by modifying the
+    subdirectory the users owning the subdirectory may include files which they do not have access to the subdirectory
+    and gain access to these files
+b.  instead of raw read and write provide another set of syscalls to manipulate directories
+
+11.7
+a.  create a new group, include 4990 users in that group, set group access permission to rwx
+b.  create a new group, include the 5000 - 4990 = 10 users, deny access to that file by users in that group
+    possible on windows platform
+
+11.8
+there will be exactly the same number of access permission entires, but the access permissions of a single user is now
+specified at the same place, batch processing a user's access permissions no longer requires traversing the file system,
+a user can be removed from the system much easier
+
+11.9
+even though the file is deleted, uninformed users will refer to the new file by the links as if the file is still there,
+an adversary can exploit this scheme by supply a a malicious replacement and void the security of the system
+link should contain a hash of the file which is updated on each access, if the file is modified or replaced since last 
+access through that link OS can detect a hash mismatch and inform the user
+
+11.10
+the text described a two-level scheme:
+1.  a system-wide open file table that stores the cached entry of the opened file, a counter of how many processes are
+    accessing it (incremented on open() and decremented on close(), removed when reduced to 0), its position on the 
+    disk, etc., information that's independent to individual processes, 
+2.  a process-specific open file table that stores the pointer to the system-wide open file table, the current read and
+    write position into the file, the operation mode, etc.
+but if processes are executed by different CPUs, the system-wide open file table must be protected by a mutex lock,
+this scheme may have lower throughput than maintaining a full-fledged open file table per user 
+
+11.11
+pros:
+    once the lock is acquired the protection is absolute, no other user can gain access to the same file 
+cons:
+    the file system is now more dangerous to use, read() or write() syscalls may block a process indefinitely, a 
+    misbehaving process has the potential to block a big portion of the system by deadlocking while holding the lock of 
+    a widely shared file
+
+11.12
+sequential:
+    video / music player, video game
+random:
+    database, word processor, text editor, web browser
+
+11.13
+pros:
+    users no longer have to manually call open(), read() and write() can skip the directory structure by hash the file
+    name into a hash table
+cons:
+    file in the open file table lives much longer than necessary, fewer processes can run concurrently
+
+11.14
+buffer the reads ahead, whenever the process calls read() the system reads much more from the file and put the bytes in
+a buffer, subsequent reads and writes is served by the buffer instead of the file on the disk, the buffer is written
+back to the file only when a read reads beyond the current buffer size or the file is closed
+
+11.15
+a video player that allows users to seek to a particular frame of a video, if bit rate of the video is variable the
+position of that frame cannot be calculated and must be searched among the file or the index created by the system
+
+11.16
+pros:
+    most systems allow such link, forbid it would be counter-intuitive
+cons:
+    when mount point is shared by different devices, for instance different usb storage may be mapped to the same drive
+    letter, the link may be invalid or even accidentally point to a different file of the same path 
+
+11.17
+stated in depth in the text in section 11.3.6
+a middle ground is duplicated file with synchronization, e.g. git or other version control software
+
+11.18
+pros:
+    errors that only exist on remote file system can be specified and prompted to the user, error messages will be more
+    informative, the system can handle remote file system only errors in its own context
+cons:
+    a different set of API must be provided, or the same API for local file system is reused and behaves totally
+    different when the file is located in a remote file system, leading to surprises and painful debug sessions
+
+11.19
+each write operation must be immediately reflected to the original file in the remote file system, read and write
+operations cannot be buffered by the system (the user still can buffer them at their own risk), read and write
+operations are much slower and suffer from network conditions more frequently
