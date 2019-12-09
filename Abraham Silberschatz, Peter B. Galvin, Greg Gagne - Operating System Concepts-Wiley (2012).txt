@@ -2324,3 +2324,38 @@ a restore operation only read and copy files from two mediums instead of all med
 backup occupies more space than the scheme in section 12.7.4
 
 12.21
+$ echo foo > file1.txt
+$ ls -li file1.txt
+32932572275255899 -rw-rw-rw- 1 *** *** 4 Dec  9 19:41 file1.txt
+$ ln file1.txt file2.txt
+$ ls -li file2.txt
+32932572275255899 -rw-rw-rw- 2 *** *** 4 Dec  9 19:41 file2.txt
+$ cat file1.txt
+foo
+$ cat file2.txt
+foo
+$ echo baz > file2.txt
+$ cat file1.txt
+baz
+$ rm file1.txt
+$ ls
+bin  file2.txt  file3.txt 
+$ strace rm file2.txt
+// ...
+unlinkat(AT_FDCWD, "file2.txt", 0)      = 0
+// ...
+$ ln -s file3.txt file4.txt
+$ ls
+bin  file3.txt  file4.txt
+$ ls -li file*.txt
+39687971716484175 -rw-rw-rw- 1 *** *** 4 Dec  9 19:41 file3.txt
+83035118130003454 lrwxrwxrwx 1 *** *** 9 Dec  9 19:58 file4.txt -> file3.txt
+$ echo foo > file4.txt
+$ cat file3.txt
+foo
+$ rm file3.txt
+$ cat file4.txt
+cat: file4.txt: No such file or directory
+the command is translated to
+    cat file3.txt
+and the file referred by the link no longer exist
