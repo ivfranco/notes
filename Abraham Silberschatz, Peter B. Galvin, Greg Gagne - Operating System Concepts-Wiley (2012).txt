@@ -2144,8 +2144,8 @@ random:
 
 11.13
 pros:
-    users no longer have to manually call open(), read() and write() can skip the directory structure by hash the file
-    name into a hash table
+    users no longer have to manually call open(), read() and write() can skip the directory structure by hashing the 
+    file name into a hash table
 cons:
     file in the open file table lives much longer than necessary, fewer processes can run concurrently
 
@@ -2181,3 +2181,146 @@ cons:
 each write operation must be immediately reflected to the original file in the remote file system, read and write
 operations cannot be buffered by the system (the user still can buffer them at their own risk), read and write
 operations are much slower and suffer from network conditions more frequently
+
+12.1
+contiguous
+a.  202, 100 blocks are read and written to the space occupied by the next block, the new block is then inserted to the
+    first free block, then the control block is updated to reflect the new length of the file
+b.  2 * (100 - i) + 2, if the block is inserted to ith (0 based) place, 2 * (100 - i) blocks have to be moved
+c.  2, 1 block inserted to the end, the control block updated
+d.  1, the control block is updated to point to the second block with length - 1
+e.  min(), either all blocks before it or all blocks after it is moved
+f.  1, the control block is updated to reflect the new length
+linked 
+a.  2, the new block contains a pointer to the former first block, the control block is updated to point to the inserted
+    block
+b.  i + 2 for i > 0, the block is inserted as the new ith block (0 based), i blocks are traversed, the i-1th block is
+    updated and written back, the new block is inserted
+c.  102, 100 blocks are traversed, the last block is updated and written back, the new block is inserted
+d.  2, the first block is read, the pointer to the second block is extracted from first block and updated to the control
+    block
+e.  i + 2 for 0 < i < 100 (0 based), the i + 1 blocks are traversed, the i-1th block is updated to point to the i+1th 
+    block
+f.  100, 99 blocks are traversed, the 98th block now points to null
+indexed
+a.  2, the index block is updated, the new block is written out
+b.  same to above 
+c.  same to above
+d.  1, the index block is updated
+e.  same to above
+f.  same to above
+
+12.2
+even if the system can track and manage these mounts, a user program either cannot or won't be bothered to track all
+these duplicated mounts, operations which are supposed to be performed on each file once may be performed multiple times
+on files in that file system
+if the system in addition allows cascading mount, the same file system can be mounted to a subdirectory of itself, 
+possibly creating a loop in the file system
+
+12.3
+otherwise a special tag must be contained in each block to indicate whether it is free, and the entire disk must be 
+scanned on startup to initialize the bitmap, when the disk is spacious this initialization will take several hours
+
+12.4
+1.  whether the file will be accessed sequentially or randomly, linked file do not support random access well
+2.  the maximum size of the file, huge file usually cannot be allocated contiguously
+3.  if the file will be accessed in its entirety frequently, storing it in contiguous space may increase effective 
+    transfer rate
+
+12.5
+same to the cluster scheme described in the text, more internal fragmentation but free from external fragmentation
+
+12.6
+read can be buffered ahead so subsequent reads can be served by the buffer instead of causing another IO operation, 
+write can be buffered so multiple write to a single block can be applied once instead of causing an individual IO
+operation each time
+cache is more expansive than disk and a system with more cache will suffer more significant inconsistency between memory
+and disk after disasters
+
+12.7
+pros: the system occupies less memory when the functionality are not used
+cons: user will experience noticeable delay first time calling these syscalls 
+
+12.8
+each file system implements an interface defined by the VFS specification, OS can handle syscalls from user programs by
+calling VFS functions from whatever file system mounted at the path transparently
+
+12.9
+a.  exactly the same to linked file, no external fragmentation, bad at random access 
+b.  the OS must choose between external fragmentation and long links of scattered file extends by ignoring free holes
+    under a certain size or not, and it would difficult for the system to decide how much space should be allocated to
+    the next extend of a file and may delegate the decision to the user 
+c.  no external fragmentation and the efficiency of random access can be optimized according to user requirements
+
+12.10
+contiguous: highly efficient sequential and random access, sequential access can be performed in batch
+linked: random access has Ω(n) complexity
+indexed: efficient sequential and random access
+
+12.11
+in ordinary linked allocation accessing ith block of a file requires Ω(n) IO operations, with FAT the links can be
+traversed in one or fewer blocks, provides better support to random access
+
+12.12
+a.  if the file system can obtain a list of all the blocks assigned to it from the OS, it can reconstruct the free-block
+    list by deducting the blocks allocated to files from the entire list of blocks
+b.  thanks http://matthews.sites.truman.edu/files/2017/01/chapter12.pdf
+    in worst case each directory on the path contains enormous number of files, forcing any access to go through the
+    triple indirect pointer, assume the block of the file entry in the directory can be located immediately by a hash
+    table
+    1 - 5: read inode or root, read the 3 indirect index blocks, read the file entry block 
+    6 - 10: same to above for /a
+    11 - 15: same to above for /a/b
+    16 -  17: read inode of /a/b/c and the direct block containing its content
+c.  doubly link all the free blocks as a circular list, storing pointers to previous and next blocks in the header, each
+    single free block can be used as the new first free block pointer after a memory failure
+
+12.13
+small file can be allocated small blocks to minimize internal fragmentation, bigger file can be allocated blocks of full
+size to minimize the necessary disk operations for sequential access
+alongside the pointers to the next block, the size of the current block must be stored in each free block, or blocks of
+different size must be managed in different lists, blocks of smaller size may need to be combined to form a block of
+bigger size on demand
+
+12.14
+write cache: after a crash data in the write cache yet to be written out is lost, causes inconsistency between control
+    block and data
+free block bitmap, block index and hash table: by using complicated structure the critical section of an IO operation 
+    is longer, the system is more vulnerable to crash and data inconsistency
+grouping and counting: more difficult to reconstruct the free list after a crash
+
+12.15
+a.  how is memory address translation part of the file system
+b.  contiguous: 1, the location of block 4 can be computed from the location of block 10
+    linked: 6, the links must be traversed one by one from block 10 to block 4
+    indexed: 2, read the index block and then block 4
+
+12.16
+8KB / 4B = 2048
+(12 + 2048 + 2048^2 + 2048^3) * 8KB = 64.031TB
+
+12.17
+a reverse map from block number to files can be built by scanning the entire file system, then blocks can be swapped
+to move all free blocks to the end of the disk space
+1.  doing so requires hours of time, during which normal operation cannot be served or is significantly delayed
+2.  on certain disk devices recompacting and relocation consumes limited read and write tolerance
+3.  when programmed carelessly the entire recompacting session is a critical section, crash in between will leave the
+    disk in an inconsistent state
+
+12.18
+1.  each time a file system is mounted or unmounted, the cache entries with a corresponding prefix must be invalidated 
+    to hide or expose the underlying local directory
+2.  on certain error condition returned by the remote file system calls, the cache entries must be invalidated, e.g. 
+    a file is moved or deleted on the server
+3.  the cache may even be flushed periodically 
+
+12.19
+an OS recovering from a crash can inspect the log to see what IO operation is yet to be performed or halfway done, then
+revert to a safe state and apply these operations anew until the log is emptied and the user programs agree with the 
+OS about the disk state
+
+12.20
+a restore operation only read and copy files from two mediums instead of all mediums from the last full backup, but each 
+backup occupies more space than the scheme in section 12.7.4
+
+12.21
