@@ -2359,3 +2359,143 @@ cat: file4.txt: No such file or directory
 the command is translated to
     cat file3.txt
 and the file referred by the link no longer exist
+
+13.1
+pros:
+    hardware implementation executes faster than software implementation in kernel or user space
+    the functionality is better encapsulated, user program or the OS is not even aware of its existence
+    the code or circuit of the functionality cannot be modified in any means by the host, immune to virus and malware
+cons:
+    bugs in the implementation can only be patched by switching the hardware or flashing the EEPROM
+    the functionality is completely hidden from the OS, no way to cooperate
+    developing the functionality on hardware cost more time and expense, more difficult to debug and iterate
+
+13.2
+with a single busy bit: 
+    the host repeatedly scan it until it's cleared, then set the data registers and set the buzy bit
+    the controller repeatedly scan it until it's set, serve the operation request and clear the buzy bit
+
+13.3
+interrupt-driven serial port:
+    the device behind the serial port rarely generates events, e.g. an sensor that captures environmental data every
+    few seconds, a thread should not busily wait for the event but let the OS wake it upon an interrupt
+polling terminal concentrator:
+    when the OS is on a host dedicated to the management of the terminal concentrator(s) or when the concentrator is so
+    busy that generate a series of events the interrupt handler cannot deal with  
+
+13.4
+the driver can poll for a fixed amount of times then ask the controller to interrupt the OS and go to sleep if no event
+occurred in the period
+pure polling:
+    a coprocessor with high frequency and small data input, a request can be served in nanoseconds, interrupt handler 
+    cannot operate at that speed or feed the coprocessor with data consistently 
+pure interrupts:
+    a sensor reading environmental data every few seconds, process working on such device will be idle most of the time
+    and has no time constraint
+hybrid:
+    a device which generates events in burst e.g. a microphone, with the hybrid strategy the events can be handled fast
+    and the process can be put to sleep when idle
+
+13.5
+instead of polling in a busy loop and monopolize the core, multiple IO requests can be issued concurrently, controllers
+of different IO devices then can handle these requests and copy data to the supplied addresses at the same time
+instead of a few registers grouped into a serial port, these controllers must be able to understand (virtual) memory 
+addresses and be able to modify it
+
+13.6
+faster the CPU, more cycles are wasted on polling if the system-bus and device speed didn't catch up, bigger portion of
+CPU time is not doing actual work
+
+13.7
+STREAMS module is a interface with a write queue and a read queue, can be read or write in unit of bytes or messages
+STREAMS driver is a device driver implemented as a series or STREAMS modules
+
+13.8
+among the devices of the same type, the ones with smaller buffer should has higher priority or they are more likely to
+lose data due to buffer overflow
+an interrupt indicating an error should have higher priority than normal interrupts, an error condition is usually more
+urgent than normal IO operations
+user should be able to assign priorities to interrupts in a certain range so they can control the behavior of the
+interrupt handler while not intervene the operation of the kernel
+
+13.9
+pros:
+    the device registers can be accessed as normal memory addresses, the user programs don't have to follow special 
+    protocols and explicit syscalls
+cons:
+    the mapped addresses may be accessed accidentally by e.g. out-of-bound array accesses, a software error can 
+    escalate to a hardware defeat through the mapped addresses 
+
+13.10
+a.  polling with a small buffer, the thread handling mouse inputs can be executed every few milliseconds and apply all
+    mouse inputs in the buffer at once, the user won't notice the difference
+b.  interrupt with a buffer in kernel space, the user process should yield CPU to others during the long seek time, the 
+    tape drive on command will copy its content to the buffer through DMA or registers, then the kernel will wake up the
+    user process and copy the content to user memory
+c.  same to b
+d.  polling with memory mapped IO, GPU works at high frequency, latency from interrupt handling may not be acceptable
+
+13.11
+user programs invoke syscalls with virtual addresses, and in most system even though memory address translation does not 
+go through OS for performance concern, the page table is still managed by the OS, hence the OS can translate virtual
+addresses to physical addresses and request IO operations from the device with physical addresses, a whole category of
+illegal access error is eliminated by the translation as memory that doesn't belong to the user process won't be present
+in its page table
+
+13.12
+1.  context switches, both switching out when the process it put on wait list and switching in when the process is
+    waken up and allocated CPU time again
+2.  latency introduced by the interrupt handler, e.g. select the correct handler from a chain of handlers, dispatch the
+    interrupt through indirect function call
+3.  generating an interrupt is more time-consuming than set up the data-out registers
+4.  depends on the priority of the process may have to wait for arbitrarily long on the ready list
+5.  the current running process may be in a critical section, the interrupt may be masked and delayed until the current
+    process terminates
+
+13.13
+blocking IO:
+    1.  when the process can not proceed unless the IO operation is fully complete, e.g. modifying a file
+    2.  when the IO operation takes a long time and cannot return halfway
+    3.  when deadline is near, blocking IO has simpler interface 
+non-blocking IO:
+    1.  when multiple jobs are to be balanced among the process itself, by non-blocking IO the process can do other jobs
+        when the device is not ready
+    2.  when the IO device is only available occasionally and the process does not want to wait for the next event 
+    3.  in async environment, blocking IO does not cooperate well with the user space task scheduler, the scheduler has
+        no way to know whether the task is blocking on IO or is doing meaningful work
+
+13.14
+same to async IO (or is it an alternative description of async IO?), the syscalls return immediately and informs the 
+process later by an interrupt, meanwhile the process can handle other jobs (explicitly or through a user space task
+scheduler), improve job balance among the single thread
+
+13.15
+the controller must understand memory translation in the same way as the CPU of the host, i.e. the content and format of
+the page table, the controller may also need to manage its own TLB for performance, since virtual memory is platform
+specific the controller or the driver must contain platform specific codes for a variety of platforms
+the controller instead of the OS can do the memory address translation, more works are offloaded to the controller which
+is the purpose of DMA from the beginning
+
+13.16
+// only message passing since shared data structure is the default control group
+pros:
+    1.  IO managers are decoupled from the kernel, the kernel data structures can be kept as internal implementation
+        details and be changed without breaking the IO subsystem
+    2.  no data structures are shared among host and devices, the system as a whole is less vulnerable to state
+        inconsistency caused by a crash
+    3.  logging is made much easier, rather than artificial log messages the message itself can be recorded or even 
+        rewound from the log
+cons:
+    1.  higher overhead, the message has to be copied from kernel buffer to controller memory or vice versa
+    2.  the size of kernel and IO managers combined is larger, the same set of functionality has to be implemented on
+        both sides
+    3.  when an IO manager requires more information from the kernel after an update, extra messages must be designed 
+        and passed as it has no access to the data structures of the kernel
+    
+13.17
+// thanks solutions manual, but the reference code is over simplified
+// the hardware clock must support canceling, otherwise if the three channels are all occupied, a new request of
+// smallest interval must be dropped
+
+13.18
+see the difference between TCP and UDP
