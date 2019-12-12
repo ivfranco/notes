@@ -2494,8 +2494,86 @@ cons:
     
 13.17
 // thanks solutions manual, but the reference code is over simplified
-// the hardware clock must support canceling, otherwise if the three channels are all occupied, a new request of
-// smallest interval must be dropped
+// the hardware clock must support canceling, otherwise if the three channels are all occupied, when a new request 
+// arrived with notification time earlier than the earliest among the currently running 3 channels, the new request can
+// not be handled and must be dropped, which is both arbitrary and unrealistic
 
 13.18
 see the difference between TCP and UDP
+
+14.1
+capability lists consist of <object, right> pairs associated with each domain, access lists consist of <domain, right>
+pairs associated with each object
+
+14.2
+on deletion of a normal file, the system would simply remove its entry and add all its blocks to the free list, the
+content of the file will only be overwritten when the block is reused, in between any adversary with physical access
+to the system (i.e. can scan the disk bypassing the file system) would be able to recover the file
+but such a scheme is not perfect, due to the nature of magnetic disks the file may still be recovered with high accuracy 
+after several overwrites
+
+14.3
+subset 
+
+14.4
+A(x, y) ⊆ A(z, y)
+
+14.5
+a procedure can go down the stack and modify the stack content inserted by other procedures, e.g. edit the return 
+address of the calling procedure and invoke another malicious procedure
+
+14.6
+ring-protection
+
+14.7
+capability list or access list, the right structure now contains a counter, each access to that right decrements the
+counter, when the counter is 0 the right is removed from the list
+
+14.8
+whatever data structure storing the object stores a counter alongside it, the counter is incremented when a process
+gains access right to that object, decremented when the process is terminated, once the counter is reduced to 0 the
+object is removed
+
+14.9
+IO operations in most system are privileged instructions, if user processes can do their own IO they may be able to 
+modify kernel data, e.g. the swapped out PCBs on disk, and the kernel can no longer assure its own integrity
+
+14.10
+allocate the object in a privileged segment and deny access from the user process to the segment
+
+14.11
+see section 14.3.3
+
+14.12
+no, by switching the access privileges are granted and revoked, only available to a process in domain A temporarily, by
+including the process would have these privileges longer than necessary i.e. violates the least-privilege principle
+also the switching right is not transitive, domain A cannot grant the switching right to other domains, by including 
+the rights may be transferred to any domain other than A and B
+
+14.13
+each access right entry contains a time interval, the OS only grants the right to the calling process if the system
+time is in the time interval (as a result modifying system time must be privileged), the game is hidden from users and 
+can only be accessed from a wrapper program that checks user's privilege periodically and terminates the game process 
+if the user no longer have the right
+
+14.14
+// thanks solutions manual
+instead of raw bytes the hardware tags each object with its type (a bit pattern) and treat them differently, the same
+scheme can protect memory from being manipulated by wrong procedures as when the integer typed data is passed as a float
+parameter to a procedure the hardware can detect the type mismatch
+
+14.15
+when the state of an object changes the access rights to it can be granted or revoked in one place, each object can have 
+a default set of access rights as a special list entry, capability of a domain is scattered all over the system thus
+hard to manage
+
+14.16
+the reverse of 14.15: capability of a domain can be managed (copied, shared, transferred to other domain) with ease,
+access rights to an object is scattered over multiple lists, all these lists must be traversed when the state of an
+object changed
+
+14.17
+access rights of one domain no longer has to be subset or superset of access rights of another domain, rights can be 
+dynamically granted to or revoked from arbitrary set of domains 
+
+14.18
