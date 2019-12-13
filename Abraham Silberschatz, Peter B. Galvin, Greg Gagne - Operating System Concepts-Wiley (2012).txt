@@ -2577,3 +2577,46 @@ access rights of one domain no longer has to be subset or superset of access rig
 dynamically granted to or revoked from arbitrary set of domains 
 
 14.18
+// referring Capability-Based Computer Systems, Henry M. Levy, 1984 
+// https://homes.cs.washington.edu/~levy/capabook/Chapter6.pdf
+to implement the least privilege principle, the process cannot be granted all the rights it needs during its entire
+lifetime, instead it's granted the capability to call certain (kernel) procedures which in turn access the system
+resources in request. among those procedures some of them can be certified as trustworthy so that they gain independent  
+rights on their formal parameters, passed by the caller. such procedure is called a "type manager" of the type of its
+formal parameter. these rights are granted universally on all objects of that specific type, in contrary to the normal
+instance-to-instance capability scheme in Hydra.
+Multics implements a similar facility to support cross-domain procedure calls, but capability management in Multics is
+not as fine-grained as in Hydra, a process can call all procedures with higher or equal ring number
+
+14.19
+a procedure / program can only access resources explicitly given to it, an object should not unnecessarily expose its
+internal structure, similar to the encapsulation principle in most OOP languages
+as well as least privilege principle it can minimize the possible harm a misbehaving or malicious process can do to the 
+system
+
+14.20
+a.  a process can access all resources of higher ring number regardless of whether it need them or not, ring-protection
+    scheme by itself cannot enforce need-to-know principle
+b.  enforced by default, capabilities is granted instance-by-instance, on procedure calls parameters are accompanied by
+    a bit vector of capabilities, without the capabilities a procedure has no access to the parameter
+c.  any procedure above a doPrivileged() annotation has permission to resources protected by checkPermissions(), but a 
+    Java program cannot directly access the memory hence a reference to an object cannot be forged, need-to-know is
+    enforced not by stack inspection but the JAVA language 
+
+14.21
+a JAVA thread in a less-privileged domain can gain access to privileged resources by inserting the corresponding 
+doPrivileged() annotation into the stack before accessing the resource, bypassing the protection provided by stack 
+inspection
+
+14.22
+// thanks solutions manual
+role in the role-based access control system closely resembles domain in the access matrix, but different to access
+matrix roles themselves are not managed by the role-based access control facility but passwords, e.g. RBAC cannot grant
+a role the ability to switch to another role bypassing the password system
+
+14.23
+a user program in a system adhere to least privilege principle may only cause minimized damage to the environment
+on programming error or intentionally
+
+14.24
+a user program can still cause damage within its privileges
