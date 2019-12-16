@@ -2620,3 +2620,94 @@ on programming error or intentionally
 
 14.24
 a user program can still cause damage within its privileges
+
+15.1
+in C reference to an array is a pointer with no length information (called "array decaying"), in a safer language like 
+Rust reference to an array is a slice which has length information built-in, out-of-bound access to the array can be
+detected in running time and cause an exception instead of undefined behavior, in Rust references can also be declared
+as immutable so its content can only be read but not modified
+
+15.2
+impossible until the intruder tries to log in with that password, after then the system can inform the user through e.g.
+emails each time the account is logged in so the user will notice immediately when the intruder tried
+
+15.3
+to protect the system from rainbow table attack: even if the password is in the rainbow table the hash will be different
+so an adversary cannot recover the password without computing each entry of the table with the salt appended
+denote the password by p, salt by s, let H be a secure hash function, H(p || s) is computed and stored along with the
+salt, on user login the system takes the password input pi, compute H(pi || s) and compare it with the stored hash value
+
+15.4
+store hashed password instead of plaintext
+
+15.5
+// referring Watchdogs - Extending the UNIX File System, Bershad and Pinkerton, 1988
+// https://www.usenix.org/legacy/publications/compsystems/1988/spr_bershad.pdf
+pros:
+    1.  the watchdog is a separate user-level program, compared to a kernel module it won't crash the system on 
+        exception, requires less privilege, can be deployed and configured more conveniently 
+    2.  instead of an universal security scheme in the kernel, users can define their own watchdogs hence deploy their 
+        safety measure file-by-file
+cons:
+    1.  a watchdog, once linked to a file by a syscall, re-implements other file system syscalls like open() and read(), 
+        such re-implementation is totally transparent to the processes accessing the linked file, once the system is
+        breached, the intruder can e.g. redirect write() syscalls to remote host without being noticed by the user
+    2.  correctness of a watchdog is up to the user who implemented it while most users in practice cannot configure
+        a security system accurately, this scheme is more or less asking for trouble  
+
+15.6
+1.  according to wikipedia (https://en.wikipedia.org/wiki/COPS_(software)), COPS is mainly a signature-based detection
+    engine, means it cannot prevent new 0-day vulnerability and should not be trusted blindly, other security measures
+    must be deployed in parallel 
+2.  COPS is a user-level program, any intruder with sufficient privilege can modify its configuration thus circumvent 
+    its detection completely, COPS should be launched from read-only media
+
+15.7
+enable as few as possible components of the system on installation, a vulnerability in a rarely used component will not 
+affect every system in the network
+users must be provided more privileges to enable these components, which may lead to further vulnerability and a bigger
+attack surface to social networking
+
+15.8
+his behavior is clearly violating 18 U.S. Code § 1030, the interesting thing is he hadn't be shut out from the industry
+for his conduct and later became a tenured professor in MIT
+
+15.9
+1.  unauthorized access to accounts should be prevented, physical, human and OS
+2.  personal information associated with accounts should not be leaked to even employees, physical and OS
+3.  the system should not be vulnerable to temporary power surge and outage, physical and OS (backups)
+4.  backup should be stored in safe place, physical and human
+5.  unnoticed tempering from an employee should not be possible, mainly OS and protocol design
+6.  the system should be recoverable from mistake of inputs, physical and OS
+
+15.10
+1.  the data is secured in a broader sense: not only within the system in which the data is protected by access control,
+    it also cannot be recovered from raw physical access to the disk
+2.  encryption when implemented right is more bug tolerate: a wrong password cannot decrypt the data, while a system may
+    grant access right to unauthorized user due to a bug
+
+15.11
+1.  instant message programs, man-in-the-middle can block, insert or modify the messages: end to end encryption, 
+    authorization and sequential number
+2.  remote login, if passwords are transferred in plaintext will grant access rights to man-in-the-middle: encryption
+
+15.12
+unless the two communicating entities are located nearby (i.e. can be configured by the same administrator) or can 
+arrange physical or any other secure but slow contact, asymmetric key exchange is always preferred, though it's
+impossible when both sides do not have a well established and verifiable identity
+
+15.13
+ke is publicly available hence cannot prove the identity of the sender
+the encrypted message can only be recovered by whoever possess the private key, secure channel can be established 
+without a shared secret 
+
+15.14
+a.  if the public key cannot be derived from the secret key, keep the public key secret, publish the secret key, encrypt
+    the message with the public key, others can verify the author by decrypting the message
+b.  normal usage
+c.  the above two combined with two pairs of public & secret keys
+
+15.15
+true alarms: 10 * 20 = 200
+false alarms: 10000000 * 0.0005 = 5000
+200 / (5000 + 200) = 3.84% alarms corresponds to real intrusions
