@@ -2711,3 +2711,179 @@ c.  the above two combined with two pairs of public & secret keys
 true alarms: 10 * 20 = 200
 false alarms: 10000000 * 0.0005 = 5000
 200 / (5000 + 200) = 3.84% alarms corresponds to real intrusions
+
+16.1
+1.  type 0 hypervisor, bundled with the hardware in the form of firmware, guest OSs are usually assigned dedicated
+    hardware resources (a hardware partition), supports only a few number of guest OSs or type 1 hypervisors 
+2.  type 1 hypervisor, loaded by a boot loader in place of a normal OS, runs in kernel mode, shares hardware resources
+    among guests as if the guests have dedicated ownership, manage hardware resources just like ordinary OS, achieve
+    efficiency with support from the hardware
+3.  type 2 hypervisor, launched as a user process, runs in user mode (occasionally injects kernel mode code into the OS
+    by fake device drivers), run guest OSs as normal user processes, cannot benefit from hardware support
+
+16.2
+1.  paravirtualization, normal hypervisors gives guests the illusion that they are running on their own system, but
+    paravirtualization provides a non-standard hardware interface and requires cooperation from the guest OSs in hope
+    to share the hardware resources more effectively
+2.  programming environment virtualization, instead of virtualizing hardware and run guest OSs it provides a common
+    interface to user programs so they can invoke the same set of functionalities on different OSs and hardwares
+3.  emulation, instead of providing a virtualized set of the same hardware resources as the underlying host, an emulator
+    simulates a different system / hardware to softwares built for that system / hardware 
+4.  application containment, provides virtualization of operating system instead of hardware resources, manages user
+    land programs instead of guest OSs, give programs the impression that they are the only program running in the
+    system
+
+16.3
+1.  protects the host from the guest operating systems by another layer of indirection between them
+2.  guest operating systems can be suspended, cloned and restored from backups with ease
+3.  cloud computing server can be sold in a standardized unit regardless of the capability of the hardware
+4.  enables live migration
+
+16.4
+on some CPU there's no clean separation between privileged and non-privileged instructions, e.g. an instruction may have
+different execution result in kernel mode and user mode, as guest OSs runs in user mode, trap-and-emulate is only 
+possible if all privileged instructions results in a trap to the hypervisor through the host
+the VMM can perform a binary translation: when the guest executes a privileged instruction in virtual kernel mode,
+VMM examines each instruction beforehand and translates them to equivalent instructions on the real machine
+
+16.5
+1.  new execution mode, appears to be full-privileged to a guest OS but actually passes control to the VMM on privileged
+    instructions
+2.  hardware support for virtual page tables, the MMU can go through both page table of the guest OS and the page table
+    of the VMM, mapping virtual addresses in guest OS to physical addresses without interfere from the VMM
+
+16.6
+on virtualized system a guest OS is managed by the VMM, which can easily suspend the guest OS and copy its states to
+another host, but on native system the OS must suspend itself and then copy itself to another machine, its state is not
+managed by a separate entity thus may be hard to collect, e.g. trying to save the kernel CPU registers may modify the
+content of them
+
+17.1
+by forwarding the broadcast packets to all ports except the source, the number of packets in all but tree shaped 
+networks increases exponentially, such a broadcast storm will quickly congest all the links 
+in a small tree shaped network a broadcast packets can reach all the hosts if forwarded by the gateways
+
+17.2
+pros:
+    cache hit saves an RTT to the DNS
+    functional even when the DNS is temporarily offline
+cons:
+    causes inconsistency when the entry on DNS is updated
+
+17.3
+pros:
+    once the circuit is established, transition is much more stable than packet switching and the link is free from
+    congest if transmission rate never exceeds the capacity, packets arrives in order with constant delay
+cons:
+    extra initial cost to establish the circuit, allocated link capacity cannot be recycled when the circuit is idle, 
+    each link on the circuit is a single point of failure
+viable usage: VoIP and local live video transmission
+
+17.4
+1.  a transparent distributed system should provide an interface which does not distinguish between local and remote
+    resources, act like a conventional centralized system
+2.  a transparent distributed system should provide user mobility by bringing over users' environment to wherever
+    they log in, allow them to access from more than one terminal machine
+
+17.5
+a.  the same method to move a process from one processor to another but over a network and the opened file should be
+    available in both hosts or be moved along the PCB
+b.  if the user process runs in a virtualized environment (e.g. JVM) the process can be migrated as usual as long as 
+    the two systems have compatible file system, otherwise the process migration cannot be transparent and the user must 
+    explicitly program how to transfer the state and resume processing on another host
+
+17.6
+a.  1.  link failure, the network link between client and server failed
+    2.  site failure, the server is offline and cannot handle requests from the client
+    3.  packet loss, a message is not transmitted from one site to the other
+b.  both 2 and 3 are possible in centralized system, a server process may be terminated by a fatal error, loop back
+    packets may be lost due to temporary failure in network adaptor
+    
+17.7
+some active sensors broadcast their measures periodically no matter there is a host accepting their broadcasting or not
+
+17.8
+a.  only if there's multiple other sites monitoring the condition of B, A can contact them 
+b.  only if there's another link between A and B and they can confirm by switching to the new link
+c.  indistinguishable from B goes down
+recovery from failure may cause further problems, a better solution is to switch to another server on any of the failure
+listed above if available 
+
+17.9
+computation migration is usually visible to user programs in term of RPC calls to execute a computation on another site
+and receive the result later, while process migration can be transparent to users such that the user processes can be
+move to a different site and been executed there
+
+17.10
+OSI model is quite an over specification: the session and presentation layer are not always necessary for a protocol, 
+in practice handshaking and data representation are up to the application, while the link and physical layer are
+implemented in hardware so is not of the operating system's concern 
+by eliminating the presentation layer applications have to define and parse their messages explicitly and may cause
+error e.g. encode a number as little endian and parse it as big endian 
+
+17.11
+without congestion control doubling the speed of the system doubles the number of packets pushed to the link and router, 
+possibly overflows their buffer and cause packet loss, the lost packets must be retransmitted and make the congestion
+more severe, a less fraction of packets transferred would be original
+proper congestion control is necessary when the link may be at capacity
+
+17.12
+the same set of functionalities can be implemented with just enough hardware or outright be implemented in hardware, 
+greatly reduces the cost of the device and boost service stability at the same time as there's no other processes
+running on the device
+the downside is the device may be harder to upgrade and configure at the time, recently most routers can be configured
+from a web interface
+
+17.13
+pros:
+    when the result of name resolution is not static, name server can be updated once and for all, while static tables
+    on each client must be reconfigured
+cons:
+    name server without backups is a single point of failure, also instead of a table in secondary storage an entire
+    protocol must be designed and deployed on both client and server, name resolution will be several order of 
+    magnitudes slower than table access
+each client can maintain their own cache of name resolution, skip the RTT on cache hit
+
+17.14
+so the protocol has a clear start point and a change can be contained in a small scope
+if there's no top level name servers, name resolution requests would have to be propagated all over the network just
+like routing information, take minutes instead of fraction of a second
+if there are only top level name servers, any change to any domain name must be committed to the top name servers, the
+servers would be flooded by modification requests and cannot reply to requests when the resolution table is 
+being updated 
+
+17.15
+pros:
+    absolute and transparent reliability
+cons:
+    when the upper layer does not need reliability, the additional overhead of acknowledgement, error checking &
+    retransmission is of no purpose
+    physical layer protocols put restrictions on mediums, more strict protocol limits the mediums the entire network 
+    stack can traverse
+
+17.16
+with dynamic routing packets may arrive out of order, if the order is of importance the packets arrived from network 
+must be buffered and reordered, by the application or by a transport layer protocol e.g. TCP
+when latency must be minimized (e.g. telephone, remote medical operation) virtual routing is more appropriate than
+dynamic routing 
+
+17.17
+// skipped
+
+17.18
+UDP is not reliable, packets may be lost or reordered on arrival, while a single byte of error in HTTP documents may
+render the entire page malformed
+one possible solution is connection multiplexing in HTTP/2, once a TCP connection is established multiple data stream
+can be carried by it independently, the connection is closed only when all the streams are terminated 
+
+17.19
+pros:
+    the API is compatible with a centralized system, user programs written for a centralized system can be compiled with 
+    or dynamically linked to the system library
+cons:
+    a distributed system is inherently different to a centralized one, with shortcomings and benefits the users are 
+    unaware of, for instance the user may assume a file in secondary storage can be accessed in milliseconds but in fact 
+    it's located in a remote host and takes seconds to open 
+
+17.20
+
