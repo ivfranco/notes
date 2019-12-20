@@ -2886,4 +2886,60 @@ cons:
     it's located in a remote host and takes seconds to open 
 
 17.20
+1.  remote access, the file system can be accessed from multiple terminals, the home environment of a user can be bought
+    to a remote site
+2.  file name in DFS may be independent to its location, an access to a file can be served by one of many servers
+    holding copies of that file, higher availability and fault tolerance
+3.  capacity of the file system and be extended transparently by connecting another server machine to the network
+
+17.21
+NFS is more suitable, since database accesses are typically random and OpenAFS by default uses a bigger cache block,
+remote database in OpenAFS will experience more cache miss on the same amount of cache memory, also cache are only
+synchronized to server on file close, database in OpenAFS have to deal with inconsistency and merge conflict more
+frequently
+
+17.22
+NFS is partially location transparent: a remote directory can be mounted to arbitrary local mount point and appear as a
+local directory, but the internal structure of the remote directory is exposed hence this scheme is not location
+independent at all
+OpenAFS by associating each file with a location-independent file identifier provides both location transparency and
+location independency, file names are mapped to identifiers then to physical locations
+
+17.23
+// cannot think of a situation in which user requires only location transparency but not location independence 
+
+17.24
+// thanks solutions manual
+failure recovery and RPC as a whole is no longer necessary, the same interface of local procedure call can be reused 
+across the network
+virtual circuit should be preferred as there's no link failure and packets may still arrive out of order in dynamic 
+switching, once the virtual circuit is established it's solid
+if the links are also fast client-side cache can be omitted
+
+17.25
+// referring http://pages.cs.wisc.edu/~remzi/OSTEP/dist-afs.pdf
+all AFS clients launches a daemon called "Venus process", cache of a file is assumed to be valid until the server
+contacts the Venus process of a client about an update by another client or the server itself, when reopening a cached
+file the client sends the server a validity check request, if the request timed out because of server failure the cache
+is discarded and the client will request a new copy of the file from the server 
+
+17.26
+local and remote cache serve different purposes, local cache ensures that most access to a remote file can be handled
+locally, remote (in memory) cache brings data from secondary storage to main memory so it can be read or written many
+order of magnitudes faster by the server
+
+17.27
+1.  whole-file caching: the entire file is transferred on file open and only synchronized on file close, most file
+    operations performed locally to reduce the server load
+2.  file status callback: the server notifies the clients on file modification, no heart beat packets are transferred 
+    from clients to server 
+
+17.28
+// the relative text must be edited out, the only mention to the Apollo Domain is using a timestamp as one part of the
+// file name
+
+17.29
+whole-file caching vs periodical write back
+stateful (callback list) vs stateless
+
 
