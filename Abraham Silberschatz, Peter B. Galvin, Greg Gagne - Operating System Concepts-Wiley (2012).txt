@@ -2942,4 +2942,162 @@ order of magnitudes faster by the server
 whole-file caching vs periodical write back
 stateful (callback list) vs stateless
 
+18.1
+cons:
+    1.  a subset of these modules must be loaded at startup which means longer launch time than a monolithic kernel
+    2.  a malicious program may be able to escalate its privilege by injecting kernel modules to the system
+when the OS works on a fixed hardware it can be compiled into a single binary file, otherwise it should always be split
+into modules or the OS cannot utilize new hardware released after its compilation
+
+18.2
+// thanks solutions manual
+1.  threads can be managed completely in user mode (N:1 model), from the viewpoint of the kernel it's a single process
+    while the CPU allocation and context switch among threads of a process is scheduled by a user mode library
+2.  threads can be managed directly by the kernel (1:1 model), e.g. in Linux each thread is a task as well as a 
+    single-threaded process
+3.  a hybrid approach (M:N model), software threads are mapped to (usually fewer number of) hardware threads, the
+    mapping is controlled by a user mode library while the CPU allocation and context switch is handled by the kernel
+in Linux threads are managed by the kernel (model 2), threads of a process can be executed concurrently on multiple
+CPUs, which is impossible for software threads since they are transparent to the kernel, by contrast software threads 
+takes less time to initialize and switch, also when done correctly software threads can still benefit from asynchronous
+and non-blocking IO
+
+18.3
+pros:
+    1.  calling kernel procedures or accessing kernel data structures won't cause page fault, these operations will have
+        a lower and more consistent delay
+    2.  the OS will not be preempted by page fault while updating the kernel data structure, less synchronization 
+cons:
+    1.  the kernel consumes more than necessary memory as even a kernel procedure that's never used will never be paged
+        out, user processes will start thrashing earlier 
+    2.  the kernel has to manually release pages once occupied by a variable size data structure 
+
+18.4
+pros:
+    1.  only one copy of shared library has to be stored in secondary storage and main memory
+    2.  dynamically linked library can be updated without recompiling the main program
+    3.  the same source file can be compiled on different platforms given a dynamically linked libraries as a compatible 
+        interface 
+cons:
+    1.  linking errors are the one of most prevalent and hardest to fix errors during software development and
+        deployment (e.g. user may update their libraries to a new version that's incompatible with the program), a
+        single statically linked binary is guaranteed to work
+    2.  for security concern: the shared library may not be what the program is expecting
+
+18.5
+networking sockets:
+    1.  the network stack is standardized by RFCs and available on most platforms, the communicating programs don't have
+        to contain code for each different platform just for communication
+    2.  network sockets are full-duplex, both sides can send and receive data at the same time free from conflict and 
+        data race
+shared memory:
+    1.  it is much faster to write to and read from the shared memory pages instead fo going up and down on the network
+        stack 
+    2.  communication by sockets must copy the data from buffer to buffer, while shared memory contains a single copy of 
+        the data
+
+18.6
+// thanks solutions manual
+1.  modern disk hardware contains on-board controllers which optimizes and reorders disk read and write, no need for the
+    kernel to do these jobs
+2.  the geometry of modern magnetic disks are complex and varies from manufacturer to manufacturer, almost impossible to
+    optimize read and write for all of them 
+
+18.7
+pros:
+    1.  ensured type safety, higher level of abstraction, less human mistakes 
+    2.  automatically prepare stack for procedure calls, align structures and allocate local variables
+    3.  much more readable and easier to write
+cons:
+    1.  high level languages are cross platform, system specific operations e.g. saving registers to PCB can only be
+        implemented in assembly
+    2.  the compiler occasionally will not optimize the code to the most efficient assembly
+
+18.8
+when the environment of the new process must be prepared with heavy computation and exclusive read-write access to the 
+data in the memory of the parent process, by calling fork() then exec() the environment can be prepared concurrent to 
+the parent process 
+when the environment of the new process is immediately available vfork() is more appropriate, otherwise modifying about
+anything between exec() and vfork() is UB
+
+18.9
+file transfer: TCP, each single bit may be significant to a file, the socket must be reliable 
+periodical test: UDP or raw ICMP packets, TCP makes too much assumptions and an outage is only visible to application
+layer after TCP timeout (1-5 seconds)
+
+18.10
+// again an exercise seemingly referring to removed section
+layered design & generic interface 
+
+18.11
+pros:
+    encapsulation, a kernel module cannot access arbitrary code in the kernel 
+cons:
+    the additional effort to maintain the symbol table exported by the kernel and kernel modules
+
+18.12
+1.  prevent modules from having unprotected concurrent accesses to a hardware
+2.  to make the job easier for module loading utilities e.g. modprobe & autoprobe
+
+18.13
+clone() syscall accepts flags which specifies what are shared between the parent and child process / thread, if no flag
+is set the child shares nothing with the parent thus is equivalent to a child process, if file system, memory, open file
+table and signal handlers are all shared then the child is equivalent to a thread
+
+18.14
+kernel-level threads, Linux do not distinguish between process and thread in regard to scheduling, all Linux threads are
+visible to the kernel and scheduled by the kernel on waiting or ready list
+
+18.15
+the objects not shared between child and parent processes - open file table, memory pages and signal handler table - 
+must be copied on creation
+while there's no difference between the scheduling of processes and threads as Linux does not distinguish between them,
+switching to another process costs much more CPU time than to another thread as the objects must all be loaded from
+backup storage
+
+18.16
+traditionally UNIX systems allocate a fixed time slice to each process and allow them to run for the time slice no
+matter how much processes are there in the system, therefore the more processes running in a system the longer a process
+must wait before its turn to come, by contrast CFS, the new scheduling algorithm introduced in Linux 2.6, allocates 1/N
+of CPU time to a process when there are N running processes and each process is allowed to run once every target latency
+, reduces the response time of an interactive process when the system is crowded
+
+18.17
+target latency and granularity
+small target latency & small granularity: 
+    lower latency, more time wasted on context switching
+large target latency & large granularity: 
+    higher latency, processes run for longer before being preempted, more CPU time on actual job
+
+18.18
+Linux kernel offers no guarantees about how quickly a process will be scheduled once the process becomes runnable, to
+enforce that each process must specify a deadline and the scheduling algorithm must order the runnable processes by
+in respect to their deadline and report an error if it's impossible to meet all the deadlines, thus the systems may not
+be able to handle the same amount of processes as before
+
+18.19
+when a user process requests access to page not backed by a file, e.g. heap allocation
+
+18.20
+when a private page is shared between parent and child processes
+
+18.21
+pros:
+    1.  code in shared memory is less critical than kernel code, error in shared library will neither crash the system 
+        nor escalate to fatal security breach
+    2.  by loading shared library on demand memory consumption of kernel is reduced
+    3.  shared library can be extended easily and can be more stable 
+cons:
+    1.  an additional level of indirection, less efficient compared to a single kernel binary
+
+18.22
+pros:
+    1.  after a crash the system can replay or undo operations and restore consistency
+    2.  the OS can commit IO operations much faster, operations in a transaction can be performed asynchronously if the 
+        driver and controller of the hardware doesn't support it already
+cons:
+    1.  another level of indirection
+metadata operations benefit more from the journaling system as multiple operations can be performed in batch 
+
+18.23
 
