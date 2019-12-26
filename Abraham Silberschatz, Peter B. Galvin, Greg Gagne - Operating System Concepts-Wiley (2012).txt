@@ -1394,7 +1394,7 @@ b.  contiguous memory and pure segmentation do not incur internal fragmentation,
 c.  impossible in continuous memory, straight forward in pure paging and pure segmentation
 
 8.14
-if the process does not own a page, the page identifier is not contained in its page table, referring to that page will
+if the process does not own a page, the page identifier is not contained in its page table, referring that page will
 result in a page fault and be trapped to the OS
 logical page in page tables of processes may be mapped to the same frame in physical memory, but the shared memory in 
 most case should be read only
@@ -3026,7 +3026,7 @@ periodical test: UDP or raw ICMP packets, TCP makes too much assumptions and an 
 layer after TCP timeout (1-5 seconds)
 
 18.10
-// again an exercise seemingly referring to removed section
+// again an exercise seemingly referring removed section
 layered design & generic interface 
 
 18.11
@@ -3100,4 +3100,21 @@ cons:
 metadata operations benefit more from the journaling system as multiple operations can be performed in batch 
 
 18.23
+the implementation of file systems are hidden behind the virtual file system interface, the kernel does not have to
+change to support new file systems
 
+18.24
+1.  setuid in Linux allows a process to drop and reacquire its effective UID repeatedly, effective UID of a process can
+    be set to real UID and restored to previous value while in UNIX the only operation possible is switching real and
+    effective UIDs
+2.  fsuid and fsgid, a independent UID & GID pair only used on file accesses
+3.  right passing between programs
+
+18.25
+// again an exercise seemingly referring removed section
+// thanks solutions manual
+1.  vast amount of people examine the source code of Linux kernel so vulnerabilities may be found earlier than closed
+    source projects (not always true, see OpenSSL/heartbleed)
+2.  people with malicious intent will find the vulnerabilities earlier too
+3.  patches to vulnerabilities can be deployed faster, everyone can download the new source code and compile instead of
+    waiting for the official release of a new version
