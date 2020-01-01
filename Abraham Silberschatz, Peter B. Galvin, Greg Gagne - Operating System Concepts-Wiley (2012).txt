@@ -3277,3 +3277,28 @@ restored
 19.29
 the suspend counter can be used to simulate a semaphore: a thread can create multiple sub threads and be resumed only
 when all sub threads have done their job and resumed the parent thread
+
+20.1
+as system libraries e.g. FORTRAN compiler and assembler is stored on magnetic tapes and must be manually loaded and
+unloaded on demand, jobs that require similar libraries are executed in batch by the operator
+
+20.2
+magnetic tapes are inserted between input card reader and CPU, as well as between CPU and card printer as buffers, which
+are later replaced by magnetic disks that can be written to by multiple card readers and read from by multiple output
+devices to match the speed difference between CPU and IO devices
+
+20.3
+the page replacement algorithm on Atlas assumes that programs access memories in loops, it uses the two most recent
+reference to a page to predict the next access to that page, if a page is not accessed by the predicted time it's
+written out to backing storage, age of a page is not tracked or decremented
+
+20.4
+1, 2 then 4
+
+20.5
+Mach can replace BSD with any other operating system interface or execute multiple operating system interfaces at the
+same time
+
+20.6
+features of operating systems on huge computers will eventually be available in operating systems on smaller computers
+or even mobile devices
