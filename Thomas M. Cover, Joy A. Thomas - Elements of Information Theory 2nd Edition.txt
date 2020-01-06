@@ -1,0 +1,22 @@
+2.1
+a.  H(X)    = -Σp(x)logp(x)
+    where p(x) = (1/2)^x
+            = -Σ{x ∈ [1, ∞)}(1/2)^xlog(1/2)^x
+            = Σ{x ∈ [1, ∞)}(1/2)^x * x
+            = E[X], X ~ Geometric(1/2)
+            = 2
+b.  S = {1}, {1, 2}, {1, 2, 3}, ...
+    let P be the number of questions required to determine X
+    if X = x, the first x - 1 questions have answer no, the last question has answer yes
+    P = X, P ~ Geometric(1/2), E[P] = E[X] = 2 = H(X)
+
+2.2
+a.  let D(X) and D(Y) be the domain of X and Y
+    2^a = 2^b iff a = b, f(x) = 2^x is a bijection between D(X) and D(Y)
+    I(X; Y) = H(X) - H(X|Y) = H(Y) - H(Y|X), as X is fixed given Y and vice versa,
+    H(X|Y) = H(Y|X) = 0, H(X) = H(Y)
+b.  f(x) = cosx is not a bijection between D(X) and D(Y): some different values of X may be mapped to the same Y
+    Y is still fixed by X, H(Y|X) = 0
+    H(X) - H(X|Y) = H(Y), H(X|Y) >= 0, H(X) >= H(Y)
+
+2.3
