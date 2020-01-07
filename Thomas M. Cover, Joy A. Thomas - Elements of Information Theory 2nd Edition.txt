@@ -20,3 +20,301 @@ b.  f(x) = cosx is not a bijection between D(X) and D(Y): some different values 
     H(X) - H(X|Y) = H(Y), H(X|Y) >= 0, H(X) >= H(Y)
 
 2.3
+H(p)    = Σpilogpi
+pilogpi = 0 iff pi = 0 (by definition) or pi = 1
+as p is a probability vector, Σpi = 1
+the probability vector p that minimizes H(p) is for some k
+    pi = 1, i = k
+    pi = 0, i != k
+and there are n such vectors in total
+
+2.4
+a.  chain rule (equation 2.14)
+b.  H(g(X) | X) = 0 as given X, g(X) is a constant
+c.  chain rule (equation 2.14), another possible expansion
+d.  H(X | g(X)) >= 0, non-negativity of entropy
+
+2.5
+H(Y|X)  = -Σ{x}Σ{y}p(x, y)logp(y|x) = 0
+as p(x, y) >= 0, for all p(x, y) > 0, logp(y|x) = 0, p(y|X = x) = 1, p(y|X != x) = 0
+therefore given X there's only one value of Y with probability 1 for all X
+
+2.6
+a.  I(X;Y|Z)    = H(X|Z) - H(X|Y, Z)
+    I(X;Y)      = H(X) - H(X|Y)
+    if H(X) > 0, X = Y = Z, 
+    I(X;Y|Z) = H(X|Z) - H(X|Y, Z) = 0 < H(X) = H(X) - H(X|Y) = I(X;Y)
+b.  let X and Z be independent, Y = X + Z, H(X) > 0
+    I(X;Y|Z) = H(X|Z) - H(X|Y, Z) = H(X) > H(X) - H(X|Y) = I(X;Y)
+
+2.7
+a.  (follow same logic as to determine the lower bound of comparison sort)
+    for n coins there are 2n + 1 possibilities: one of them are lighter, one of them are heavier, or all fair
+    a weighting have 3 outcomes: left is heavier, right is heavier or equal
+    k weightings form a ternary decision tree of height k with 3^k leaves
+    2n + 1 <= 3^k
+    n <= (3^k - 1) / 2
+b.  // thanks https://en.wikipedia.org/wiki/Balance_puzzle#Twelve-coin_problem
+    divide the coins into three piles of 4 coins A, B and C
+    weight A and B, if A is heavier 
+        C is a pile of fair coins 
+        move 3 coins of A aside as A', move 3 coins from B to A, move 3 coins from C to B, weight A and B again
+        if A is still heavier
+            either the coin in A both times is heavier, or the coin in B both times is lighter
+            weight one of them with a fair coin in C to determine the counterfeit coin
+        if A is now lighter
+            one of the three coins moved from B to A is lighter
+            weight two of them, if equal the third one is lighter, otherwise the lighter is counterfeit
+        if A and B are now equal
+            one of the coins in A' is heavier
+            weight two of them, if equal the third one is heavier, otherwise the heavier is counterfeit
+    if A is lighter
+        symmetric
+    if A and B are equal
+        one of C is counterfeit, (n, k) = (4, 2)
+        weight 2 of C with 2 of A or B reduces the problem to (n, k) = (2, 1)
+        and then any coin of (2, 1) problem can be compared to a fair coin 
+
+2.8
+let Xi be the result of ith drawing
+with replacement H(Xi) = H(X1) 
+    = - (r / (r + w + b))log(r / (r + w + b))
+      - (w / (r + w + b))log(r / (r + w + b))
+      - (b / (r + w + b))log(b / (r + w + b))
+with replacement, for i > 1, let ri, wi, bi be the number of red, white and black balls upon ith drawing
+    ri / (ri + wi + bi)
+    = ri / (r + w + b - i + 1)
+    >= (r - i + 1) / (r + w + b - i + 1)
+    > r / (r + w + b)
+    similar for wi / (ri + wi + bi) and bi / (ri + wi + bi)
+    since f(x) = xlogx is strictly increasing, H(Xi) < H(X1), entropy is lower without replacement
+
+2.9
+a.  1.  H(X|Y) >= 0, H(Y|X) >= 0, H(X|Y) + H(Y|X) >= 0
+    2.  H(X|Y) + H(Y|X) is symmetric
+    3.  H(X|Y) + H(Y|X) = 0 iff H(X|Y) = H(Y|X) = 0
+        H(X|Y) = 0 iff X is fixed given Y
+        H(Y|X) = 0 iff Y is fixed given X, one to one function between X and Y
+    4.  H(X|Y) + H(Y|Z) >= H(X|Y, Z) + H(Y|Z)   // conditioning cannot increase entropy
+                        = H(X, Y|Z)             // chain rule
+                        = H(X|Z) + H(Y|X, Z)    // chain rule
+                        >= H(X|Z)
+        similarly H(Z|Y) + H(Y|X) >= H(Z|X), ρ(x, y) + ρ(y, z) >= ρ(x, z)
+b.  1.  I(X;Y) = H(X) - H(X|Y) = H(Y) - H(Y|X)
+        H(X) + H(Y) - 2I(X;Y) = H(X|Y) + H(Y|X)
+    2.  H(X) + H(Y) - 2I(X;Y)
+        = H(X) + H(Y) - (H(X) + H(Y) - H(X, Y)) - I(X;Y)
+        = H(X, Y) - I(X;Y)
+    3.  apply I(X;Y) = H(X) + H(Y) - H(X, Y) again
+
+2.10
+a.  H(X)    = -Σp(x)logp(X)
+            = -Σαp1(x)logαp1(x) - Σ(1-α)p2(x)log(1-α)p2(x)
+            = -αΣp1(x)logα - αΣp1(x)logp1(x) - (1-α)Σp2(x)log(1-α) - (1-α)Σp2(x)logp2(x)
+            = -αlogα - (1-α)log(1-α) + αH(X1) + (1-α)H(X2)
+b.  αH(X1) + (1-α)H(X2) is linear wrt. α
+    d^2(-αlogα - (1-α)log(1-α))/d^2α
+    = -1/αln2 - 1/(1-α)ln2 < 0 is concave
+    dH(X1)/dα = logα - 1/ln2 + log(1-α) + 1/ln2 + H(X1) - H(X2) = 0
+    log((1-α)/α) = H(X2) - H(X1)
+    α = 2^H(X1) / (2^H(X1) + 2^H(X2))
+    maxH(X) = -2^H(X1) / (2^H(X1) + 2^H(X2)) * (H(X1) - log(2^H(X1) 
+            + 2^H(X2))) -2^H(X2) / (2^H(X1) + 2^H(X2)) * (H(X2) - log(2^H(X1) + 2^H(X2))) 
+            + 2^H(X1) / (2^H(X1) + 2^H(X2))H(X1) + 2^H(X2) / (2^H(X1) + 2^H(X2))H(X2)
+            = 2^H(X1) / (2^H(X1) + 2^H(X2))log(2^H(X1) + 2^H(X2)) + 2^H(X2) / (2^H(X1) + 2^H(X2))log(2^H(X1) + 2^H(X2))
+            = log(2^H(X1) + 2^H(X2))
+    2^H(X)  <= 2^H(X1) + 2^H(X2)
+    effective alphabet size of X is smaller than or equal to the combined alphabet size of X1 and X2
+
+2.11
+a.  I(X1;X2)/H(X1)  = (H(X1) - H(X1|X2)) / H(X1)
+                    = 1 - H(X1|X2)/H(X1) = ρ
+b.  0 <= I(X1;X2) = H(X1) - H(X1|X2) <= H(X1)
+    0 <= ρ = I(X1;X2) / H(X1) <= 1
+c.  ρ = 0 iff I(X1;X2) = 0 iff X1 and X2 are independent
+d.  ρ = 1 iff I(X1;X2)/H(X) = 1 iff H(X1|X2) = 0
+    X1 is a function of X2 or vice versa
+
+2.12
+a.  H(X) = -2/3log2/3 - 1/3log1/3 ≒ 0.918
+    H(Y) = H(X) ≒ 0.918
+b.  H(X|Y)  = p(Y = 0)H(X|Y = 0) + p(Y = 1)H(X|Y = 1)
+            = 0 + 2/3 * 1 = 2/3
+    H(Y|X)  = p(X = 0)H(Y|X = 0) + p(X = 1)H(Y|X = 1)
+            = 2/3 * 1 + 1/3 * 0 = 2/3
+c.  H(X, Y) = H(X) + H(Y|X) ≒ 1.585
+d.  H(Y) - H(Y|X) ≒ 0.251
+e.  I(X;Y)  = H(Y) - H(Y|X) = 0.251
+f.  see figure 2.2
+
+2.13
+// thanks solutions manual
+the Taylor expansion of ln(x) around 1 is 
+    ln(x) = ln(1) + (x-1) - (x - 1)^2 / 2c^2 
+for some c between 1 and x
+the third term is always negative, ln(x) <= x - 1
+substitute x by 1/y, 
+    ln(1/y) <= 1/y - 1
+    -lny <= 1/y - 1
+    lny >= 1 - 1/y
+
+2.14
+a.  H(X, Y, Z)  = H(X) + H(Y|X) + H(Z|Y, X) = H(X) + H(Y|X)
+                = H(X) + H(Z|X) + H(Y|Z, X) = H(X) + H(Z|X)
+    H(Y|X) = H(Z|X)
+    H(Z) >= H(Z|X) = H(Y|X) = H(Y)
+    similarly H(Z) >= H(X)
+b.  X is a random variable with H(X) > 0, Y = -X, Z = X + Y = 0
+    H(X) = H(Y) > 0 = H(Z)
+c.  either X or Y is constant, then there's a one-to-one function between X and Z, H(X) + H(Y) = H(X) = H(Z)
+
+2.15
+I(X1;X2, .., Xn)    = I(X2, .., Xn;X1)
+                    = I(X2;X1) + I(X3;X1|X2) + .. + I(Xn;X1|Xn-1, .., X2)
+for all 1 <= i <= n, 
+    p(x1, xi|x2, .., xi-1)
+    = p(x1, .., xi) / p(x2, .., xi-1)
+    = p(x1, x2)p(x3|x2)..p(xi|xi-1) / p(x2)p(x3|x2)..p(xi-1|xi-2)
+    = p(x1, x2)p(xi|xi-1) / p(x2)
+    = p(x1|x2)p(xi|xi-1)
+    = p(x1|x2, .., xi-1)p(xi|x2, .., xi-1)  // definition of Markov chain
+hence X1 and Xi are independent given X2, .., Xi-1, I(Xi;X1|X2, .., Xi-1)
+I(X1;X2, .., Xn)    = I(X2;X1)
+
+2.16
+a.  I(X1;X3)    <= I(X1;X2) // data processing inequality
+                = H(X2) - H(X2|X1)
+                <= H(X2) <= log|X2| = logk
+b.  I(X1;X3) <= logk = 0, X1 and X3 are independent
+
+2.17
+a.  X1, .., Xn are iid, H(X1, .., Xn) = ΣH(Xi) = nH(p)
+b.  (Z1, .., Zk, K) is a function of (X1, .., Xn), by problem 2.2 H(Z1, .., Zk, K) <= H(X1, .., Xn)
+c.  chain rule of entropy
+d.  H(Z1, .., Zk|K) = Σp(K = k)H(Z1, .., Zk|K = k)
+    where (Z1, .., Zk) is a uniform distribution with 2^k values, H(Z1, .., Zk|K = k) = k
+                    = Σp(K = k)k = E[K]
+e.  H(K) >= 0, non-negativity of entropy
+f(X) = 0 if there are more 1s in first two characters than the last 2 characters
+f(X) = 1 if there are more 1s in last two characters than first 2 characters
+f(X) = ε otherwise
+
+2.18
+// ((n, k)) is n multichoose k
+2 sequences of 4 matches, each with probability (1/2)^4 = (1/2)^4
+2 * ((4, 1)) = 2 * C(4, 1) = 8 sequences of 5 matches, p = (1/2)^5 each
+2 * ((4, 2)) = 2 * C(5, 2) = 20 sequences of 6 matches, p = (1/2)^6 each
+2 * ((4, 3)) = 2 * C(6, 3) = 40 sequences of 7 matches, p = (1/2)^7 each
+P(Y = 4) = 2 * (1/2)^4 = 1/8
+P(Y = 5) = 8 * (1/2)^5 = 1/4
+P(Y = 6) = 20 * (1/2)^6 = 20/64 = 5/16
+P(Y = 7) = 40 * (1/2)^7 = 40/128 = 5/16
+H(X)    = 2 * (1/2)^4 * 4 + 8 * (1/2)^5 * 5 + 20 * (1/2)^6 * 6 + 40 * (1/2)^7 * 7
+        = 5.8125
+H(Y)    = -(1/8log(1/8) + 1/4log(1/4) + 5/16log(5/16) + 5/16log(5/16))
+        = 1.924
+H(Y|X)  = 0, length of sequence is fixed given the sequence
+H(X|Y)  = H(X, Y) - H(Y)
+        = H(X) + H(Y|X) - H(Y)
+        = 3.8885
+
+2.19
+H(X)    = -Σp(x)logp(x)
+        = -Σ(Anlog^2n)^-1log(Anlog^2n)^-1
+        = Σ(logA / Anlog^2n) + Σ(1 / Anlogn) + Σ(2loglogn / Anlog^2n)
+the first and third terms are nonnegative
+the second term is infinite as
+Σ(1 / nlogn)    >= int(2, +∞, 1/nlogn)
+                = int(2, +∞, ln2/nlnn)
+                = int(2, +∞, ln2 * lnlnn)
+                = +∞
+
+2.20
+H(Xn, R) = H(X):
+    obviously (Xn, R) is a function of X
+    given any Xi and the run-length code, the sequence can be recovered, X is a function of any Xi and R
+H(R) < H(X):
+    R is a function of X, and two sequences of X may be mapped to the same run-length coding (e.g. 01 and 10)
+    more precisely for any 1 <= i <= n,
+    H(X)    = H(Xi, R)
+            = H(Xi) + H(R|Xi)
+            <= H(Xi) + H(R)
+            <= log2 + H(R)
+    H(X) - H(R) <= log2 = 1
+
+2.21
+P(p(X) <= d)log1/d
+= -Σ{x: p(x) <= d}p(x)logd
+<= -Σ{x: p(x) <= d}p(x)logp(x)  // p(x) <= d <= 1, -logp(x) >= logd
+<= -Σ{x}p(x)logp(x) = H(X)
+
+2.22
+a.  chain rule of mutual information can be derived from chain rule of entropy (equation 2.62 - 2.64)
+    I(X1, X2;Y) = D(p(x1, x2, y) || p(x1, x2)p(y))
+                // q(x1, x2, y) = p(x1, x2)p(y), (x1, x2) and y are independent
+                = D(p(x1, y) || p(x1)p(y)) + D(p(x2|x1, y) || p(x2|x1)) 
+                = I(X1;Y) + E[log(p(X2|X1, Y) / p(X2|X1))]
+                = I(X1;Y) + E[log(p(X2, Y|X1) / p(X2|X1)p(Y|X1))]
+                = I(X1;Y) + D(p(x2, y|x1) || p(x2|x1)p(y|x1))
+                = I(X1;Y) + I(X2;Y|X1)
+    chain rule of mutual information can be derived from chain rule of relative entropy
+    no order between chain rule of entropy and mutual entropy
+b.  Jensen's inequality => D(p||q) >= 0 (equation 2.83 - 2.89) => I(X;Y) >= 0 (text proof of equation 2.90)
+
+2.23
+given values of n-1 out of n variables, the last is fixed
+for any i < n, Xi and (X1, .., Xi-1) are independent since:
+    when n is even, p(Xi = 1) = p(Xi = 0) = 1/2:
+        flip each bit of the sequence won't change the number of 1s
+        each even sequence with Xi = 0 has a corresponding even sequence with Xi = 1
+    when n is odd and n >= 3, p(Xi = 1) = p(Xi = 0) = 1/2:
+        n = 3, all even sequences are 000, 110, 101, 011, p(Xi = 0) = p(Xi = 1) = 1/2 for all i
+        for n > 3, remove any two variables from the sequence that's not Xi
+        if the removed variables have even number of 1s, p(Xi = 1) = p(Xi = 0) by induction
+        if the removed variables have odd number of 1s, flip the remaining sequence won't change its oddity
+    when (X1, .., Xi-1) has even number of 1s, (Xi, .., Xn) has even number of 1s and length >= 2, p(Xi = 1) = p(Xi = 0)
+    when (X1, .., Xi-1) has odd number of 1s, similarly p(Xi = 1) = p(Xi = 0)
+I(Xn-1;Xn|X1, .., Xn-2) = H(Xn-1|X1, .., Xn-2) - H(Xn|X1, .., Xn-1)
+                        = H(Xn-1|X1, .., Xn-2)
+                        = 1
+I(Xi-1;Xi|X1, .., Xi-2) = H(Xi-1|X1, .., Xi-2) - H(Xi|X1, .., Xi-1)
+                        = 0
+
+2.24
+a.  -1/4log1/4 - 3/4log3/4
+    = 1/2 - 3/4(2 - log3)
+    = 1/2 - 3/4(1.584 - 2)
+    = 0.812
+b.  f(x) = 1/(1-0) = 1 on [0, 1]
+    int(0, 1, -plogp - (1-p)log(1-p)) = 0.721
+c.  // skipped
+
+2.25
+let X and Y be independent random variables, Z = X + Y, H(X|Z) > 0 (e.g. X and Y are uniform binary iid)
+I(X;Y;Z)    = I(X;Y) - I(X;Y|Z)
+            = 0 - I(X;Y|Z)
+            = 0 - H(X|Z) + H(X|Y, Z)
+            = -H(X|Z) < 0
+a.  H(X, Y, Z) - H(X) - H(Y) - H(Z) + I(X;Y) + I(Y;Z) + I(Z;X)
+    = H(Z) + H(Y|Z) + H(X|Y, Z) - H(X) - H(Y) - H(Z) + I(X;Y) + I(Y;Z) + I(Z;X)
+    = -I(Y;Z) + I(Y;Z) + H(X|Y, Z) - H(X) + I(Z;X) + I(X;Y)
+    = H(X|Y, Z) - H(X) + H(X) - H(X|Z) + I(X;Y)
+    = I(X;Y) - I(X;Y|Z)
+b.  H(X, Y, Z) - H(X, Y) - H(Y, Z) - H(Z, X) + H(X) + H(Y) + H(Z)
+    = H(X, Y, Z) + (H(X) + H(Y) - H(X, Y)) + (H(X) + H(Z) - H(X, Z)) + (H(Y) + H(Z) - H(Y, Z)) - H(X) - H(Y) - H(Z)
+    = H(X, Y, Z) + I(X;Y) + I(X;Z) + I(Y;Z) - H(X) - H(Y) - H(Z)
+    = I(X;Y;Z)
+
+2.26
+a.  from problem 2.13, lnx >= 1 - 1/x for x > 0
+    let y = 1/x, ln(1/y) >= 1 - y for y > 0
+    -lny >= 1 - y, lny <= y - 1
+b.  -D(p||q)    = -Σp(x)log(p(x) / q(x))
+                = Σp(x)log(q(x) / p(x))
+                <= Σp(x)(q(x) / p(x) - 1)   // apply part a
+                <= Σ(q(x) - p(x))
+                = Σq(x) - Σp(x) = 0
+c.  lny = y - 1 iff y = 1
+    q(x) / p(x) = 1, p(x) = q(x) for all x
+
+2.27
