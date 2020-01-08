@@ -318,3 +318,144 @@ c.  lny = y - 1 iff y = 1
     q(x) / p(x) = 1, p(x) = q(x) for all x
 
 2.27
+H(q) + (pm-1 + pm)H(pm-1 / (pm-1 + pm), pm / (pm-1 + pm))
+= H(q) - (pm-1 + pm)(pm-1 / (pm-1 + pm)log(pm-1 / (pm-1 + pm)) + pm/(pm-1 + pm)log(pm/(pm-1 + pm)))
+= H(q) - (pm-1logpm-1 - pm-1log(pm-1 + pm) + pmlogpm - pmlog(pm-1 + pm))
+= H(q) - pm-1logpm-1 - pmlogpm + (pm-1 + pm)log(pm-1 + pm)
+= H(q) - pm-1logpm-1 - pmlogpm + qm-1logqm-1
+= H(p)
+
+2.28
+f(x) = xlogx is strictly convex on (0, 1), so
+    -pilogpi / 2 - pjlogpj / 2 <= -(pi/2 + pj/2)log(pi/2 + pj/2)
+    -pilogpi - pjlogpj <= (pi + pj)log((pi + pj) / 2)
+equal only when pi = pj
+by convexity a more uniform distribution has higher entropy 
+
+2.29
+a.  H(X, Y|Z)   = H(X|Z) + H(Y|X, Z)
+                >= H(X|Z)
+    equal when H(Y|X, Z) = 0, Y is a function of (X, Z)
+b.  I(X, Y;Z)   = I(X;Z) + I(Y;Z|X)
+                >= I(X;Z)
+    equal when I(Y;Z|X) = 0, Y and Z are independent given X
+c.  H(X, Y, Z) - H(X, Y)    = H(X, Y) + H(Z|X, Y) - H(X, Y)
+                            = H(Z|X, Y)
+                            <= H(Z|X)
+                            = H(X, Z) - H(X)
+    equal when H(Z|X, Y) = H(Z|X), Z and Y are independent given X
+d.  I(Z;Y|X) - I(Z;Y) + I(X;Z)
+    = H(Z|X) - H(Z|Y, X) - H(Z) + H(Z|Y) + H(Z) - H(Z|X)
+    = H(Z|Y) - H(Z|Y, X)
+    = I(X;Z|Y)
+    always equal
+
+2.30
+// thanks solutions manual
+by lagrange multiplier, measure entropy in nats
+L(p, l1, l2)    = H(X) - l1(Σpi - 1) - l2(Σipi - A)
+                = -Σpilogpi - l1(Σpi - 1) - l2(Σipi - A)
+dL/dpi  = -logpi - 1 - l1 - l2i = 0
+dL/dl1  = Σpi - 1 = 0
+dL/dl2  = Σipi - A = 0
+logpi = -1 - l1 - l2i
+pi = e^(-1 - l1 - l2i) = ab^i for some constants a and b
+as H(X) is concave to pi the range (0, 1), pi = ab^i is the global maximum
+Σpi = Σab^i = a/(1-b) = 1
+Σipi = Σiab^i = ab/(1-b)^2 = A
+b/(1-b) = A, b = A/(A+1), a = 1-b = 1/(A+1)
+pi = A^i / (A+1)^(i+1)
+H(X)    <= -Σpilogpi 
+        = -Σab^ilog(ab^i)
+        = -alogaΣb^i - alogbΣib^i
+        = -aloga/(1-b) - alogb * b/(1-b)^2
+        = -loga - Alogb
+        = log(A + 1) - AlogA + Alog(A + 1)
+        = (A + 1)log(A + 1) - AlogA
+
+2.31
+as X -> Y -> g(Y), 
+    I(X;Y) = H(X) - H(X|Y) >= I(X;g(Y)) = H(X) - H(X|g(Y))
+    H(X|g(Y)) >= H(X|Y)
+equality iff I(X;Y|g(Y)) = 0, or given g(Y) X and Y are independent
+either X and Y are independent unconditionally
+or g(Y) contains all the mutual information between X and Y
+
+2.32
+a.  f(a) = 1, f(b) = 2, f(c) = 3
+    // can be solved algebraically
+    // but in principle artificial randomness independent to X won't help
+    Pe  = Σ{x, y}p(y)P(f(y) != x)
+        = Σ{y}(p(y) * 1/2)
+        = 1/2
+b.  H(Pe) + Pelog|X| >= H(X|f(Y)) = H(X|Y)  // f(Y) is a bijection
+    H(X|Y)  = Σp(y)H(X|Y = y)
+            = 1/3 * (-2/4 * log(1/4) - 1/2 * log(1/2)) * 3
+            = 3/2
+    H(Pe) + Pelog3 >= 3/2
+    -PelogPe - (1-Pe)log(1-Pe) + Pelog3 >= 3/2
+    Pe >= 0.416 (Pe = 1/2)
+
+2.33
+X is equivalent to a mixture of two disjoint random variables X1 and X2 where
+    p(X = X1) = p1
+    p(X = X2) = 1 - p1
+    D(X1) = {1}
+    D(X2) = {2, .., m}
+from problem 2.10 H(X) = H(p1) + p1H(X1) + (1-p1)H(X2) = H(p1) + (1-p1)H(X2)
+to maximize H(X2), X2 must be uniformly distributed, p2 = p3 = .. = pm
+H(X)    <= H(p1) + (1-p1)log|X2|
+H(1 - Pe) + Pelog|X - 1| >= H(X)
+
+2.34
+I(X0;Xi)    = H(X0) - H(X0|Xi)
+            >= I(X0;Xi+1)
+            = H(X0) - H(X0|Xi+1)
+H(X0|Xi+1) <= H(X0|Xi)
+
+2.35
+H(p)    = -1/2 * log1/2 - 2 * 1/4 * log1/4
+        = 1/2 + 1 = 3/2
+H(q)    = -3 * 1/3 * log1/3
+        = 1.585
+H(p||q) = Σp(x)log(p(x) / q(x))
+        = 1/2log3/2 + 2 * 1/4log3/4
+        = 0.0850
+H(q||p) = Σq(x)log(q(x) / p(x))
+        = 1/3 * log(2/3) + 2 * 1/3 * log(4/3)
+        = 0.0817
+
+2.36
+p(0) = q(1) = 2/3
+p(1) = q(0) = 1/3
+H(p||q) = Σp(x)log(p(x) / q(x))
+        = 2/3 * log2 + 1/3 * log(1/2)
+H(q||p) = Σq(x)log(q(x) / p(x))
+        = 1/3 * log(1/2) + 2/3 * log2
+    
+2.37
+Σ{x, y, z}p(x, y, z)log(p(x, y, z) / p(x)p(y)p(z))
+= Σ{x, y, z}p(x, y, z)log(p(x, y|z) / p(x)p(y))
+= Σ{x, y, z}p(x, y, z)logp(x, y|z) - Σ{x, y, z}p(x, y, z)logp(x) - Σ{x, y, z}p(x, y, z)logp(y)
+= H(X) + H(Y) + Σ{x, y, z}p(x, y|z)p(z)logp(x, y|z)
+= H(X) + H(Y) + Σ{z}p(z)Σ{x, y}p(x, y|z)logp(x, y|z)
+= H(X) + H(Y) - H(X, Y|Z)
+when H(X) + H(Y) - H(X, Y|Z) = 0, 
+    H(X) + H(Y) = H(X, Y|Z)
+    H(X) + H(Y) = H(X|Z) + H(Y|X, Z)
+where H(X) >= H(X|Z) and H(Y) >= H(Y|X, Z)
+hence H(X) = H(X|Z) and H(Y) = H(Y|X, Z), X and Z are independent, Y and (X, Z) are independent
+
+2.38
+by problem 2.10, X is equivalent to
+    p(X = X1) = α
+    p(X = X2) = 1 - α
+    p(X1 = x) = p(x) / α if x ∈ S
+    p(X2 = x) = p(x) / (1 - α) if x ∉ S
+H(X) = H(α) + αH(X1) + (1 - α)H(X2)
+H(X|Y)  = Σp(y)H(X|Y = y)
+        = αH(X1) + (1 - α)H(X2)
+H(X) - H(X|Y) = H(α)
+
+2.39
+
