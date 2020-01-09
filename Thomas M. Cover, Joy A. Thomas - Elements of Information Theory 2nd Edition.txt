@@ -458,4 +458,196 @@ H(X|Y)  = Σp(y)H(X|Y = y)
 H(X) - H(X|Y) = H(α)
 
 2.39
+a.  H(X, Y, Z)  = H(X) + H(Y|X) + H(Z|X, Y)
+                = H(X) + H(Y) + H(Z|X, Y)
+                = 2 + H(Z|X, Y)
+                >= 2
+b.  H(Z|X, Y) = 0, Z = X * Y
+
+2.40
+a.  H(X) = log|X| = 3
+b.  H(Y)    = -Σp(y)logp(y)
+            = -Σ(1/2)^ylog(1/2)^y
+            = Σy(1/2)^y
+            = (1/2) / (1 - 1/2)^2
+            = 2
+c.  there is a bijection between (X + Y, X - Y) and (X, Y)
+    hence H(X + Y, X - Y) = H(X, Y) = H(X) + H(Y|X) = H(X) + H(Y) = 5
+
+2.41
+a.  I(X;Q, A)   = H(Q, A) - H(Q, A|X)
+                = H(Q) + H(A|Q) - H(Q|X) - H(A|Q, X)
+                = H(Q) - H(A|Q) - H(Q) - 0  // A is a function of (Q, X), Q and X are independent
+                = H(A|Q)
+    the uncertainty removed is equal to the uncertainty of the answer conditional to the question
+b.  I(X;Q1, A1, Q2, A2) 
+    = H(Q1, A1, Q2, A2) - H(Q1, A1, Q2, A2|X)
+    = H(Q1) + H(A1|Q1) + H(Q2|Q1, A1) + H(A2|Q1, A1, Q2) - H(Q1|X) - H(A1|X, Q1) - H(Q2|X, Q1, A1) - H(A2|X, Q1, A1, Q2)
+    = H(Q1) + H(A1|Q1) + H(Q2|Q1, A1) + H(A2|Q1, A1, Q2) - H(Q1) - H(Q2|A1)
+    = H(A1|Q1) + H(A2|A1, Q2)
+    <= H(A1|Q1) + H(A2|Q2) 
+    = 2H(A1|Q1) = 2I(X;Q1, A1)
+
+2.42
+a.  H(5X) = H(X), bijection
+b.  I(g(X);Y) <= I(X;Y), data processing equality 
+c.  H(X0|X-1) >= H(X0|X1, X-1), conditioning cannot increase entropy
+d.  H(X, Y) = H(X) + H(Y|X) <= H(X) + H(Y), H(X, Y) / (H(X) + H(Y)) <= 1
+
+2.43
+a.  define two random variables B and T that
+        B = 1 if top side is face
+        B = 0 if top side is tail
+        T = 1 if bottom side is face
+        T = 0 if bottom side is tail
+    hence there is a bijection between B and T
+    I(B;T) = H(B) - H(B|T) = H(B) = 1
+b.  again define two random variables T and F, D(T) = D(F) = {1, 2, 3, 4, 5, 6}
+    I(B;F)  = H(T) - H(T|F)
+            = -6 * 1/6 * log1/6 - H(T|F)
+            = 2.585 - H(T|F)
+            // given face top can be 1 out of 4 numbers with equal probability
+            = 2.585 - 4 * 1/4 * log1/4
+            = 2.585 - 2
+            = 0.585
+
+2.44
+a.  it's impossible to divide all 9 outcomes to two sets of equal sum of probability
+    define B as
+        B = 0 when X1X2 ∈ {AB, AC, BC}
+        B = 1 when X1X2 ∈ {BA, CA, CB}
+    and when X1X2 ∈ {AA, BB, CC} the result is ignored
+b.  H(X1, X2) = 2H(X) = -Σpilogpi
+    theoretically at most 2H(X) / H(1/2) = -Σpilogpi fair bits can be generated
+
+2.45
+H(X) = -Σpilogpi
+d^2H(X) / dpi   = d(-logpi - 1) / dpi
+                = -1/pi < 0 for 0 < pi <= 1
+H(X) is concave to all pi, if there's a local extreme value it's the global maximum
+by Lagrange multiplier subject to
+    ElogX = Σp(x)logx = c 
+    Σp(x) = 1
+L(p, l1, l2) = -Σpilogpi - l1(Σpilogi - c) - l2(Σpi - 1)
+dL/dpi = -logpi - 1 - l1logi - l2 = 0
+logpi = -1 - l1logi - l2
+pi  = e^(-1 - l1logi - l2)
+    = e^(-1 - l2)i^l1
+    = ai^b for some constants a and b
+where
+    Σai^b = 1
+    Σai^blogi = c
+H(X)    = -Σpilogpi
+        = -Σai^blog(ai^b)
+        = -logaΣai^b - bΣai^blogi
+        = -loga - bc < ∞
+
+2.46
+// thanks solutions manual
+lemma 1 (extended axiom 3): Hm(p1, .., pm) = Hm-k+1(Sk, pk+1, .., pm) + SkHk(p1/Sk, .., pk/Sk) where Sk = p1 + .. + pk
+    let H2(p, 1-p) = h(p)
+    Hm(p1, .., pm)  = Hm-1(S2, p3, .., pm) + S2h(p2/S2) // grouping axiom
+                    = Hm-2(S3, p4, .., pm) + S3h(p3/S3) + S2h(p2/S2)
+                    = Hm-k+1(Sk, pk+1, .., pm) + Σ{2 <= i <= k}Sih(pi/Si)
+    similarly,
+    Hk(p1/Sk, .., pk/Sk)    = h(pk/Sk) + Σ{2 <= i <= k-1}Sih(pi/Si)/Sk
+                            = 1/Sk * Σ{2 <= i <= k-1}Sih(pi/Si)
+    Hm(p1, .., pm)  = Hm-k+1(Sk, pk+1, .., pm) + SkHk(p1/Sk, .., pk/Sk)
+lemma 2: let f(m) = Hm(1/m, .., 1/m), f(mn) = f(m) + f(n)
+    f(mn)   = Hmn(1/mn, .., 1/mn)
+            = Hmn-n+1(1/m, 1/mn, .., 1/mn) + 1/mHn(1/n) // lemma 1
+            = Hmn-2n+2(1/m, 1/m, 1/mn, .., 1/mn) + (2/m)Hn(1/n)
+            = Hmn-mn+m(1/m, .., 1/m) + Hn(1/n)
+            = f(m) + f(n)
+lemma 3: H2(1, 0) = 0
+    H3(p1, p2, 0)   = H2(p1, p2) + p2H2(1, 0)   // grouping axiom
+                    = H2(1, 0) + H2(p1, p2)
+    H2(1, 0) = p2H2(1, 0) for all p2, H2(1, 0) = 0
+lemma 4: f(m + 1) - f(m) -> 0 as m -> ∞
+    f(m + 1)    = Hm+1(1/(m + 1), .., 1/(m + 1))
+                = h(1/(m + 1)) + m/(m + 1)Hm(1/m, .., 1/m)
+                = h(1/(m + 1)) + m/(m + 1) * f(m)
+    f(m + 1) - m/(m + 1) * f(m) = h(1 / (m + 1))
+    lim{m -> ∞}(f(m + 1) - m/(m + 1) * f(m)) = lim{m -> ∞}h(1 / (m + 1)) = lim{p -> 0}h(p) = 0   // continuity axiom
+    let 
+        an+1 = f(n + 1) - f(n)
+        bn = h(1/n)
+    an+1    = h(1/(n + 1)) + n/(n + 1) * f(n) - f(n)
+            = -1/(n + 1) * f(n) + bn+1
+            = -1/(n + 1) * Σ{2 <= i <= n}ai + bn+1
+    (n + 1)bn+1 = (n + 1)an+1 + Σ{2 <= i <= n}ai
+    Σ{2 <= n <= N}nbn   = Σ{2 <= n <= N}(nan + Σ{2 <= i <= n - 1}ai)
+                        = Σ{2 <= i <= N}(iai + (N - i)ai)
+                        = NΣ{2 <= i <= N}ai
+    Σ{2 <= n <= N}nbn / Σ{1 <= n <= N}n = 2/(N + 1) * Σ{2 <= i <= N}ai
+    as lim{n -> ∞}bn = lim{n -> ∞}h(2/n) = 0, lim{n -> ∞}(Σ{2 <= n <= N}nbn / Σ{1 <= n <= N}n) = 0
+    aN+1 = f(n + 1) - f(n) = bN+1 - 1/(N + 1) * Σ{2 <= n <= N}an -> 0 as N -> ∞
+lemma 5: f(n) = logn
+    let P be arbitrary prime number
+    let g(n) = f(n) - f(P)logn / logP
+    g(mn)   = f(mn) - f(P)logmn / logP
+            = f(m) + f(n) - f(P)logm / logP - f(P)logn / logP   // lemma 2
+            = g(m) + g(n)
+    g(P)    = 0
+    let an  = g(n + 1) - g(n)
+            = f(n + 1) - f(n) - f(P)log(n + 1) / logP + f(P)logn / logP
+            = f(n + 1) - f(n) + f(P)log(n / (n + 1)) / logP
+    lim{n -> ∞}an = 0   // lemma 4
+    for some integer n let n(1) = floor(n/P), n(1) <= n/P, n = n(1)P + l for some 0 <= l < P
+    g(Pn(1)) = g(n(1))
+    g(n)    = g(n(1)) + g(n) - g(Pn(1))
+            = g(n(1)) + Σ{Pn(1) <= i <= n - 1}ai
+    let n(i + 1) = floor(n(i) / P), Pn(i + 1) + li = n(i) for some 0 <= li < P
+    g(n)    = g(n(k)) + Σ{i <= j <= k}Σ{Pn(j) <= i <= n(j - 1)}ai
+    and n(k) <= n/P^k, when k = floor(logn / logP) + 1, n(k) = 0, g(n(k)) = g(0) = 0
+    g(n)    = Σ{1 <= i <= bn}ai // why?
+    // would like to verify but the original paper of this proof is in German
+    lim(g(n) / logn) = 0, lim(f(n) / logn - f(P) / logP) = 0, lim(f(n) / logn) = f(P) / logP = c
+    by normalization condition, f(2) / log2 = c = 1, f(P) = logP
+    for composite number N = ΠPi, f(N) = f(ΠPi) = Σf(Pi) = ΣlogPi = logN
+let p = r/s be arbitrary rational number
+f(s)    = Hs(1/s, .., 1/s)
+        = Hr+1(1/s, .., 1/s, (s - r)/s) + (s - r)/s * f(s - r)
+        = h(r/s) + r/s * f(r) + (s - r)/s * f(s - r)
+h(r/s)  = f(s) - r/s * f(r) - (s - r)/s * f(s - r)
+        = logs - r/s * logr - (s - r)/s * log(s - r)
+        = -r/s * log(r/s) - (s - r)/s * log((s - r)/s)
+by continuity h(x) is also defined for irrational numbers
+inductively,
+Hn(p1, .., pn)  = Hn-1(S2, p3, .., pn) + S2H(p1/S2, p2/S2)
+                = -S2logS2 - Σ{3 <= i <= n}pilogpi - p1/S2 * log(p1/S2) - p2/S2 * log(p2/S2)
+                = -p1logpi - p2logp2 - Σ{3 <= i <= n}pilogpi
+                = -Σ{1 <= i <= n}pilogpi
+
+2.47
+there are n^2 arrangements but fewer events
+1.  the resulting sequence is still ordered, one out of n cards is replaced at the original place, p = n/n^2 = 1/n
+2.  the chosen card is replaced one place from origin, 2 + 2(n-2) = 2n - 2 arrangements 
+    (the first and the last card have only one possible arrangement)
+    which are mapped to n - 1 events, p = 2/n^2 each
+3.  the chosen card is replaced at at least 2 place from origin, 2(n - 2) + (n - 2)(n - 3) = (n - 2)(n - 1) arrangements
+    all events in this category are disjoint, p = 1/n^2 each
+H(X)    = -1/nlog(1/n) - (n - 1) * (2/n^2) * log(2/n^2) - (n - 2)(n - 1)/n^2 * log(1/n^2)
+        = logn / n + 4(n - 1)/n^2 * logn - 2(n - 1)/n^2 + 2(n - 2)(n - 1)/n^2 * logn
+        = logn / n + 2(n - 1)/n * logn - 2(n - 1)/n^2
+        = (2n - 1)/n * logn - 2(n - 1)/n^2
+
+2.48
+a.  X^N is a function of N, 
+    I(N; X^N) = H(N) - H(N|X^N)
+    = H(N)
+    = -Σpilogpi
+    = -Σ(1/2)^ilog(1/2)^i
+    = Σi(1/2)^i
+    = (1 - 1/2)/(1/2)^2 = 2
+b.  H(X^N|N) = 0
+c.  H(X^N) = H(N) = 2
+d.  I(N;X^N)    = H(N) - H(N|X^N)
+                = H(N)
+                = H(1/3) = 0.918
+e.  H(X^N|N)    = Σp(n)H(X^N|N = n)
+                = 1/3 * 6 + 2/3 * 12
+                = 10
+f.  H(X^N)      = H(1/3) + 1/3H(X^6) + 2/3H(X^12)   // problem 2.10
+                = 10.918
 
