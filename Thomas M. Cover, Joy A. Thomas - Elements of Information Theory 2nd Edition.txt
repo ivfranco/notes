@@ -761,4 +761,76 @@ logP    = 1/n * logX1X2..Xn
 P -> 2^0.646 = 1.565
 
 3.9
+a.  lim(-1/n * logq(X1, .., Xn))
+    = lim(-1/n * Σlogq(Xi))
+    = -Ep[logq(Xi)]
+    = -Σp(x)logq(x)
+b.  1/n * log(q(X1, .., Xn) / p(X1, .., Xn))
+    -> Σp(x)logq(x) + H(X)
+    = Σp(x)logq(x) - Σp(x)logp(x)
+    = Σp(x)log(q(x) / p(x))
+    = -Σp(x)log(p(x) / q(x))
+    = -D(p||q)
+
+3.10
+ln(Vn^(1/n))    = 1/n * lnVn
+                = 1/n * ΣlnXi
+                -> E[lnXi]
+                = int(0, 1, lnxdx)
+                = int(0, 1, d(xlngx - x))
+                = -1
+Vn^(1/n) -> e^-1 = 1/e
+while E[Vn] = E[ΠXi] = ΠE[Xi] = (1/2)^n, 
+E[Vn]^(1/n) = ((1/2)^n)^(1/n) = 1/2 > 1/e
+
+3.11
+a.  Pr{X ∉ A ∩ B}   <= Pr{X ∉ A} + Pr{X ∉ B}
+                    = ε1 + ε2
+    Pr{A ∩ B}   >= 1 - ε1 - ε2
+b.  3.34:   part a
+    3.35:   definition of discrete probability
+    3.36:   the definition of Aε^n
+    3.37:   2^-n(H - ε) is independent to x
+    3.38:   intersection cannot increase set size
+c.  |Bδ^n|  >= (1 - ε - δ)2^n(H - ε)
+    as δ < 1/2,
+    |Bδ^n|  > (1 - δ - ε)2^n(H - ε)
+    log|Bδ^n|   > log(1 - δ - ε) + n(H - ε)
+    log|Bδ^n|/n > log(1 - δ - ε)/n + H - ε
+                -> H - ε
+
+3.12
+a.  let p2n(x) = pn(x)/2 + qn(x)/2, where qn(x) = 1/n * Σ{n + 1 <= i <= 2n}I(Xi = x)
+    E[D(p2n || p)]  = E[D(pn/2 + qn/2||p/2 + p/2)]
+                    <= E[1/2D(pn||p) + 1/2D(qn/2||p)]   // convexity of relative entropy
+                    = 1/2E[D(pn||p)] + 1/2E[D(qn/2||p)]
+                    = E[D(pn||p)]   // Xi's are iid
+b.  pn(x)   = 1/n * Σ{1 <= i <= n}I(Xi = x)
+            = 1/n * (Σ{i != j}I(Xi = x) + I(Xj = x))
+            = (n - 1) / n * 1/(n - 1) * Σ{i != j}I(Xi = x) + I(Xj = x)/n
+            = (n - 1)/n * pn-1(j, x) + I(Xj = x)/n
+    where pn-1(j, x) = 1/(n - 1) * Σ{i != j}I(Xi = x)
+    npn(x)  = Σ(1/n * Σ{1 <= j <= n}Σ{i != j}(I(Xi = x) + I(Xj = x)))
+            = Σ{1 <= j <= n}((n - 1)/n * pn-1(j, x)) + Σ{1 <= j <= n}I(Xj = x)
+            = (n - 1)/n * Σ{1 <= j <= n}pn-1(j, x) + pn(x)
+    pn(x)   = 1/n * Σpn-1(j, x)
+    E[D(pn||p)  = E[D(Σpn-1(j, x)/n || p)]
+                <= E[Σ1/n * D(pn-1(j, x)||p)]   // convexity
+                = E[D(pn-1(x)||p)]  // iid
+
+3.13
+a.  H(X) = -0.6log0.6 - 0.4log0.4 = 0.971
+b.  2^-n(H + ε) <= p(X1, .., Xn) = 0.6^k * 0.4^(n - k) <= 2^-n(H - ε)
+    11 <= k <= 19
+    Pr{Aε^n}    = Σ{11 <= k <= 19}C(n, k)0.6^k * 0.4^(n - k)
+                = 0.936
+    |Aε^n|  = Σ{11 <= k <= 19}C(n, k)
+            = 26366510
+c.  as Σ{12 <= k <= 25}C(25, k)0.6^k * 0.4^(25 - k) > 0.9
+    Σ{13 <= k <= 25}C(25, k)0.6^k * 0.4^(25 - k) = 0.8462322310242371062726656
+    0.6^12 * 0.4^(25 - 12) = 1.46081389744226304 × 10^-8
+    (0.9 - 0.8462322310242371062726656) / 1.46081389744226304 × 10^-8 <= 3680673
+    |B| = Σ{13 <= k <= 25}C(25, k) + 3680673 = 20457889
+d.  |Aε^n ∩ B| = Σ{13 <= k <= 19}C(25, k) + 3680673 = 16708810
+    Pr{Aε^n ∩ B} = Σ{13 <= k <= 19}C(25, k)0.6^k * 0.4^(25 - k) + (0.9 - 0.846) = 0.871
 
