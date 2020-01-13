@@ -834,3 +834,202 @@ c.  as Σ{12 <= k <= 25}C(25, k)0.6^k * 0.4^(25 - k) > 0.9
 d.  |Aε^n ∩ B| = Σ{13 <= k <= 19}C(25, k) + 3680673 = 16708810
     Pr{Aε^n ∩ B} = Σ{13 <= k <= 19}C(25, k)0.6^k * 0.4^(25 - k) + (0.9 - 0.846) = 0.871
 
+4.1
+a.  Σ{i}bi  = Σ{i}Σ{j}ajPij
+            = Σ{j}ajΣ{i}Pij
+            = Σ{j}aj
+            = 1
+    bi  = Σ{j}ajPij >= 0
+    H(b) - H(a) = -Σ{j}Σ{i}aiPjilogbj + Σ{i}ailogai
+                = -Σ{j}Σ{i}aiPjilogbj + Σ{j}Σ{i}aiPjilogai
+                = Σ{j}Σ{i}aiPjilog(ai / bj)
+                = Σ{j}Σ{i}aiPjilog(aiPji / bjPji)
+                >= (Σ{j, i}aiPji) * log(Σ{j, i}aiPji / Σ{j, i}bjPji)    // log sum inequality
+                = log1/1 = 0
+    H(b) >= H(a)
+b.  μi  = Σ{i}μiPij
+        = Σ{i}(1/n)Pij
+        = 1/n * Σ{i}Pij = 1/n
+c.  1/n = Σ{i}(1/n)Pij
+    1/n = 1/n * Σ{i}Pij
+    Σ{i}Pij = 1
+    and Σ{j}Pij = 1 by definition of transition matrix
+
+4.2
+H(X0|X-1, .., X-n)  = H(X0, X-1, .., X-n) - H(X-1, .., X-n) 
+                    = H(Xn, .., X0) - H(Xn, .., X1) // stationarity
+                    = H(X0|Xn, .., X1)
+
+4.3
+4.82:   conditioning cannot increase entropy
+4.83:   T is a invertible matrix, there's a bijection between T^-1TX and TX
+4.84:   matrix operations
+4.85:   T and X are independent
+
+4.4
+let P13 = P23 = 1, P31 = P32 = 1/2, all other entries of transition matrix is 0
+H(Xn|X1 = 3) oscillates between 1 and 0
+
+4.5
+a.  N1 is a function of Tn, H(N1, Tn) = H(Tn) + H(N1|Tn) = H(Tn)
+b.  chain rule of entropy
+c.  N1 is uniformly distributed in {1, .., n - 1}, H(N1) = log(n - 1)
+d.  H(Tn|N1)    = ΣPr{N1 = k}H(Tn|N1 = k)
+                = Σ1/(n - 1)H(Tn|N1 = k)
+    where given N1 = k, entropy of Tn is combined entropy of two subtrees Tk and Tn-k
+                = Σ1/(n - 1)(H(Tk) + H(Tn-k))
+e.  each Ti in Σ(H(Tk) + H(Tn-k)) is added twice
+f.  (n - 1)Hn   = (n - 1)log(n - 1) + 2Σ{1 <= k <= n - 1}Hk
+                = (n - 1)log(n - 1) + 2Σ{1 <= k <= n - 2}Hk　+ 2Hn-1
+                = (n - 1)log(n - 1) - (n - 2)log(n - 2) + nHn-1
+
+4.6
+a.  1/n * H(X1, .., Xn) = 1/n * ΣH(Xi|X1, .., Xi-1)
+    where H(Xi|X1, .., Xi-1) = H(Xi+1|X2, .., Xi) >= H(Xi+1|X1, .., Xi), H(Xi|X1, .., Xi-1) is non-increasing
+    the average of ΣH(Xi|X1, .., Xi-1) over (1, n) <= over (1, n - 1)
+b.  1/n * H(X1, .., Xn) = 1/n * ΣH(Xi|X1, .., Xi-1)
+                        >= 1/n * nH(Xn|X1, .., Xn-1)
+                        = H(Xn, .., Xn-1)
+
+4.7
+a.  by equation 4.8, μ0 = p10 / (p10 + p01), μ1 = p01 / (p10 + p01)
+    H(X)    = p10 / (p10 + p01) * H(p01) + p10 / (p10 + p01) * H(p10)
+b.  p01 = p10 = 1/2
+    p10 / (p10 + p01) * H(p01) + p10 / (p10 + p01) * H(p10)
+    <= (p10 + p01) / (p10 + p01) * H(1/2)
+    = H(1/2)
+    = 1/2 / (1/2 + 1/2) * H(1/2) + 1/2 / (1/2 + 1/2) * H(1/2)
+    maximum entropy rate is H(1/2) = 1
+c.  μ0  = ΣμiPi0
+        = μ0(1 - p) + μ1
+    μ0p = μ1
+    μ0 + μ1 = (1 + p)μ0 = 1, μ0 = 1/(1 + p), μ1 = p/(1 + p)
+    H(X)    = H(X2|X1)
+            = 1/(1 + p) * H(p) + p/(1 + p)H(0)
+            = 1/(1 + p) * H(p)
+d.  H(X) <= 0.694 where x = 0.382
+e.  assume p > 0
+    N(1) = 2, N(2) = 3  // 11 is impossible, P11 = 0
+    for a sequence of length t, if the first state is 0, the next state may be 0 or 1
+    if the first state is 1, the next state must be 0
+    N(t) = N(t - 1) + N(t - 2) is the Fibonacci sequence
+    N(t) = Fib(t + 2)
+    lim(1/t * logN(t))  = lim(1/t * log((((1 + sqrt(5)) / 2)^t - ((1 - sqrt(5)) / 2)^t) / sqrt(5)))
+                        <= lim(1/t * (log(((1 + sqrt(5))/2)^t) - log(sqrt(5))))
+                        = log((1 + sqrt(5))/2)
+                        = 0.694 
+
+4.8
+H(X) / E[T] = (-p1logp1 - (1 - p1)log(1 - p1)) / (p1 + 2(1 - p1))
+maximum is 0.694 at x = (sqrt(5) - 1) / 2
+
+4.9
+H(X0|Xn)    = H(X0, Xn) - H(Xn)
+            >= H(X0, Xn|Xn-1) - H(Xn)
+            = H(X0|Xn-1) + H(Xn|Xn-1) - H(Xn)
+            >= H(X0|Xn-1)
+
+4.10
+a.  let Sn = ΣXi
+    Pr{S1 = 0} = Pr{X1 = 0} = Pr{X1 = 1} = Pr{S1 = 1} = 1/2
+    Pr{Sn+1 is even}    = Pr{Xn+1 = 0}Pr{Sn is even} + Pr{Xn+1 = 1}Pr{Sn is odd}
+                        = Pr{Xn+1 = 0}Pr{Sn is odd} + Pr{Xn+1 = 1}Pr{Sn is even}
+                        = 1/2
+    for i, j <= n - 1, Xi and Xj are independent as stated
+    for i <= n - 1 and j = n,
+    P(Xn = 0|Xi = 0)    = Pr{Σ{j!=i}Xi is even} = 1/2
+    P(Xn = 1|Xi = 0)    = Pr{Σ{j!=i}Xi is odd} = 1/2
+    similarly P(Xn = 1|Xi = 1) = P(Xn = 0|Xi = 1) = 1/2
+    P(Xn, Xi) = P(Xn)P(Xi)
+b.  H(Xi, Xj) = H(Xi) + H(Xj) = 2H(1/2) = 2
+c.  Xn is a function of (X1, .., Xn)
+    H(X1, .., Xn) = H(X1, .., Xn-1) = (n - 1)H(1/2) = n - 1 < nH(X1)
+
+4.11
+a.  H(Xn|X0)    = H(Xn, X0) - H(X0)
+                = H(X0, X-n) - H(X0)    // stationarity
+                = H(X-n|X0)
+b.  // thanks solutions manual
+    let X0, .., Xn-1 be iid random variables ~ Bernoulli(1/2)
+    and Xn+k = Xk for k >= 0
+    H(Xn|X0) = 0 < H(Xn-1|X0) = 1
+c.  H(Xn|X1, .., Xn-1, Xn+1)
+    = H(Xn+1|X2, .., Xn, Xn+2)  // stationarity
+    >= H(Xn+1|X1, .., Xn, Xn+2)
+d.  similar to part c
+
+4.12
+a.  H(X1, .., Xn)   = ΣH(Xi|X1, .., Xi-1)
+                    = H(X1) + (n - 1)H(X2|X1)
+                    = 1 + (n - 1)H(0.1)
+b.  H(X)    = lim(H(X1, .., Xn) / n)
+            = lim(1/n + (n - 1)/n * H(0.1))
+            = H(0.1)
+c.  let S be the number of steps before reversing direction
+    S = 1 + P - 1 = P, P ~ Geometric(0.1)
+    E[S] = E[P] = 1/0.1 = 10
+
+4.13
+lim(1/2n * I(X1, .., Xn;Xn+1, .., X2n))
+= lim(1/2n * H(Xn, .., X2n) - 1/2n * H(Xn, .., X2n|X1, .., Xn))
+= lim(1/2n * H(X1, .., Xn) - 1/2n * Σ{i <= n}H(Xn+i|X1, .., Xn+i-1))    // stationarity and chain rule of entropy
+= H(X)/2 - H(X)/2   // Cesaro mean
+= 0
+
+4.14
+a.  (Y1, .., Yn) is a function of (X1, .., Xn)
+    H(Y1, .., Yn) <= H(X1, .., Xn)
+    lim(H(Y1, .., Yn)/n) <= lim(H(X1, .., Xn)/n)
+    H(Y) <= H(X)
+b.  (Z1, .., Zn) is a function of (X1, .., Xn+1)
+    H(Z1, .., Zn) <= H(X1, .., Xn+1)
+    lim(H(Z1, .., Zn)/n)    <= lim(H(X1, .., Xn+1)/n)
+                            = lim(H(X1, .., Xn)/n + H(Xn+1|X1, .., Xn)/n)
+                            = H(X)
+    H(Z) <= H(X)
+
+4.15
+1/n * H(X1, .., Xn|X0, .., X-k)
+= 1/n * H(X1+k, .., Xn+k|X0, .., Xk)  // stationarity
+= 1/n * ΣH{1 <= i <= n}(Xk+i|X0, .., Xk+i-1)    // chain rule of entropy
+-> H(X) // Cesaro mean as lim{n -> ∞}(H(Xk+n)|X0, .., Xk+n-1) = lim{n -> ∞}(H(Xn|X0, .., Xn-1)) = H(X)
+
+4.16
+a.  denote vertices of the graph from left to right as s1, s2 and s3 
+    s1 is the state of bit 1, s2 is the state of bit 0 after bit 1, s3 is the state of bit 0 after bit 0
+    obviously a valid sequence of bits can be mapped to a valid path on the graph
+    but some path on the graph cannot be mapped to a valid sequence of bits
+    there are 4 paths of length 1 but only 3 valid sequences of 2 bits
+b.  two edges incoming at s1, X1(n) = X2(n - 1) + X3(n - 1)
+    one edge incoming at s2, X2(n) = X1(n - 1)
+    one edge incoming at s3, X3(n) = X2(n - 1)
+    a valid sequence of length 1 is 0 or 1, mapped to s1 or s2, X1(1) = 1, X2(1) = 1, X3(1) = 0
+c.  X(n)    = A^n-1 * X(1)
+            = U^-1A^n-1U * X(1)
+    // where A^n-1 = [λ1^n-1, 0, 0; 0, λ2^n-1, 0; 0, 0, λ3^n-1]
+            = λ1^n-1U^-1[1, 0, 0;0, 0, 0;0, 0, 0]UX(1) + ..
+            = λ1^n-1Y1 + λ2^n-1Y2 + λ3^n-1Y3
+    assume the largest term dominates the sum as n -> ∞,
+    1/n * logX(n)   = (n - 1)/n * logλ + logY/n
+                    -> logλ
+    // thanks wolframalpha
+    eigenvalues of A is λ1 = 1.325, λ2 = -0.662 + 0.562i, λ3 = -0.662 - 0.562i
+    1/n * logX(n) -> logλ1 = 0.406
+d.  αμ2 + μ3 = α/(3 - α) + (1 - α)/(3 - α) = 1/(3 - α) = μ1
+    μ1 = 1/(3 - α) = μ2
+    (1 - α)μ2 = (1 - α)/(3 - α) = μ3
+e.  H(X)    = -ΣμiPijlogPij
+            = -1/(3 - α) * H(α)
+    H(X) is maximized at x = 0.570, max{H(X)} = 0.406
+f.  // thanks solutions manual
+    the approach in part a - c directly counts the number of possible sequences which is X(n) -> λ^n
+    the approach in part d - e computes the entropy rate and the number of sequences in the typical set is 2^nH
+    where H = logλ, 2^nH = λ^n, and Pr{Aε^n} -> 1 as n -> ∞
+
+4.17
+a.  given X0 = x0, Pr{Xi = X0|X0 = x0} = Pr{Xi = x0} = 1/m
+    Pr{Xi = X0} = Σ{x}Pr{Xi = x}Pr{X0 = x} = 1/m
+    N ~ Geometric(1/m), E[N] = m
+b.  f(x) = logx is concave, by Jensen's inequality
+    E[logN] <= logE[N] = logm = H(X)
+c.  
