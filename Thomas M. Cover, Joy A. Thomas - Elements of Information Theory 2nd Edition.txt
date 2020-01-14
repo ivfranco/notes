@@ -1032,4 +1032,252 @@ a.  given X0 = x0, Pr{Xi = X0|X0 = x0} = Pr{Xi = x0} = 1/m
     N ~ Geometric(1/m), E[N] = m
 b.  f(x) = logx is concave, by Jensen's inequality
     E[logN] <= logE[N] = logm = H(X)
-c.  
+c.  // skipped
+
+4.18
+a.  I(Y1;Y2|X)  = H(Y1|X) - H(Y1|Y2, X)
+                = 2H(Y1|X)  // given X, Y1 and Y2 are independent
+                = 1/2 * H(p) + 1/2 * H(1 - p)
+                = 2H(p)
+b.  let tail = 0, head = 1, the distribution of (Y1, Y2) is
+        p(0, 0) = 1/2 * p^2 + 1/2 * (1 - p)^2
+        p(1, 1) = p(0, 0)
+        p(0, 1) = 1/2 * p(1 - p) + 1/2 * p(1 - p) = p(1 - p)
+        p(1, 0) = p(0, 1)
+    I(X;Y1, Y2) = H(Y1, Y2) - H(Y1, Y2|X)
+                = -Σ{i, j}p(i, j)logp(i, j) - 2H(p)
+                = -(p^2 + (1 - p)^2)(log(p^2 + (1 - p)^2) - 1) - 2p(1 - p)(logp + log(1 - p)) - 2H(p)
+c.  H(X, Y1, .., Yn)    = H(X) + H(Y1, .., Yn|X)
+                        = 1 + nH(Y1|X) = 1 + nH(p)
+    lim(1/n * H(X, Y1, .., Yn)) = lim(H(Y1, .., Yn)/n + H(X|Y1, .., Yn)/n)
+                                = lim(H(Y1, .., Yn)/n)
+                                = lim((1 + nH(p))/n)
+                                = H(p)
+
+4.19
+a.  // assume uniform edge weight
+    μ = [3/16, 3/16, 3/16, 3/16, 1/4]
+b.  H(X)    = -ΣμiPijlogPij
+            = -4 * 3 * 3/16 * 1/3 * log1/3 - 4 * 1/4 * 1/4 * log1/4
+            = 3/4 * log3 + 1/4 * log4
+            = 3log3 / 4 + 1/2
+c.  I(Xn+1;Xn)  = I(X2;X1)  // stationarity
+                = H(X2) - H(X2|X1)
+                = H(X1) - H(X2|X1)
+                = H(μ) - 3log3 / 4 - 1/2
+                = -4 * 3/16 * log3/16 - 1/4 * log1/4 - 3log3 / 4 - 1/2
+                = -3/4 * (log3 - 4) + 1/2 - 3log3 / 4 - 1/2
+                = -3log3 / 2 + 3
+
+4.20
+H(X)    = log(2E) - H(E1/2E, .., En/2E)
+        = log(2E) + ΣEi/2E * log(Ei/2E)
+        = log(2E) + ΣEi/2E * (logEi - log2E)
+        = 1/2E * ΣEi * logEi
+King:
+    at {1, 3, 7, 9}: 3 edges
+    at {2, 4, 6, 8}: 5 edges
+    at {5}: 8 edges
+    2E = 3 * 4 + 5 * 4 + 8 = 40
+    H(X)    = log40 + 4 * 3/40 * log3/40 + 4 * 5/40 * log5/40 + 8/40 * log8/40
+            = 2.236
+Rook:
+    4 edges everywhere
+    2E = 4 * 9 = 36
+    H(X)    = log36 + 9 * 4/36 * log(4/36)
+            = log4 = 2
+Bishop (type 1):
+    at {1, 3, 7, 9}: 2 edges
+    at {5}: 4 edges
+    {2, 4, 6, 8} unreachable
+    2E = 2 * 4 + 4 = 12
+    H(X)    = log12 + 4 * 2/12 * log(2/12) + 4/12 * log(4/12)
+            = 2/3 + 2/3 = 4/3
+Bishop (type 2):
+    at {2, 4, 6, 8}: 2 edges
+    {1, 3, 5, 7, 9} unreachable
+    2E = 8
+    H(X)    = 1/8 * (4 * 2log2)
+            = 1
+Queen:
+    at {1, 3, 7, 9}: 6 edges
+    at {2, 4, 6, 8}: 6 edges
+    at {5}: 8 edges
+    2E = 8 * 6 + 8 = 56
+    H(X)    = 1/56 * (8 * 6log6 + 8log8)
+            = 1/56 * (48 + 48log3 + 24)
+            = 1/56 * (72 + 48log3)
+            = 9/7 + 6log3/7
+
+4.21
+1.  {(1, 2), (2, 3), (3, 4), (4, 5)}
+    H(X)    = 1/8 * (2 * 1log1 + 3 * 2log2)
+            = 1/8 * 3 * 2 = 6/8 = 0.75
+2.  {(1, 2), (1, 3), (1, 4), (1, 5)}
+    H(X)    = 1/8 * (4 * 1log1 + 4log4)
+            = 1
+3.  {(1, 2), (2, 3), (3, 4), (4, 1)}
+    H(X)    = 1/8 * (4 * 2log2)
+            = 1
+4.  {(1, 2), (1, 3), (3, 4), (4, 5)}
+    H(X)    = 1/8 * (3 * 1log1 + 2log2 + 3log3)
+            = 1/8 * (2 + 3log3)
+            = 1/4 + 3/8 * log3 = 0.844
+5.  {(1, 2), (2, 3), (3, 1), (1, 4)}
+    H(X)    = 1/8 * (1log1 + 2 * 2log2 + 3log3)
+            = 1/8 * (4 + 3log3)
+            = 1/2 + 3/8 * log3 = 1.094
+a.  maximum is 1/2 + 3/8 * log3
+b.  minimum is 0.75
+
+4.22
+a.  4 corners, 3 edges each
+    12 edges, 4 edges each
+    6 sides, 5 edges each
+    1 core, 6 edges
+    2E = 4 * 3 + 12 * 4 + 6 * 5 + 6 = 96
+    p(corner)   = 3/96 = 1/32
+    p(edge)     = 4/96 = 1/24
+    p(side)     = 5/96
+    p(core)     = 6/96 = 1/16
+b.  H(X)    = 1/96 * (4 * 3log3 + 12 * 4log4 + 6 * 5log5 + 6log6)
+            = 2.085
+
+4.23
+a.  H(X)    = limH(Xn|X1, .., Xn-1)
+            <= limH(Xn)
+            = H(X1)
+b.  lim(Xn|X1, .., Xn-1) = H(X1) = H(Xn)
+    as n -> ∞, Xn is independent to the history
+
+4.24
+a.  H(Y)    = lim(1/n * H(Y1, .., Yn))
+            = lim(1/n * H(X1, .., Xn+1))
+            = lim(1/n * H(X1, .., Xn) + 1/n * H(Xn+1|X1, .., Xn))
+            = H(X)
+b.  H(Z)    = lim(1/n * H(Z1, .., Zn))
+            = lim(1/n * H(X2, .., X2n+1))
+            = lim(1/n * H(X1, .., X2n))
+            = lim(2 * 1/2n * H(X1, .., X2n))
+            = 2H(X)
+    H(Z) >= H(X)
+c.  H(V)    = lim(H(Vn|V1, .., Vn-1))
+            = lim(H(X2n|X2, X4, .., X2n-2))
+            >= lim(H(X2n|X1, X2, .., X2n-1))
+            = H(X)
+d.  same to part b
+
+4.25
+a.  I(X;Y1, .., Yn) = H(X) - H(X|Y1, .., Yn)
+                    <= H(X) - H(X|Y1, .., Yn+1)
+                    = I(X;Y1, .., Yn+1)
+b.  H(X|Y1) = H(X|Y1, .., Yn) for all n
+    X are independent to all Yi, i >= 2
+
+4.26
+see part a fo 4.24
+
+4.27
+p(Xk+1 = 0|Xk = 0, Xk-1 = 0) = p(Zk+1 = 0) = 1 - p
+p(Xk+1 = 0|Xk = 0, Xk-1 = 1) = p(Xk+1 = 0|Xk = 1, Xk-1 = 0) = p(Zk+1 = 1) = p
+p(Xk+1 = 0|Xk = 1, Xk-1 = 1) = p(Zk+1 = 0) = 1 - p
+Xk+1 is independent to Xk-1 and Xk
+H(X)    = lim(H(Xn|X1, .., Xn-1))
+        = lim(H(Xn|Xn-2, Xn-1))
+        = ΣPr{Xk = i, Xk-1 = j}H(Xk+1|Xk = i, Xk-1 = j)
+        = H(p)
+
+4.28
+a.  Pr{Y1+k, .., Yn+k}  = ΣθPr{Y1+k, .., Yn+k, θ}
+                        = ΣθPr{Y1+k, .., Yn+k|θ}Pr{θ}
+                        = ΣθPr{Y1, .., Yn|θ}Pr{θ}   // given θ, Y1, .., Yn = X11, .., X1n or X21, .., X2n is stationary
+                        = Pr{Y1, .., Yn}
+b.  Pr{Y1 = 1, Y2 = 1}
+    = ΣθPr{Y1 = 1, Y2 = 1|θ}Pr{θ}
+    = 1/2 * p1^2 + 1/2 * p2^2 
+    Pr{Y1 = 1}
+    = ΣθPr{Y1 = 1|θ}Pr{θ}
+    = (p1 + p2)/2
+    Pr{Y1 = 1}Pr{Y2 = 1} = (p1 + p2)^2 / 4 != Pr{Y1 = 1, Y2 = 1}
+    Y1 and Y2 are not independent
+c.  lim(1/n * H(Y1, .., Yn))
+    = lim(1/n * H(Y1, .., Yn, θ) - 1/n * H(θ|Y1, .., Yn))
+    = lim(1/n * H(Y1, .., Yn, θ))
+    = lim(1/n * H(X) + 1/n * H(Y1, .., Yn|θ))
+    = lim(1/n * ΣPr{θ}H(Y1, .. Yn|θ))
+    = H(p1) / 2 + H(p2) / 2
+d.  by Theorem 3.1.1 (AEP), the probability converges to H(X) only if X1, .., Xn are iids
+e.  AEP does not apply to non-iid sequences, but since as n -> ∞, H(θ|Y1, .., Yn) -> 0
+    (Y1, .., Yn) can be encoded by the coding of {X1i} and {X2i}, with an additional bit to distinguish these two
+a'. Pr{Zi = 0}  = ΣθPr{Zi = 0|θ}Pr{θ}
+                = (p1 + p2)/2, independent to i
+    {Zi} are iids and stationary
+b'. see part a'
+c'. H(Z)    = lim(H(Zn|Z1, .., Zn-1))
+            = lim(H(Zn))
+            = H((p1 + p2)/2)
+d'. AEP
+e'. AEP
+
+4.29
+a.  {Sn} is not stationary
+    Pr{S2 = 2} = Pr{X1 = 1, X2 = 1} = 1/4
+    Pr{S1 = 1} = Pr{X1 = 1} = 1/2
+b.  there's a bijection between (S1, .., Sn) and (X1, .., Xn)
+    H(S1, .., Sn)   = H(X1, .., Xn)
+                    = nH(X1)
+                    = -nΣp(x)logp(x)
+                    = -nΣ(1/2)^xlog(1/2)^x
+                    = nΣx(1/2)^x
+                    = 2n
+c.  H(S)    = lim(1/n * H(S1, .., Sn))
+            = lim(1/n * 2n)
+            = 2
+d.  Sn ~ NB(n, 1/2)
+    H(Sn)   = -Σp(x)logp(x)
+            = -ΣC(n + k - 1, k)(1/2)^(n+k)logC(n + k - 1, k)(1/2)^(n+k)
+    and H(Sn) is the average description length of Sn, which is also the number of coin flips required to generate Sn
+
+4.30
+a.  1/3 * 1/2 + 1/3 * 1/4 + 1/3 * 1/4 = 1/3
+    [1/3, 1/3, 1/3] is a stationary distribution of P
+b.  H(X)    = -ΣμiPijlogPij
+            = -2 * 1/4 * log1/4 - 1/2 * log1/2
+            = 1 + 1/2 = 3/2
+c.  Zi is a function of Xi and Xi-1
+    Xi is a function of Zi and Xi-1 and recursively a function of (Zi, Zi-1, .., Z1)
+    there's a bijection between (Z1, .., Zn) and (X1, .., Xn)
+    H(Z1, .., Zn)   = H(X1, .., Xn)
+                    -> nH(X) = 3n/2
+d.  H(Xn) = H(μ) = -3 * 1/3log1/3 = log3
+    Pr{Zi = 0}  = Pr{Xi = Xi-1}
+                = 3 * 1/3 * 1/2 = 1/2
+    Pr{Zi = 1}  = μ1P12 + μ2P23 + μ3P31
+                = 1/3(1/4 + 1/4 + 1/4) = 1/4
+    Pr{Zi = 2}  = μ1P13 + μ2P21 + μ3P32
+                = 1/3(1/4 + 1/4 + 1/4) = 1/4
+    H(Zn)   = -Σp(z)logp(z)
+            = -2 * 1/4 * log1/4 - 1/2 * log1/2
+            = 1 + 1/2 = 3/2
+e.  by part d, Zn and Zn-1 are independent, H(Zn|Zn-1)  = H(Zn) = 3/2
+f.  by part d, Zn and Zn-1 are independent
+
+4.31
+a.  H(X)    = lim(1/n * H(X1, .., Xn))
+            = lim(1/n * nH(p))
+            = H(p)
+    there's a bijection between {Xn} and {Yn}
+    H(X1, .., Xn) = H(Y1, .., Yn)
+    H(Y)    = lim(1/n * H(Y1, .., Yn))
+            = lim(1/n * H(X1, .., Xn))
+            = H(p)
+
+4.32
+H(X-n|X0, X1)   = H(X-n, X0, X1) - H(X0, X1)
+                = H(X-n) + H(X0|X-n) + H(X1|X0, X-n) - H(X0) - H(X1|X0)
+                = H(X0) + H(X0|X-n) + H(X1|X0) - H(X0) - H(X1|X0)   // stationarity and Markovity
+                = H(X0|X-n)
+                = H(Xn+1|X1)    // stationarity
+                = H(Xn+1|X1, X0)    // Markovity
+
+4.33
