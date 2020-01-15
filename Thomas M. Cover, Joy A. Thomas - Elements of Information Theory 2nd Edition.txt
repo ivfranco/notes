@@ -1281,3 +1281,31 @@ H(X-n|X0, X1)   = H(X-n, X0, X1) - H(X0, X1)
                 = H(Xn+1|X1, X0)    // Markovity
 
 4.33
+I(X1;X4) + I(X2;X3) - I(X1;X3) - I(X2;X4)
+= H(X1) + H(X4) - H(X1, X4) + H(X2) + H(X3) - H(X2, X3) - H(X1) - H(X3) + H(X1, X3) - H(X2) - H(X4) + H(X2, X4)
+= H(X1, X3) + H(X2, X4) - H(X1, X4) - H(X2, X3)
+= H(X3) + H(X1|X3) + H(X4) + H(X2|X4) - H(X4) - H(X1|X4) - H(X3) - H(X2|X3)
+= H(X1|X3) - H(X1|X4) + H(X2|X4) - H(X2|X3)
+since 
+    I(X1;X3) >= I(X1;X4), H(X1) - H(X1|X3) >= H(X1) - H(X1|X4), H(X1|X4) >= H(X1|X3)
+    similarly H(X2|X4) >= H(X2|X3)
+>= 0
+
+4.34
+// thanks solutions manual
+I(X;Y) + I(Z;W) - I(X;Z) - I(X;W)
+>= I(Z,W;X) + I(Z;W) - I(X;Z) - I(X;W)  // data processing inequality
+= H(Z, W) + H(X) - H(Z, W, X) + H(Z) + H(W) - H(Z, W) - H(X) - H(Z) + H(X, Z) - H(X) - H(W) + H(X, W)
+= - H(Z, W, X) + H(X, Z) - H(X) + H(X, W)
+= H(Z|X) - H(Z|X, W)
+= I(Z, W|X) >= 0
+
+4.35
+H(Xn|X0) - H(Xn-1|X0) - H(Xn-1|X0) + H(Xn-2|X0)
+= H(Xn|X0) - H(Xn-1|X0, X-1) - H(Xn-1|X0) + H(Xn-2|X0, X-1) // Markovity
+= H(Xn|X0) - H(Xn|X1, X0) - H(Xn-1|X0) + H(Xn-1|X1, X0) // stationarity
+= I(Xn;X1|X0) - I(Xn-1;X1|X0)
+= H(X1|X0) - H(X1|X0, Xn) - H(X1|X0) + H(X1|X0, Xn-1)
+= H(X1|X0, Xn-1) - H(X1|X0, Xn)
+= H(X1|X0, Xn-1, Xn) - H(X1|X0, Xn) // Markovity
+= -I(X1;Xn-1|X0, Xn) <= 0
