@@ -1309,3 +1309,154 @@ H(Xn|X0) - H(Xn-1|X0) - H(Xn-1|X0) + H(Xn-2|X0)
 = H(X1|X0, Xn-1) - H(X1|X0, Xn)
 = H(X1|X0, Xn-1, Xn) - H(X1|X0, Xn) // Markovity
 = -I(X1;Xn-1|X0, Xn) <= 0
+
+5.1
+instantaneous code is a subset of uniquely decodable code hence L2 <= L1
+L2 is uniquely decodable so L2 satisfies Kraft inequality, by 5.2.2 there exists a prefix code with exactly the same set
+of lengths, therefore L1 <= L2, L1 = L2
+
+5.2
+by Kraft's inequality, ΣD^-li <= 1, 1/D + 1/D^2 + 1/D^3 <= 1/2 for integer D, D >= 3
+let S be the set and probability of numbers, assume the codewords of the numbers are written in unknown language (e.g.
+Martian language), a lower bound of the size of the alphabet can be computed from the corresponding codeword lengths, 
+since human uses decimal digits mainly because human has 10 fingers, D maybe the number of fingers of Martians
+
+5.3
+consider the D-ary tree in the proof of theorem 5.2.1, when ΣD^-li < 1, there must be a leaf at level lmax that is not
+a codeword, any string starting with this leaf also cannot be decoded (case l >= lmax)
+by definition of instantaneous code, prefix of a codeword of length lmax cannot be codeword (case 1 <= l < lmax)
+
+5.4
+a.  x1: 0
+    x2: 10
+    x3: 110
+    x4: 11100
+    x5: 11101
+    x6: 11110
+    x7: 11111
+b.  E[L]    = 0.49 + 0.26 * 2 + 0.12 * 3 + (0.04 + 0.04 + 0.03 + 0.02) * 5
+            = 2.02
+c.  x1: 0
+    x2: 1
+    x3: 20
+    x4: 21
+    x5: 220
+    x6: 221
+    x7: 222
+
+5.5
+(00, 10, 01, 010, 011)
+a Huffman code for (1/5, .., 1/5) is 
+    (000, 001, 10, 11, 01)
+which has the same expected codeword length to (00, 10, 01, 010, 011)
+
+5.6
+a.  possible optimal code for (1/3, 1/3, 1/3)
+b.  (00, 01, 10, 11) is a better code for any |X| = 4
+c.  (0, 1) is a better code for any |X| = 2 
+
+5.7
+a.  the question scheme is equivalent to a code scheme, hence the minimal average number of questions = the minimal
+    length of codewords >= H(X1, .., Xn) = ΣH(Xi) = ΣH(pi)
+b.  consider the possible defective sets as a set of 2^n symbols, the last question of the longest sequence of questions
+    = the last bit of longest codewords distinguishes the two least possible sets, i.e. the set {Xi = 0} and the set
+    {Xi = 1, Xj = 0 for all j != i} where pi = min{pj}
+c.  by theorem 5.4.1, the optimal code has E[L] <= H(X1, .., Xn) + 1 = ΣH(Xi) + 1
+
+5.8
+C1 = (0, 10, 11), E[C(Xi+1)|Xi = 1] = 1.5
+C2 = (10, 0, 11), E[C(Xi+1)|Xi = 2] = 1.5
+C3 = (-, 0, 1), E[C(Xi+1)|Xi = 3] = 1
+u1 = 1/2 * u1 + 1/4 * u2
+u2 = 1/4 * u1 + 1/2 * u2 + 1/2 * u3
+u3 = 1/4 * u1 + 1/4 * u2 + 1/2 * u3
+(u1, u2, u3) = (2/9, 4/9, 1/3)
+E[C(Xi+1)] = 3/2 * 2/9 + 3/2 * 4/9 + 1 * 1/3 = 1/3 + 2/3 + 1/3 = 4/3
+H(U)    = -ΣuiPijlogPij
+        = (2/9 + 4/9) * (1/2log2 + 2 * 1/4log4) + 1/3 * H(1/2)
+        = 2/3 * 2/3 + 1/3 = 4/3
+
+5.9
+given ε > 0, take p so that H(p) < ε (always possible as H(0) = 0, H(1/2) = 1, H(p) is continuous)
+define a symbol set p(X = a) = p, p(X = b) = 1 - p
+Huffman code of X is (0, 1), E[L] = 1, E[L] - H(X) > 1 - ε
+
+5.10
+a.  by theorem 5.3.1, L = HD(X) iff D^-li = pi, since li is a positive integer pi = 3^-k for some k
+b.  pi = 3^-ki, let k >= ki for all i
+    Σpi = Σ3^-ki = 1
+    3^k * Σ3^(k-ki) = 3^k
+    since 3^k is odd, both terms on the left side must be odd
+    each 3^(k-ki) is odd, only the sum of odd number of odd terms is odd, hence m is odd
+
+5.11
+let C be the suffix code, let C' be the reverse of C (i.e. C'(x) is the reversed codeword C(x))
+C'(x) is a prefix code hence uniquely decodable
+given a sequence of codewords, reverse it and the sequence can be uniquely decoded by C'
+as C and C' has the same codeword lengths, E[C(X)] = E[C'(X)]
+let L be the expected codeword length of Huffman code, since Huffman is an optimal prefix code,
+    min{E[C(X)]} = min{E[C'(X)]} = L
+
+5.12
+a.  C1 = (00, 1, 010, 011)
+b.  C2 = (00, 01, 10, 11) is a prefix code
+    E[C1(X)] = 2/3 + 1/3 + 3/4 + 3/12 = 2
+    E[C2(X)] = 2
+c.  in C2, 2 > log3
+
+5.13
+let X be the set of objects in the universe, H(X) + 1 > 38.5, H(X) > 37.5
+as uniform distribution maximizes entropy,
+    log|X| >= H(X) > 37.5,
+    |X| >= 2^37.5
+
+5.14
+a.  C1 = (0000, 0001, 001, 10, 11, 01)
+b.  C2 = (000, 001, 002, 01, 02, 1)
+c.  L1 = (4 + 4 * 2 + 3 * 3 + 2 * (4 + 5 + 6))/21 = 51/21
+    L2 = (3 * (1 + 2 + 3) + 2 * (4 + 5) + 6)/21 = 42/21 = 2
+
+5.15
+a.  (00, 1, 010, 0110, 0111), L = 2.3
+b.  pi = D^-li, (1/4, 1/2, 1/8, 1/16, 1/16)
+
+5.16
+a.  (0, 10, 1100, 1110, 1111, 1101), L = 2
+b.  (a, b, ca, cb, cc, cd), L = 1.25
+c.  1.25 * 2 = 2.5
+d.  L4 >= H4(X) = H(X)/log4 = H(X)/2
+    LQB = L4 * 2 >= H(X)
+    L4 <= H4(X) + 1 = H(X)/2 + 1
+    LQB = L4 * 2 <= H(X) + 2
+
+5.17
+a.  (00, 10, 11, 010, 011), l = (2, 2, 2, 3, 3)
+b.  pi = 0.9 * 0.1^i, i >= 0
+    Σ{k > i}pk = Σ{k > i}0.9 * 0.1^k = 0.9 * 0.1^i, Huffman code repeatedly combines last two symbols
+    l = (1, 2, 3, ..)
+
+5.18
+a.  no, 0 is a prefix of 01
+b.  yes, it's a suffix code
+c.  yes, all uniquely decodable code is nonsingular
+
+5.19
+// thanks solutions manual
+a.  let Qn be the amount of numbers can be determined by n questions, Q1 = 1, Qn+1 = 1 + 2Qn, Q6 = 63
+    it's possible to determine 63 out of 100 numbers in 6 questions by e.g. binary search, let the set of the 63 numbers
+    be S, the expected return is R = Σ{x ∈ S}p(x)v(x), so the player should choose 63 numbers to maximize R
+b.  Huffman code is the optimal code = optimal question scheme to determine a number, the player should ask questions
+    corresponding to the ith bit of Huffman code
+    R = E[v(X)] - L = Σv(x)p(x) - L, Σv(x)p(x) - H(X) - 1 <= R <= Σv(x)p(x) - H(X)
+c.  minimize Σvipi - H(X) = Σvipi + Σpilogpi, subject to Σpi = 1
+    as Σvipi is linear in pi, -H(X) is convex, local extreme value is global minimum
+    L(p, l) = Σvipi + Σpilogpi - l(Σpi - 1)
+    dL/dpi  = vi + logpi + 1/ln2 - l = 0
+    logpi = l - vi - 1/ln2
+    pi = 2^(l - vi - 1/ln2)
+    Σpi = Σ2^(l - vi - 1/ln2)
+        = 2^(l - 1/ln2)Σ2^-vi = 1
+    2^(1/ln2 - l) = Σ2^-vi
+    pi = 2^-vi / Σ2^-vj
+
+5.20
