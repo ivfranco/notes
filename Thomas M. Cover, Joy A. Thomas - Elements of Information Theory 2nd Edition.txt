@@ -1460,3 +1460,159 @@ c.  minimize Σvipi - H(X) = Σvipi + Σpilogpi, subject to Σpi = 1
     pi = 2^-vi / Σ2^-vj
 
 5.20
+a.  minimize Σpicili is equivalent to minimize Σ(pici / Σpici)li as Σpici is a constant
+    which in turn is equivalent to minimize a symbol set of distribution q where qi = pici / Σpici
+    hence the optimal code lengths are 
+        li* = -logqi = -log(pici/Σpici) = logΣpici - logpici
+b.  run Huffman procedure with respect to qi = pici / Σpici
+c.  let li = ceil(-logqi)
+    -logqi <= li < -logqi + 1
+    -Σpicilogqi <= Σpicili < Σpici(-logqi + 1)
+    C* <= C_Huffman < C* + Σpici
+
+5.21
+assume two different symbol sequences x = (x1, .., xn) and y = (y1, .., ym) are mapped to the same codeword sequence
+the two concatenations xy and yx must be different:
+    if xy = yx, assume without loss of generality |x| <= |y|, x is a prefix of y
+    by definition of C, either y = x or |C(y)| > |C(x)|
+hence the two different symbol sequences xy and yx have the same length and map to the same code
+which contradict the assumption Ck(x1, .., xk) is one-to-one
+
+5.22
+for any code C, E[|C(X)|] = Σpili is a linear function of (p1, .., pn), which is continuous
+by Huffman procedure, there are optimal code with codewords C(X) <= m, so only finite number of code (< D^(m^2)) matters
+therefore the optimal expected codeword length is the minimum of finite continuous functions which is also continuous
+
+5.23
+a.  assume finite X
+    a uniformly generated sequence starts with a codeword of length k is D^-k, define Ei be the event that a uniformly
+    generated sequence starts with codeword xi
+    when the code is not instantaneous, C(xi) = C(xj) for some i < j, Ei contains Ej
+    Pr{E1 ∪ E2 .. Em}   = Pr{E1 ∪ .. ∪ Ei ∪ .. ∪ Ej-1 ∪ Ej+1 ∪ .. ∪ Em}
+                        <= Σ{i != j}Pr{Ei}
+                        = Σ{i != j}D^-li
+                        = 1 - D^-lj < 1
+    hence there must be a sequence that does not start with a codeword
+b. // skipped
+
+5.24
+// thanks solutions manual
+a.  for uniform distribution there is an optimal prefix code in which all codeword lengths differ by at most 1:
+        assume |C(xi)| - |C(xj)| >= 2 for some different symbols xi and xj
+        define a new code C' where
+            C'(xi) = C(xi)||0
+            C'(xj) = C(xi)||1
+        since C is instantaneous, C(xi) is not a prefix of any other codewords, similarly C(xi)||0 and C(xi)||1
+        C' is instantaneous and L' = (mL + 2|C(xi)| + 2 - |C(xi)| - |C(xj)|)/m <= L
+    hence there exists Huffman code where ||C(xi)| - |C(xj)|| <= 1 for all i, j
+    let Cn be a code for n uniformly distributed symbols, Ln be the expected codeword length of Cn
+    for n = 2^b, Huffman procedure gives an optimal Cn where |Cn(xi)| = b for all xi
+    for m < 2^(b + 1) = k, Ck is a prefix code for the domain of Cm, optimal Lm <= log|2^(b+1)| = b + 1, there exists an
+    optimal Cm in which all codewords have length b or b + 1
+    let tm be the number of codewords of length b + 1 in optimal Cm, it must have tm+1 >= tm + 2, otherwise
+        tm+1 <= tm + 1, define Cm' by first choose (m - tm) codewords of length b from Cm+1
+        tm' = m - (m - tm) = tm <= tm+1 - 1, at least one codeword of length b + 1 for Cm+1 is not in the new codomain
+        if its sibling is defined for Cm', remove the last bit from it
+        if its sibling is not defined for Cm', switch one codeword of length b + 1 with the first b bits of it
+        the resulting tm'' = tm+1 - 2 <= tm - 1
+        Lm''    = (tm''(b + 1) + (m - tm'')b) / m
+                <= ((tm - 1)(b + 1) + (m - tm + 1)b) / m
+                < Lm
+        contradicting the assumption that Cm is optimal
+    tm+1 >= tm + 2, from tm = 0 for m = 2^b to tm = 2^(b+1) for m = 2^(b+1), tm = 2(m - 2^b)
+    Lm  = 1/m * (mb + 2(m - 2^b))
+        = b + 2(m - 2^b)/m
+        = b + 2 - 2^(b+1)/m
+    for 2^b <= m < 2^(b+1)
+b.  for tm = 0, m = 2^b for some b
+c.  H(X) = log|X| = logm
+    ρ   = L - H = b + 2 - 2^(b+1)/m - logm
+    dρ/dm   = 2^(b+1)/m^2 - 1/mln2 = 0
+    2^(b+1) = m/ln2, m = 2^(b+1)ln2
+    ρ   = b + 2 - 2^(b+1)/m - logm
+        = b + 2 - 1/ln2 - log(2^(b+1)ln2)
+        = b + 2 - 1/ln2 - b - 1 + log(ln2)
+        = 1 - 1/ln2 - log(ln2)
+        = 0.086
+
+5.25
+a.  for x1 to be assigned a codeword length >= 2, it must be combined twice
+    first time x1 is combined with another group x2 of probability x2 >= 2/5, which means the second time x1 is combined 
+    with a group x3 of probability <= 1 - 2/5 * 2 = 1/5
+    but then x2 and x3 or any subgroup of x3 should be combined first by the definition of Huffman procedure
+b.  for x1 to be assigned a codeword length = 1, x1 must be combined with x2 as the last step of Huffman procedure
+    p(x2) = 2/3, if x2 is a single symbol the probabilities are not in decreasing order
+    otherwise x2 is a combination of two groups x3 and x4 where p(x3) + p(x4) = 2/3, it must have p(x3) >= 1/3 or
+    p(x4) >= 1/3, x1 should be chosen instead of x3 or x4
+
+5.26
+a.  define pi = Wi / ΣWj, Σpi = 1, pi >= 0 is a probability vector
+    as ΣWj is constant, a sequence of pairwise merges that minimizes V wrt. Wi also minimizes V wrt. pi
+    assume a step of Huffman procedure merges two group of probabilities pi and pj, by equation 5.66
+        L(p) = L*(p') + pi + pj
+    Huffman procedure stops when |X| = 1, L(p) = 0, V for pi equals to the average codeword length, hence Huffman
+    procedure minimizes V
+b.  by part a, 
+        H(X) <= L < H(X) + 1
+    where V = LW, multiply both sides by W then
+        WH(X) <= V < WH(X) + W
+
+5.27
+a.  define
+        Suf(ci, cj) is the set of all danging suffixes by removing a suffix of cj which is also a prefix of ci from ci
+        ci = C(xi)
+        Si = ∪{j}Suf(ci, cj)
+    then S = ∪Si
+b.  a codeword of length li can produce at most (li - 1) danging prefixes, |S| <= Σ(li - 1)
+c.  i.  instantaneous
+    ii. uniquely decodable
+    iii.not uniquely decodable, Suf(10, 01) = {0}, 0 is a codeword
+    iv. uniquely decodable
+    v.  instantaneous
+    vi. not uniquely decodable, Suf(110, 11) = {10, 0}, 10 is a codeword
+    vii.not uniquely decodable, is a superset of vi
+d.  ii. 0111111..
+        can be (0)(11)(11).. or (01)(11)(11)..
+    iv. impossible, each 1 determines the meaning of the 0 before it, can be reduced to code {0, 1}
+    if an infinite sequence has two interpretations, remove all uniquely decodable codes from the beginning of sequence, 
+    at some point the remaining sequence has to be able to be interpreted as starting with two different codewords,
+    which means one codeword must be the prefix of another, contradicts the definition of prefix code
+
+5.28
+a.  li = ceil(log1/pi), as {pi} is non-increasing, {li} is non-decreasing
+    2^-li   = 2^-ceil(log1/pi)
+            <= 2^-log1/pi
+            = pi
+    adding pi to a li bit number changes at least one bit of the first li bits, that bit pattern can never reappear by
+    adding more numbers to it, therefore the code is prefix-free
+    L   = Σpili
+        = Σpi * ceil(log1/pi)
+    Σpilog1/pi <= L < Σpi(log1/pi + 1)
+    H(X) <= L < H(X) + 1
+b.  p = (1/2, 1/4, 1/8, 1/8)
+    F = (0, 1/2, 3/4, 7/8)
+    C = (0, 10, 110, 111)
+
+5.29
+a.  for a dyadic distribution, each step of Huffman procedure combines two groups of probability 2^-i to form a group of
+    2^-i+1, so a symbol of probability 2^-i will have codeword length i, li = logpi the Kraft inequality
+    at level lmax, all nodes corresponds to codewords and have probability 2^-lmax
+    inductively, a node at level l has twice the probability of level l + 1 node, left and right child of a node has the
+    same probability
+b.  by part a, draw random symbol ~ p(x) is equivalent to take a random path in the Huffman code tree (i.e. start from 
+    the root and take left or right child with probability 1/2), the path ends at a codeword at level i with probability
+    2^-i = p(x), since left and right children of a node has the same probability each bit in the code sequence has the
+    same probability of being 0 or 1
+c.  if the optimal code of a set of symbols is compressible, the compressed code is uniquely decodable and has shorter
+    average length i.e. the original code is not optimal
+
+5.30
+a.  H(p) = 1/2 * 1 + 1/4 * 2 + 1/8 * 3 + 2/16 * 4 = 15/8
+    H(q) = 1/2 * 1 + 4/8 * 3 = 16/8 = 2
+    H(p||q) = 1/4 * 1 - 2/16 * 1 = 1/8
+    H(q||p) = -1/8 * 1 + 2/8 * 1 = 1/8
+b.  both cases li = log1/pi for all i, Σpili = E[log1/pi] = H(X)
+c.  L = 1/2 * 1 + (1 - 1/2) * 3 = 2, difference is 2 - H(X) = 1/8 = D(p||q)
+d.  L = 1/2 * 1 + 1/8 * (2 + 3 + 4 + 4) = 17/8, 17/8 - H(X) = 1/8 = D(q||p)
+
+5.31
