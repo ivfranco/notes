@@ -1616,3 +1616,167 @@ c.  L = 1/2 * 1 + (1 - 1/2) * 3 = 2, difference is 2 - H(X) = 1/8 = D(p||q)
 d.  L = 1/2 * 1 + 1/8 * (2 + 3 + 4 + 4) = 17/8, 17/8 - H(X) = 1/8 = D(q||p)
 
 5.31
+a.  by adding STOP to the end of any nonsingular binary code, the resulting ternary code is uniquely decodable and has 
+    avarge codeword length L1:1 + 1
+        L1:1 + 1 >= H3(X)
+        L1:1 >= H(X)/log3 - 1
+b.  all instantaneous codes are nonsingular so LINST >= L1:1*, H(X) + 1 >= LINST by Shannon code
+c.  let p = (1/3, 1/3, 1/3), a nonsingular code is (0, 1, 00), L = 1/3 * (1 + 1 + 2) = 4/3 <= log3
+d.  by greedy algorithm: assume any assignment in which pi is assigned not the shortest codeword, switch pi with any pj
+    with shortest codeword or replace its current codeword if the shortest one is not used, the average codeword length
+    cannot increase, therefore there exists an optimal assignment where the shortest codeword is assigned to p1, the 
+    problem is then reduced to assigning {1, 00, 01, ..} to (p2, p3, ..) which can be solved recursively
+e.  L(p, l) = F(p) - l(Σpi - 1)
+            = -Σpilogpi - Σpilog(i/2 + 1) - l(Σpi - 1)
+    dL/dp   = -logpi - 1/ln2 - log(i/2 + 1) - l = 0
+    logpi   = -1/ln2 - log(i/2 + 1) - l
+    pi      = 2^(-1/ln2 - l) * 2^-log(i/2 + 1)
+            = 2^(-1/ln2 - l) * 1/(i/2 + 1)
+            = 2^(-1/ln2 - l) * 2/(2 + i)
+    Σpi     = 2^(-1/ln2 - l) * Σ2/(2 + i) = 1
+    2^(-1/ln2 - l) = 1/Σ2/(2 + i)
+    pi      = 1/Σ2/(2 + j) * 2/(2 + i)
+            = 1/Σ1/(2 + j) * 1/(2 + i)
+            = 1/(Hm+2 - H2) * 1/(2 + i)
+            = c/(2 + i)
+f.  F(p)    = -Σpilogpi - Σpilog(i/2 + 1)
+            = -Σpilog(pi * (2 + i)/2)
+            = -Σpilog(c/(2 + i) * (2 + i)/2)
+            = -Σpilog(c/2)
+            = 2/c = 2(Hm+2 - H2)
+
+5.32
+a.  if the bottles of wine is tasted in order p', the expected number of tastings is 
+        1 * p1' + 2 * p2' + 3 * p3 + 4 * p4' + 5 * (p5' + p6')
+b.  by part a the bottles of wine should be ordered in non-increasing order of probability, p1 should be tasted first
+c.  one tasting is equivalent to a yes-no question of "if one bottle of wine in the set S is bad" for arbitrary set S
+    a question scheme is equivalent to a code for the bad wine states, the optimal code given by Huffman procedure is
+        (00, 01, 10, 1100, 111, 1101)
+d.  the mixture of (p1, p2, p3) or (p4, p5, p6) should be tasted first
+
+5.33
+a.  Huffman: (1, 2, 2)
+    Shannon: (1, 2, 4)
+b.  for D >= 3, Huffman code is (1, 1, 1)
+    log(D, 1/0.1) <= 1
+    D >= 10
+
+5.34
+a.  assume instead of (S1, S2), another pair (Si, Sj) is wired first, where T1 <= Ti, T2 <= Tj, Ti <= Tj
+    consider the same circuit but wire (S1, S2) first, the first pair of signals can be handled Tj - T2 >= 0 earlier,
+    while Si and Sj replaces S1 and S2 in the original circuit, all signals can be handled in the original time if not
+    earlier, new circuit cannot be slower than the original one
+b.  the circuit building procedure constructs a tree that, starting from m singleton trees, each time S1 and Sj are
+    wired, combine trees rooted at Si and Sj by creating a new node and add these two subtrees as its children
+    conversely given a binary tree, the leaves as singleton trees are available at Ti = max(Ti + 0), if a node whose
+    children are available at max{i ∈ L}(Ti + li) and max{j ∈ R}(Tj + lj), the node itself is available at time
+        max(max(Ti + li), max(Tj + lj)) + 1, where li and lj are measures in their subtrees
+        = max{i ∈ L ∪ R}(Ti + li), where li is measured in the combined tree
+    therefore the root is available at time max(Ti + li), the tree constructed by the circuit building algorithm must
+    be optimal among all trees
+c.  let i = argmax{Ti + li}, Tj + lj <= Ti + li for all j,
+        2^(Tj + lj) <= 2^(Ti + li)
+        2^Tj <= 2^(Ti + li) * 2^-lj
+    where Σ2^-lj = 1 by simple induction, therefore
+        Σ2^Tj   <= Σ2^(Ti + li) * 2^-lj
+                = 2^(Ti + li)
+                = 2^C(T)
+d.  define pi = 2^Ti / Σ2^Tj, p is a probability vector
+    define li = ceil(log1/pi), Σ2^-li <= 1 and by theorem 5.2.1 it's possible to construct a tree with each Ti assigned 
+    to a node at level li (if 0 can be assigned to some leaves)
+    this tree has
+        C(T)    = max(Ti + li)
+                = max(Ti + ceil(log1/pi))
+                < max(Ti + log1/pi + 1)
+                = max(Ti + log(Σ2^Tj/2^Ti) + 1)
+                = max(Ti + logΣ2^Tj - Ti + 1)
+                = logΣ2^Ti + 1
+
+5.35
+// thanks solutions manual
+express p as a binary fraction 0.p1p2p3.., the binary fraction 0.Z1Z2Z3.. is uniformly distributed at [0, 1], define a
+procedure that:
+    generate a fair coin flip Zi
+    if pi = 0, Zi = 1, X = 0 (E1)
+    if pi = 1, Zi = 0, X = 1 (E2)
+    otherwise generate the next fair coin flip 
+(E1) is equivalent to 0.Z1Z2Z3.. > 0.p1p2p3.., Pr{E1} = 1 - p = Pr{X = 0}
+(E2) is equivalent to 0.Z1Z2Z3.. < 0.p1p2p3.., Pr{E2} = p = Pr{X = 1}
+Pr{N = n} = (1/2)^n, E[N] = Σn(1/2)^n = 2
+
+5.36
+a.  (1, 2, 2) is possible but (2, 2, 3, 3) is not, (0, 10, 110, 111) is a better prefix code for any |X| = 4
+b.  Huffman codewords form the leaves of a binary tree where li is the depth of the codeword in the tree when there are
+    more than 1 codeword
+    therefore as long as Σli > 1, Σ2^-li = 1, Huffman code must satisfy Kraft inequality with equality
+
+5.37
+a.  C2 is instantaneous
+    C3 is instantaneous
+b.  C2 and C3
+
+5.38
+a.  (00, 10, 110, 111, 010, 011), L = 63/25
+b.  (0, 1, 20, 21, 22, 23), L = 38/25
+
+5.39
+a.  there's a bijection between C(X) and X, H(C(X)) = H(X)
+b.  C(X^n) is a function of X^n but the function is not reversible, as f(x) = -xlogx is a convex function, combining
+    outcomes always reduces the entropy, H(C(X^n)) < H(X^n)
+
+5.40
+a.  H(X) = lim(H(X1, .., Xn)/n) = H(X1) = 3/2
+    p is dyadic and (0, 10, 11) is a Huffman code for X, problem 5.29 proves that Zi ~ Bernoulli(1/2) iid. so H(Z) = 1
+b.  C is uniquely decodable, there's a bijection between (X1, .., Xn) and (Z1, .., Z2n), H(X1, .., Xn) = H(Z1, .., Z2n)
+    lim{n -> ∞}(H(Z1, .., Zn)/n)    = lim{m -> ∞}(H(Z1, .., Z2m)/2m)
+                                    = 1/2 * H(X) = 3/4
+c.  thanks http://www.ece.tufts.edu/~maivu/ES250/HW3_ES250_sol_a.pdf
+    define Yi as
+        Yi = 0 if (Z1, .., Zi-1) is a complete codeword sequence, i.e. Zi is the first bit of a new codeword
+        Yi = 1 otherwise, i.e. Zn is the second bit of C(1) or C(3)
+    Yi is a function of (Z1, .., Zi-1) and given Yi, (Z1, .., Zi-1) and Zi are conditionally independent
+    H(Zn|Z1, .., Zn-1)  = H(Zn|Z1, .., Zn-1, Yn)
+                        = H(Zn|Yn)
+                        = Pr{Yn = 0}H(Zn|Yn = 0) + Pr{Yn = 1}H(Zn|Yn = 1)
+                        = Pr{Yn = 0}H(1/4) + Pr{Yn = 1}H(1/3)
+    Pr{Yi+1 = 0|Yi = 0} = Pr{X = 2} = 1/4
+    Pr{Yi+1 = 0|Yi = 1} = 1
+    when n -> ∞, Yn converges to the stationary distribution in which
+        u0 = 1/4u0 + u1
+        u1 = 3/4u0
+        u0 = 4/7, u1 = 3/7
+    H(Zn|Z1, .., Zn-1)  -> 4/7 * (1/2 + 3/4(2 - log3)) + 3/7 * (1/3 * log3 + 2/3 * (log3 - 1))
+                        = 6/7
+
+5.41
+by equation 5.66, L' = L + p10
+
+5.42
+a.  cannot be optimal, (00, 01, 02, 1, 2) is a better code for any |X| = 5
+b.  for a 3-dic probability distribution (1/9 * 8, 1/27 * 3), these word lengths are log(3, 1/pi) and satisfies Kraft
+    inequality with equality, so it must be both possible and optimal
+
+5.43
+(A, B, C, A0, A1, B0), is the 6 shortest codewords and uniquely decodable
+
+5.44
+by problem 5.24, codeword lengths are 2(100 - 64) = 72 of length 7, 28 of length 6
+
+5.45
+a.  Pr{{1, 2} ⊆ Si} = 2^(m - 2) / 2^m = 1/4
+    Pr{{1, 2} ∩ Si = ∅} = 2^(m - 2) / 2^m = 1/4
+    these two events are disjoint, p = 1/4 + 1/4 = 1/2
+    all questions are independent, (1/2)^k for k questions
+b.  define indicator Ii that
+        Ii = 1 if object i have the same answers as 1 to k questions
+        Ii = 0 otherwise
+    E[N]    = E[ΣIi]
+            = ΣE[Ii]
+            = (m - 1)(1/2)^k
+c.  (m - 1)(1/2)^(n + sqrt(n))
+    = (2^n - 1)(1/2)^(n + sqrt(n))
+    = (1/2)^sqrt(n) * (1 - (1/2)^n)
+d.  Pr{N >= 1}  = Pr{N >= 1/μ * μ} 
+                <= μ
+                = (1/2)^sqrt(n) * (1 - (1/2)^n)
+    as 1 - (1/2)^n -> 1, (1/2)^sqrt(n) -> 0, Pr{N >= 1} -> 0
