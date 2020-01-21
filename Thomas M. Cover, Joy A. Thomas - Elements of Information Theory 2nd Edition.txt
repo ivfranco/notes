@@ -1780,3 +1780,65 @@ d.  Pr{N >= 1}  = Pr{N >= 1/μ * μ}
                 <= μ
                 = (1/2)^sqrt(n) * (1 - (1/2)^n)
     as 1 - (1/2)^n -> 1, (1/2)^sqrt(n) -> 0, Pr{N >= 1} -> 0
+
+6.1
+a.  by conservation theorem, W*(p) = logm - H(p) = log3 - 3/2
+b.  if horse other than horse 1 wins, the gambler loses all the money
+    Pr{gambler go broke before n races} = 1 - Pr{horse 1 wins all n races}
+                                        = 1 - (1/2)^n
+                                        -> 1
+
+6.2
+// thanks http://amber.feld.cvut.cz/bio/konopka/file/5.pdf for the definition of KKT conditions
+a.  L(b, l) = Σpilog(b0 + bioi) - l(Σbi - 1)
+    dL/dbi  = pioi / ln2(b0 + bioi) - l
+    dL/db0  = Σ(pi / ln2(b0 + bioi)) - l
+    since 
+        constraint Σbi - 1 = 0 is linear, so both Σbi - 1 >= 0 and Σbi - 1 <= 0 are convex
+        Σpilog(b0 + bioi) is differentiable and concave on [0, 1]
+    a point b satisfying the KKT conditions is a maximum
+    the proportional bet b0 = 0, bi = pi, l = 1/ln2 satisfies:
+        bi >= 0
+        dL/dbi  = pioi / ln2(b0 + pioi) - l
+                = pioi / ln2pioi - 1/ln2
+                = 0
+                = pi * dL/dbi
+        dL/db0  = Σ(pi / ln2pioi) - 1/ln2
+                = 1/ln2 * Σ(1/oi) - 1/ln2
+                < 0
+        l >= 0, Σbi - 1 = 0
+    therefore the proportional bet is a maximum of the problem
+b.  the proportional bet cannot satisfy KKT conditions
+    let b = (1, 0, 0, ..)
+    b can only be maximum if it satisfy:
+        dL/db0  = Σ(pi / ln2) - l
+                = 1/ln2 - l
+                = 0, l = 1/ln2
+        dL/dbi  = pioi/ln2 - 1/ln2 <= 0
+        pioi <= 1
+    otherwise b0 = 1 is not optimal, 0 < b0 < 1, the gambler has to bet on some of the horses
+
+6.3
+a.  H(X1) = H(1/2) = 1
+b.  by symmetry, Pr{X2 = 0} = Pr{X2 = 1} = 1/2
+    H(X2) = H(1/2) = 1
+c.  given (X1, .., Xk-1), Pr{Xk = 1|X1, .., Xk-1} = Pr{Xk+i = 1|X1, .., Xk-1} for any i as the remaining 52 - k + 1
+    cards are drawn from the same pool just in different orders
+    therefore H(Xk|X1, .., Xk-1) = H(Xk+1|X1, .., Xk-1) >= H(Xk+1|X1, .., Xk), the sequence is non-increasing
+d.  by Pr{Xi = 0} = 1/2, all sequences are equally likely, (X1, .., X52) is a uniform distribution on C(52, 26) symbols
+    H(X1, .., X52) = logC(52, 26) = 48.817
+
+6.4
+E[logSn]    = nlog2 - H(X1, .., Xn)
+            = 52 - 48.817 = 3.183
+
+6.5
+a.  H(p) = 3/2
+b.  with proportional bet (1/2, 1/4, 1/4)
+        W(b, p) = Σpilogoi - H(p)
+                = (1/2 * 2 + 1/4 * (2 + 1)) - 3/2
+                = 7/4 - 3/2 = 1/4
+    2^nW = 2^(n/4) -> ∞
+
+6.6
+
