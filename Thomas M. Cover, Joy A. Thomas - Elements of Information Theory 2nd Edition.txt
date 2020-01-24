@@ -1952,3 +1952,24 @@ e.  // skipped
 6.18
 // again only numerical solution
 // skipped
+
+7.1
+a.  by data processing inequality, X -> Y -> Y', C' = I(X;Y') <= I(X;Y) <= C
+b.  I(X;Y|Y') = 0, or X -> Y' -> Y
+
+7.2
+let Pr{X = 1} = p
+C   = I(X;Y)
+    = H(Y) - H(Y|X)
+    = H(Y) - pH(Y|X = 1) - (1 - p)H(Y|X = 0)
+if α = 0, the channel is lossless, C = log|X| = 1
+if α > 0, H(Y|X = 1) = H(Y|X = 0) = 1
+C   = H(Y) - 1
+if α = 1, Pr{Y = 0} = Pr{X = 0}Pr{Z = 0} = (1 - p)/2, Pr{Y = 2} = Pr{X = 1}Pr{Z = 1} = p/2, Pr{Y = 1} = 1/2
+    max{C}  = max{H(Y)} - 1
+            = H(1/2) + 1/2 * H(p) - 1
+            = 3/2 - 1 = 1/2
+if α >= 2, Y = {0, 1, α, α + 1}
+    max{C}  = max{H(Y)} - 1 = log4 - 1 = 1
+
+7.3
