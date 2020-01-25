@@ -1973,3 +1973,189 @@ if α >= 2, Y = {0, 1, α, α + 1}
     max{C}  = max{H(Y)} - 1 = log4 - 1 = 1
 
 7.3
+max{I(X^n;Y^n)} = max{H(X^n) - H(X^n|Y^n)}
+                = max{H(X^n) - H(Z^n|Y^n)}  // given Y^n, there's a bijection between X^n and Y^n 
+                >= max{H(X^n) - H(Z^n)}
+                >= max{H(X^n)} - nH(p)
+                = n - nH(p)
+                = nC
+
+7.4
+a.  C   = max{I(X;Y)}
+        = max{H(Y) - H(Y|X)}
+        = max{H(Y) - log3}
+        = max{H(Y)} - log3
+    let X follow a uniform distribution, 
+    Pr{Y = i}   = 1/3 * (Pr{X = i - 1} + Pr{X = i - 2} + Pr{X = i - 3})
+                = 1/3 * 3/11 = 1/11
+    C   = max{H(Y)} - log3
+        = log(11/3)
+b.  uniform distribution
+
+7.5
+I(X;Y)  = I(X1, X2;Y1, Y2)
+        = H(Y1, Y2) - H(Y1, Y2|X1, X2)
+        <= H(Y1) + H(Y2) - H(Y1|X1, X2) - H(Y2|Y1, X1, X2)
+        = H(Y1) - H(Y1|X1) + H(Y2) - H(Y2|X2)
+        = I(X1;Y1) + I(X2;Y2)
+C   = max{I{X;Y}} 
+    = max{I(X1;Y1) + I(X2;Y2)}
+    <= C1 + C2
+
+7.6
+a.  I(X;Y) = I(X;X) = H(X) = log26
+b.  C   = max{I(X;Y)} 
+        = max{H(Y) - H(Y|X)}
+        = max{H(Y)} - 1
+    let X ~ uniform distribution,
+    Pr{Y = i}   = 1/2(Pr{X = i} + Pr{X = i - 1 mod 26})
+                = 1/2 * 2/26
+                = 1/26
+    C   = max{H(Y)} - 1
+        = log26 - 1 = log13
+c.  as described in the text, R = C = log13
+    Pr{X = a} = Pr{X = c} = .. = Pr{X = y} = 1/13
+
+7.7
+for a single channel, Pe = p = 1/2(1 - (1 - 2p)^1)
+assume a cascade of n channels has Pe^n = 1/2(1 - (1 - 2p)^n)
+Pe^n+1  = (1 - Pe^n) * p + Pe^n * (1 - p)
+        = p - p * Pe^n + Pe^n - p * Pe^n
+        = p + (1 - 2p) * Pe^n
+        = p + (1 - 2p) * 1/2(1 - (1 - 2p)^n)
+        = p + 1/2 - p - (1 - 2p)^n+1
+        = 1/2(1 - (1 - 2p)^n+1)
+
+7.8
+let Pr{X = 1} = p
+C   = max{I(X;Y)}
+    = max{H(Y) - H(Y|X)}
+    = max{H(Y) - pH(Y|X = 1)}
+    = max{H(Y) - p}
+    = max{H(p/2) - p}
+    = max{-p/2logp/2 - (1 - p/2)log(1 - p/2) - p}
+I(X;Y) is concave in p
+dI(X;Y)/p   = -1/2 * logp/2 - p/2 * 2/pln2 * 1/2 + 1/2log(1 - p/2) + (1 - p/2) * 1/(1 - p/2)ln2 * 1/2 - 1
+            = -1/2 * logp/2 - 1/2ln2 + 1/2log(1 - p/2) + 1/2ln2 - 1
+            = -1/2 * log(p/(2 - p)) - 1 = 0
+log(p/(2 - p)) = -2
+p/(2 - p) = 1/4
+4p = 2 - p
+p = 2/5
+C = 0.322
+
+7.9
+by converse of channel coding theorem,
+    R   <= C
+        = max{I(X;Y)}
+        = H(Y) - H(Y|X)
+        = H(1/4) - 1/2 * H(1/2)
+        = (2 - log3)/4
+
+7.10
+a.  I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - 1
+    let X ~ uniform distribution, 
+    Pr{Y = i}   = 1/2 * Pr{X = i - 1 mod 5} + 1/2 * Pr{X = i + 1 mod 5}
+                = 1/2 * 2/5 = 1/5
+    C = max{I(X;Y)} = log5 - 1
+b.  // thanks solutions manual
+    finding the maximum subset of codewords with disjoint results is equivalent to finding maximum dominating set of
+    a graph, possibly an NP-complete problem
+    {11, 23, 30, 42, 04} is a set of distinguishable codewords, R = logm / n = log5 / 2 > 1
+    and it's the optimal zero-hour capacity of the channel by Lovasz [365]
+
+7.11
+I(X^n;Y^n)  = H(Y^n) - H(Y^n|X^n)
+            = H(Y^n) - ΣH(Yi|X^n, Y1, .., Yi-1) // chain rule
+            = H(Y^n) - ΣH(Yi|Xi)    // conditional independency
+            <= ΣH(Y) - ΣH(Yi|Xi)    // assume {Yi} are mutually independent
+            = ΣI(Xi;Yi)
+equality is achieved when X are iid
+
+7.12
+let Pr{X = i} = pi
+I(X;Y)  = H(Y) - H(Y|X)
+        = H(Y) - (p1 + p3) * H(1/3, 2/3) - p2 * H(1/3, 1/3, 1/3)
+        = H(p1 * 2/3 + p2 * 1/3, 1/3, p2 * 1/3 + p3 * 2/3) - (p1 + p3)H(1/3, 2/3) - p2H(1/3, 1/3, 1/3)
+where H(Y) = H(p1 * 2/3 + p2 * 1/3, 1/3, p2 * 1/3 + p3 * 2/3) is maximized when
+    p1 * 2/3 + p2 * 1/3 = p2 * 1/3 + p3 * 2/3
+    p1 = p3
+and - (p1 + p3)H(1/3, 2/3) - (1 - p1 - p3)H(1/3, 1/3, 1/3) is maximized when p1 + p3 = 1
+therefore optimal p(x) = (1/2, 0, 1/2)
+when x = 2, the output is uniform i.e. completely indistinguishable, more x = 2 equals to more noise in the channel
+
+7.13
+a.  let Pr{X = 1} = p
+    I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - H(1 - α - ε, α, ε)
+            = H((1 - α - ε)(1 - p) + εp, α, ε(1 - p) + (1 - α - ε)p) - H(1 - α - ε, α, ε)
+    where H(Y) is maximized when p = 1 - p, p = 1/2
+    C   = max{I(X;Y)}
+        = H((1 - α)/2, α, (1 - α)/2) - H(1 - α - ε, α, ε)
+b.  α = 0
+    C   = H(1/2, 1/2) - H(ε)
+        = 1 - H(ε)
+c.  ε = 0
+    C   = H((1 - α)/2, α, (1 - α)/2) - H(α)
+        = -(1 - α)(log(1 - α) - 1) - αlogα + (1 - α)log(1 - α) + αlogα
+        = 1 - α
+
+7.14
+a.  there's a bijection between (X1, X2) and (Y1, Y2)
+    hence I(X1, X2;Y1, Y2) = H(X1, X2)
+b.  C   = max{I(X1, X2;Y1, Y2)}
+        = log|(X1, X2)|
+        = 2
+c.  maximizing input distribution is a uniform distribution on {00, 01, 10, 11}
+    Pr{X1 = 1} = Pr{Y1 = 1} = 1/2
+    Pr{X1 = 1, Y1 = 1} = 1/4 = Pr{X1 = 1}Pr{Y1 = 1} and all other combinations, X1 and Y1 are independent
+    I(X1;Y1) = 0
+
+7.15
+a.  H(X) = H(Y) = 1
+    H(X, Y) = H(0.05, 0.05, 0.45, 0.45) = 1.469
+    I(X;Y) = 2 - 1.469 = 0.531
+b.  Aε^n(X) = {x^n: |-1/nlogp(x^n) - H(X)| < ε}
+    as p(x^n) = (1/2)^n, -1/nlogp(x^n) = 1 = H(X), Aε^n(X) = X, all sequences are typical
+    similarly Aε^n(Y) = Y
+c.  -1/n * log(x^n, y^n) - H(X, Y)
+    = -1/n * logp(x^n)p(z^n) - H(X) - H(Y|X)
+    = -1/n * logp(x^n) - H(X) - 1/n * logp(z^n) - H(Y|X)
+    = -1/n * log(z^n) - H(Y|X)
+    where
+        H(X, Z) = H(X) + H(Z)   // X and Z are independent
+                = H(X, Y)   // bijection between (X, Z) and (X, Y)
+                = H(X) + H(Y|X)
+        H(Z)    = H(Y|X)
+    = -1/n * log(z^n) - H(Z)
+    therefore (x^n, y^n) ∈ Aε^n(X, Y) <=> z^n ⊆ Aε^n(Z)
+d.  H(Z) = H(Y|X) = H(X, Y) - H(X) = 0.469
+    |-1/n * logp(z^n) - H(Z)| < ε
+    0.269 < -1/n * log(z^n) < 0.669
+    1 <= k <= 4
+    |Aε^n(Z)| = 25 + 300 + 2300 + 12650 = 15275
+e.  by part c, (x^n, y^n) is jointly typical is equivalent to z^n is typical
+    Pr{(X^n, Y^n) ⊆ Aε^n(X, Y)} = Pr{Z^n ⊆ Aε^n(Z)} > 1 - ε for sufficiently large n
+    for the example in part d, p(z^n ∈ Aε^n(Z)) = Pr{1 <= k <= 4} = 0.830
+f.  Z = X + Y, fixing Y^n, there's a bijection between Z and X
+    when X^n is chosen uniformly, 
+    Pr{(X^n, y^n) ∈ Aε^n(X, Y)} = |Aε^n(Z)| / |Z|
+                                <= 2^n(H(Z) + ε) / |Z|^n
+                                = 2^n(H(Z) + ε - log|Z|)
+    particularly in the example of part d, 
+    Pr{(X^n, y^n) ∈ Aε^n(X, Y)} = |Aε^n(Z)| / |Z|
+                                = 15275 / 2^25
+                                = 0.000455
+g.  by part f, 
+    p   = 1 - (1 - 0.000455)^511
+        = 0.207
+h.  Pr{Error|x^n(1)}    <= Pr{received y^n is not jointly typical with input x^n} 
+                        + Pr{received y^n is jointly typical with another x^n}
+                        <= 1 - ε + 2^n(H(Z) + ε - log|Z|)
+    for the example of part d, 
+    Pr{Error|x^n(1)}    <= (1 - 0.830) + 0.207
+                        = 0.377
+
+
+
