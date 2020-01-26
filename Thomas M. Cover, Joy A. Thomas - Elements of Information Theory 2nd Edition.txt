@@ -2157,5 +2157,249 @@ h.  Pr{Error|x^n(1)}    <= Pr{received y^n is not jointly typical with input x^n
     Pr{Error|x^n(1)}    <= (1 - 0.830) + 0.207
                         = 0.377
 
+7.16
+a.  define the decoder as
+        g(y)    = a1 if there are more 0 in the output
+                = a2 otherwise
+    p'  = C(3, 2)p^2 * (1 - p) + p^3
+        = 0.028
+b.  C'  = (1 - H(p')) / 3
+        = 0.272
+c.  C   = (1 - H(p))
+        = 0.531
+d.  let W and W' be input and output index, W -> X^n -> Y^n -> W'
+    I(W;W') <= I(X^n;Y^n)   // data processing inequality
+            <= nI(X;Y)
+    C'  = max{I(W;W')/n}
+        <= max{nI(X;Y)/n}
+        = max{I(X;Y)}
+        = C
 
+7.17
+a.  given any codeword, there's only one codeword differs at 3 places to it
+    if the set of codewords contains such a pair (a, b), any other codeword c will have
+        dist(a, c) + dist(b, c) = 3
+    as dist(a, c), dist(b, c) > 0
+        dist(a, c) = 1 or dist(b, c) = 1
+    the set of codewords cannot detect 1 bit error sometimes
+    the best possible distances between codewords is 2, achievable by a set
+        {000, 110, 101, 011}
+    any codeword has distance 2 from any other codewords
+    p'  = C(3, 2)p^2 = 3p^2 = 0.03
+b.  p'  = C(3, 1)p + C(3, 2)p^2 + C(3, 3)p^3
+        = 3p + 3p^2 + p^3
+        = 0.331
+c.  p'  = p^3 / 2 = 0.0005
+d.  assume uniform distribution of codewords
+    part a:
+        if two bits are erased, the code is indistinguishable from another
+        if three bits are all erased, all 4 codewords are equally possible
+        p = C(3, 2)p^2 / 2 + p^3 * 3/4 = 0.005 + 0.00075 = 0.00575
+    part b:
+        p   = C(3, 1)p / 2 + C(3, 2)p^2 *  3/4 + p^3 * 7/8
+            = 0.173375
 
+7.18
+a.  I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - log3
+            <= log3 - log3
+            = 0
+b.  symmetric channel, C = log3 - log(1/2) = log3 - 1
+c.  // thanks https://people.eecs.berkeley.edu/~ananth/229ASpr07/soln_4_229spr07.pdf
+    this channel is the sum of two channels BSC(p) and BSC(q)
+    let Q be the index of the channel used, Q is a function of X or Y
+    I(X;Y)  = I(X,Q;Y)
+            = I(Q;Y) + I(X;Y|Q)
+            = H(Q) + ΣPr{Q = i}I(X;Y|Q = i)
+    C   = max{I(X;Y)} 
+        = max{H(Q) + ΣPr{Q = i}I(X;Y|Q = i)}
+        = max{H(Q) + ΣPr{Q = i}Ci}
+    let ri = 2^Ci / Σ2^Cj, r is a probability vector
+    C   = max{-Σqilogqi + Σqilog2^Ci}
+        = max{-Σqilogqi + Σqilogri + logΣ2^Ci}
+        = max{Σqilog(ri/qi) + logΣ2^Ci}
+        = max{logΣ2^Ci - D(q||r)}
+        = logΣ2^Ci
+
+7.19
+a.  8 * (60 / 5) = 96
+b.  equal to a erase channel, C = 3(1 - α)
+c.  p(y|x)  = 1 - α + α/8 = 1 - 7α/8 if y = x
+            = α/8 if y != x
+    I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - H(1 - α + α/8, 7 of α/8)
+            = H(Y) + Σ(1 - 7α/8)log(1 - 7α/8) + 7/8log(α/8)
+    C   = max{I(X;Y)}
+        = 3 + Σ(1 - 7α/8)log(1 - 7α/8) + 7/8log(α/8)
+
+7.20
+a.  2I(X;Y1) - I(Y1;Y2)
+    = 2H(Y1) - 2H(Y1|X) - H(Y1) + H(Y1|Y2)
+    = H(Y1) - 2H(Y1|X) + H(Y1|Y2)
+    = H(Y1, Y2) - H(Y1|X) - H(Y2|X) // given x, Y1 and Y2 are iid
+    = H(Y1) - H(Y1, Y2|X) + H(Y1|Y2)
+    = H(Y1, Y2) - H(Y1, Y2|X)
+    = I(Y1, Y2;X)
+b.  C'  = max{I(X;Y1, Y2)}
+        = max{2I(X;Y1) - I(Y1;Y2)}
+        <= max{2I(X;Y1)}
+        = 2C
+
+7.21
+a.  by Markov's inequality, Pr{H >= 15} <= E[H] / 15 = 1/3
+b.  Pr{H >= 10} <= E[H] / 10 = 1/2
+    Pr{W >= 300} <= E[W] / 300 = 1/3
+    Pr{H >= 10, W >= 300} <= min(Pr{H >= 10}, Pr{W >= 300}) = 1/3
+
+7.22
+the new input symbol can be ignored, the new channel is at least equivalent to the old channel
+
+7.23
+a.  the channel transition matrix is 
+        [1, 0; 1 - a, a]
+    let Pr{X = 1} = p,
+    I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - pH(a)
+    C   = max{I(X;Y)}
+        = max{-(1 - pa)log(1 - pa) - palogpa - pH(a)}
+    dI(X;Y)/dp  = alog(1 - pa) - (1 - pa)/(1 - pa)ln2 * -a - alogpa - pa/paln2 * a - H(a)
+                = alog(1 - pa) + a/ln2 - alogpa - a/ln2 - H(a)
+                = alog((1 - pa)/pa) - H(a) = 0
+    (1 - pa)/pa = 2^(H(a)/a)
+    (2^(H(a)/a) + 1)pa = 1
+    p = 1/a(2^(H(a)/a) + 1)
+    where
+        2^(H(a)/a)  = 2^(-loga - (1 - a)/a * log(1 - a))
+                    = 1/a * (1/(1 - a))^((1 - a)/a)
+        1/p = (1/(1 - a))^((1 - a)/a) + a >= 1
+        0 <= p <= 1 is the local maximum
+    let c = 2^(H(a)/a), p = 1/a(c + 1)
+    C   = H(pa) - pH(a)
+        = -1/(c + 1)log(1 / (c + 1)) - c/(c + 1)log(c / (c + 1)) - 1/(c + 1) * H(a)
+        = 1/(c + 1)log(c + 1) - c/(c + 1)logc + c/(c + 1)log(c + 1) - 1/(c + 1) * H(a)
+        = log(c + 1) - c/(c + 1) * H(a) / a - 1/a(c + 1) * H(a)
+        = log(c + 1) - H(a)/a
+b.  I(X;Y|Z)    = (1 - a)I(X;Y|Z = 0) + aI(X;Y|Z = 1)
+                = aI(X;Y|Z = 1) // when Z = 0, Y is constant, X and Y are independent
+                = aI(X;X|Z = 1) // when Z = 1, X = Y
+                = aH(X)
+    C   = max{I(X;Y|Z)}
+        = max{aH(X)}
+        = a
+    equivalent to a erasure channel BEC(a)
+
+7.24
+a.  for Z = {0, 4, 8}, there's a bijection between Y and X, H(Y|X) = 0
+    I(X;Y) = H(X), C = max{H(X)} = 2
+b.  lemma: capacity of Z = {z1, z2, z3} equals to capacity of Z' = {z1 + k, z2 + k, z3 + k}
+        let Y' = X + Z'
+        Pr{Y = y, X = x} = Pr{Y' = y + k, X = x} for all x, y
+        fixing p(x), I(X;Y) = I(X;Y')
+        hence with z1 < z2 < z3, there's always a minimizing Z with z1 = 0
+    I(X;Y)  = H(X) - H(X|Y)
+    given y, X is a uniform distribution on {0, 1, 2, 3} ∩ {y - z1, y - z2, y - z3}
+    let Di = {0, 1, 2, 3} ∩ {y - z1, y - z2, y - z3} given X = i
+    by lemma, |Di| <= 4 - i
+    Z = {0, 1, 2} maximizes all |Di| thus is the minimizing Z 
+    I(X;Y)  = H(Y) - H(Y|X)
+            = H(Y) - log3
+    where Y = {0, 1, 2, 3, 4, 5}
+    let Pr{X = i} = pi, by picking p0 = p3 = 1/2, Y is uniformly distributed
+    C   = max{I(X;Y)}
+        = max{H(Y)} - log3
+        = log6 - log3 = 1
+
+7.25
+I(X;Y)  <= I(X;V)
+C   = max{I(X;Y)}
+    <= max{I(X;V)}
+    = max{H(V) - H(V|X)}
+    <= log|V| = logk
+
+7.26
+a.  a symmetric channel, C = log|Y| - H(r) = 2 - 1 = 1
+b.  the new transition matrix is
+        [1, 0; 1/2, 1/2; 0, 1; 1/2, 1/2]
+    i.  when X = 1, Y ~ U(1, 2), Z ~ U(A, B)
+        when X = 3, Pr{Y = 0} = Pr{Y = 3} = 1/2, Z ~ U(A, B)
+        I(X;Z)  = H(Z) - H(Z|X)
+                = 1 - 1 = 0
+    ii. I(X;Z)  = H(Z) - H(Z|X)
+                = 1 - 0 = 1
+c.  I(X;Z)  = H(Z) - H(Z|X)
+            = H(Z) - (p1 + p3)
+    by taking Pr{X = 0} = Pr{X = 2} = 1/2, Z is uniformly distributed, p1 + p3 = 0, I(X;Z) is maximized
+    C = max{I(X;Z)} = 1
+d.  when Z = A, 
+        Pr{X = 1|Z = A} = Pr{X = 1, Z = A} / Pr{Z = A} 
+                        = 1/4 / 1/2 = 1/2
+        Pr{Y = 1|Z = A} = Pr{Y = 1, Z = A} / Pr{Z = A}
+                        = 1/2 * 1/2 / 1/2 = 1/2
+        Pr{X = 1, Y = 1|Z = A}  = Pr{X = 1, Y = 1, Z = A} / Pr{Z = A}
+                                = Pr{X = 1, Y = 1} / Pr{Z = A}
+                                = 1/4 / 1/2 = 1/2
+    therefore given Z, X and Y are not independent
+
+7.27
+I(X;S)  = H(S) - H(S|X)
+        = H(a) + (1 - a)H(Y) - ΣPr{X = x}H(S|X = x)
+        = H(a) + (1 - a)H(Y) - ΣPr{X = x}(H(a) + (1 - a)H(Y|X = x))
+        = H(a) + (1 - a)H(Y) - (1 - a)H(Y|X) - H(a)
+        = (1 - a)H(X;Y)
+C'  = max{I(X;S)}
+    = (1 - a)C
+
+7.28
+a.  see problem 7.18.c
+b.  the maximum rate R -> C is defined as logM / n, M is the effective number of noise free symbols
+    for block size of 1, M = 2^C, M = M1 + M2
+    as the two channels have noise free alphabet of size M1 and M2, the union channel has size M1 + M2
+c.  C   = log(2^C1 + 2^C2)
+        = log(2^(1 - H(p)) + 2^1)
+        = log(2 + 2^(1 - H(p)))
+
+7.29
+same to problem 7.23
+
+7.30
+same to problem 7.24
+
+7.31
+by source-channel coding theorem, H(V) = H(a) < C = 1 - H(p)
+
+7.32
+same to problem 5.45
+
+7.33
+a.  I(X^n;Y^n)  = H(X^n) - H(X^n|Y^n)
+                = H(X^n) - ΣH(Xi|Y^n, X1, .., Xi-1)
+                = H(X^n)    // Xi = Yi - 1
+                = ΣH(Xi|X1, .., Xi-1)
+                = ΣH(Xi|Xi-1)   // X1 -> X2 -> .. -> Xn
+                = nH(p)
+    lim1/n * I(X^n;Y^n) = H(p)
+b.  C   = 1 - H(p)
+    for H(p) > 1/2, lim1/n * I(X^n;Y^n) = H(p) > C
+c.  limI(W;Y^n) = lim(1/n * (H(W) - H(W|Y^n)))
+                <= lim(1/n * H(W))
+                <= lim(1/n * log|W|)
+                = 0
+
+7.34
+a.  C   = log(2 * 2^(1 - H(p)))
+        = log(2^(2 - H(p)))
+        = 2 - H(p)
+b.  C   = log(2^(1 - H(p)) + 2)
+c.  C1  = max{I(X;Y)}
+        = max{H(Y) - H(Y|X)}
+        = log(3/2)
+    C   = log(3/2 + 2^(1 - H(p)))
+d.  symmetric channel, C = log|Y| - H(r) = log3 - H(1/3) = 2log3 - 2/3
+
+7.35
+a.  equivalent to the union of channel P and a noiseless one bit channel
+    C'  = log(2^C + 2)
+b.  equivalent to the union of channel P and a noiseless k-bit channel
+    C'  = log(2^C + 2^k)
+
+7.36
