@@ -2403,3 +2403,26 @@ b.  equivalent to the union of channel P and a noiseless k-bit channel
     C'  = log(2^C + 2^k)
 
 7.36
+a.  the transition matrix is
+        [1/2, 1/2; 1/2, 1/2]
+    therefore C = 0
+b.  define a code X^n(W) where
+        |W| = 2^(n-1)
+        the first bit of the codeword is always 1, X^n(W) = 1||W
+    Z can be determined by code of the first bit
+    hence W' = g(Y) is a decoder free of errors
+    C > R = log|W| / n = (n - 1)/n -> 1
+    a noiseless channel has C = 1, hence C = 1
+
+7.37
+lemma: |Aε^n| <= 2^n(H(X, Y, Z) + ε)
+    1   = Σp(x^n, y^n, z^n)
+        >= Σ{Aε^n}p(x^n, y^n, z^n)
+        >= Σ{Aε^n}2^-n(H(X, Y, Z) - ε)
+        = |Aε^n|2^-n(H(X, Y, Z) - ε)
+    |Aε^n| <= 2^n(H(X, Y, Z) - ε)
+Pr{(X'^n, Y'^n, X'^n) ∈ Aε^n}   = Σ{Aε^n}p(x^n)p(y^n)p(z^n)
+                                <= |Aε^n|2^-n(H(X) - ε)2^-n(H(Y) - ε)2^-n(H(Z) - ε)
+                                = 2^n(H(X, Y, Z) - H(X) - H(Y) - H(Z) + 2ε)
+
+
