@@ -2425,4 +2425,31 @@ Pr{(X'^n, Y'^n, X'^n) ∈ Aε^n}   = Σ{Aε^n}p(x^n)p(y^n)p(z^n)
                                 <= |Aε^n|2^-n(H(X) - ε)2^-n(H(Y) - ε)2^-n(H(Z) - ε)
                                 = 2^n(H(X, Y, Z) - H(X) - H(Y) - H(Z) + 2ε)
 
+8.1
+a.  h(x)    = -int(0, ∞, λe^-λx * log(λe^-λx)dx)
+            = -int(0, ∞, λe^-λx (logλ + loge * -λx)dx)
+            = -logλ + λlogeE[X]
+            = loge - logλ
+b.  h(x)    = -int(-∞, ∞, 1/2 * λe^-λ|x| * log(1/2 * λe^-λ|x|)dx)
+            = -int(0, ∞, λe^-λx * (-1 + logλ - λxloge)dx)
+            = 1 - logλ + loge
+c.  sum of two normal distributions is a normal distribution (μ1 + μ2, σ1^2 + σ2^2)
+    h(x)    = 1/2 * log2πe(σ1^2 + σ2^2)
 
+8.2
+Covar(Z) = λK1 + (1 - λ)K2
+let Z' ~ N(0, λK1 + (1 - λ)K2)
+h(Z')   = 1/2 * log((2πe)^n * |λK1 + (1 - λ)K2|)
+        >= h(Z) // multivariate Gaussian distribution maximizes the differential entropy for a covariance matrix
+        >= h(Z|θ)
+        = λh(X1) + (1 - λ)h(X2)
+        = λ/2 * log((2πe)^n * |K1|) + (1 - λ)/2 * log((2πe)^n * |K2|)
+        = 1/2 * log((2πe)^nλ * |K1|^λ * (2πe)^(1 - λ) * |K2|^(1 - λ))
+|λK1 + (1 - λ)K2| >= |K1|^λ * |K2|^(1 - λ)
+
+8.3
+a.  pY(y)   = int(-1/2, 1/2, pX(x)pZ(y - x)dx)
+            = int(-1/2, 1/2, pZ(y - x)dx)
+            = Vol([y - 1/2, y + 1/2] ∩ [-a/2, a/2])
+    when a < 1,
+        pY(y)   = 
