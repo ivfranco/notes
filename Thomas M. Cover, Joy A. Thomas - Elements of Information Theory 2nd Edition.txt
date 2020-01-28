@@ -2448,8 +2448,136 @@ h(Z')   = 1/2 * log((2πe)^n * |λK1 + (1 - λ)K2|)
 |λK1 + (1 - λ)K2| >= |K1|^λ * |K2|^(1 - λ)
 
 8.3
+// thanks https://en.wikipedia.org/wiki/Triangular_distribution
 a.  pY(y)   = int(-1/2, 1/2, pX(x)pZ(y - x)dx)
             = int(-1/2, 1/2, pZ(y - x)dx)
-            = Vol([y - 1/2, y + 1/2] ∩ [-a/2, a/2])
+            = 1/a * Vol([y - 1/2, y + 1/2] ∩ [-a/2, a/2])
     when a < 1,
-        pY(y)   = 
+        pY(y)   = 1/a * (y - (-1 - a)/2) if (-1 - a)/2 <= y < (-1 + a)/2
+                = 1 if (-1 + a)/2 <= y <= (1 - a)/2
+                = 1/a * ((1 + a)/2 - y) if (1 - a)/2 < y <= (1 + a)/2
+                = 0 otherwise
+        Pr{(-1 + a)/2 <= Y <= (1 - a)/2} = Vol([(-1 + a)/2, (1 - a)/2]) = 1 - a
+        hence with probability 1 - a, Y is uniformly distributed on [(-1 + a)/2, (1 - a)/2]
+        with probability a, Y has triangular distribution with base a
+        //  even though the two halves of the triangle are not continuous, h(y) is invariant to shifts
+        he(Y)   = He(a) + (1 - a)ln(1 - a) + a(1/2 + ln(2a/2))
+                = -alna - (1 - a)ln(1 - a) + (1 - a)ln(1 - a) + a/2 + alna
+                = a/2
+        h(Y)    = he(Y) / ln2 = a/2ln2
+        I(X;Y)  = h(Y) - h(Y|X)
+                = a/2ln2 - h(Z)
+                = a/2ln2 - loga
+    when a > 1, 
+        pY(y)   = 1/a * (y - (-1 - a)/2)    if (-1 - a)/2 <= y < (1 - a)/2
+                = 1/a                       if (1 - a)/2 <= y <= (-1 + a)/2
+                = 1/a * ((1 + a)/2 - y)     if (-1 + a)/2 < y <= (1 + a)/2
+        Pr{(1 - a)/2 <= y <= (-1 + a)/2} = (a - 1)/a
+        he(Y)   = He((a - 1)/a) + (a - 1)/a * ln(a - 1) + 1/a * (1/2 + ln(2/2))
+                = -(a - 1)/a * ln((a - 1)/a) - 1/a * log(1/a) + (a - 1)/a * ln(a - 1) + 1/2a
+                = lna + 1/2a
+        h(Y)    = he(Y) / ln2 
+                = loga + 1/2ln2a
+        I(X;Y)  = h(Y) - h(Y|X)
+                = loga + 1/2ln2a - loga
+                = 1/2ln2a
+    when a = 1,
+        Y ~ Triangular(-1, 1, 0)
+        he(Y)   = 1/2 + ln(2/2) = 1/2
+        h(Y)    = 1/2ln2
+        I(X;Y)  = h(Y) - h(Y|X)
+                = 1/2ln2 - loga
+                = 1/2ln2
+b.  X, Z ∈ [-1/2, 1/2], Y = X + Z ∈ [-1, 1], the support set of Y is a subset of [-1, 1]
+    by https://en.wikipedia.org/wiki/Maximum_entropy_probability_distribution, uniform distribution has maximum entropy 
+    on a given range, the maximizing distribution of Y is U(-1, 1)
+    // thanks solutions manual
+    let pX(-1/2) = pX(1/2) = 1/2, Y is uniform on almost all places
+    h(Y) = log2 = 1, max{I{X;Y}} = 1
+c.  // skipped
+
+8.4
+decay time of a radioactive particle is usually modeled as exponential distribution
+int(0, 80, λe^-λxdx) = 1/2
+-e^-80λ + 1 = 1/2
+-e^-80λ = 1/2
+λ = ln2 / 80
+h(X)    = loge - logλ
+        = 8.293
+H(XΔ)   = h(X) + 3
+        = 11.293
+
+8.5
+// Advanced Calculus of Several Variables, C. H. Edwards, 2015 contains the proof of the following theorem:
+// given a transformation A(x), 
+//      dA(x) = |A(x)|dx, where |A(x)| is the Jacobian determinant 
+// when A(x) is linear, |A(x)| = |A| is a constant independent to x
+assume A is invertible, let Y = AX, X = A^-1Y
+int(-∞, +∞, f(x)dx) = 1
+int(-∞, +∞, 1/|A| * f(A^-1y)dy) = 1
+therefore fY(y) = 1/|A| * fX(A^-1y)
+h(Y)    = -int(-∞, +∞, 1/|A| * fX(A^-1y) * log(1/|A| * fX(A^-1y))dy)
+        = -int(-∞, +∞, 1/|A| * fX(x) * (-log|A| + logfX(x))|A|dx)
+        = log|A| + h(X)
+
+8.6
+EQ[logX] - D(Q||P)  = ΣQ(x)logx - ΣQ(x)log(Q(x)/P(x))
+                    = ΣQ(x)log(xP(x) / Q(x))
+                    = -ΣQ(x)log(Q(x) / xP(x))
+                    <= -(ΣQ(x)) * log(ΣQ(x) / ΣxP(x))   // log sum inequality
+                    = -log(1 / EP[X])
+                    = logEP[X]
+
+8.7
+Var(Y)  = Var(X') + Var(U)
+        = E[X'^2] - E[X']^2 + 1/12
+        = Σ(pi * i^2) - (Σpi * i)^2 + 1/12
+as discrete entropy is independent to the value of x, H(X') = H(X)
+Y is uniformly distributed on (i, i+1] for each i with probability pi
+h(Y)    = H(X) + Σpilog1
+        = H(X)
+        <= 1/2 * log(2πe)(Σ(pi * i^2) - (Σpi * i)^2 + 1/12)
+since entropy of discrete variables do not depend on values of x, {pi} can be permuted arbitrarily
+
+8.8
+I(X;Y)  = h(Y) - h(Y|X)
+        = h(Y) - h(Z)
+        = h(Y) - 1
+Y is supported by a subset of [-3, 3]
+let Pr{X = -2} = Pr{X = 0} = Pr{X = 2}, Y is uniformly distributed on [-3, 3]
+C   = max{I(X;Y)}
+    = log6 - 1
+    = log3
+
+8.9
+I(X;Z)  = h(X) + h(Z) - h(X, Z)
+        = 1/2 * log(2πeσx^2) + 1/2 * log(2πeσz^2) - 1/2 * log(2πe)^2|K|
+where 
+    K   = [σx^2, σxσzρxz, σxσzρxz, σz^2]
+    |K| = σx^2σz^2 - (σxσzρxz)^2
+        = σx^2σz^2(1 - ρxz^2)
+I(X;Z)  = 1/2 * log(σx^2σz^2 / σx^2σz^2(1 - ρxz^2))
+        = -1/2 * log(1 - ρxz^2)
+independent to E[X], E[Y] and E[Z]
+let E[X] = E[Y] = E[Z] = 0
+conditional normal distribution is
+    X|Y = y ~ N(σxρxy / σy * y, (1 - ρxy^2)σx^2)
+ρxz = E[XZ]/σxσz
+    = EY[E[XZ|Y]] / σxσz
+    = EY[E[X|Y]E[Z|Y]] / σxσz   // markovity
+    = EY[σxρxy / σy * Y * σzρyz / σy * Y] / σxσz
+    = (σxσzρxyρyz / σy^2) * E[Y^2] / σxσz
+    = ρxyρyz
+I(X;Y)  = -1/2 * log(1 - (ρxyρyz)^2)
+
+8.10
+p(x^n)  = Πp(xi)
+        = Πce^(-xi^4)
+        = c^ne^(Σ-xi^4)
+2^-n(h + ε) <= c^ne^(Σ-xi^4) <= 2^-n(h - ε)
+-n(h + ε) <= nlogc - loge * Σxi^4 <= -n(h - ε)
+-n(h + logc + ε) <= -loge * Σxi^4 <= -n(h + logc - ε)
+n/loge * (h + logc + ε) >= Σxi^4 >= n/loge * (h + logc - ε)
+
+8.11
+// skipped
