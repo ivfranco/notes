@@ -2676,8 +2676,113 @@ E[(Z1 + Z2 - Z3)^2] = EZ1^2 + EZ2^2 + EZ3^2 + 2EZ1Z2 - 2EZ1Z3 - 2EZ2Z3
 Y1 + Y2 - Y3 = X1 + X2 - X3 with probability 1, capacity is infinite
 
 9.10
+T = [1, 0; 1 - λdA, λdA]
+by problem 7.23, C = log(2^H(λdA)/λdA + 1) - H(λdA)/λdA
+
+9.11
+same to problem 8.9
+
+9.12
+by equation 9.45, nR = ΣI(Xi;Yi) + nεn
+as n -> ∞, Yn = 1/n * Xn + Zn -> Zn independent to Xn, I(Xn;Yn) -> 0
+by Cesaro mean, lim{R} = lim{1/n * ΣI(Xi;Yi) + εn} = lim{I(Xn;Yn) + εn} = 0
+
+9.13
+without feedback:
+    |K - λI| = 0
+    (1 - λ)^2 - ρ^2 = 0
+    λ1 = 1 + ρ, λ2 = 1 - ρ
+    C = 1/2n * Σlog(1 + (λ - λi)+ / λi), where Σ(λ - λi)+ = 2P
+with feedback:
+    // thanks solutions manual
+    // but the solution is very general, no that different to the formula
+    // also I don't really understand the math in the solution
+
+9.14
+a.  I(X;Y)  = Σp(Z)I(X;Y|Z)
+            = 1/10 * I(X;X) + 9/10 * I(X + Z*;X)
+            = ∞
+b.  encode the entire message as a single binary number and send, 10% of the time the number will be transmitted exactly
+
+9.15
+// assume H(X|Y) is defined as int(-∞, +∞, f(y)H(X|y)dy)
+a.  when 0 <= y < 1, X must be 0, H(X|y) = 0
+    when 1 <= y < a - 1,
+        Pr{X = 1, y} = p(a - 1)/a, Pr{X = 0, y} = (1 - p)(a - 1)/a
+        Pr{X = 1|y} = p, Pr{X = 0|y} = (1 - p), H(X|y) = H(X)
+    when a - 1 <= y, X must be 1, H(X|y) = 0
+    Pr{1 <= y < a - 1} = Σ{x}Pr{x, 1 <= y < a - 1} = p(a - 1)/a + (1 - p)(a - 1)/a = (a - 1)/a
+    I(X;Y)  = H(X) - H(X|Y)
+            = H(p) - (a - 1)/a * H(p)
+            = 1/a * H(p)
+b.  I(X;Y)  = h(Y) - h(Y|X)
+            = h(Y) - h(Z)
+            = h(Y) - loga
+    where
+        f(y)    = (1 - p)/a when 0 <= y < 1
+                = 1/a when 1 <= y < a
+                = p/a when a <= y < 1 + a
+    h(Y)    = -(1 - p)/a * log((1 - p)/a) - (a - 1)/a * log(1/a) - p/a * log(p/a)
+            = -(1 - p)/a * (log(1 - p) - loga) + (a - 1)/a * loga - p/a * (logp - loga)
+            = H(p)/a + loga
+    I(X;Y)  = H(p)/a
+c.  I(X;Y) is maximized when p = 1/2, C = 1/a
+
+9.16
+same to problem 8.9 and 9.11
+what's wrong with this exercise set
+
+9.17
+a.  as X2 = X3 = .. = Xn = 0 with probability 1, 
+    I(X^n;Y^n) = I(X1;Y^n) = I(X1;Y1)
+    C = 1/2 * log(1 + nP/N)
+    1/n * C = 1/2n * log(1 + nP/N)
+b.  by water-filling
+    C = max{I(X^n;Y^n)} = n/2 * log(1 + P/N)
+    max{1/n * I(X^n;Y^n)} = 1/2 * log(1 + P/N)
+    since 
+        1/2n * log(1 + nP/N)
+        = 1/2n * (logn + log(1/n + P/N))
+        -> 0
+    1/2 * log(1 + P/N) > 1/2n * log(1 + nP/N) for sufficiently large n
 
 
+9.18
+a.  by water filling, C = n/2 * log(1 + P/N)
+b.  shift does not change entropy, the capacity is same to part a
+c.  f(y)    = int(-∞, +∞, f(y, u)du)
+            = int(-∞, +∞, Φ(y - u, N)Φ(u, N1)du), where Φ(x, N) is the normal density with mean 0 and variance N
+    convolution of two normal distribution is still a normal distribution
+    Y ~ N(0, N + N1)
+    C = n/2 * log(1 + P/n(N + N1))
 
+9.19
+if (λ - λi)+ >= 0, λ >= λi and vice versa, the two sums of P contains the same set of terms
+when (λ - λi)+ = 0 or λ <= λi, 1/2 * log(1 + (λ - λi)/λi) = 1/2 * log1 = 0
+when (λ - λi)+ > 0, (λ - λi)+ = λ - λi,
+    1/2 * log(1 + (λ - λi)/λi)
+    = 1/2 * log(λ/λi)
+the two sums of C also contains the same set of terms
 
-    
+9.20
+a. see problem 9.21
+b.  // skipped
+
+9.21
+I(X;X + Z*) = h(X + Z*) - h(X + Z*|X)
+            = h(X + Z*) - h(Z*)
+as Var(X + Z*) = P + N, X* + Z* ~ N(0, P + N), h(X + Z*) <= h(X* + Z*)
+by entropy power inequality,
+    2^2h(X* + Z) >= 2^2h(X*) + 2^2h(Z)
+    h(X* + Z)   >= 1/2 * log(2^2h(X*) + 2^2h(Z))
+                = 1/2 * log(2πeP + 2^2h(Z))
+I(X*;X* + Z)    = h(X* + Z) - h(Z)
+                >= 1/2 * log(2^2h(X*) + 2^2h(Z)) - h(Z)
+                = 1/2 * log(2^2h(X*) + 2^2h(Z)) - 1/2 * log2^2h(Z)
+                = 1/2 * log(1 + 2πeP/2^2h(Z))
+where 2πeP / 2^2h(Z) is minimized when h(Z) = h(Z*), hence I(X*;X* + Z) >= I(X*;X* + Z*)
+(X*, Z*) is a Pareto optimality
+
+9.22
+by channel coding theorem, as long as C > 0, there exist codes for any R < C that every X^n(w) can be recovered with
+arbitrarily low rate of error, then Z^n can be computed from Y^n and X^n
