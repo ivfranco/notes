@@ -2786,3 +2786,114 @@ where 2πeP / 2^2h(Z) is minimized when h(Z) = h(Z*), hence I(X*;X* + Z) >= I(X*
 9.22
 by channel coding theorem, as long as C > 0, there exist codes for any R < C that every X^n(w) can be recovered with
 arbitrarily low rate of error, then Z^n can be computed from Y^n and X^n
+
+10.1
+let Y = X defined on [0, ∞)
+E[(Y - Y')^2]   = E[Y^2] - 2Y'E[Y] + Y'^2
+is minimized at Y' = E[Y]
+E[Y]    = int(0, +∞, yφ(y)dy)
+        = int(0, +∞, y * 1/(2π)^1/2 * 1/σ * e^-(x/σ)^2dx)
+        = int(0, +∞, d-(2/π)^1/2 * σ * e^-(x/σ)^2)
+        = 0 + (2/π)^1/2 * σ
+        = sqrt(2/π) * σ
+E[(Y - Y')^2] = Var(Y)
+X ~ N(0, σ^2) can be seen as a Xθ that X0 = Y and X1 = -Y, θ ~ Bernoulli(1/2)
+Var(X)  = E[Var(Xθ|θ)] + Var(E[Xθ|θ])
+        = Var(Y) + E[Y]^2
+σ^2 = Var(Y) + 2σ^2/π
+Var(Y) = (π - 2)/π * σ^2 > σ^2 / 4
+
+10.2
+as d(0, 1) = ∞, pr{X' = 1|X = 0} must be 0
+q(x'|x) = [1, 0; 1 - p, p] for some Pr{X' = 1|X = 1} = p
+Ed(X, X') = p(1)q(0|1)d(1, 0) = (1 - p)/2 <= D, p >= 1 - 2D
+I(X;X') = H(X') - H(X'|X)
+        = H(p/2) - 1/2 * H(p)
+by dH(p)/dp = -logp + log(1 - p), 
+dI/dp   = (-log(p/2) + log(1 - p/2)) * 1/2 - 1/2 * (-logp + log(1 - p))
+        = 1/2 * (1 + log(1 - p/2)) - 1/2 * log(1 - p)
+        = 1/2 + 1/2 * (log(1 - p/2) - log(1 - p))
+        >= 0
+I is non-decreasing, I(X;X') is minimized at 1 - 2D if D <= 1/2, otherwise I(X;X') is minimized at p = 0
+I(X;X') = H(1/2 - D) - 1/2 * H(1 - 2D) if D <= 1/2
+        = 0 if D > 1/2
+
+10.3
+let q(x'|x) = [1 - p, p; q, 1 - q], Ed(x, x') = ap + bq <= D
+I(X;X') = H(X') - H(X'|X)
+        = H((1 - p + q)/2) - 1/2 * (H(p) + H(q))
+// even wolframalpha gave up
+
+10.4
+for a fixed q(x'|x), if Ed(x, x') = D
+    Ed'(x, x')  = Σ{x, x'}p(x)q(x'|x)d'(x, x')
+                = Σ{x, x'}p(x)q(x'|x)(d(x, x') - w(x))
+                = D - Σ{x, x'}p(x)q(x'|x)w(x)
+                = D - Σ{x}p(x)w(x)
+                = D - w_
+any description with rate R achieving d(x, x') = D also achieves d'(x, x') = D - w_ and vice versa
+therefore R'(D - w_) = R(D), R'(D) = R(D + w_)
+as long as d(xi, xi') < ∞ for some pair (xi, xi'), define d'(x, x') = d(x, x') - d(xi, xi') and the rate distortion
+function wrt. d'(x, x') is a known constant away from rate distortion function of d(x, x') 
+
+10.5
+// thanks solutions manual
+D   = Σp(x, x')d(x, x')
+    = Pr{X != X'}
+by Fano's inequality, 
+    H(D) + Dlog(|X| - 1) >= H(X|X')    
+    I(X;X') = H(X) - H(X|X')
+            >= logm - H(D) - Dlog(m - 1)
+the lower bound can be achieved by
+    p(x'|x) = 1 - D if x' = x
+            = D/(m - 1) if x' != x
+    p(x')   = Σp(x'|x)p(x)
+            = 1/m * (D/(m - 1) * (m - 1) + 1 - D)
+            = 1/m
+    p(x|x') = p(x'|x) * p(x) / p(x')
+            = p(x'|x)
+    H(X|X') = H(D) + (1 - D)H(0) + Dlog(|X| - 1)
+            = H(D) + Dlog(m - 1)
+with no description, the best guess is q(x'|x) = q(x') = p(x)
+D = ΣPr{X != X'} = 1 - Σ{x = x'}p(x)q(x') = 1 - 1/m
+hence R(D)  = logm - H(D) - Dlog(m - 1) if D < 1 - 1/m
+            = 0 if D >= 1 - 1/m
+
+10.6
+a.  let p1 maximizes Φ(D1), p2 maximizes Φ(D2)
+    let p = λp1 + (1 - λ)p2, by linearity of D, Σpidi = λD1 + (1 - λ)D2
+    since H(p) is a concave function,
+        Φ(λD1 + (1 - λ)D2)  >= H(p)
+                            >= λH(p1) + (1 - λ)H(p2)
+                            = λΦ(D1) + λΦ(D2)
+    and Φ(D) is concave
+b.  10.152: definition of mutual information
+    10.153: definition of conditional entropy
+    10.154: Φ(Dx') = max{H(p)} for all Σp(x|x')d(x, x') = Dx'
+    10.155: concavity of Φ(D)
+    10.156: Σp(x')ΣpDx' = Σp(x')Σp(x|x')d(x, x') = Ed(x, x') <= D, and Φ(D) is non-decreasing
+c.  immediately from part b and equation 10.11
+d.  let p* = Φ(D) = argmax{H(p), Σpidi <= D} for some row of d(x, x')
+    let p(x') = 1/m, p(x|x') = a permutation of p* that Σp(x|x')d(x, x') = D (always possible as how d is defined)
+    I(X;X') = H(X) - H(X|X')
+            = H(X) - Σp(x')H(X|X' = x')
+            = H(X) - H(p*)
+            = H(X) - Φ(D)
+    subject to
+    Ed(x, x')   = Σ{x, x'}p(x')p(x|x')d(x, x')
+                = Σ{x}p*(x)d(x, x')
+                = D
+    so the lower bound is achievable
+
+10.7
+one x' on each row cannot take any probability above 0
+the distortion matrix is equivalent to [0, 1;1, 0]
+X ~ Bernoulli(1/2) is uniform, distortion matrix is rows of permutations, by problem 10.8,
+    R(D)    = H(X) - Φ(D)
+            = H(X) - H(p) subject to p <= D
+            = 1 - H(p) if D < 1/2 
+            = 0 if D >= 1/2
+as proven in part d of problem 10.6, define p(x') uniform and p(x|x') = [1 - D, D, 0; 0, 1 - D, D] achieves the bound
+
+10.8
+lower bound:
