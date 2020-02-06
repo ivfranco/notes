@@ -2819,13 +2819,13 @@ I(X;X') = H(1/2 - D) - 1/2 * H(1 - 2D) if D <= 1/2
         = 0 if D > 1/2
 
 10.3
-let q(x'|x) = [1 - p, p; q, 1 - q], Ed(x, x') = ap + bq <= D
+let q(x'|x) = [1 - p, p; q, 1 - q], Ed(X, X') = ap + bq <= D
 I(X;X') = H(X') - H(X'|X)
         = H((1 - p + q)/2) - 1/2 * (H(p) + H(q))
 // even wolframalpha gave up
 
 10.4
-for a fixed q(x'|x), if Ed(x, x') = D
+for a fixed q(x'|x), if Ed(X, X') = D
     Ed'(x, x')  = Σ{x, x'}p(x)q(x'|x)d'(x, x')
                 = Σ{x, x'}p(x)q(x'|x)(d(x, x') - w(x))
                 = D - Σ{x, x'}p(x)q(x'|x)w(x)
@@ -2871,7 +2871,7 @@ b.  10.152: definition of mutual information
     10.153: definition of conditional entropy
     10.154: Φ(Dx') = max{H(p)} for all Σp(x|x')d(x, x') = Dx'
     10.155: concavity of Φ(D)
-    10.156: Σp(x')ΣpDx' = Σp(x')Σp(x|x')d(x, x') = Ed(x, x') <= D, and Φ(D) is non-decreasing
+    10.156: Σp(x')ΣpDx' = Σp(x')Σp(x|x')d(x, x') = Ed(X, X') <= D, and Φ(D) is non-decreasing
 c.  immediately from part b and equation 10.11
 d.  let p* = Φ(D) = argmax{H(p), Σpidi <= D} for some row of d(x, x')
     let p(x') = 1/m, p(x|x') = a permutation of p* that Σp(x|x')d(x, x') = D (always possible as how d is defined)
@@ -2880,7 +2880,7 @@ d.  let p* = Φ(D) = argmax{H(p), Σpidi <= D} for some row of d(x, x')
             = H(X) - H(p*)
             = H(X) - Φ(D)
     subject to
-    Ed(x, x')   = Σ{x, x'}p(x')p(x|x')d(x, x')
+    Ed(X, X')   = Σ{x, x'}p(x')p(x|x')d(x, x')
                 = Σ{x}p*(x)d(x, x')
                 = D
     so the lower bound is achievable
@@ -2897,3 +2897,190 @@ as proven in part d of problem 10.6, define p(x') uniform and p(x|x') = [1 - D, 
 
 10.8
 lower bound:
+    I(X;X') = h(X) - h(X|X')
+            = h(X) - h(X - X'|X')
+            >= h(X) - h(X - X')
+            >= h(X) - h(N(0, E[(X - X')^2]))
+            = h(X) - 1/2 * log2πeE[(X - X')^2]
+            >= h(X) - 1/2 * log2πeD
+upper bound:
+    define X' = (σ^2 - D)/σ^2 * (X + Z), Z ~ (0, Dσ^2/(σ^2 - D)), Z and X independent
+    Ed(X, X')   = E[(X' - X)^2]
+                = E[(-D/σ^2 * X + (σ^2 - D)/σ^2 * Z)^2]
+                = D^2/σ^4 * E[X^2] + (σ^2 - D)^2/σ^4 * E[Z^2]
+                = D^2/σ^2 + (Dσ^2 - D^2)/σ^2
+                = D
+    h(X')   <= h(N(0, (σ^2 - D)^2/σ^4 * (σ^2 + Dσ^2/(σ^2 - D))))
+            = h(N(0, σ^2 - D))
+            = 1/2 * log2πe(σ^2 - D)
+    h(X'|X) = h((σ^2 - D)/σ^2 * Z)
+            = h(Z) + log((σ^2 - D)/σ^2)
+            = 1/2 * log2πeDσ^2/(σ^2 - D) + log((σ^2 - D)/σ^2)
+            = 1/2 * log2πeD(σ^2 - D)/σ^2
+    I(X;X') = h(X) - h(X'|X)
+            <= 1/2 * log2πe(σ^2 - D) - 1/2 * log2πeD(σ^2 - D)/σ^2
+            = 1/2 * log(σ^2/D)
+    and any optimal X' can only have rate lower or equal to this
+when the source is N(0, σ^2) the upper bound is reached, normal distribution is the hardest to describe
+
+10.9
+10.58:  there must be a bijection between X^n and D(f(X^n)) = W, |X|^n = |W|
+10.59:  H(f(X^n)|X^n) = 0, f(X^n) is a deterministic function of X^n
+10.61:  X' = g(f(X^n)) is a sufficient statistic of f(X^n)
+10.65:  Xi -> Xi' -> (X'^n, Xi-1, .., X1)
+10.67:  Xi' achieves the minimum rate of Ed(Xi, Xi') individually
+10.69:  rate distortion function is linear on the range
+
+10.10
+exactly half x' have x - x' odd (or even) given x, d(x, x') is permutations of rows, X is uniform, the Shannon lower
+bound can be achieved
+Φ(D)    = max{H(p), Σpidi <= D}
+        = H(D) + Dlogm + (1 - D)logm
+        = H(D) + logm
+where the maximizing p* is separately uniform on x - x' is even and x - x' is odd, or
+    pi  = D/m if x - i is odd 
+        = (1 - D)/m if x - i is even
+R(D)    = H(X) - Φ(D)
+        = log(2m) - H(D) + logm
+        = 1 - H(D)
+the verification is given by part d of problem 10.6
+
+10.11
+let 1/int(-∞, +∞, e^-x^4dx) = k
+h(X)    = -int(-∞, +∞, ke^-x^4log(ke^-x^4)dx)
+        = -int(-∞, +∞, ke^-x^4(logk - x^4)dx)
+        = -int(-∞, +∞, ke^-x^4logkdx) + int(-∞, +∞, x^4ke^-x^4dx)
+        = c - logk
+I(X;X') = h(X) - h(X|X')
+        = h(X) - h(X - X'|X') 
+        = h(X) - h(X - X') subject to E[(X - X')^4] <= D
+        >= h(X) - g(D)  // the definition of g(.)
+by definition, g(a) is non-decreasing, assume the maximum is achieved on the boundary
+by 12.4, the density maximizing h(X) subject to int(-∞, +∞, f(x)x^4dx) = c is f(x) = e^-λ0 * e^λ1x^4 such that
+    int(-∞, +∞, x^4 * e^-λ0 * e^λ1x^4dx)) = c
+by the definition of c, λ1 = -1, e^-λ0 = k, f(x) = ke^-x^4, h(X) = g(c)
+I(X;X') >= g(c) - g(D)
+
+10.12
+the new column can be ignored so will never increase R(D)
+if the new column has an entry that d(x, x0') < d(x, xk') and p(x|xk') > 0, it can replace xk' given x and decrease 
+Ed(X, X'), potentially decrease R(D)
+otherwise the new column will not affect R(D)
+
+10.13
+a.  the density and distortion satisfies the equality condition of Shannon lower limit 
+    Φ(0)    = max{H(p), Σpidi = 0}
+            = H(1/2) = 1
+    R(0)    = H(X) - Φ(D)
+            = 2 - 1 = 1
+b.  in any cases, {1, 2} in X and {1, 2} in X' are indistinguishable wrt. d(x, x'), similarly {3, 4} in X and X'
+    the problem can be collapsed to X = {1, 2}, X' = {1, 2}, d(x, x') = [0, 1; 1, 0]
+    by 10.13,
+    R(D)    = 1 - H(D) if D <= 1/2
+            = 0 if D >= 1/2
+c.  by 10.13, 
+    R(D)    = H(p) - H(D) if D < min{p, 1 - p}
+            = 0 if D >= min{p, 1 - p}
+
+10.14
+a.  I(X, Y;X', Y')  = H(X, Y) + H(X', Y') - H(X, Y, X', Y')
+                    = H(X) + H(Y) + H(X') + H(Y') - H(X, X') - H(Y, Y') // independence
+                    = I(X;X') + I(Y;Y')
+    let p(x', y'|x, y) be the joint conditional distribution minimizing I(X, Y|X', Y') subject to constraints
+    Σ{y'}p(x', y'|x, y) = p(x'|x, y) = p(x'|x) satisfies Ed(X, X') <= D1
+    Σ{x'}p(x', y'|x, y) = p(y'|x, y) = p(y'|y) satisfies Ed(Y, Y') <= D2
+    the two marginal distribution satisfies the constraints of RX(D1) and RY(D2)
+    as I(X, Y;X', Y') = I(X;X') + I(Y;Y'), RXY(D1, D2) >= RX(D1) + RX(D2)
+b.  given minimizing conditional distributions p(x'|x) and p(y'|y), q(x', y'|x, y) = p(x'|x)p(y'|y) satisfies the 
+    constraints of RXY(D1, D2) as the constraints is put on marginal distributions only
+    RXY(D1, D2) <= RX(D1) + RX(D2) and hence RXY(D1, D2) = RX(D1) + RX(D2)
+    two independent sources cannot be compressed better together than individually
+
+10.15
+a.  if R1 <= R2, the feasible set of D(R2) is a superset of D(R1), so it must have D(R2) <= D(R1)
+b.  as R(D) is decreasing and convex, its inverse D(R) must be convex
+c.  10.162: definition of distortion between sequences
+    10.163: linearity of expectations
+    10.164: the definition of D(R)
+    10.165: convexity of D(R)
+    10.166: by the chain rule of mutual information and independence of {Xi}, should be equality here
+    10.167: nR = H(i(X^n)) >= H(i(X^n)) - H(i(X^n)|X^n) = I(i(X^n);X^n) >= I(X'^n;X^n)  // data processing inequality
+            1/n * I(X^n;X'^n) <= R
+            D(1/n * I(X^n;X'^n)) >= D(R)    // D(R) is non-increasing
+
+10.16
+// thanks solutions manual
+a.  for x^n ∈ Aε^*n, 
+        |-H(X) - 1/n * logp(x^n)|   = |Σp(a)logp(a) - 1/n * logΠp(xi)|
+                                    = |Σp(a)logp(a) - 1/n * Σlogp(xi)|
+                                    = |Σp(a)logp(a) - 1/n * ΣN(a|x^n)logp(a)|
+                                    = Σ|p(a) - 1/n * N(a|x^n)||logp(a)|
+                                    <= |X| * ε/|X| * max{|logp(a)|}
+                                    = ε1
+    hence a Aε^*n strong typical set is a Aε1^n weak typical set of X
+    |Aε^*n| <= 2^n(H(X) + ε1)
+    1/n * lim(|Aε^*n|/2^nH(X))  <= 1/n * lim(2^n(H(X) + ε1) / 2^nH(X))
+                                = 1/n * nε1
+                                = ε1 -> 0
+    or by the method of types:
+    for a discrete distribution, by taking ε sufficiently small and for n that np(a) is an integer for all a
+    we can achieve N(a|x^n) = p(a) for some ε > 0, Aε^*n is essentially the type of p(a), and by theorem 11.1.3 
+        1/(n + 1)^|X| <= |Aε^*n| / 2^nH(X) <= 1
+        1/n * lim{log(|Aε^*n| / 2^nH(X))}   >= 1/n * lim{log(1/(n + 1)^|X|)}
+                                            = 1/n * lim{-|X|log(n + 1)}
+                                            = lim{-|X| * log(n + 1)/n}
+                                            = 0
+b.  since N(a|x^n) = Σ{b}N(a, b|x^n, y^n), the conditional type is determined by the joint type Pxy, so the number of 
+    conditional types cannot exceed the number of joint types, by theorem 11.1.1,
+        |Px^n,y^n| <= (n + 1)^|XY| = (n + 1)^|X||Y|
+c.  upper bound:
+        Pr{y^n|x^n} = Πp(yi|xi)
+                    = Πp(b|a)^NXY(a, b)
+                    = Πp(b|a)^nPXY(a, b)
+                    = Π2^nPXY(a, b)logp(b|a)
+                    = 2^nΣ(PXY(a, b)logp(b|a) + PXY(a, b)logV(b|a) - PXY(a, b)logV(b|a))
+                    = 2^nΣ(-PXY(a, b)log(V(b|a)/p(b|a)) + PXY(a, b)logV(b|a))
+                    = 2^n(-D(V(b|a)||p(b|a)) - H(V|x^n))
+        when y^n ∈ TV(x^n), Pr{y^n} = 2^-nH(V|x^n)
+        for V(b|a) = p(y|x), 
+        1   >= Pr{y^n ∈ TV(x^n)}
+            = Pr{y^n ∈ TV(x^n)}
+            = Σ{y^n ∈ TV(x^n)}Pr{y^n}
+            = |TV(x^n)|2^-nH(p(y|x)|x^n)
+            = |TV(x^n)|2^-nH(Y|x^n)
+        |TV(x^n)| <= 2^nH(Y|x^n)
+    lower bound:
+        1   = Σ{V}Pr{y^n ∈ TV(x^n)}
+            <= Σ{V}max{V}Pr{y^n ∈ TV(x^n)} 
+    let V* = argmax{Pr{y^n ∈ TV(x^n)}}, by inequality 11.23, V*(b|a) = p(b|a)
+        1   <= (n + 1)^|X||Y| * |TV(x^n)| * 2^-nH(Y|x^n)
+        |TV(x^n)| >= 2^nH(Y|x^n) / (n + 1)^|X||Y|
+d.  // informal
+    |N(a, b|x^n, y^n)/n - V(b|a)N(a|x^n)/n| <= ε/(|Y| + 1)
+    fixing x^n, V(b|a)N(a|x^n) is the expected number of (a, b), V(b|a)N(a|x^n)/n is p(a, b|x^n)
+    |N(a, b|x^n, y^n)/n - p(a, b|x^n)| <= ε/(|Y| + 1)
+    sum over a ∈ X, 
+    |N(b|y^n)/n - p(b|x^n)| <= ε|X|/(|Y| + 1) = ε1/(|Y| + 1)
+    by part a, |Aε^*n(Y|x^n)| = 2^nH(Y|x^n) to the first order of exponential
+e.  // informal
+    conditioning on x^n, 
+        |N(a, b|x^n, y^n)/n - p(a, b|x^n)| <= ε/|X||Y|
+    similar to part d, |Aε^*n(X, Y)| = 2^nH(Y|x^n) to the first order of exponential
+f.  by summing over a or b, 
+        |N(a, b|x^n, y^n)/n - p(a, b)| <= ε/|X||Y| imples
+        |N(a|x^n) - p(a)| <= ε/|X| and 
+        |N(b|y^n) - p(b)| <= ε/|Y|
+    if (x^n, y^n) is strongly jointly typical, x^n and y^n are strongly typical
+    Pr{(x^n, Y^n) ∈ Aε^*n(X, Y)}    
+    = Σ{(x^n, y^n) ∈ Aε^*n(X, Y)}p(y^n)
+    <= |Aε^*n(X, Y)| * 2^-n(H(Y) + ε1)
+    <= 2^n(H(Y|X) + ε2) * 2^-n(H(Y) + ε1)
+    = 2^-n(I(X;Y) - ε3)
+    similarly Pr{(x^n, Y^n) ∈ Aε^*n(X, Y)} >= 2^-n(I(X;Y) + ε3)
+
+10.17
+a.  assume d(v, v') is bounded, for some C > R > R(D) there exists an encoding V -> W -> V', |W| = 2^nR that
+        Ed(V, V') <= D + δ (through a noiseless channel)
+    as C > R, W -> X^n -> Y^n -> W' can be transmitted through the channel with arbitrarily low error rate Pe
+        Ed(V, V') <= D + δ + Pe * d_max -> D + δ as Pe -> 0
+b.  I(V^n;V'^n) 
