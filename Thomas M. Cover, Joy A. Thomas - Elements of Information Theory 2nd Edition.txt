@@ -3083,4 +3083,59 @@ a.  assume d(v, v') is bounded, for some C > R > R(D) there exists an encoding V
         Ed(V, V') <= D + δ (through a noiseless channel)
     as C > R, W -> X^n -> Y^n -> W' can be transmitted through the channel with arbitrarily low error rate Pe
         Ed(V, V') <= D + δ + Pe * d_max -> D + δ as Pe -> 0
-b.  I(V^n;V'^n) 
+b.  for any setup V^n -> X^n -> Y^n -> V'^n, fixing p(y|x) and p(v), constraint on Ed(V, V') <= D,
+        R(D) < I(V;V') <= I(X;Y) <= C (the computation of C is not constrained by distortion rate i.e. max of superset)
+    therefore the channel capacity must be greater than R(D)
+
+10.18
+a.  Ed'(X, X') <= D <=> E(d(X, X') + a) <= D
+                    <=> Ed(X, X') <= D - a
+    hence R'(D) = R(D - a)
+b.  Ed'(X, X') <= D <=> E(bd(X, X')) <= D
+                    <=> Ed(X, X') <= D/b
+    R'(D) = R(D/b)
+c.  when d(x, x') = (x - x')^2, R(D) = 1/2 * log(σ^2/D)
+    so R''(D) = R'(D - 3) = R((D - 3)/5) = 1/2 * log(σ^2 / ((D - 3)/5))
+
+10.19
+X^n -> W -> (X1^n, X2^n), |W| = 2^nR, let R(D1, D2) = min{I(X;X1, X2), Ed(X, X1) <= D1, Ed(X, X2) <= D2}
+converse:
+    R(D1, D2) is non-increasing in both D1 and D2
+    R(D1, D2) is convex:
+        let p1 achieves R(D11, D12), p2 achieves R(D12, D22)
+        let p = λp1 + (1 - λ)p2
+        d1 and d2 are linear in distribution, Ep[d1(x, x1)] = λD11 + (1 - λD12), Ep[d2(x, x2)] = λD12 + (1 - λ)D22
+        I(X;X1, X2) is convex in p(x1, x2|x)
+        R(λD11 + (1 - λ)D21, λD12 + (1 - λ)D22) <= Ip(X;X1, X2)
+                                                <= λIp1(X;X1, X2) + (1 - λ)Ip2(X;X1, X2)
+                                                = λR(D11, D21) + (1 - λ)R(D12, D22)
+    for some Ed(X^n, X1^n) <= D1 and Ed(X^n, X2^n) <= D2,
+    nR  >= H(W)
+        >= H(W) - H(W|X^n)
+        = I(X^n;W)
+        >= I(X^n;X1^n, X2^n)
+        = H(X^n) - H(X^n|X1^n, X2^n)
+        = ΣH(Xi) - ΣH(Xi|X1^n, X2^n, X1, .., Xi-1)
+        >= ΣH(Xi) - ΣH(Xi|X1i, X2i)
+        = ΣI(Xi;X1i, X2i)
+        >= ΣR(Ed(Xi, X1i), Ed(Xi, X2i)) // definition of R(D1, D2)
+        = n(1/n * ΣR(Ed(Xi, X1i), Ed(Xi, X2i)))
+        >= nR(1/n * ΣEd(Xi, X1i), 1/n * ΣEd(Xi, X2i))
+        = nR(Ed(X^n, X1^n), Ed(X^n, X2^n))
+        >= nR(D1, D2)
+    R   >= R(D1, D2)
+achievability:
+    consider (X1, X2) as a single random variable on X1 x X2
+    expand the last condition of distortion typical set as
+        |d(x^n, x1^n) - Ed(X, X1)| < ε,
+        |d(x^n, x2^n) - Ed(X, X2)| < ε
+    so Ed(X^n, X1^n(X^n)) <= D1 + ε + Pe * d_max, Ed(X^n, X2^n(X^n)) <= D2 + ε + Pe * d_max
+    the bound of Pe doesn't involve the last condition of distortion typical set, thus
+        Pe -> 0 as n -> ∞ if R > I(X;X1, X2) + 3ε 
+    for any R > R(D1, D2), (R, D1, D2) is achievable
+
+10.20
+a.  let q(x'|x) = argmin{I(X;X'), Ed2(X, X') <= D}
+    Eq[d1(X, X')] <= Eq[d2(X, X')] = D
+    q(x'|x) is in the feasible set of R1(D), R1(D) <= R2(D)
+b.  see problem 10.19
