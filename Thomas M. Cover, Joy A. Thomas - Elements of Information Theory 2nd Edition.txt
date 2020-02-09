@@ -3139,3 +3139,52 @@ a.  let q(x'|x) = argmin{I(X;X'), Ed2(X, X') <= D}
     Eq[d1(X, X')] <= Eq[d2(X, X')] = D
     q(x'|x) is in the feasible set of R1(D), R1(D) <= R2(D)
 b.  see problem 10.19
+
+11.1
+a.  D(f1||f2) 
+    = int(-∞, +∞, f1(x)log(f1(x) / f2(x))dx)
+    = int(-∞, +∞, f1(x)log(σ2/σ1 * e^(-(x/σ1)^2 + (x/σ2)^2))dx)
+    = log(σ2/σ1) + ln2 * (E1[-(x/σ1)^2] + E1[(x/σ2)^2])
+    = log(σ2/σ1) + ln2 * (-1 + (σ1/σ2)^2)
+b.  D(f1||f2)
+    = int(-∞, +∞, f1(x)log(f1(x) / f2(x))dx)
+    = int(-∞, +∞, f1(x)log(λ1/λ2 + ln2(-λ1x + λ2x))dx)
+    = log(λ1/λ2) + ln2(-1 + λ2/λ1)
+c.  infinite, f2(x) = 0 on [0, a)
+d.  infinite, p2(T) = 0
+
+11.2
+// thanks wolframalpha
+let T = P - Q, ln(P/Q) = ln(1 + T/Q), the taylor expansion of ln(1 + T/Q) is 
+    T/Q - T^2/2Q^2 + ..
+D(P||Q) = int(-∞, +∞, (T + Q)(T/Q - T^2/2Q^2 + ..))
+        = int(-∞, +∞, T^2/Q + T - T^3/2Q^2 - T^2/2Q + ..)
+        = int(-∞, +∞, T + T^2/2Q + ..)  // other terms have higher order of 1/Q
+        = int(-∞, +∞, T) + int(-∞, +∞, T^2/2Q) + ..
+        = 0 + χ^2 / 2 + ..
+
+11.3
+a.  L(p, l) = Σpilog(pi/qi) - l1(Σpi - 1) - l2(-Σpilogpi - R)
+    dL/dpi  = log(pi/qi) + 1/ln2 - l1 + l2logpi + l2/ln2 = 0
+    logpi - logqi + loge - l1 + l2logpi + l2loge = 0
+    (1 + l2)logpi = -(1 + l2)loge + l1 + logqi
+    logpi = -loge + l1/(1 + l2) + logqi/(1 + l2)
+    pi  = e * 2^(l1/(1 + l2)) * qi^(1/(1 + l2))
+        = a * qi^b for some a, b constant
+    Σpi = Σaqi^b = 1, a = 1/Σqi^b, pi = qi^b / Σqi^b for some b satisfying H(P) = R
+b.  let p = min{Pr{X = 0}, Pr{X = 1}}
+    H(p) = -plogp - (1 - p)log(1 - p) < R
+
+11.4
+// thanks solutions manual
+assume all constraints are active, by equation 11.110,
+    P*(x) = c1Q(x)e^Σaihi(x)
+where {ai} is chosen to satisfy ΣP*(x)hi(x) <= αi
+similarly
+    R*(x) = c2Q(x)e^(Σbihi(x) + Σvigi(x))
+let R'(x) minimize D(R'||P*) subject to ΣR'(x)hi(x) <= αi and ΣR'(x)gi(x) <= βi
+    R'(x)   = c3P*(x)e^(Σdihi(x) + Σwigi(x))
+            = c1c3Q(x)e^(Σ(ai + di)hi(x) + Σwigi(x))
+which has the same form and constraints to R*(X), hence R'(x) = R*(x)
+
+11.5
