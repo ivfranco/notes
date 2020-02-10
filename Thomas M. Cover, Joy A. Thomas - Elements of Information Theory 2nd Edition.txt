@@ -3143,9 +3143,9 @@ b.  see problem 10.19
 11.1
 a.  D(f1||f2) 
     = int(-∞, +∞, f1(x)log(f1(x) / f2(x))dx)
-    = int(-∞, +∞, f1(x)log(σ2/σ1 * e^(-(x/σ1)^2 + (x/σ2)^2))dx)
-    = log(σ2/σ1) + ln2 * (E1[-(x/σ1)^2] + E1[(x/σ2)^2])
-    = log(σ2/σ1) + ln2 * (-1 + (σ1/σ2)^2)
+    = int(-∞, +∞, f1(x)log(σ2/σ1 * e^(1/2)(-(x/σ1)^2 + (x/σ2)^2))dx)
+    = log(σ2/σ1) + 1/2ln2 * (E1[-(x/σ1)^2] + E1[(x/σ2)^2])
+    = log(σ2/σ1) + 1/2ln2 * (-1 + (σ1/σ2)^2)
 b.  D(f1||f2)
     = int(-∞, +∞, f1(x)log(f1(x) / f2(x))dx)
     = int(-∞, +∞, f1(x)log(λ1/λ2 + ln2(-λ1x + λ2x))dx)
@@ -3188,3 +3188,166 @@ let R'(x) minimize D(R'||P*) subject to ΣR'(x)hi(x) <= αi and ΣR'(x)gi(x) <= 
 which has the same form and constraints to R*(X), hence R'(x) = R*(x)
 
 11.5
+lemma: if f(x) = g(x) to first order of exponents, h(x) is polynomial, f(x)h(x) = g(x) to first order of exponents
+    1/n * lim(log(f(x)h(x) / g(x)))
+    = 1/n * lim(log(f(x)/g(x)) + logh(x))
+    = 0 + 1/n * lim(logh(x))
+    = 0
+let Px(a) = N(a|x^n)/n, 
+1/n * Σg(xi) >= α   <=> 1/n * ΣN(a|x^n)g(a) >= α
+                    <=> ΣPx(a)g(a) >= α
+let A be the set of probability that ΣPx(a)g(a) >= α
+Σ{P ∈ A}|T(P)|  = Σ{P ∈ A}2^nH(P)   // to first order 
+                <= Σ{P ∈ A}2^nH(P*)
+                <= (n + 1)^|X| * 2^nH(P*)
+                = 2^nH(P*)  // to first order
+also 
+Σ{P ∈ A}|T(P)|  = Σ{P ∈ A}2^nH(P)
+                >= 2^nH(P*)
+
+11.6
+a.  E[1/n * ΣXi - μ] = 1/n * ΣEμ[Xi] - μ = 0
+b.  1/n * E[Σ(Xi - 1/n * ΣXi)^2]
+    = 1/n * E[Σ(Xi - μ - (1/n * ΣXi - μ))^2]
+    = 1/n * E[Σ(Xi - μ)^2 - 2(1/n * ΣXi - μ)Σ(Xi - μ) + n(1/n * ΣXi - μ)^2]
+    = 1/n * (nσ^2 - 2n(1/n * ΣXi - μ)^2 + n(1/n * ΣXi - μ)^2)
+    = 1/n * (nσ^2 - σ^2)
+    = (n - 1)σ^2/n < σ^2
+    1/(n - 1) * E[Σ(Xi - 1/n * ΣXi)^2] = σ^2
+c.  since nSn^2 / σ^2 ~ χ^2(n - 1), Sn^2 = (n - 1)/n * Sn-1^2, (n - 1)Sn-1^2 / σ^2 ~ χ^2(n - 1)
+    E[(Sn-1^2 - σ^2)^2] = Var(Sn-1^2) = σ^4 / (n - 1)^2 * Var(χ^2(n - 1)) = 2σ^4 / (n - 1)
+    similarly
+    E[(Sn^2 - σ^2)^2]   = E[(Sn^2 - (n - 1)/n * σ^2 - 1/n * σ^2)^2]
+                        = E[(Sn^2 - E[Sn^2])^2] - 2/n * σ^2 * E[Sn^2 - E[Sn^2]] + σ^4/n^2 
+                        = σ^4(2n - 2) / n^2 + σ^4/n^2
+                        = σ^4(2n - 1) / n^2
+    where 
+    2/(n - 1) - (2n - 1)/n^2
+    = (2n^2 - 2n^2 + 3n - 1) / n^2(n - 1)
+    = (3n - 1) / n^2(n - 1)
+    > 0 for n > 1
+
+11.7
+lim{θ' -> θ, 1/(θ' - θ)^2 * int(-∞, +∞, D(pθ||pθ'))}
+= lim{θ' -> θ, 1/(θ' - θ)^2 * 1/ln2 * int(-∞, +∞, pθ(x) * ln(pθ(x) / pθ'(x)))}
+= lim{h -> 0, 1/h^2 * 1/ln2 * int(-∞, +∞, pθ(x) * ln(pθ(x) / pθ+h(x)))}
+let g(h) = pθ(x) * (lnpθ(x) - lnpθ+h(x))
+g(0)    = 0
+g'(h)   = -pθ(x) / pθ+h(x) * dpθ+h(x)/dh
+        = -pθ(x) / pθ+h(x) * dpθ+h(x)/dθ * dθ/dh
+        = pθ(x) / pθ+h(x) * dpθ+h(x)/dθ
+g'(0)   = dpθ(x)/dθ
+g''(h)  = -pθ(x) * (-1/pθ+h(x)^2 * (dpθ+h(x)/dh)^2 + 1/pθ+h(x) * d^2pθ+h(x)/d^2h)
+g''(0)  = 1/pθ(x) * (dpθ(x)/dθ)^2 + d^2pθ(x)/d^2θ
+also
+int(-∞, +∞, dpθ(x)/dθdx) = dint(-∞, +∞, pθ(x)dx)/dθ = 0, similarly
+int(-∞, +∞, d^2pθ(x)/d^2θdx) = 0
+by Taylor expansion around h = 0,
+lim{h -> 0, 1/h^2 * 1/ln2 * int(-∞, +∞, pθ(x) * ln(pθ(x) / pθ+h(x)))}
+= lim{h -> 0, 1/h^2 * 1/ln2 * int(-∞, +∞, 1/pθ(x) * (dpθ(x)/dθ)^2 * h^2 / 2 + O(h^3))}
+= lim{h -> 0, 1/2ln2 * int(-∞, +∞, 1/pθ(x) * (dpθ(x)/dθ)^2 + O(h))}
+= lim{h -> 0, 1/ln4 * int(-∞, +∞, pθ(x) * (dln(pθ(x))/dθ)^2 + O(h))}
+= 1/ln4 * J(θ)
+
+11.8
+a.  dfθ(x)/dθ   = -1/2 * (2πθ)^(-3/2) * 2π * e^(x^2/θ)/2 + 1/(2πθ)^1/2 * e^(x^2/θ)/2 * x^2/2θ^2
+    dfθ(x)/dθ / fθ(x)   = -1/2θ + x^2/2θ^2
+    J(θ)    = E[(-1/2θ + X^2/2θ^2)^2]
+            = 1/4θ^2 + -2E[X^2]/4θ^3 + E[X^4]/4θ^4
+            = 1/2θ^2
+b.  dfθ(x)/dθ   = 1/θ - x
+    J(θ)    = E[(1/θ - X)^2]
+            = 1/θ^2 - 2E[X]/θ + E[X^2]
+            = 1/θ^2 - 2/θ^2 + 2/θ^2
+            = 1/θ^2
+c.  a.  var(T) >= 1/J(θ) = 2θ^2
+    b.  var(T) >= 1/J(θ) = θ^2
+
+11.9
+immediate consequence of equation 11.279
+
+11.10
+a.  L(P(x, y), l)   = D(P||Q0) - l1(ΣP(x, y)logQ(x) - H(X)) - l2(ΣP(x, y)logQ(y) - H(Y)) - l3(ΣP(x, y)logQ(x, y) - H(X, Y))
+    dL/dP(x, y) = logP(x, y) - logQ(x, y) + 1/ln2 - l1logQ(x) - l2logQ(y) - l3logQ(x, y) = 0
+    logP(x, y)  = l1logQ(x) + l2logQ(y) + (l3 + 1)logQ(x, y) - loge
+    P(x, y)     = 2^(l1logQ(x) + l2logQ(y) + (l3 + 1)logQ(x, y) - loge)
+                = Q(x, y) * e^(l0 + l1logQ(x) + l2logQ(y) + l3logQ(x, y))
+    and D(P||Q0) is strictly convex in P
+b.  P*(x, y)    = Q0(x, y)e^(l0 + l1logQ(x) + l2logQ(y) + l3logQ(x, y))
+                = Q(x)Q(y)2^(l0' + l1logQ(x) + l2logQ(y) + l3logQ(x, y))
+                = cQ(x)^(l1 + 1) * Q(y)^(l2 + 1) * Q(x, y)^l3
+    setting c = 1, l1 - =1, l2 = -1, l3 = 1,
+                = Q(x, y)
+    and the constraints are just be formula of H(X), H(Y) and H(X, Y) when P(x, y) = Q(x, y)
+
+11.11
+let T' = T - bT(θ), T' is unbiased estimator of θ
+by the same argument in the text, 
+E[VT']^2 <= J(θ)var(T'), where
+E[VT']  = E[V(T - bT(θ))]
+        = E[VT] - bT(θ)E[V]
+        = dE[T]/dθ
+        = d(bT(θ) + θ))/dθ
+        = bT'(θ) + 1
+var(T') >= E[VT']^2 / J(θ)
+        = (1 + bT'(θ))^2 / J(θ)
+E[(T - θ)^2]    = E[(T' - θ + bT(θ))^2]
+                = var(T') + bT(θ)^2
+                >= (1 + bT'(θ))^2 / J(θ) + bT(θ)^2
+
+11.12
+let Pr{Decide H1|H2 is true} = β, by Chernoff-Stein lemma, 
+lim{1/n * logβ} = -D(P1||P2)
+                = -(1/2 * 1 + 0 + 1/4 * -1)
+                = -1/4
+logβ    ≒ -n/4 when n is large
+
+11.13
+11.326 is the pmf of binomial distribution
+1.  as p > 1/2, floor(np) >= n/2, C(n, k) is a decreasing function starting from k = n/2
+    as q > 1/2, q^i(1 - q)^(n - i) is a decreasing function of i
+2.  that term is approximately the probability of type T(P) in Q^n, by equation 11.54,
+    Q^n(T(P)) <= 2^-nD
+3.  Pr{X: avg(X) >= p}  <= Σ2^-nD
+                        <= n2^-nD
+    Pr{X: avg(X) >= p}  >= C(n, i)q^i(1 - q)^(n - i) where i = ceil(np)
+                        >= 1/(n + 1)^|X| * 2^-nD
+    log(1/(n + 1)^|X|) - nD <= logPr{X: avg(X) >= p} <= logn - nD
+    -1/n * logPr{X: avg(X) >= p} -> D
+
+11.14
+a.  D(P1||P2)   = log(σ2/σ1) - loge/2 * (1 - σ1^2 / σ2^2)
+    dD/dσ1  = -loge/σ1 + loge * σ1/σ2^2 > 0 when σ1 > σ2
+    avg(Xi^2) -> E[Xi^2] = σ^2 as n -> ∞, σ^2 >= α^2 with large n
+    for α^2 > σ^2, the minimizing P* is N(0, α^2), 
+    logPr{avg(Xi^2) >= α} -> -nD(P*||P) = log(σ/α) - loge/2 * (1 - α^2/σ^2)
+b.  P* = N(0, α^2)
+
+11.15
+a.  L(p, l) = D(P||Q) - l1(p1 - 2p2) - l2(Σpi - 1)
+            = Σpilog6pi - l1(p1 - 2p2) - l2(Σpi - 1)
+    dL/dp1  = log6 + logp1 + loge - l1 - l2 = 0
+    logp1   = l1 + l2 - ln6 - loge
+    p1  = 2^(l1 + l2 - log6 - loge) 
+        = 2^(l1 + l2')
+    dL/dp2  = log6 + logp2 + loge + 2l1 - l2 = 0
+    p2  = 2^(-2l1 + l2')
+    dL/dpi  = log6 + logpi + loge - l2 = 0 for i in {3 .. 6}
+    pi  = 2^l2'
+    p1 / p2 = 2^3l1 = 2, l1 = 1/3
+    let 2^l2' = k, 4k + k(2^1/3 + 2^-2/3) = 1, k = 0.170
+    p1 = 0.214
+    p2 = 0.107
+    p3 = .. = p6 = 0.170
+    D(P||Q) = 0.0282
+    logPr{E}    -> -0.0282n
+b.  by conditional limit theorem, X1|X^n ∈ E ~ {pi} calculated above
+
+11.16
+a.  D(p0||p1)   = Σ2^-x * log(2^-x / qp^(x - 1))
+                = Σ2^-x * (-x - logq - (x - 1)logp)
+                = -2 - logq - 2logp + logp
+                = -2 - logp - logq
+b.  by equation 11.240, the test is {x: P1(x) / P2(x) > 1}
+
+11.17
