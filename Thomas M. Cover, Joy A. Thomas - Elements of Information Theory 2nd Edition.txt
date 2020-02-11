@@ -3316,7 +3316,11 @@ logβ    ≒ -n/4 when n is large
     -1/n * logPr{X: avg(X) >= p} -> D
 
 11.14
-a.  D(P1||P2)   = log(σ2/σ1) - loge/2 * (1 - σ1^2 / σ2^2)
+a.  D(P||Q) = int(-∞, +∞, p(x)log(p(x) / 1/sqrt(2πσ^2)e^-1/2(x/σ)^2))
+            = int(-∞, +∞, p(x)logp(x)) + 1/2 * log2πσ^2 + 1/2 * E[X^2]/σ^2
+            = -h(P) + 1/2 * log2πσ^2 + 1/2 * E[X^2]/σ^2
+    subject to E[X^2] >= α^2, -h(P) is minimized by normal distribution, P ~ N(0, α^2)
+    D(P1||P2)   = log(σ2/σ1) - loge/2 * (1 - σ1^2 / σ2^2)
     dD/dσ1  = -loge/σ1 + loge * σ1/σ2^2 > 0 when σ1 > σ2
     avg(Xi^2) -> E[Xi^2] = σ^2 as n -> ∞, σ^2 >= α^2 with large n
     for α^2 > σ^2, the minimizing P* is N(0, α^2), 
@@ -3351,3 +3355,133 @@ a.  D(p0||p1)   = Σ2^-x * log(2^-x / qp^(x - 1))
 b.  by equation 11.240, the test is {x: P1(x) / P2(x) > 1}
 
 11.17
+a.  Eθ0[lθ(X^n)]    = int(-∞, +∞, lnΠfθ(xi) * Πfθ0(xi)dx^n)
+                    = int(-∞, +∞, Σlnfθ(xi) * Πfθ0(xi)dx^n)
+                    = Σint(-∞, +∞, lnfθ(xi) * Πfθ0(xi)dx^n)
+                    = Σint(-∞, +∞, lnfθ(xi) * fθ0(xi)dxi)
+                    = n * int(-∞, +∞, fθ0(x)ln(fθ(x) / fθ0(x) * fθ0(x))dx)
+                    = n(-D(fθ0||fθ) - H(fθ0))
+b.  -D(fθ0||fθ) is maximized by θ = θ0
+
+11.18
+a.  1/n * ΣXi = ΣxPx(x)
+    D(Q||P) = Σq(x)log(q(x) / p^x-1(1 - p))
+            = -H(Q) - (E[X] - 1)logp - log(1 - p), where logp and log(1 - p) < 0
+    subject to E[X] >= α, -h(Q) is minimized by exponential distribution Exp(1/α)
+    but X is discrete so the minimizing distribution may be the discrete counterpart of Exp(1/α) which is Geo(1/α)
+    L(q, l) = Σq(x)log(q(x)/p(x)) - l1(Σq(x) - 1) - l2(Σxq(x) - α)
+    dL/dq   = logq(x) - logp(x) + 1/ln2 - l1 - l2x = 0
+    logq(x) = logp(x) + l1 + l2x + 1/ln2
+    q(x)    = p(x) * 2^(l1 + l2x + 1/ln2)
+            = p(x) * 2^(l1' + l2x)
+            = p^(x - 1) * (1 - p) * c1 * c2^x
+            = (pc2)^(x - 1) * (1 - p)c1c2
+    is a geometric distribution subject to E[X] >= α, Q = Geometric(1/α)
+    q(x)    = (1 - 1/α)^(x - 1) * 1/α
+    D(Q||P) = -H(Q) - (E[X] - 1)logp - log(1 - p)
+            = -αH(1/α) - (α - 1)logp - log(1 - p)
+            = -1/n * lim{logPr{avg(X) >= α}}
+b.  by conditional limit theorem,
+    Pr{X1 = k|1/n * ΣXi >= α}   -> Q(k)
+                                = (1 - 1/α)^(k - 1) * 1/α
+c.  Pr{1/n * ΣXi >= 4}  = 2^-nD(Q||P)
+                        = 2^-0.755n to first order
+    Pr{X1 = k|1/n * ΣXi >= 4}   = (3/4)^(k - 1) * 1/4
+
+11.19
+// how is it possible to do integration by parts when the functions are derivatives of θ while the integration is of x?
+// tracing another proof given by Theory of Point Estimation, Lehmann & Casella, 1998
+-E[d^2lnfθ(x)/dθ^2] = -E[-(dfθ(x)/dθ / fθ(x))^2 + d^2fθ(x)/dθ^2 / fθ(x)]
+                    = E[(dfθ(x)/dθ / fθ(x))^2] - d/dθ int(-∞, +∞, dfθ(x)/dθ dx)
+                    = J(θ) - 0 = J(θ)
+
+11.20
+ln(n!)  = ln(Π{2 <= i <= n}i)
+        = Σ{2 <= i <= n - 1}ln(i) + ln(n)
+        <= int(2, n - 1, ln(x)dx) + ln(n)   // approximation of integrals by sum, ln(x) is non-decreasing
+        = (n - 1)ln(n - 1) - n + 3 - ln4 + ln(n)
+when ln(n - 1) >= 3 - ln4, n >= 7,
+        <= nln(n - 1) - n + ln(n)
+        <= nln(n) - n + ln(n)
+n!  <= e^(nln(n) - n + ln(n))
+    = n(n/e)^n
+ln(n!)  = Σ{1 <= i <= n}ln(i)
+        >= int(0, n, ln(x)dx)
+        = nln(n) - n
+n!  >= e^(nln(n) - n)
+    = (n/e)^n
+
+11.21
+1/n * logC(n, np)   <= 1/n * log(n(n/e)^n / ((np/e)^np) * ((n - np)/e)^(n - np))
+                    = 1/n * log(n^n+1 / (np^np * (n - np)^(n - np)))
+                    = 1/n * ((n + 1)logn - np(logn + logp) - (n - np)(logn - log(1 - p)))
+                    = 1/n * (logn - n(plogp + (1 - p)log(1 - p)))
+                    -> H(p)
+1/n * logC(n, np)   >= 1/n * log((n/e)^n / (np * (np/e)^np * (n - np) * ((n - np)/e)^(n - np)))
+                    = 1/n * log(n^n / (np^(np + 1) * (n - np)^(n - np + 1)))
+                    = 1/n * (nlogn - (np + 1)(logn + logp) - (n - np + 1)(logn + log(1 - p))
+                    = 1/n * (-2logn - n((p + 1/n)logp + (1 - p + 1/n)log(1 - p)))
+                    -> H(p)
+therefore 1/n * logC(n, np) -> H(p)
+similarly 1/n * logC(n, np1, .., npn) -> H(p)
+
+11.22
+E   = {(x, y): Σxi - Σyi >= nt}
+    = {Pxy: ΣxPx(x) - ΣyPy(y) >= t}
+by Sanov's theorem, 1/n * logPr{E} -> -D(R*(x, y)||P(x)Q(y)), where R* ∈ E minimizes D(R||PQ)
+L(rxy, l)   = Σrxylog(rxy / P(x)Q(y)) - l1(Σrxy - 1) - l2(Σ(x - y)rxy - t)
+dL/rxy  = logrxy - logP(x)Q(y) + loge - l1 - l2(x - y) = 0
+logrxy  = logP(x)Q(y) + l1' + l2(x - y)
+rxy     = P(x)Q(y)2^(l1' + l2(x - y)) for some l1' and l2 satisfying the constraints
+D(R||PQ)    = ΣP(x)Q(y)log2^(l1' + l2(x - y))
+            = l1' + l2(E[X] - E[Y])
+            = l1' + l2t
+where l1' = 1/ΣP(x)Q(y)e^l2(x - y)
+
+11.23
+α = Q^n(1/n * log(P(X) / Q(X)) > 0) = Q^n(E) is the probability of error of the first kind of (log) likelihood test
+by Sanov's theorem, α = 2^-nD(Q*||P) to the first order, Q* is the closest distribution to P in ~E
+by equation 11.200, Q* is of the form:
+    Q*(x)   = (P(x)^k * Q(x)^(1 - k)) / Σ(P(x)^k * Q(x)^(1 - k))
+            = c(P(x)^k * Q(x)^(1 - k)) for some c and k
+D(Q*||P)    = Σc(P^kQ^(1 - k))log(cP^kQ^(1 - k) / P)
+            = Σc(P^kQ^(1 - k))(logc + (k - 1)logP + (1 - k)logQ)
+            = logc + Σc(P^kQ^(1 - k))(k - 1)(logP - logQ)
+            = logc + (k - 1)EP*[logP - logQ]
+if constraints are active, EP*[log(P/Q)] = 0,
+D(Q*||P)    = logc
+
+11.24
+a.  Fθ(x)   = ΣPr{Z = i}Pr{X <= x|Z = i}
+            = Pr{Z = 0}F0(x) + Pr{Z = 1}F1(x)
+            = (1 - θ)F0(x) + θF1(x)
+    fθ(x)   = dFθ(x)/dx
+            = (1 - θ)f0(x) + θf1(x)
+b.  J(θ)    = Eθ[(dfθ(x)/fθ(x))^2]
+            = int(-∞, +∞, (-f0(x) + f1(x))^2 / ((1 - θ)f0(x) + θf1(x)) dx)
+c.  var(T)  >= 1/J(θ)
+d.  // thanks solutions manual and On the Estimation of Mixing Distributions, D. C. Boes, 1966
+    // https://projecteuclid.org/download/pdf_1/euclid.aoms/1177699607
+    for any set B ⊆ R,
+    Pθ(B)   = (1 - θ)P0(B) + θP1(B)
+            = P0(B) + θ(P1(B) - P0(B))
+    θ   = (Pθ(B) - P0(B)) / (P1(B) - P0(B))
+    hence take any B = (-∞, y], let I(y) = Pθ{X <= y}, E[I(y)] = int(-∞, y, fθ(x)dx) = Fθ(y), then
+        T = (I(y) - F0(y)) / (F1(y) - F0(y))
+    is an unbiased estimator of θ
+
+11.25
+let E   = {x: 1/n * ΣXi >= α}
+        = {Px: ΣaPx(a) >= α}
+Pr{X1 = k|E} = P*(k) where P* minimizes D(P||Q), Q = Binomial(m, q), P ∈ E
+L(p, l) = D(P||Q) - l1(Σp(x) - 1) - l2(xp(x) - α)
+        = Σp(x)log(p(x) / q(x)) - l1(Σp(x) - 1) - l2(xp(x) - α)
+by problem 11.18,
+p(x)    = q(x) * c1 * c2^x
+        = C(m, x)q^x(1 - q)^(m - x) * c1 * c2^x
+as p(x) <= 1, c2 <= 1,
+let c2 = p(1 - q) / q(1 - p) for some p <= 1 // always possible by continuity
+p(x)    = C(m, x)p^x(1 - p)^(m - x) * c1
+by binomial formula, c1 = 1,
+p(x)    = C(m, x)p^x(1 - p)^(m - x) for some p, p(x) = Binomial(m, p)
+D(P||Q) = 
