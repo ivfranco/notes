@@ -3484,4 +3484,58 @@ let c2 = p(1 - q) / q(1 - p) for some p <= 1 // always possible by continuity
 p(x)    = C(m, x)p^x(1 - p)^(m - x) * c1
 by binomial formula, c1 = 1,
 p(x)    = C(m, x)p^x(1 - p)^(m - x) for some p, p(x) = Binomial(m, p)
-D(P||Q) = 
+when constraints are active, EP[X] = α = np, p = α/n
+
+11.26
+a.  Pr{E}   = C(n, n/4)(2/3)^(n/4) * (1/3)^(3n/4)
+b.  by conditional limit theorem, {X1 = k|E} -> P*(k), P* ∈ E minimizes D(P||Q)
+    by equation 11.150,
+    P*(x)   = 1/3 * e^(λx^2) / Σ(1/3 * e^(λx^2)) for some λ that Σx^2P*(x) = 1/2
+    P*(x)   = k/(2k + 1) if x = ±1
+            = 1/(2k + 1) if x = 0
+    Σx^2P*(x) = 2k/(2k + 1) = 1/2, k = 1/2
+    P*  = (1/4, 1/2, 1/4)
+    Pr{X1 = ±1|E} = 1/2
+
+11.27
+L(Q, l) = EQ[logX] - D(Q||P) - l(ΣQ(x) - 1)
+        = ΣQ(x)logx - ΣQ(x)log(Q(x)/P(x)) - l(ΣQ(x) - 1)
+dL/dQ   = logx - logQ(x) + logP(x) - loge - l = 0
+logQ(x) = logx - logP(x) - loge - l
+Q(x)    = cxP(x), since ΣQ(x) = cEP[X] = 1, c = 1/EP[X],
+        = xP(x)/EP[X]
+EQ[logX] - D(Q||P)  = ΣxP(x)/EP[X] * logx - ΣxP(x)/EP[X] * log(x/EP[X])
+                    = (ΣxP(x)(logx - logx + logEP[X])) / EP[X]
+                    = EP[X]logEP[X] / EP[X]
+                    = logEP[X]
+
+11.28
+a.  1/n * ΣXi^2 - (1/n * ΣXi)^2 <= α
+    1/n * Σa^2N(a|x^n) - (1/n * ΣaN(a|x^n))^2 <= α
+    Σa^2Px(a) - (ΣaPx(a))^2 <= α
+b.  let E = {Px: Σa^2Px(a) - (ΣaPx(a))^2 <= α} 
+    1/n * logQ^n(E) -> -D(P||Q) where P minimizes D(P||Q) subject to P ∈ E
+    L(P, l) = ΣP(x)log(P(x)/Q(x)) - l1(ΣP(x) - 1) - l2(Σx^2P(x) - (ΣxP(x))^2 - α)
+    dL/dP   = logP(x) - logQ(x) - loge - l1 - l2(x^2 - Σx^2P(x)) = 0
+    logP(x) = logQ(x) + l1' + l2(x^2 - EP[X^2])
+    P(x)    = c1Q(x)2^(x^2 - EP[X^2])
+    where c1 = 1/ΣQ(x)2^(x^2 - EP[X^2])
+    D(P||Q) = ΣP(x)log(c1 * 2^(x^2 - EP[X^2]))
+            = ΣP(x)(logc1 + x^2 - EP[X^2])
+            = logc1 + EP[X^2] - EP[X^2]
+            = logc1
+
+11.29
+a.  when n = 2, the simplex is {(x, 1 - x): 0 <= x <= 1}
+    Pr{x =< c} = c for any 0 <= c <= 1
+    when X = Y1 / (Y1 + Y2),
+    Pr{X <= c}  = Pr{Y1/(Y1 + Y2) <= c}
+                = Pr{(1 - c)Y1 <= cY2}
+                = Pr{Y1 <= cY2/(1 - c)}
+                = int(0, 1, int(0, cy2/(1 - c), dy1)dy2) for c/(1 - c) <= 1
+                = int(0, 1, cy2/(1 - c)dy2)
+                = c/2(1 - c)
+    when c = 1/4, Pr{X <= c} = 1/6 != 1/4, this sampling is not uniform
+b.  // skipped
+    
+
