@@ -3661,7 +3661,12 @@ b.  let {Xi} = Y1, Z1, Y2, Z2, ..
     constraint on marginals Xn+1, Xn ~ U({1, 2, 3}), H(Xn+1|Xn) = log3 - α can be achieved by let P(Xn+1|Xn = 1) have
     H(Xn+1|Xn = 1) = log3 - α (possible by continuity of entropy and 0 <= α <= log3) and let P(Xn+1|Xn = 2) and 
     P(Xn+1|Xn = 3) be its permutations
-    by symmetry, lim{H(Xn|Xn-1)} = lim{H(Yn|Yn-1)} = log3 - α
+    let Z^n be independent to Y^n with the same distribution and transition
+    H(X^2n) = H(Y^n) + H(Z^n)
+    lim{1/2n * h(X^2n)} = lim{1/2n * (h(Y^n) + h(Z^n))}
+                        = lim{h(Yn|Y^n-1)}/2 + lim{h(Zn|Z^n-1)}/2
+                        = h(Yn|Yn-1)
+                        = log3 - α
 
 12.12
 a.  E[E[Xn+1|X^n]] = E[Xn+1], the estimator is unbiased
@@ -3713,9 +3718,42 @@ c.  when Xi ~ iid Bernoulli(p),
     p = 1/2 + sqrt(2) / 4 > 3/4
 
 12.18
+f(z, v) = e^(λ0 + λ1(1/2 * m(vx^2 + vy^2 + vz^2) + mgz)
+that is, the joint distribution of 3 independent N(0, -1/λ1m) and 1 independent Exp(-λ1mg), hence
+E[1/2 * m(Vx^2 + Vy^2 + Vz^2)] = 1/2 * m * 3 * -1/λ1m = -3/2 * 1/λ1
+E[mgZ] = mg * -1/λ1mg = -1/λ1
+E[1/2 * m||V||^2] = 3/2 * E[mgZ] = 3/5 * E0
+E[mgZ] = 2/5 * E0
+
+12.19
+same to problem 12.9
+
+12.20
+same to problem 12.10
+
+12.21
+a.  by problem 12.11, let X^2n = Y1, Z1, Y2, Z2, ..
+    Y1 is constrained by EY1^2 = 1, EY1Y2 = α
+    by Burg's theorem, h(Y^n) is maximized by a first order Gauss-Markov process with K = [1, α; α, 1] as well as Z^n
+    the initial distribution won't affect the entropy rate and can be arbitrary
+    h(X^2n) = h(Y^n) + h(Z^n|Y^n)
+            <= h(Y^n) + h(Z^n)
+    where equality is achieved only if Y^n and Z^n are independent and h(Y^n) and h(Z^n) can be maximized separately by
+    the Gauss-Markov process above
+b.  by problem 12.11, 
+    lim{1/n * h(X^n)}   = h(Yn|Yn-1)
+                        = h(Yn-1, Yn) - h(Yn-1)
+                        = 1/2 * log(2πe)^2|K| - 1/2 * log2πe
+                        = 1/2 * log2πe(1 - α^2)
+c.  since Y^n and Z^n are independent, EXiXi-1 = 0 for all i
+
+12.22
+a.  given EX = α, h(X) following the constraints is maximized by Exp(1/α), h(X) = loge + logα
+    hence logα >= h - loge, α > (2^h)/e
+b.  let Y = X - a, Y is supported by [0, +∞), h(Y) = h(X), Y is constrained by E[Y] = α - a
+    maximum of h(X) = h(Y) = loge + log(α - a) where Y ~ Exp(1/(α - a))
+    log(α - a) >= h - loge
+    α - a >= (2^h)/e
+    α >= (2^h)/e + a
 
 
-    
-
-
-12.18
