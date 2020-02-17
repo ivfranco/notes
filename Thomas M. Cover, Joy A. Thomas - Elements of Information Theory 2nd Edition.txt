@@ -2394,7 +2394,7 @@ c.  C1  = max{I(X;Y)}
         = max{H(Y) - H(Y|X)}
         = log(3/2)
     C   = log(3/2 + 2^(1 - H(p)))
-d.  symmetric channel, C = log|Y| - H(r) = log3 - H(1/3) = 2log3 - 2/3
+d.  erasure channel, C = 1 - 1/3 = 2/3
 
 7.35
 a.  equivalent to the union of channel P and a noiseless one bit channel
@@ -3756,4 +3756,125 @@ b.  let Y = X - a, Y is supported by [0, +∞), h(Y) = h(X), Y is constrained by
     α - a >= (2^h)/e
     α >= (2^h)/e + a
 
+13.1
+a.  [1 - α, α, 0; 0, α, 1 - α] is a erasure channel
+    D* = C = 1 - α
+b.  C is achieved by uniform distribution of i
+    p(v) = ((1 - α)/2, α, (1 - α)/2)
+c.  same as proved in the text
 
+13.2
+a.  the channel [Pa; Pb; Pc] is symmetric, D* = C = log3 - log(Pa) = 0.428
+    P = (1/3, 1/3, 1/3) since symmetric channel capacity is maximized by uniform output
+    li = log3
+b.  same to part a
+
+13.3
+by stationarity, 3/4 * p0 + 1/4 * p1 = p0, p0 = p1 = 1/2
+F(X^1)  = Pr{X1 = 0} * 1 = 1/2 = 0.1
+F(X^2)  = F(X^1) + p(10) * 0 = 1/2 = 0.1
+F(X^3)  = F(X^2) + p(100) = 1/2 + 3/32 = 1/2 + 1/16 + 1/32 = 0.10011
+F(X^4)  = F(X^3) = 0.10011
+F(X^5)  = F(X^4) + p(10100) = 1/2 + 3/32 + 3/256 = 0.10011011
+F(X^∞)  <= F(X^3||1)
+        = F(1011)
+        = F(X^3) + p(1010)
+        = 0.10011 + 2^-7
+        = 0.100111
+therefore F1F2F3 = 100
+
+13.4
+a.  by stationarity, p0 = p1 = 1/2
+    F(01110)    = p(00) + p(010) + p(0110)
+                = 1/6 + 2/9 + 2/27
+                = 25/54
+                = 0.01110110...
+b.  F(01110||X) <= F(01111)    
+                = F(01110) + p(01110)
+                = 25/54 + 2/81
+                = 79/162
+                = 0.01111100...
+    the first 4 bits are known to be 0111
+
+13.5
+0|00|000|1|10|101|0000|01|1010|1
+(0, 0), (1, 0), (2, 0), (0, 1), (4, 0), (5, 1), (3, 0), (1, 1), (6, 0), (4, None)
+
+13.6
+1|11|111|1111|1..
+(1 + c - 1)(c - 1) / 2 <= n
+(c - 1)^2 / 2 <= n
+c <= sqrt(2n) + 1
+c/n <= sqrt(2n) / n + 1/n -> 0 as n -> ∞
+
+13.7
+a.  Rn-1 can be described by logRn-1 + 2loglogRn-1 + O(1) bits
+    Xn can be described by ceil(log|X|) <= log|X| + 1 bits
+    with a constant length separator, (Rn-1, Xn) can be described by logRn-1 + 2loglogRn-1 + log|X| + O(1) bits in total
+b.  1.  add log|X| / n -> 0
+    2.  Rn is also a valid Rn-1, so Rn-1 <= Rn
+
+13.8
+a.  |P| < log|W| + 1
+    |L| < log|M| + 1
+b.  log|W| + log|M| + 2 < 8L
+    L > (log|W| + log|M| + 2)/8
+c.  |P| = 12, |L| = 8, L > 20/8 or L >= 3
+
+13.9
+a.  0,00,001,000,0001,1,01,011,1
+b.  all distinct elements of X^1, then X^2, then X^3 ..
+c.  the fixed sequence in problem 13.6
+    for a phrase vi, if max{|vj|, 1 <= j <= i - 1} = k, then |vi| <= k + 1
+    for a given c(n), n is bounded by 
+        n   = Σ|vi|
+            <= Σ(max{|vj|, 1 <= j < i}) + 1
+            <= Σi
+            = (c^2 + c)/2
+    the sequence 1111111.. achieves this upper bound
+
+13.10
+a.  since X is iid, the entropy rate is the entropy a single symbol H(X)
+    by definition of typical set, 
+        |-1/l * logp(x^l) - H(X)| < δ
+        p(x^l) >= 2^-l(H + δ)
+    E[Rl(X^l)|X^l = x^l]    = 1/p(x^l)  // equation 13.73
+                            <= 2^l(H + δ)
+b.  take any δ < ε,
+    Pr{Rl(X^l) > 2^l(H + ε)}    = ΣPr{Rl(X^l) > 2^l(H + ε)|X^l = x^l}p(x^l)
+                                = Σ{Aδ^l}Pr{Rl(X^l) > 2^l(H + ε)|X^l = x^l}p(x^l)
+                                + Σ{~Aδ^l}Pr{Rl(X^l) > 2^l(H + ε)|X^l = x^l}p(x^l)
+                                <= Σ{Aδ^l}E[Rl(X^l)|X^l = x^l]/2^l(H + ε) * p(x^l) + Pr{~Aδ^l}
+                                <= Σ2^l(δ - ε) * p(x^l) + Pr{~Aδ^l}
+                                <= 2^l(δ - ε) + Pr{~Aδ^l}
+                                -> 0
+c.  D1:
+        by definition of δ-typical set,
+        |Aδ^l| <= 2^l(H + δ), |D1| = l|Aδ^l| <= l2^l(H + δ)
+        describe Rl with fixed number of bits, 
+        ||Rl|| = ceil(log|D1|) < logl + l(H + δ) + 1
+        ||Rl||/l = H + δ + o(1) -> H + δ for any δ > 0
+        E[L(X^l)]/l = Σ{Aδ^l}(O(1) + ||Rl||)p(x^l)/l + Σ{~Aδ^l}(llogA + O(1))/l
+                    = (O(1) + ||Rl||)/l * Pr{Aδ^l} + (logA + o(1))Pr{~Aδ^l}
+                    -> H + δ
+    D2:
+        ||Rl|| = ceil(log|D2|) < l(H + δ) + 1, ||Rl||/l < H + δ + o(1)
+        E[L(X^l)]/l = Pr{Rl(X^l) <= 2^l(H + δ)} * (O(1) + ||Rl||)/l + Pr{Rl(X^l) > 2^l(H + δ)} * (O(1) + llogA)/l
+                    -> H + δ
+
+13.11
+a.  // thanks solutions manual
+    let L be the prefix of X^n in AD, then 
+    nH(X)   = H(X^n)
+            = H(X^L, L, X^{L+1,n})
+            = H(X^L) + H(L|X^L) + H(X^{L+1,n}|L, X^L)
+    since L is fixed given X^L, X^L and X^{L+1,n} are independent given L, 
+    H(X^{L+1,n}|L)  = ΣPr{L = l}H(X^{L+1,n}|L = l)
+                    = ΣPr{L = l}(n - l)H(X)
+                    = (n - EL)H(X)
+                    = nH(X) - H(X^L)
+    H(X^L)  = E[L]H(X)
+    since X^L ∈ AD, H(X^L) <= log|AD|
+    log|AD| >= E[L]H(X)
+    log|AD|/E[L] >= H(X)
+b.  // skipped, the proof is quite complicated
