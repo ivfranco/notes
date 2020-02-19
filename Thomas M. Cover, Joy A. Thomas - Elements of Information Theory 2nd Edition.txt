@@ -3878,3 +3878,56 @@ a.  // thanks solutions manual
     log|AD| >= E[L]H(X)
     log|AD|/E[L] >= H(X)
 b.  // skipped, the proof is quite complicated
+
+14.1
+let px and py be two programs of x and y that K(x) = l(px) and K(y) = l(py)
+let some p be a simulator program of U itself that after halting the first time, initializes all the states, and run
+the rest of the tape as another program, let l(p) = c
+p||px||py is a program for (x, y), hence K(x, y) <= K(x) + K(y) + c
+
+14.2
+a.  proved in the text
+b.  problem 14.1 and an additional subroutine that adds the two numbers on the working tape
+c.  for some incompressible x^n, 10^n - x^n must also be incompressible (otherwise K(x^n) = K(10^n - x^n) + c for some 
+    program that computes x^n from 10^n - x^n)
+    but the sum of the two number has K(10^n) = K(n) + c ≒ K(log(x^n)) + c
+
+14.3
+a.  a horizontal line is defined by the line number 1 <= k <= n
+    K(x|n) = K(k|n) + c = logn + c' in average and lower if k is special
+b.  a box is defined by two points (x1, y1), (x2, y2)
+    K(x|n) = 4logn + c in avarage
+c.  K(x|n) = 2logn + c
+
+14.4
+a program:
+    print the next n bits exactly: ...
+have to describe the n bits and the number n, l(p) <= logn + 2loglogn + n + c
+logn + 2loglogn + c bits in the program must be fixed, other n bits can be arbitrary
+let I be a random variable that I = 1 if the program P is of the form described above, I = 0 otherwise
+let N be the number of arbitrary bits
+I and N is determined by the first logn + loglogn + c bits of the program
+H(X)    >= H(X|I, N)
+        >= ΣPr{I = 1, N = n}H(X|I = 1, N = n)
+        = 2^-(logn + loglogn + c)H(X|I = 1, N = n)  // N is a function of X
+        = Σ1/cn(logn)^2 * n
+        = Σ1/c(logn)^2 -> ∞
+
+14.5
+Pu(x) ~ 2^-K(x)
+a.  a program that prints 0 forever
+    Pu(x) = 2^-c for some c
+b.  a program that computes π to infinite precision
+    same to part a
+c.  K(x) = K(n) + c <= logn + 2loglogn + c
+    Pu(x) ~ 1/cn(logn)^2
+d.  K(x) = K(w^n) + c >= n - c
+    Pu(x) ~ 2^(n - c)
+e.  2^-c
+
+14.6
+a.  theorem 14.2.2 is independent of arity
+b.  for a ternary computer, there are < 3^k programs of length < k, each of them either doesn't hail or produces a fixed
+    output x
+
+14.7
