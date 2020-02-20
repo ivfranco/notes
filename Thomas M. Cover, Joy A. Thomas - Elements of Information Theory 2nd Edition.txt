@@ -3896,14 +3896,14 @@ c.  for some incompressible x^n, 10^n - x^n must also be incompressible (otherwi
 a.  a horizontal line is defined by the line number 1 <= k <= n
     K(x|n) = K(k|n) + c = logn + c' in average and lower if k is special
 b.  a box is defined by two points (x1, y1), (x2, y2)
-    K(x|n) = 4logn + c in avarage
+    K(x|n) = 4logn + c in average
 c.  K(x|n) = 2logn + c
 
 14.4
-a program:
+a program to output a string of length n:
     print the next n bits exactly: ...
-have to describe the n bits and the number n, l(p) <= logn + 2loglogn + n + c
-logn + 2loglogn + c bits in the program must be fixed, other n bits can be arbitrary
+have to describe the n-bit string and the number n, l(p) <= logn + 2loglogn + n + c
+the first logn + 2loglogn + c bits in the program must be fixed, other n bits can be arbitrary
 let I be a random variable that I = 1 if the program P is of the form described above, I = 0 otherwise
 let N be the number of arbitrary bits
 I and N is determined by the first logn + loglogn + c bits of the program
@@ -3927,7 +3927,70 @@ e.  2^-c
 
 14.6
 a.  theorem 14.2.2 is independent of arity
-b.  for a ternary computer, there are < 3^k programs of length < k, each of them either doesn't hail or produces a fixed
+b.  for a ternary computer, there are < 3^k programs of length < k, each of them either doesn't halt or produces a fixed
     output x
 
 14.7
+let k0, k1, k2 be the number of 0, 1 and 2 in the string of length n
+by the same method in example 14.2.8, K(x^n|n) <= c + 2log3(n) + log3(C(n, k0, k1, k2))
+by Stirling's approximation,
+    log3(C(n, k0, k1, k2))  ≒ log3((n/e)^n / ((k0/e)^k0 * (k1/e)^k1 * (k2/e)^k2)))
+                            = log3((n/k0)^k0 * (n/k1)^k1 * (n/k2)^k2)
+                            = -Σ(ki * log3(ki/n))
+so K(x^n|n)/n   <= c/n + 2log3(n)/n - Σ(ki/n * log3(ki/n))
+                = c/n + 2log3(n)/n + H3(k0/n, k1/n, k2/n)
+                -> H3(θ)
+where θ is the empirical distribution of x^n
+since K(x^n|n)/n >= 1, lim{H3(θ)} >= 1
+but H3(θ) <= log3(|X|) = log3(3) = 1, so H3(θ) -> 1, θ ~ U({0, 1, 2}) as n -> ∞
+
+14.8
+a.  K(~A|n) <= K(A|n) + c
+    given a program of A and n, ~A can be computed from A with an additional, constant-length procedure
+b.  K(A ∪ B|n) <= K(A|n) + K(b|n) + c
+    a simulator running two programs back to back + a program computing union of two sets on the working tape has 
+    constant length
+c.  K(A ∩ B|n) <= K(A|n) + K(b|n) + c
+    similar to part b
+
+14.9
+the simplest program that outputs n bits of 1/sqrt(2) for sufficiently large n is a program that outputs 1/sqrt(2) to
+infinite precision, p0 = 2^-K(p) = c for some constant c that is a sum over all program that computes 1/sqrt(2)
+if the next bit is not the corresponding bit of 1/sqrt(2), the output is a description of n (i.e. describes n by output
+n bits of 1/sqrt(2) followed with a wrong bit), hence K(x) >= K(n) ~ 2^-(logn + o(logn)) ~ 1/n
+therefore it's the same to equation 14.86, p(1|1^n) = cn/(cn + 1)
+
+14.10
+a.  K(x|m) <= m^2/2 + c
+    and K(x|m) ~ m^2/2 + c for most patterns
+b.  the cell can be described by its location on the image
+    K(x|m) <= m^2/2 + 2logm + c
+
+14.11
+a.  each rectangle is 4 degrees of freedom, K(x|n) <= 8logn + c
+b.  two degrees of freedom vanished, K(x|n) <= 6logm + c
+c.  given one rectangle, the other rectangle must be the same shape at different location (2 dof)
+    K(x|n) <= 6logm + c
+d.  given one rectangle, the other rectangle have 3 dof (the last is defined by the area)
+    K(x|n) <= 7logm + c
+e.  the entire grid, K(u|n) ~ c
+f.  an incompressible string of length n^2, K(x|n) ~ n^2 + c
+
+14.12
+a.  some constant c, the encryption map has length 27
+b.  K(y^n) <= K(x^n) + c = n/4 + c
+    a program can compute the encrypted text from the encryption map and the plain text
+c.  there are 27! possible encryption maps, K(m) ~ log27!
+    the data must have a Kolmogorov complexity at least K(m)
+
+14.13
+the lowest Kolmogorov complexity of a number can be a constant
+if a number have the bit pattern of an incompressible string, K(n) >= n
+K(n + k) - K(n) >= n + k - c
+
+14.14
+M(n) can be almost unbounded (e.g. Graham's number)
+2^n + c0 >= S(n) >= 2^n - c1 since K(2^n) ~ log2^n + o(log2^n) ~ n and there's incompressible number of 2^n+1 bits
+therefore S(n) << M(n)
+both K(M(n)) and K(S(n)) ~ n since a shorter program can be extended to a longer program by no-ops
+
