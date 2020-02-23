@@ -3994,3 +3994,49 @@ M(n) can be almost unbounded (e.g. Graham's number)
 therefore S(n) << M(n)
 both K(M(n)) and K(S(n)) ~ n since a shorter program can be extended to a longer program by no-ops
 
+15.1
+a.  let X = (X1, X2), W = (W1, W2), |W| = |W1||W2| = 2^n(R1 + R2), by single user channel capacity, a rate R is
+    achievable iff:
+        R = 1/n * log|W| < max{I(X;Y)}
+    hence the capacity region is R1 + R2 < max{I(X;Y)}
+b.  |Y| = 3, R1 + R2 = I(X;Y) = H(Y) - H(Y|X1, X2) = H(Y) <= log3 > 1 + 1/2
+    the cooperative region is a superset of the non-cooperative region
+
+15.2
+a.  R1  < I(X1;Y|X2)
+        = H(Y|X2) - H(Y|X1, X2)
+        = H(Y|X2)
+        <= 1
+    where the upper bound is achieved by X1 ~ U({0, 1})
+    R2  <= 1 by symmetry
+    R1 + R2 < I(X1, X2;Y)
+            = H(Y) - H(Y|X1, X2)
+            = H(Y) <= 1
+b.  same to part a
+
+15.3
+I(X1;Y, X2) = I(X2;X1) + I(Y;X1|X2) // chain rule
+            = I(Y;X1|X2) // independence
+R1 < I(X1;Y|X2) is the bound by S = {X1}
+R2 < I(X2;Y|X1) is the bound by S = {X2}
+R1 + R2 < I(X1, X2;Y) is the bound by S = {X1, X2}
+
+15.4
+constants:  EX1^2 <= P1, EX2^2 <= P2
+codebook:   generate 2^nR1 codewords X1^n ~ iid N(0, P1 - ε), 2^nR2 codewords X2^n ~ iid N(0, P2 - ε)
+encoding:   upon indices w1 and w2, send X1(w1) and X2(w2)
+decoding:   the receiver looks up the codebook for a pair of sequences X1(w1), X2(w2) that
+                (X1(w1), X2(w2), Y) ∈ Aε^n
+            output (1, 1) if no such sequences exist, more than one such sequences exist or the unique X1(w1), X2(w2) 
+            violates the power constraint,
+let
+    E0i = {1/n * ΣXi^2(1) > Pi}
+    Eij = {(X1(i), X2(i), Y) ∈ Aε^n}
+for the received Y,
+when (W1, W2) = (1, 1),
+Pe  <= Pr{E01} + Pr{E02} + Pr{~E11} + Σ{i != 1}Pr{Ei1} + Σ{j != 1}Pr{E1j} + Pr{i != 1, j != 1}Pr{Eij}
+where
+    Pr{E01}, Pr{E02} -> 0 as n -> ∞ by weak law of large numbers
+    Pr{~E11} -> 0 by joint AEP of (X1, X2, Y)
+    ΣPr{Ei1}    <= |W1| * 2^n(I(X1;Y, X2) - 3ε)
+                = 2^n(R1 - I(X1;Y, X2) - 3ε)
