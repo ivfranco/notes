@@ -4022,6 +4022,7 @@ R2 < I(X2;Y|X1) is the bound by S = {X2}
 R1 + R2 < I(X1, X2;Y) is the bound by S = {X1, X2}
 
 15.4
+channel:    Y = X1 + X2 + Z, Z ~ N(0, N)
 constants:  EX1^2 <= P1, EX2^2 <= P2
 codebook:   generate 2^nR1 codewords X1^n ~ iid N(0, P1 - ε), 2^nR2 codewords X2^n ~ iid N(0, P2 - ε)
 encoding:   upon indices w1 and w2, send X1(w1) and X2(w2)
@@ -4040,3 +4041,155 @@ where
     Pr{~E11} -> 0 by joint AEP of (X1, X2, Y)
     ΣPr{Ei1}    <= |W1| * 2^n(I(X1;Y, X2) - 3ε)
                 = 2^n(R1 - I(X1;Y, X2) - 3ε)
+                -> 0 for R1 < I(X1;Y, X2) = I(X1;Y|X2) by independence between X1 and X2
+    Y|x2 ~ N(0, P1 + N), Y|x1, x2 ~ N(0, N)
+    I(X1;Y|X2)  = h(Y|X2) - h(Y|X1, X2)
+                = 1/2 * log2πe(P1 + N) - 1/2 * log2πeN
+                = 1/2 * log(1 + P1/N)
+    similarly
+    ΣPr{E1j} -> 0 for R2 < 1/2 * log(1 + P2/N)
+    ΣPr{Eij} -> 0 for R1 + R2 < I(X1, X2|Y) = h(Y) - h(Y|X1, X2) = 1/2 * log(1 + (P1 + P2)/N)
+
+15.5
+similar to discrete case, where I(Y;X1|X2), I(Y;X2|X1) and I(X1, X2;Y) are calculated above
+
+15.6
+a.  let p(0, 1) = p(1, 1) = 0, p(0, 0) = p(1, 0) = 1/2
+    I(Y;X1|X2)  = H(Y|X2) - H(Y|X1, X2)
+                = H(Y|X2)
+                = H(Y|X2 = 0) = 1
+    let p(0, 0) = p(0, 1) = 1/2, p(1, 1) = p(1, 0) = 0
+    I(Y;X2|X1)  = H(Y|X1) - H(Y|X1, X2)
+                = H(Y|X1)
+                = H(Y|X1 = 0) = 1
+b.  I(X1, X2;Y) = H(Y) - H(Y|X1, X2) <= 1 - H(Y|X1, X2)
+    H(Y|X1, X2) = 0 iff p(1, 1) = p1(1)p2(1) = 0, either p1 or p2 is degenerate
+c.  by convexity any R1 + R2 = 1 can be achieved by time sharing since (0, 1) and (1, 0) are achievable
+    but by part b R1 + R2 = 1 cannot be achieved by a single codebook
+
+15.7
+by exactly the same argument for multi access channels
+let (R11, R12) and (R21, R22) be two pairs of achievable rates with codebooks C1 and C2, define a third codebook by 
+using C1 for the first λn symbol and C2 for the remaining (1 - λ)n symbol, the new codebook have 2^n(λR11 + (1 - λ)R21) 
+codewords for W1, the rate is λR11 + (1 - λ)R21, the first λn symbols can be decoded by C with error rate Pe1 -> 0,
+similarly the last (1 - λ)n symbols can be decoded with error rate Pe2 -> 0, the overall error rate
+    Pe  = Pr{Pe1 ∪ Pe2}
+        <= Pe1 + Pe2
+        -> 0
+therefore λR1 + (1 - λ)R2 is achievable, the capacity region is convex
+
+15.8
+R1 >= H(X|Y)
+R2 >= H(Y|X) = 0
+R1 + R2 >= H(X, Y) = H(X)
+
+15.9
+X = Y - Z mod 2 = Y + Z mod 2, given any two of (X, Y, Z) the other can be calculated
+there's a bijection between (X, Y) and (X, Z)
+R1  >= H(X|Y)
+    = H(Z) = H(r)
+R2  >= H(Y|X)
+    = H(Z) = H(r)
+R1 + R2 >= H(X, Y)
+        = H(X, Z)
+        = H(p) + H(r)
+
+15.10
+let E1 = {W1'(Y1) != W1}, E2 = {W2'(Y2) != W2}, E = {(W1'(Y1), W2'(Y2)) != (W1, W2)}
+P^n = Pr{E}   
+    = Pr{E1 ∪ E2}
+    <= Pr{E1} + Pr{E2}
+    = P1^n + P2^n
+P^n >= max{Pr{E1}, Pr{E2}}
+    = max{P1^n, P2^n}
+where
+P1^n    = E[I{E1}]
+        = Σp(x, y1)I(E1)
+        = Σp(x)p(y1|x)I(E1)
+depends only on p(y1|x) given p(x), similarly P2^n depends only on p(y2|x)
+
+15.11
+a.  chain rule of mutual information
+b.  definition of mutual information
+c.  dropping condition increases term 1, adding condition decreases term 2
+d.  given W2, Y2i is independent of the history Y2^i-1
+e.  definition of mutual information and Ui
+f.  given (W1, W2), W1 is independent of Y1^n, W1 -> (W1, W2) -> Y1^n
+g.  by problem 15.3, should be equality if W1 and W2 are independent
+h.  chain rule of mutual information
+i.  W1 -> (W1, W2) -> X^n -> Y^n, and the definition of Ui
+let X = XQ, Y1 = Y1Q, Y2 = Y2Q, U = (UQ, Q)
+I(XQ;Y1Q|UQ, Q) = I(X;Y1|U)
+I(UQ;Y2Q|Q) = I(U;Y2) only if Q and Y2Q are independent
+
+15.12
+a.  R1  <= I(Y1;X|U)
+        = H(Y1|U) - H(Y1|X, U)
+        = H(Y1|U) - H(Y1|X) // U -> X -> Y1 -> Y2
+        <= H(Y1) - H(Y1|X) // achieved by U = 0
+        = I(X;Y1)
+    R2  <= I(U;Y2)
+        <= I(X;Y2) // data processing inequality, achieved by U = X
+    hence a = max{I(X;Y1)}, b = max{I(X;Y2)}
+b.  data processing inequality, X -> Y1 -> Y2
+
+15.13
+a.  // a proof of the optimality of a symmetry connection from U to X can be found in 
+    // Network Information Theory, Abbas El Gamal & Young-Han Kim, 2011
+    let U -> X be a BSC with error rate β
+    I(Y1;X|U)   = H(Y1|U) - H(Y1|X, U)
+                = H(Y1|U) - H(Y1|X)
+                = H(β ** p) - H(p)
+    the channel p(y2|u) is a binary symmetric-erasure channel, by problem 7.13 its capacity is 
+    max{I(Y2;U)} = H((1 - α)/2, α, (1 - α)/2) - H(1 - α - β ** p, α, β ** p)
+    both rates are maximized by p(u) = 1/2
+
+15.14
+append sqrt(n) bits to the n-bit codewords of C1 and C2, if p = p1, the first sqrt(n) bits are 0, otherwise are 1
+the effective rate is
+    log(2^nRi) / (n + sqrt(n)) = nRi / (n + sqrt(n)) = Ri / (1 + sqrt(n) / n) -> Ri
+by large deviation theory, the probability that more than half of the appended bits are reversed by the channel is 
+    Pe  <= (sqrt(n) + 1)^2 * 2^-sqrt(n)D(P*||Q), P*(0) = P*(1) = 1/2, Q = P1 or P2
+        -> 0 since 2^-sqrt(n)D is exponential and (sqrt(n) + 1)^2 is polynomial
+therefore both the prefix and the codeword can be decoded with Pe -> 0 as n -> 0
+
+15.15
+a.  channel:    sender 1 sends X1, receives Y1
+                sender 2 sends X2, receives Y2
+                the channel is defined by p(y1, y2|x1, x2), p(x1, x2) = p(x1)p(x2)
+    codebook:   |W1| = 2^nR1, |W2| = 2^nR2, for each W1 and W2 generate code ~ iid p(x1) and p(x2)
+    encoding:   (w1, w2) -> (X1(w1), X2(w2))
+    decoding:   sender 1 looks up the codebook for a x2 that (x1, X2(w2), y1) ∈ Aε^n and return w2
+                sender 2 looks up the codebook for a x1 that (X1(w1), x2, y2) ∈ Aε^n and return w1
+                return 1 if there's no or more than one such jointly typical code
+    let 
+        Pe1 = Pr{W1' != W1}
+        Pe2 = Pr{W2' != W2}
+        Ei = {(x1, X2(i), y1) ∈ Aε^n}
+    assume W2 = 1, 
+    Pe2 = Pr{~E1 ∪ Σ{i != 1}Ei}
+        <= Pr{~E1} + Σ{i != 1}Pr{Ei}
+        <= ε + Σ{i != 1}Σ{Aε^n}p(x1, y2)p(x2)
+        <= ε + Σ{i != 1}Σ{Aε^n}2^-n(H(X1, Y1) - ε)2^-n(H(X2) - ε)
+        <= ε + 2^nR2 * 2^n(H(X1, X2, Y1) + ε)2^-n(H(X1, Y1) - ε)2^-n(H(X2) - ε)
+        = ε + 2^n(R2 - H(X2|X1, Y1) - H(X2) + 3ε)
+        = ε + 2^n(R2 - I(X2;X1, Y1) + 3ε)
+        = ε + 2^n(R2 - I(X2;Y1|X1) + 3ε)
+        -> 0 if R2 < I(X2;Y1|X1) - 3ε
+    by symmetry, Pe1 -> 0 if R1 < I(X1;Y2|X2)
+    Pe  = Pr{W1' != W1 or W2' != W2}
+        <= Pe1 + Pe2
+        -> 0
+b.  immediate consequence of theorem 15.10.1
+
+15.16
+a.  fix X2 = 1, Y = X1 + 1 is noiseless, R1 = ∞
+    R2  < I(X2;Y|X1)
+        = h(Y|X1) - h(Y|X1, X2)
+        = h(sgn(X2))
+        <= 1
+    since R1 can be infinite, R1 + R2 is unbounded
+b.  as R1 can be infinite, an arbitrary and finite portion of the codeword can be used to describe sgn(X2)
+    using any reasonable code and large derivation theory the error rate of sgn(X2) -> 0
+
+15.17
