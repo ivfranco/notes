@@ -4136,12 +4136,14 @@ b.  data processing inequality, X -> Y1 -> Y2
 15.13
 a.  // a proof of the optimality of a symmetry connection from U to X can be found in 
     // Network Information Theory, Abbas El Gamal & Young-Han Kim, 2011
+    let p ** q = p(1 - q) + q(1 - p)
     let U -> X be a BSC with error rate β
     I(Y1;X|U)   = H(Y1|U) - H(Y1|X, U)
                 = H(Y1|U) - H(Y1|X)
                 = H(β ** p) - H(p)
-    the channel p(y2|u) is a binary symmetric-erasure channel, by problem 7.13 its capacity is 
-    max{I(Y2;U)} = H((1 - α)/2, α, (1 - α)/2) - H(1 - α - β ** p, α, β ** p)
+    the channel p(y2|u) is a binary symmetric-erasure channel, with erasure rate α and error rate β' = (β ** p)(1 - α)
+    by problem 7.13 its capacity is 
+        max{I(Y2;U)} = H((1 - α)/2, α, (1 - α)/2) - H(1 - α - β' α, β')
     both rates are maximized by p(u) = 1/2
 
 15.14
@@ -4193,3 +4195,223 @@ b.  as R1 can be infinite, an arbitrary and finite portion of the codeword can b
     using any reasonable code and large derivation theory the error rate of sgn(X2) -> 0
 
 15.17
+a.  let 
+        α' = α/(α + 2β)
+        β' = β/(α + 2β)
+    R1  >= H(X|Y)
+        = H(α', β', β')
+    R2  >= H(Y|X)
+        = H(α', β', β')
+    R1 + R2 >= H(X, Y)
+            = log3 + H(α', β', β')
+b.  Pr{X = Y} = 3α
+c.  β = 0, X = Y, the code region is points (R, R) where R >= log3
+d.  β = 1/9, H(X|Y) = H(Y|X) = log3, H(X, Y) = log9
+    R1, R2 >= log3
+
+15.18
+a.  R1  < I(X1;Y|X2)
+        = H(Y|X2) - H(Y|X1, X2)
+        = H(X1^2|X2)
+        <= 1
+    R2  < H(X2^2|X1) <= 1
+    let X1^2 ~ Bernoulli(α), X2^2 ~ Bernoulli(β)
+    R1 + R2 < I(X1, X2;Y)
+            = H(Y) - H(Y|X1, X2)
+            = H(Y)
+            = H(αβ, α(1 - β) + (1 - α)β, (1 - α)(1 - β)) for some 0 <= α, β <= 1
+b.  same to example 15.3.3 the binary erasure multi-access channel, a point (1, 1/2) is on the boundary
+
+15.19
+R1  >= H(U1|U2)
+    = (α + γ)H(U1|0)
+    = (α + γ)(H(α/(α + γ)) + γlog(m - 1))
+R2  >= H(U2|U1)
+    = (α + β)(h(α/(α + β)) + βlog(m - 1))
+R1 + R2 >= H(U1, U2)
+        = H(α + β) + γlog(m - 1) + (α + β)(H(α/(α + β)) + βlog(m - 1))
+
+15.20
+a.  this channel is isomorphic to the binary erasure multi-accessing channel, the capacity region is
+        R1 < 1
+        R2 < 1
+        R1 + R2 < 3/2
+b.  R2  < I(X2;Y|X1)
+        = H(Y|X1) - H(Y|X1, X2)
+        = H(Y|X1)
+        = p1(1)H(Y|X1 = 1) + p1(2)H(Y|X1 = 2)
+        = p1(2)H(Y|X1 = 2)
+        <= 1, where the upper bound is only achieved by p1(2) = 1, then
+    R1  < I(X1;Y|X2) = 0
+    (1/2, 1) is not on the boundary of the capacity region
+    the capacity region is decreased
+
+15.21
+a.  a binary erasure channel, C = 1 - α1
+b.  a binary erasure channel with erasure rate 1 - (1 - α1)(1 - α2) = α1 + α2 - α1α2, C = 1 - α1 - α2 + α1α2
+c.  connect U to X by a binary symmetric channel with error rate β
+    U -> Y1 is equivalent to a binary symmetric erasure channel with error rate β1 = β(1 - α)
+    I(X;Y1|U)   = H(Y1|U) - H(Y1|U, X)
+                = H(Y1|U) - H(Y1|X)
+                = H(α1, (1 - α1)(1 - β), β(1 - α1)) - H(α)
+    U -> Y2 is equivalent to a binary symmetric erasure channel with error rate β2 = β(1 - α1 - α2 + α1α2) and erasure
+    rate α2' = α1 + α2 - α1α2, by problem 7.13,
+    I(U;Y2) <= H((1 - α2')/2, α2', (1 - α2')/2) - H(1 - α2' - β2, α2', β2)
+    which is maximized by U ~ Bernoulli(1/2)
+
+15.22
+a.  Rx  >= H(X|Y)
+        = H(X + Y|Y)
+        = H(2Z1|Z1 - Z2)
+        = Pr{Z1 = Z2}H(Z1|Z1 = Z2)
+        = (pq + (1 - p)(1 - q))H(pq/(pq + (1 - p)(1 - q)))
+    Ry  >= H(Y|X)
+        = H(Y + X|X)
+        = H(2Z1|Z1 + Z2)
+        = Pr{Z1 + Z2 = 1}H(Z1|Z1 + Z2 = 1)
+        = (p ** q)H(p(1 - q) / p ** q)
+    Rx + Ry >= H(X, Y)
+            = H(Z1, Z2) // bijection between (X, Y) and (Z1, Z2) 
+            = H(p) + H(q)
+b.  Rz1 >= H(Z1|Z2) = H(Z1) >= H(X|Y)
+    Rz2 >= H(Z2|Z1) = H(Z2) >= H(Y|X)
+    Rz1 + Rz2 >= H(Z1, Z2) = H(p) + H(q)
+    the capacity region is smaller  
+
+15.23
+R1  < I(X1;Y|X2)
+    = H(Y|X2)
+    <= 1, where the upper bound is achieved by X1 ~ Bernoulli(1/2)
+R2  < I(X2;Y|X1)
+    = H(Y|X1)
+    <= log3, where the upper bound is achieved by X1 = 1, X2 ~ U({1, 2, 3})
+R1 + R2 < I(X1, X2;Y)
+        = H(Y)
+        <= 2, where the upper bound is achieved by p(x1) = (1/4, 3/4), p(x2) = (1/3, 1/3, 1/3)
+
+15.24
+R1  > H(X1|X2, X3)
+    = H(Z1|Z1 + Z2, Z1 + Z2 + Z3)
+    = H(Z1|Z1 + Z2, Z3) // bijection
+    = H(Z1|Z1 + Z2) // independence
+    = Pr{Z1 + Z2 = 1}H(Z1|Z1 + Z2 = 1)
+    = 2p(1 - p)
+R2  > H(X2|X1, X3)
+    = H(Z1 + Z2|Z1, Z1 + Z2 + Z3)
+    = H(Z2|Z1, Z2 + Z3) // shift and bijection
+    = H(Z2|Z2 + Z3)
+    = 2p(1 - p) // symmetry to R1
+R3  > H(X3|X1, X2)
+    = H(Z1 + Z2 + Z3|Z1, Z1 + Z2)
+    = H(Z3|Z1, Z1 + Z2) // shift
+    = H(Z3) = 1
+R1 + R2 > H(X1, X2|X3)
+        = H(X1, X2, X3) - H(X3), X3 ~ Binomial(3, p)
+        = 3H(p) - H(p^3, 3p(1 - p)^2, 3p^2(1 - p), (1 - p)^3)
+R1 + R3 > H(X1, X3|X2)
+        = 3H(p) - H(X2), X2 ~ Binomial(2, p)
+        = 3H(p) - H(p^2, 2p(1 - p), (1 - p)^2)
+R2 + R3 > H(X2, X3|X1)
+        = 3H(p) - H(p)
+        = 2H(p)
+R1 + R2 + R3    > H(X1, X2, X3)
+                = H(Z1, Z2, Z3)
+                = 3H(p)
+
+15.25
+a.  R1  < I(X1;Y|X2)
+        = H(Y|X2) - H(Y|X1, X2)
+        = H(Y|X2)
+        = H(X1) <= 1
+    R2  < I(X2;Y|X1) <= 1
+    R1 + R2 < I(X1, X2;Y) = H(Y) = 2
+b.  when X1 and X2 have access to both codebooks, all of the capacity I(X1, X2;Y) can be used to transmit W1 or W2, both
+    (2, 0) and (0, 2) are achievable, by time sharing all points below R1 + R2 < 2 is achievable
+
+15.26
+by equation 15.150,
+    Ri <= Wilog(1 + Pi/NWi) -> Pi/N as Wi -> ∞
+as a single channel X^n -> Y, the capacity is given by equation 9.61,
+    ΣRi <= Wlog(1 + ΣPi/NW) -> ΣPi/N as W -> ∞
+so there's no interference between senders
+
+15.27
+C(P1/N) + C(P2/(P1 + N))
+= 1/2 * log((P1 + N)/N) + 1/2 * log((P1 + P2 + N)/(P1 + N))
+= 1/2 * log((P1 + P2 + N)/N)
+= 1/2 * log(1 + (P1 + P2)/N)
+= C((P1 + P2)/N)
+
+15.28
+// thanks wolframalpha
+d(R1 + R2)/dW1  = -log(W1(NW2 + P2)/(W2(NW1 + P1))) - P1/(NW1 + P1) + P2/(NW2 + P2)
+when W1 = WP1/(P1 + P2), P1/(NW1 + P1) = P2/(NW2 + P2), W1(NW2 + P2) = W2(NW1 + P1), d(R1 + R2)/dW1 = 0
+R1 + R2 is maximized by proportional bandwidth
+
+15.29
+// thanks solutions manual
+a.  D's symbol set has size M + 2: he can understand all M Dutch words, and distinguish French and Spanish words from
+    each other or any Dutch words (but not individual French or Spanish words)
+    Rd <= log(M + 2)
+b.  the maximizing distribution for Rd is a uniform distribution over M + 2 words, for a codeword length of M + 2, one
+    word would be in Spanish, its position can be random among m + 2 words, the position of the French word can be
+    random among m + 1 words
+    |Cs| = m(m + 1)(m + 2) = 2^(m + 2)Rs, Rs = log(m(m + 1)(m + 2))/(m + 2)
+c.  Rf = Rs by symmetry
+
+15.30
+a.  I(X;Y1, Y2) = h(Y1, Y2) - h(Y1, Y2|X)
+                = h(Y1, Y2) - h(Z1, Z2)
+                = h(Y1, Y2) - 1/2 * log(2πe)^2N1N2
+    by example 12.2.8 h(Y1, Y2) is maximized by multivariate Gaussian distribution with zero mean, where
+    K = [α1^2P^2 + N1, α1α2P^2; α1α2P^2, α2^2P^2 + N2]
+    h(Y1, Y2)   = 1/2 * log(2πe)^2|K|
+                = 1/2 * log(2πe)^2(α1^2P^2N2 + α2^2P^2N1 + N1N2)
+    I(X;Y1, Y2) <= 1/2 * log(1 + (α1^2P^2N2 + α2^2P^2N1)/N1N2)
+                = C(α1^2P^2/N1 + α2^2P^2/N2)
+b.  this channel is equivalent to 
+        Y1' = X + Z1/α1
+        Y2' = X + Z2/α2
+    by dividing both sides with constants α1 and α2
+    by example 15.6.6, the capacity region of this channel is
+        R1 < C(αα1^2P/N1)
+        R2 < C((1 - α)P/(αP + N2/α2^2))
+    for some 0 <= α <= 1
+
+15.31
+a.  for any S ⊆ {1, .., m},
+        R(S) <= C(|S|P/N)
+        R(S) + R0 <= C((|S|P + P0)/N)
+    therefore 
+        R0  <= C((|S|P + P0)/N) - C(|S|P/N)
+            = 1/2 * log((1 + (|S|P + P0)/N) / (1 + |S|P/N))
+            = 1/2 * log(1 + P0/(N + |S|P))
+            = C(P0/(N + |S|P)) 
+    where C(P0/(N + |S|P)) is minimized by |S| = m, R0 <= C(P0/(N + mP))
+b.  C(P0/(N + mP)) = C(mP/N), since capacity function is strictly increasing,
+    P0/(N + mP) = mP/N
+    P0 = (N + mP)mP / N
+
+15.32
+by the min-cut bound on general multi-terminal networks,
+    R1  <= I(X;Y1)
+        = H(Y1) - H(Y1|X)
+        = H(Y1)
+    R2  <= H(Y2)
+    R1 + R2 <= I(X;Y1, Y2)
+            = H(Y1, Y2)
+these bounds are true for any broadcast channel
+
+15.33
+a.  capacity region is the closure of the convex hull of
+    R1  < I(X1;Y|X2)
+        = H(Y|X2) - H(Y|X1, X2)
+        = H(Y|X2) <= 2, the upper bound is achieved by X1 ~ U({0, 1, 2, 3})
+    R2  < I(X2;Y|X1)
+        = H(Y|X1) <= 1, the upper bound is achieved by X2 ~ Bernoulli(1/2)
+    R1 + R2 < I(X1, X2;Y)
+            = H(Y) <= 2, the upper bound is achieved by X1 ~ U({0, 1, 2, 3}), X2 = 0
+b.  R1 + R2 < 2
+
+15.34
+
