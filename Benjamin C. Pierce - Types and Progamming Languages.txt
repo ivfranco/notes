@@ -1223,7 +1223,7 @@ succ(a)
 
 then the only F-closed subset of N is N itself
 i.e. uF = N (proof: if uF < N, then there is some x in N that x is not in uF, but 0 is in F(uF) and x is in F^x(uF). 
-by definition of uF F(uF) <= uF, by monotony F^(n+1)(uF) <= F^n(uF) <= uF, contradiction)
+by definition of uF F(uF) <= uF, by monotonicity F^(n+1)(uF) <= F^n(uF) <= uF, contradiction)
 so if Ps is F-closed (Ps implies F(Ps), F(Ps) <= Ps) then N = Ps, P is true for all natural numbers
 
 2. the generator function in lexicographic set is defined by rules:

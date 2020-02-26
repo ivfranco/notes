@@ -4414,4 +4414,60 @@ a.  capacity region is the closure of the convex hull of
 b.  R1 + R2 < 2
 
 15.34
+a.  R1  >= H(U|V)
+        = H(Z1Z2|Z1 + Z2)
+        = 0 // Z1Z2 is a function of Z1 + Z2
+    R2  >= H(V|U)
+        = H(Z1 + Z2|Z1Z2)
+        = Pr{Z1Z2 = 0}H(Z1 + Z2|Z1Z2)
+        = (q^2 + 2pq)H(q^2 / (q^2 + 2pq))
+    R1 + R2 >= H(U, V)
+            = H(V)
+            = H(q^2, 2pq, p^2)
+b.  what is X and Y?
 
+15.35
+// thanks solutions manual
+a.  let C(r) = max{p(x): E[r(X) <= r]}I(X;Y)
+    by definition, C(r) is non-decreasing
+    let p1, p2 bet distributions of X that achieves C(r1) and C(r2)
+    let p = λp1 + (1 - λ)p2, Ep[r(X)] = λr1 + (1 - λ)r2
+    C(λr1 + (1 - λ)r2)  >= Ip(X;Y)
+                        >= λp1(X;Y) + (1 - λ)Ip2(X;Y)
+                        = λC(r1) + (1 - λ)C(r2)
+    so C(r) is concave and non-decreasing
+    C(r) is achievable in a similar way to the Gaussian channel with power constraint, by generating codewords from p(x)
+    that Ep[r(X)] = r - ε, Pr{1/n * Σr(xi(w)) > r} -> 0 as n -> ∞
+    conversely for any codebook satisfying cost constraints,
+    nR  = H(W)
+        = I(W;Y^n) + H(W|Y^n)
+        <= I(W;Y^n) + 1 + PenR // Fano's inequality
+        = I(W;Y^n) + nεn // definition of εn
+        <= I(X^n;Y^n) + nεn // data processing inequality
+        = H(Y^n) - H(Y^n|X^n) + nεn
+        <= ΣH(Yi) - H(Yi|X^n, Y^i-1) + nεn // chain rule
+        = Σ(H(Yi) - H(Yi|Xi)) + nεn // Yi only depends on Xi
+        = ΣI(Xi;Yi) + nεn
+        <= ΣC(E[r(Xi)]) + nεn // definition of C(r), over empirical distribution of Xi given codebook and W ~ U{2^nR}
+        = n * Σ1/n * C(E[r(Xi)]) + nεn
+        <= n * C(1/n * ΣE[r(Xi)]) + nεn // concavity of C(r)
+        <= nC(r) + nεn // monotonicity of C(r) and how codebook is defined
+    R   <= C(r) + εn, εn -> 0
+b.  the same arguments in section 15.3.1 still applies
+c.  // skipped
+
+15.36
+R1  >= H(X1|X2, X3)
+    = 0 since cards are drawn from the same deck without replacement
+R2, R3 >= 0
+R1 + R2 + R3    >= H(X1, X2, X3)
+                = log(3!) = log6
+if cards are dealt uniformly
+
+// Chapter 16 skipped 
+// stock market is nothing short of a chaotic system, Xi ~ iid F(x) is an assumption too strong to be true
+// a more realistic description of the stock market may be found in:
+// The Misbehavior of Markets, Benoît B. Mandelbrot & Richard L. Hudson, 2004
+
+// Chapter 17 skipped 
+// this chapter is more of a reference instead of a topic
