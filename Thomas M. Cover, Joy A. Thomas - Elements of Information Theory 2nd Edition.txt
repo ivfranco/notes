@@ -3909,7 +3909,7 @@ let N be the number of arbitrary bits
 I and N is determined by the first logn + loglogn + c bits of the program
 H(X)    >= H(X|I, N)
         >= ΣPr{I = 1, N = n}H(X|I = 1, N = n)
-        = 2^-(logn + loglogn + c)H(X|I = 1, N = n)  // N is a function of X
+        = Σ2^-(logn + loglogn + c)H(X|I = 1, N = n)  // N is a function of X
         = Σ1/cn(logn)^2 * n
         = Σ1/c(logn)^2 -> ∞
 
@@ -4465,7 +4465,8 @@ R1 + R2 + R3    >= H(X1, X2, X3)
 if cards are dealt uniformly
 
 // Chapter 16 skipped 
-// stock market is nothing short of a chaotic system, Xi ~ iid F(x) is an assumption too strong to be true
+// stock market is nothing short of a chaotic system, {Xi} ~ iid F(x) or even stationary and ergodic is an assumption 
+// too strong to be true
 // a more realistic description of the stock market may be found in:
 // The Misbehavior of Markets, Benoît B. Mandelbrot & Richard L. Hudson, 2004
 

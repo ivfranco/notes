@@ -4,7 +4,6 @@ Who produced these notes is not a graduate in computer or mathematics related fi
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
 ## Reading:
-- Elements of Information Theory, Thomas M. Cover & Joy A. Thomas, 2nd Edition
 
 ## Read (in temporal order):
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
@@ -19,3 +18,4 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 - Artificial Intelligence: A Modern Approach, Stuart J. Russell & Peter Norvig, 3rd Edition, in Rust
 - Computer Networking: A Top-Down Approach, James F. Kurose & Keith W. Ross, 6th Edition, in Rust
 - Operating System Concepts, Abraham Silberschatz et al., 9th Edition, in Rust
+- Elements of Information Theory, Thomas M. Cover & Joy A. Thomas, 2nd Edition
