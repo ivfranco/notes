@@ -87,8 +87,38 @@ where
     RecordBuilder::new(iter.into_iter())
 }
 
+pub fn decode<'a, I>(iter: I) -> Vec<Bit>
+where
+    I: IntoIterator<Item = &'a Record>,
+{
+    let mut prefixes: Vec<(usize, usize)> = vec![(0, 0)];
+    let mut bits: Vec<Bit> = vec![];
+
+    for Record { index, tail } in iter {
+        let (prefix_idx, prefix_len) = prefixes[*index as usize];
+        let parse_len = if tail.is_some() {
+            prefix_len + 1
+        } else {
+            prefix_len
+        };
+
+        let bits_old_len = bits.len();
+        bits.resize(bits_old_len + parse_len, 0);
+        bits.copy_within(prefix_idx..prefix_idx + prefix_len, bits_old_len);
+
+        if let Some(bit) = tail {
+            // a parse has length at least 1, bits cannot be empty
+            *bits.last_mut().unwrap() = *bit;
+        }
+
+        prefixes.push((bits_old_len, parse_len));
+    }
+
+    bits
+}
+
 #[test]
-fn build_test() {
+fn encode_decode_test() {
     let bits = [
         0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1,
     ];
@@ -108,4 +138,7 @@ fn build_test() {
 
     let encoding: Vec<_> = encode(bits.iter().copied()).collect();
     assert_eq!(&records[..], encoding.as_slice());
+
+    let decoding = decode(records.iter());
+    assert_eq!(&bits[..], decoding.as_slice());
 }
