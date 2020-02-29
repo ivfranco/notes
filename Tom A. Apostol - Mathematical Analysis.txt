@@ -1,0 +1,121 @@
+1.1
+the set of positive integers Sn = {i: 1 <= i <= n} has size n:
+    S1 = {i: 1 <= i <= 1} = {1}, |S1| = 1
+    Si+1 = {i: 1 <= i <= n + 1}
+    since x ∈ Si => x ∈ Si+1, n + 1 ∈ Si+1 - Si, |Si+1| >= n + 1
+    if x ∈ Si+1, either x ∈ Si or x ∈ Si+1 - Si, |Si+1| <= |Si| + |Si+1 - Si| = n + 1
+if p is the greatest prime, the set of primes P is bounded from above by p
+P ⊆ Sp, there are finite number of prime numbers 
+let n = Π{pi ∈ P}pi + 1, for all primes pi, n mod pi = 1, ~(pi | n)
+n must have a prime factor ∉ P, as P is the set of all primes <= p, there must be a prime > p
+
+1.2
+when n = 1:
+    (a - b)Σ{0 <= k <= n - 1}a^kb^(n - 1 - k) = (a - b)(a^0b^0) = a - b
+when n = i + 1:
+    (a - b)Σ{0 <= k <= i}a^kb^(i - k)
+    = (a - b)(bΣ{0 <= k <= i - 1}a^kb^(i - 1 - k) + a^(i + 1))
+    = b(a^i - b^i) + (a - b)a^i
+    = a^(i + 1) - b^(i + 1)
+
+1.3
+if p|n for some p != n or 1, n = pq, 1 < p, q < n, by problem 1.2, 
+    2^pq - 1 = (2^p - 1)Σ2^pk
+(2^p - 1)|(2^pq - 1) where 1 < 2^p - 1 < 2^pq - 1, 2^pq - 1 is composite
+
+1.4
+if n is not a power of 2, n >= 3, there must be some p|n where p > 2 is odd, let n = pq,
+2^n + 1 = 2^pq + 1
+        = 2^pq - (-1)^p
+        = (2^q + 1)Σ2^pk
+so (2^q + 1)|(2^n + 1), 2 <= 2^q + 1 < 2^n + 1, 2^n + 1 is composite
+
+1.5
+let a < b, gcd(a, b) = gcd(a, b - a):
+    if d|a and d|b, d|(b - a)
+    conversely if d|a and d|(b - a), d|(a + (b - a)) => d|b
+gcd(x1, x2) = 1
+gcd(xn, xn+1)   = gcd(xn, xn+1 - xn)
+                = gcd(xn-1, xn)
+                = 1 // induction
+let Sn = (a^n - b^n)/(a - b)
+S1 = 1, S2 = (a^2 - b^2)/(a - b) = a + b = 1
+Sn + Sn+1   = (a^n + a^(n + 1) - b^n - b^(n + 1))/(a - b)
+            = (a^n(a + 1) - b^n(b + 1))/(a - b)
+            = (a^na^2 - b^nb^2)/(a - b) // roots of x^2 - x - 1 = 0, x + 1 = x^2
+            = Sn+2
+
+1.6
+if S is nonempty, there must be some n ∈ S that n > 0 
+if n = 1, 1 is the smallest integer and the smallest member of S
+assume for all n <= k, if n ∈ S then S has a smallest member, let n = k + 1, 
+    if there exists m that m ∈ S and m < k + 1, by induction S has a smallest member 
+    otherwise for all m ∈ S, m >= k + 1, k + 1 is the smallest member of S
+
+1.7
+a   = 3/10 + 3/100 + lim{n -> ∞, Σ4/10^(i + 3)}
+    = 3/10 + 3/100 + 4/1000 * lim{n -> ∞, Σ(1/10)^i}
+    = 3/10 + 3/100 + 4/1000 * 1/(1 - 1/10)
+    = 3/10 + 3/100 + 4/1000 * 10/9
+    = 33/100 + 4/900
+
+1.8
+for some integer n, 
+r   = A + Σ{1 <= i <= n}ai/10^i, A is an integer
+    = A + Σ{1 <= i <= n}(10^(n - i)ai)/10^n
+    = Σ{0 <= i <= n}(10^(n - i)ai)/10^n // let A = a0
+    = B/10^n // let B = Σ10^(n - i)ai
+hence the denominator of r is 10^n / gcd(B, 10^n)
+as 10^n = 2^n5^n, gcd(B, 10^n) = 2^k5^t, , 0 <= k, t <= n, 
+10^n / gcd(B, 10^n) = 2^(n - k)5^(n - t) = 2^p5^q
+
+1.9
+if k^2 is irrational, k must be irrational:
+    otherwise k = A/B, k^2 = A^2 / B^2
+if k is irrational, r is rational, rk must be irrational:
+    assume rk = A/B, r = C/D
+    k = AD/BC is rational, contradiction
+if k is irrational, r is rational, r + k must be irrational:
+    assume r + k = A/B, r = C/D
+    k = A/B - C/D = (AD - BC)/BD is rational, contradiction
+(sqrt(2) + sqrt(3))^2   = 5 + 2sqrt(6)
+sqrt(6) is irrational   => 2sqrt(6) is irrational
+                        => 5 + 2sqrt(6) is irrational
+                        => sqrt(2) + sqrt(3) is irrational
+    
+1.10
+by problem 1.9, both ax + b and cx + d are irrational, hence (ax + b)/(cx + d) is rational iff ax + b = r(cx + d) for
+some rational number r, or
+    ax + b = rcx + rd
+again b and rd must be rational, a = rc and b = rd for some r
+
+1.11
+by problem 1.9, 0 < sqrt(2)/2 < 1 is irrational, 0 < sqrt(2)/2 * x < x is irrational 
+
+1.12
+<:
+    a/b < c/d
+    ad < bc
+    ab + ad < ab + bc
+    a(b + d) < b(a + c)
+    a/b < (a + c)/(b + d) // b > 0, b + d > 0
+>:
+    ad + cd < bc + cd
+    d(a + c) < c(b + d)
+    (a + c)/(b + d) < c/d // b > 0, b + d > 0
+
+1.13
+when a/b <= √2, 
+    a <= √2b
+    (a + 2b)/(a + b)    = b/(a + b) + 1
+                        >= b/(√2b + b) + 1
+                        = 1/(1 + √2) + 1
+                        = (2 + √2)/(1 + √2)
+                        = √2
+when a/b >= √2
+    a >= √2b
+    (a + 2b)/(a + b)    <= b/(√2b + b) = 1
+                        = √2
+
+1.14
+
