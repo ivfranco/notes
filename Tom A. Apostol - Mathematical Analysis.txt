@@ -118,4 +118,143 @@ when a/b >= √2
                         = √2
 
 1.14
+(√(n - 1) + √(n + 1))^2 = 2n + 2√(n^2 - 1)
+assume p^2 = n^2 - 1 = (n - 1)(n + 1)
+if p <= n - 1, p^2 = (n - 1)^2 < (n - 1)(n + 1)
+if p >= n + 1, p^2 = (n + 1)^2 > (n - 1)(n + 1)
+if p = n, p^2 != n^2 - 1
+therefore n^2 - 1 is not a perfect square, √(n^2 - 1) is irrational
+by problem  1.9, √(n - 1) + √(n + 1) is irrational 
 
+1.15
+a finite set of N real numbers {Ri} can be ordered in a way such that R(0) <= R(1) <= .. <= R(N):
+    (see any proof of correctness of sorting algorithms)
+let Rt = tx - [tx], 0 <= Rt < 1
+for N = 1, Rt = tx - [tx] = hx - k < 1/N = 1 for all t
+for N >= 2,
+    let (R(i)) be an ordered permutation of (Rt), R(i+1) - R(i) >= 0 for all i
+    1   > R(N) - R(0)
+        = Σ(R(i+1) - R(i))
+        = Σ|R(i+1) - R(i)|
+    assume |R(i+1) - R(i)| >= 1/N for all i,
+    Σ|R(i+1) - R(i)| >= N/N = 1, contradiction
+    so there must be some i that |R(i + 1) - R(i)| < 1/N
+    |t1x - [t1x] - t2x + [t2x]| < 1/N, let k = t1 - t2, h = [t1x] - [t2x],
+    by definition of R(i), 0 <= t2 < t1 <= N, 0 < t1 - t2 <= N
+
+1.16
+any finite set of real numbers has a minimum member (simple induction on size)
+assume R = {h/k: |x - h/k| < 1/k^2} is finite, let hr/kr ∈ R be the rational number that minimizes |x - h/k|
+let δ = |x - hr/kr|, take some N > 1/δ, by problem 1.15, there must be some integers (k', h'), 0 < k <= N that
+    |k'x - h'| < 1/N < δ
+    |x - h'/k'| < 1/Nk <= 1/k^2
+therefore h'/k' ∈ R but |x - h'/k'| < 1/Nk < δ/k <= δ, contradict the definition of δ, R cannot be finite
+
+1.17
+1.  0 <= Σ{2 <= k <= n}ak/k! <= 1 - 1/k! < 1:
+        a2/2! <= 1/2
+        Σ{2 <= k <= i + 1}ak/k! = Σ{2 <= k <= i}ak/k! + ai+1 / (i + 1)!
+                                <= 1 - 1/i! + i/(i + 1)!
+                                = 1 - ((i + 1)/(i + 1)! - i/(i + 1)!)
+                                = 1 - 1/(i + 1)!
+    x = a1 + r, 0 <= r < 1, [x] = a1
+2.  let S(i, j) = Σ{i <= k <= j}ak/k!, it has:
+        S(k+1, k+1)k!   = k!/(k + 1)! * ak+1
+                        <= 1/(k + 1) * k
+                        = k/(k + 1)
+                        = 1 - 1/(k + 1) < 1
+        S(k+1, k+t+1)k! = S(k+1, t)k! + k!/(k + t + 1)! * ak+t+1
+                        <= 1 - k!/(k + t)! + k!/(k + t + 1)! * (k + t)
+                        = 1 - (k!(k + t + 1) - k!(k + t))/(k + t + 1)!
+                        = 1 - k!/(k + t + 1)! < 1
+    k!x = S(1, k)k! + S(k+1, n)k!, where S(1, k)k! is an integer, S(k+1, n)k! < 1 as proved above, [k!x] = S(1, k)k!
+    similarly k[(k - 1)!x] = S(1, k-1)(k - 1)!k = S(1, k-1)k!
+    [k!x] - k[(k - 1)!x]    = S(1, k)k! - S(1, k-1)k!
+                            = ak
+3.  since an > 0, 0 < k!x - [k!x] = S(k+1, n)k! < 1, k!x != [k!x] for all k < n
+    and n!x is an integer by definition, [n!x] = n!x
+4.  let x = h/r, as r|r!, {n: r|n!} is nonempty, let n be the smallest element of {n: r|n!}
+    for all k > n, k!x is an integer, ak = [k!x] - k[(k - 1)!x] = 0
+    all previous ak for k < n can be computed uniquely by the formula in part 3
+
+1.18
+let x and y be two supremum of S, if x != y, by axiom 6 either x > y or x < y
+if x > y, y is not a least upper bound of S, y != sup S
+if x < y, symmetric
+therefore x = y, there's only one (if any) supremum of S
+let -S = {-n: n ∈ S}, x = inf(S) = -sup(-S):
+    for all n ∈ S, x <= n => -x >= -n, -x is an upper bound of -S
+    for any other y, 
+        (∀n∈S y <= n) => y <= x
+        (∀n∈S -y >= -n) => -y >= -x
+        (∀n∈-S -y >= n) => -y >= -x
+    -x is the least upper bound 
+since supremum is unique, infimum is also unique 
+
+1.19
+a.  sup(S) = 1/2 + 1/3 + 1/5
+    inf(S) = 0:
+        2^-p, 3^-q, 5^-r > 0, 0 is a lower bound
+        for any 3 > ε > 0, let p = -[log(2, ε/3)] + 1, q = -[log(3, ε/3)] + 1, r = -[log(5, ε/3)] + 1
+        2^-p + 3^-q + 5^-r < ε, ε is not a lower bound
+b.  S = {x: 1/3 < x < 3}
+    inf(S) = 1/3, sup(S) = 3
+c.  S = {a < x < b or c < x < d}
+    inf(S) = a, sup(S) = d
+
+1.20
+as T is nonempty, by the definition of sup(T),
+    ∃t∈T sup(T) >= t => ∀s∈S sup(T) >= s
+sup(T) is an upper bound of S, by completeness axiom sup(S) exist
+since sup(T) is an upper bound of S, by definition of supremum sup(S) <= sup(T)
+
+1.21
+a, b > 0:
+    A is a nonempty set of positive number
+    if a <= 0, for all r ∈ A, r > 0 >= a, a must be positive
+    similarly b > 0
+if sup(A) = a for a set of positive numbers A, sup{kr: r ∈ A} = ka for all k > 0:
+    ∀r∈A a >= r => ∀r∈A ka >= kr
+    if ∀r∈A s >= kr, ∀r∈A s/k >= r, s/k is an upper bound if A, s/k >= a, s >= ka
+if both A and B are bounded from above, A ⊆ B, then sup(A) <= sup(B):
+    ∀b∈B sup(B) >= b => ∀a∈A sup(B) >= a, sup(B) is an upper bound of A
+for all ab where a ∈ A, b ∈ B,
+    ab <= sup(A)b <= sup(A)sup(B)
+hence ab is an upper bound of C
+C is a set of product numbers (ab > 0 for all a > 0 and b > 0)
+let c be an upper bound of C, c must be positive, assume c < ab, c/b < a
+    for all r ∈ c, c >= r = ra * rb
+    if there exist some ra that ra > c/b, ra * b > c
+    but ra * b = sup{ra * rb: rb ∈ B}, and {ra * rb: rb ∈ B} is a subset of C, it must have ra * b <= sup(C) <= c
+    hence for all ra ∈ A, ra <= c/b, c/b is an upper bound of A
+    but then c/b >= sup(A) = a, contradiction
+therefore for all upper bound c of C, c >= ab, ab = sup(C)
+
+1.22
+denote Σ{0 <= i <= n}ai/k^i by S(n)
+a.  given S(n - 1) <= x, let an = 0, S(n) = S(n - 1) + 0 <= x, an >= 0
+    x - S(n) < 1/k^n:
+        if x - S(n) > 1/k^n, let an' = an + 1, x - S(n - 1) - an'/k^n <= x
+        in conflict with the definition of an as the largest integer that x - S(n - 1) - an/k^n <= x
+    so x - S(n - 1) < 1/k^(n - 1), if an >= k, x - S(n) < 1/k^(n - 1) - k/k^n = 0, S(n) > x
+b.  if u is an upper bound of S, for all ε > 0 there exists s ∈ S that s + ε > u, then u = sup(S):
+        let u' be another upper bound of S, if u' < u, let ε = u - u' > 0
+        but then there exists s + ε > u = u' + ε, s > u', u' is not an upper bound
+        hence u is the least upper bound of S, u = sup(S)
+    by definition of S(n), x is an upper bound of {S(n)}
+    for any ε >= 1, a0 + ε > x
+    for any 1 > ε > 0, let n >= log(k, 1/ε), ε >= 1/k^n, S(n) + ε >= S(n) + 1/k^n > x
+    therefore x = sup{S(n)}
+
+1.23
+(Σakbk)^2   = Σ(akbk)^2 + Σ{1 <= k < j <= n}2akbkajbj
+            = Σ(akbk)^2 + Σ{1 <= k < j <= n}((akbj)^2 + (ajbk)^2 - (akbj - ajbk)^2)
+            = Σ(akbk)^2 + Σ{1 <= k < j <= n}2(akbj)^2 - Σ{1 <= k < j <= n}(akbj - ajbk)^2
+            = (Σak)^2(Σbk)^2 - Σ{1 <= k < j <= n}(akbj - ajbk)^2
+
+1.24
+(Σakbkck)^4 <= (Σ(akck)^2Σbk^2)^2 // Cauchy-Schwarz
+            = (Σ(akck)^2)^2(Σbk^2)^2
+            <= Σak^4Σck^4(Σbk^2)^2 // Cauchy-Schwarz again
+        
+1.25
