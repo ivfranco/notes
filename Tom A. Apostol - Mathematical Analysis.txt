@@ -258,3 +258,122 @@ b.  if u is an upper bound of S, for all ε > 0 there exists s ∈ S that s + ε
             <= Σak^4Σck^4(Σbk^2)^2 // Cauchy-Schwarz again
         
 1.25
+(√a + √b)^2 = a + b + 2√(ab) >= a + b, so √a + √b >= √(a + b)
+Σ(ak + bk)^2    = Σak^2 + Σbk^2 + 2Σakbk
+                = ||a||^2 + ||b||^2 + 2Σakbk
+if Σakbk < 0,
+√Σ(ak + bk)^2   <= √(||a||^2 + ||b||^2)
+                <= ||a|| + ||b||
+if Σakbk >= 0,
+√Σ(ak + bk)^2   <= √(||a||^2 + ||b||^2 + 2Σakbk)
+                = √(||a||^2 + ||b||^2 + 2√(Σakbk)^2)
+                <= √(||a||^2 + ||b||^2 + 2√(Σak^2Σbk^2))
+                <= √(||a||^2 + ||b||^2 + 2√(||a||||b||))
+                = √(||a|| + ||b||)^2
+                = ||a|| + ||b||
+
+1.26
+0   <= Σ{1 <= j <= k <= n}(ak - aj)(bk - bj) 
+    = Σ{1 <= j <= n}Σ{j <= k <= n}(akbk - akbj - ajbk + ajbj)
+for each 1 <= t <= n,
+    for each j <= t, akbk = atbt is counted once
+    only when j = t, ajbj = atbt is counted n - j + 1 times
+so Σ{1 <= j <= n}Σ{j <= k <= n}(akbk + ajbj) = (n + 1)Σakbk
+Σ{1 <= j <= n}Σ{j <= k <= n}(akbj + ajbk)   = Σ{1 <= j, k <= n}ajbk + Σakbk
+                                            = (Σaj)(Σbk) + Σakbk
+(n + 1)Σakbk - (Σaj)(Σbk) - Σakbk >= 0
+(Σaj)(Σbk) <= nΣakbk
+
+1.27
+a.  (1 + i)^3   = 1^3 + 3 * 1^2 * i + 3 * 1 * i^2 + i^3
+                = 1 + 3i - 3 - i
+                = 2i - 2
+b.  1/(3 - 4i)  = 3/25 + 4i/25
+    (2 + 3i)/(3 - 4i)   = (2 + 3i)(3/25 + 4i/25)
+                        = -6/25 + 17i/25
+c.  i^4 = 1, i^n = i^(n + 4)
+    i^5 + i^16  = i^1 + i^0
+                = i + 1
+d.  i^-8 = (1/i)^8 = (-i)^8 = 1
+    (1 + i)(1 + i^-8)/2 = (1 + i)(1 + 1)/2
+                        = 1 + i
+
+1.28
+a.  x + iy = |x - iy| = √(x^2 + y^2), as the right side is a real number, it must have y = 0
+    x = √(x^2) = |x| is true for all x >= 0, S = {(x, 0): x >= 0}
+b.  x + iy  = (x - iy)^2
+            = x^2 + y^2 - i2xy
+    y = -2xy, x = x^2 + y^2
+    if y = 0, x = x^2, x = 0 or x = 1
+    if y != 0, 1 = -2x, x = -1/2, -1/2 - 1/4 = y^2 has no real number solution
+    S = {(0, 0), (0, 1)}
+c.  easy to proof Σ{0 <= k <= 4n - 1}i^k = 0
+    Σ{0 <= k <= 100}i^k = i^100 = 1 = x + iy, S = {(1, 0)}
+
+1.29
+a.  ~(z1 + z2)  = ~(x1 + iy1 + x2 + iy2)
+                = x1 + x2 - i(y1 + y2)
+                = x1 - iy1 + x2 - iy2
+                = ~z1 + ~z2
+b.  ~(z1z2) = ~((x1 + iy1)(x2 + iy2))
+            = ~(x1x2 - y1y2 + i(x1y2 + x2y1))
+            = x1x2 - y1y2 - i(x1y2 + x2y1)
+            = (x1 - iy1)(x2 - iy2)
+            = ~z1~z2
+c.  z~z = (x + iy)(x - iy)
+        = x^2 - (iy)^2
+        = x^2 + y^2
+        = |z|^2
+d.  z + ~z  = x + iy + x - iy
+            = 2x
+e.  (z - ~z)/i  = (x + iy - x + iy)/i
+                = i2y/i
+                = 2y
+
+1.30
+a.  points on the boundary the circle with center (0, 0) and radius 1
+b.  points inside the the circle with center (0, 0) and radius 1
+c.  union of a and b
+d.  z + ~z = 2x = 1, x = 1/2, a vertical line passing point (1/2, 0)
+e.  z - ~z = i2y = i, y = 1/2, a horizontal line passing point (0, 1/2)
+f.  the two intersection points of part a and d
+
+1.31
+as |zi| = 1, zi = e^iθi
+assume 0 <= θi <= 2π
+z1 + z2 + z3 = 0    => e^iθ1 + e^iθ2 + e^iθ3 = 0, divide both side by e^iθ3, 
+                    => e^i(θ1 - θ3) + e^i(θ2 - θ3) + 1 = 0 
+                    => e^iδ1 + e^iδ2 + 1 = 0, by definiing δ1 = θ1 - θ3, δ2 = θ1 - θ3, let δ1 <= δ2
+                    => cosδ1 + isinδ1 + cosδ2 + isinδ2 = -1
+                    => cosδ1 + cosδ2 = -1, sinδ1 + sinδ2 = 0
+                    => δ1 = -δ2 + 2kπ or δ1 = δ2 + π + 2kπ
+                       if δ1 = -δ2 + 2kπ, cosδ1 + cosδ2 = 2cosδ1 = -1, δ1 = 2π/3, δ2 = 4π/3
+                       if δ1 = δ2 + π, cosδ1 + cosδ2 = 0 = -1
+therefore θ1 - θ3 = 2π/3, θ2 - θ3 = 4π/3, {zi} are vertices of equilateral triangle on unit circle
+
+1.32
+a.  |a - b|^2   <= (|a| + |-b|)^2
+                = |a|^2 + |b|^2 + 2|a||b|
+                <= |a|^2 + |b|^2 + (|a||b|)^2 + 1 // x^2 + 1 >= 2x for all x
+                = (1 + |a|^2)(1 + |b|^2)
+b.  |a + b| = |a| + |b|, divide both sides by |a|, 
+    |1 + b/a| = 1 + |b|/|a| = 1 + |b/a|
+    let b/a = x + iy,
+    |1 + b/a| = 1 + |b/a|
+    <=> |1 + b/a|^2 = (1 + |b/a|)^2
+    <=> (1 + x)^2 + y^2 = 1 + 2√(x^2 + y^2) + x^2 + y^2
+    <=> 2x = 2√(x^2 + y^2)
+    <=> y = 0, x >= 0
+
+1.33
+|a - b| = |1 - ~ab| <=> |a - b|^2 = |1 - ~ab|^2
+                    <=> (a - b)(~a - ~b) = (1 - ~ab)(1 - a~b)
+                    <=> |a|^2 - a~b - ~ab + |b|^2 = 1 - a~b - ~ab + |ab|^2
+                    <=> |a|^2 + |b|^2 = 1 + |a|^2|b|^2
+                    <=> (|a|^2 - 1)(|b|^2 - 1) = 0
+                    <=> |a| = 1 or |b| = 1
+similarly 
+|a - b| < |1 - ~ab| <=> (|a|^2 - 1)(|b|^2 - 1) > 0
+                    <=> |a|, |b| < 1 or |a|, |b| > 1
+
+1.34
