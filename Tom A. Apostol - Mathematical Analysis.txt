@@ -1,3 +1,6 @@
+solutions manual (partial):
+https://www.csie.ntu.edu.tw/~b89089/solution.html
+
 1.1
 the set of positive integers Sn = {i: 1 <= i <= n} has size n:
     S1 = {i: 1 <= i <= 1} = {1}, |S1| = 1
@@ -377,3 +380,144 @@ similarly
                     <=> |a|, |b| < 1 or |a|, |b| > 1
 
 1.34
+|z|^2 + b/a * ~z + ~(b/a)z + c/a = 0
+<=> (z + b/a)(~z + ~(b/a)) - |b/a|^2 + c/a = 0
+<=> |z - (-b/a)|^2 = |b/a|^2 - c/a
+is a circle if right side of the equation is non-negative, otherwise the equation has no solution
+
+1.35
+x = |z|cos(arg(z)), y = |z|sin(arg(z)), y/x = sin(arg(z)) / cos(arg(z)) = tan(arg(z)) = tan(arg(z) + kπ)
+a.  x > 0, -π/2 < arg(z) < π/2, tan^-1(y/x) = arg(z)
+b.  x < 0, y >= 0, π/2 < arg(z) <= π, tan^-1(y/x) = arg(z) - π
+c.  x < 0, y < 0, -π < arg(z) < -π/2, tan^-1(y/x) = arg(z) + π
+d.  x = cos(arg(z)) = 0, arg(z) = ±π/2
+    if y = sin(arg(z)) > 0, 0 < arg(z) < π, arg(z) = π/2
+    otherwise if y < 0, arg(z) = -π/2
+
+1.36
+it's a lexicographical order on (|z|, arg(z)) ⊆ RxR so axiom 6 and 9 hold
+for any z1, z2 > 0, |z1|, |z2| > 0, |z1z2| = |z1||z2| > 0, axiom 8 holds
+by the impossibility of ordering on complex numbers, axiom 7 must be false
+
+1.37
+again a lexicographical order on (x, y) ⊆ RxR so axiom 6 and 9 hold
+if x1 < x2, for any z = (x3, y3) x1 + x3 < x2 + x3
+if x1 = x2, y1 < y2, similarly y1 + y3 < y2 + y3, axiom 7 holds
+by the impossibility of ordering on complex numbers, axiom 8 cannot be satisfied
+
+1.38
+if z1, z2 != 0, arg(z1/z2) = arg(z1) + arg(1/z2) + 2πn(z1, 1/z2)
+where 
+    z2 * 1/z2 = |z2||1/z2|e^i(arg(z2) + arg(1/z2)) = 1
+    e^i(arg(z2) + arg(1/z2)) = 1
+    arg(z2) + arg(1/z2) = 0
+    arg(1/z2) = -arg(z2)
+arg(z1/z2) = arg(z1) - arg(z2) + 2πn'(z1, z2)
+where
+    n(z1, z2)   = 0 if -π < arg(z1) - arg(z2) <= π
+                = 1 if -2π < arg(z1) - arg(z2) <= -π
+                = -1 if π < arg(z1) - arg(z2) <= 2π
+
+1.39
+if z1, z2 != 0, 
+Log(z1/z2)  = log|z1/z2| + iarg(z1/z2)
+            = log|z1| - log|z2| + i(arg(z1) - arg(z2) + 2πn'(z1, z2))
+            = Log(z1) - Log(z2) + i2πn'(z1, z2)
+
+1.40
+by theorem 1.51, the nth roots of unity is
+    zk  = e^i(arg(1)/n + 2πk/n)
+        = e^i2πk/n
+        = (e^i2π/n)^k, k = {0, 1, .., n - 1}
+        = α^k, k = {1, .., n} // α^0 = α^n = 1
+let S(i, j) = Σ{k ⊆ {i, .., j}}α^k, α != 1 for n >= 2
+αS(1, n)    = S(2, n) + α^(n+1)
+            = S(2, n) + e^i(2π(n + 1)/n)
+            = S(2, n) + e^i(2π/n) // periodicity of e^ix = cos(x) + isin(x)
+            = S(1, n)
+(α - 1)S(1, n) = 0, S(1, n) = 0
+
+1.41
+a.  z^i = e^i(log|z| + iarg(z))
+        = e^-arg(z)e^ilog|z|
+    where |z^i| = e^-arg(z) < e^π
+b.  let x = 0,
+    cosz    = cosxcoshy - isinxsinhy
+            = coshy
+            = (e^y + e^-y)/2
+    |cosz|  = (e^y + e^-y)/2 is unbounded
+    for any M > 0, let y = ln(2M), |cosz| >= e^y/2 = 2M/2 = M
+
+1.42
+z^w = e^wLogz
+    = e^(u + iv)(log|z| + iarg(z))
+    = e^(ulog|z| + iuarg(z) + ivlog|z| - varg(z))
+    = e^(ulog|z| - varg(z))e^i(uarg(z) + vlog|z|)
+
+1.43
+Log(z^w)    = Log(e^wLogz)
+            = ulog|z| - varg(z) + i(uarg(z) + vlog|z|) + i2πn // problem 1.42, theorem 1.52
+            = (u + iv)(log|z| + arg(z)) + i2πn
+            = wLogz + i2πn
+
+1.44
+i.  (cosθ + isinθ)^a    = (e^iθ)^a
+                        = e^aLog(e^iθ)
+                        = e^aiθ // -π < θ <= π
+                        = cos(aθ) + isin(aθ)
+ii. (cosθ + isinθ)^a = √(-1) = i
+    cosaθ + isinaθ = -i
+iii.for a = 0, (cosθ + isinθ)^a = cosaθ + isinaθ = 1
+    when a = n + 1, assume the equation holds for a = n,
+    (cosθ + isinθ)^(n + 1)  = (cosnθ + isinnθ)(cosθ + isinθ)
+                            = cosnθcosθ - sinnθsinθ + i(cosnθsinθ + sinnθcosθ)
+                            = cos(n+1)θ + isin(n+1)θ
+
+1.45
+cos3θ + isin3θ  = (cosθ + isinθ)^3
+                = cosθ^3 + 3icosθ^2sinθ - 3cosθsinθ^2 - isinθ^3
+                = cosθ^3 - 3cosθsinθ^2 + i(-sinθ^3 + 3icosθ^2sinθ)
+then match real and imaginary parts on both sides
+when θ is complex,
+3cosz^2sinz - sinz^3    = (3cosz^2 - sinz^2)sinz
+                        = (3(e^iz + e^-iz)^2/4 + (e^iz - e^-iz)/4)sinz
+                        = (e^i2z + e^-i2z + 1)(e^iz - e^-iz)/2i
+                        = (e^i3z - e^-i3z)/2i
+                        = sin3z
+cosz^3 - 3coszsinz^2    = cosz(cosz^2 - 3sinz^2)
+                        = (e^iz + e^-iz)(e^i2z + e^-i2z - 1)/2
+                        = (e^i3z + e^-i3z)/2
+                        = cos3z
+
+1.46
+// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+(sin2x + isinh2y)/(cos2x + cosh2y)
+= (2sinscosx + i2coshysinhy)/(2cosx^2 - 1 + 2sinhy^2 + 1)
+= (2sinscosx + i2coshysinhy)/(2cosx^2 + 2sinhy^2)
+= (sinxcosx + icoshysinhy)/(cosx^2(coshy^2 - sinhy^2) + sinhy^2)
+= (sinxcosx + icoshysinhy)/(cosx^2coshy^2 + sinx^2sinhy^2)
+= (sinxcosx(coshy^2 - sinhy^2) + i(sinx^2 + cosx^2)coshysinhy)/(cosx^2coshy^2 + sinx^2sinhy^2)
+= (sinxcoshy + icosxsinhy)(cosxcoshy + isinxsinhy)/((cosxcoshy)^2 - (isinxsinhy)^2)
+= (sinxcoshy + icosxsinhy)(cosxcoshy + isinxsinhy)/(cosxcoshy + isinxsinhy)(cosxcoshy - isinxsinhy)
+= (sinxcoshy + icosxsinhy)/(cosxcoshy - isinxsinhy)
+= sinz/cosz
+= tanz
+
+1.47
+cosz    = (e^iz + e^-iz)/2
+        = (e^i2z + 1)/2e^iz // e^iz != 0
+        = w
+let e^iz = v
+(v^2 + 1)/2v = w
+v^2 - 2vw + 1 + w^2 - w^2 = 0
+(v - w)^2 = w^2 - 1
+as w != ±1, w^2 - 1 != 0, by theorem 1.51 there are two different v that (v - w)^2 = w^2 - 1
+v = w + √|w^2 - 1|e^i(arg(w^2 - 1) + kπ), k ⊆ {0, 1}
+z = -iLogv = -ilog|v| + arg(v) + 2πn
+by adjusting n, there's two different x = arg(v) + 2πn in the range (-π, π]
+when w = i, (v - w)^2 = -2, v = i(1 ± √2), |v| = |1 ± √2|, sin(arg(v)) = (1 ± √2)/|v| = 1 or -1, arg(v) = ±π/2
+z = -i|1 ± √2| ± π/2
+when w = 2, (v - w)^2 = 3, v = 2 ± √3, |v| = |2 ± √3|, arg(v) = ±π/2
+z = -i|2 ± √3| ± π/2
+
+1.48
