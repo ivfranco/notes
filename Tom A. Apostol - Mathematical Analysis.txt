@@ -521,3 +521,59 @@ when w = 2, (v - w)^2 = 3, v = 2 ± √3, |v| = |2 ± √3|, arg(v) = ±π/2
 z = -i|2 ± √3| ± π/2
 
 1.48
+|Σakbk|^2   = (Σakbk)(Σ~(akbk))
+            = Σ|akbk|^2 + Σ{j != k}ajbj~(akbk)
+            = (Σ|ak|^2)(Σ|bk|^2) - Σ{j != k}|ajbk|^2 - Σ{j != k}ajbj~(akbk)
+            = (Σ|ak|^2)(Σ|bk|^2) - Σ{j < k}((ajbk)~(ajbk) + akbj~(akbj) - ajbj~(akbk) - akbk~(ajbj))
+            = (Σ|ak|^2)(Σ|bk|^2) - Σ{j < k}(ak~bj - aj~bk)(~akbj - ~ajbk)
+            = (Σ|ak|^2)(Σ|bk|^2) - Σ{j < k}|ak~bj - aj~bk|^2
+since the second sum on the right side is non-negative, |Σakbk|^2 <= Σ|ak|^2Σ|bk|^2
+
+1.49
+a.  isinnθ + cosnθ  = (isinθ + cosθ)^n
+                    = ΣC(n, k)(isinθ)^k(cosθ)^(n-k)
+    sinnθ   = Σ{k ∈ {k <= n is odd}}C(n, k)(-1)^((k-1)/2)sinθ^kcosθ^(n-k)
+            = sinθ^nΣ{k ∈ {k <= n is odd}}C(n, k)(-1)^((k-1)/2)(cosθ/sinθ)^(n-k)
+            = sinθ^nΣ{k ∈ {k <= n is odd}}C(n, k)(-1)^((k-1)/2)cotθ^(n-k)
+    if cotθ is defined, θ != kπ
+b.  by applying the equation in part a, sin(2m + 1)θ = sin^(2m + 1)Pm(cotθ^2)
+    0 < πk/(2m + 1) < π/2
+    when θ = πk/(2m + 1), sin(2m + 1)θ = sin(πk) = 0, 0 < sin(π/(2m + 1)) < sin(πm/(2m + 1)) < 1
+    it must have Pm(cotθ^2) = 0, for xk = cot(πk/(2m + 1))^2 Pm(xk) = 0
+    since cotθ is strictly increasing, all these xk are distinct
+c.  Pm(x) = aΠ(x - xk)
+    Σxk = C(2m + 1, 3)/C(2m + 1, 1)
+        = 2m(2m - 1)/3!
+        = m(2m - 1)/3
+    Σxk^2   = (Σxk)^2 - Σ{j != k}xjxk
+            = m^2(2m - 1)^2/9 - 2!C(2m + 1, 5)/C(2m + 1, 1)
+            = m(2m - 1)(4m^2 + 10m - 9)/45
+
+1.50
+a1z^1 - a0 = a1(z^1 - a0/a1) trivially for a1 != 0
+assume for all polynomial of order <= n, Σakz^k = anΠ(z^k - zk)
+let Pn+1(z) = Σakz^k, by fundamental theorem of algebra Pn+1(z) must have n + 1 roots
+let z0 be any of them, Pn+1(z)/(z - z0) cannot have order >= n + 1, otherwise Pn+1(z)/(z - z0) * (z - z0) = Pn+1(z) has
+order > n + 1, so Pn+1(z)/(z - z0) = Pm(z), m <= n, inductively Pm(z) = aΠ(z - zk)
+Pn+1(z) = aΠm(z - zk)(z - z0)
+        = aΠm+1(z - zk)
+by theorem 1.51, z^n - 1 = 0 has n distinct roots, z^n - 1 = aΠ(z - zk)
+where a must be 1, and zk must be e^i2πk/n or z^n - 1 = 0 has more or less distinct roots than derived by theorem 1.51
+z^n - 1 = Π(z - e^i2πk/n)
+(z - 1)Σ{z <= n - 1}z^k = Π(z - e^i2πk/n)
+Σ{z <= n - 1}z^k = Π{1 <= k <= n - 1}(z - e^i2πk/n)
+let z = 1,
+n   = Π(1 - e^i2πk/n)
+    = Π(1 - cos2πk/n - isin2πk/n)
+    = Π(2sin(πk/n)^2 - i2cos(πk/n)sin(πk/n))
+    = Π2sin(πk/n)(sin(πk/n) - icos(πk/n))
+    = 2^(n-1)Πsin(πk/n)-i(cos(πk/n) + isin(πk/n))
+    = 2^(n-1)Πsin(πk/n)(-i)e^iπk/n
+    = 2^(n-1)e^iΣ(πk/n)Π(-isin(πk/n))
+    = 2^(n-1)e^(i(n-1)π/2)(-i)^(n-1)Πsin(πk/n)
+when n - 1 % 4 = 1, e^(i(n-1)π/2) * (-i)^(n-1) = i * -i = 1
+when n - 1 % 4 = 2, e^(i(n-1)π/2) * (-i)^(n-1) = -1 * -1 = 1
+when n - 1 % 4 = 3, e^(i(n-1)π/2) * (-i)^(n-1) = -i * i = 1
+when n - 1 % 4 = 0, e^(i(n-1)π/2) * (-i)^(n-1) = 1 * 1 = 1, therefore
+n   = 2^(n-1)Πsin(πk/n)
+Πsin(πk/n) = n/2^(n-1)
