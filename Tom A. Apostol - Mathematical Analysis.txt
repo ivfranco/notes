@@ -1,4 +1,4 @@
-solutions manual (partial):
+solutions manual (partial, sometimes inaccurate or informal):
 https://www.csie.ntu.edu.tw/~b89089/solution.html
 
 1.1
@@ -676,4 +676,216 @@ b.  y ∈ f(f^-1(Y))  => ∃x, x ∈ f^-1(Y) & (x, y) ∈ f
                     => ∃x, x ∈ S & f(x) ∈ Y & (x, y) ∈ f
                     => ∃x, x ∈ S & y ∈ Y & (x, y) ∈ f // definition of function, y = f(x) is unique
                     => y ∈ Y
-c.  
+c.  x ∈ f^-1(Y1 ∪ Y2)   <=> x ∈ S & f(x) ∈ Y1 ∪ Y2
+                        <=> x ∈ S & (f(x) ∈ Y1 | f(x) ∈ Y2)
+                        <=> (x ∈ S & f(x) ∈ Y1) | (x ∈ S & f(x) ∈ Y2)
+                        <=> x ∈ f^-1(Y1) | x ∈ f^-1(Y2)
+                        <=> x ∈ f^-1(Y1) ∪ f^-1(Y2)
+d.  // similar to part c
+e.  x ∈ f^-1(T - Y) <=> x ∈ S & f(x) ∈ T & ~(f(x) ∈ Y)
+                    <=> (x ∈ S & f(x) ∈ T) & (~(x ∈ S) | ~(f(x) ∈ Y)) // ~(x ∈ S) is false
+                    <=> (x ∈ S & f(x) ∈ T) & ~(x ∈ S & (f(x) ∈ Y))
+                    <=> x ∈ S & ~(x ∈ S & (f(x) ∈ Y)) // f: S -> T
+                    <=> S - f^-1(Y)
+f.  assume f^-1(∪n Yk) = ∪n f^-1(Yk),
+    f^-1(∪n+1 Yk)   = f^-1(∪n Yk) ∪ f^-1(Yn+1)
+                    = ∪n+1 f^-1(Yk)
+    similarly f^-1(∩n Yk) = ∩n f^-1(Yk)
+
+2.8
+=>: assume T = f(S), that is ∀y∃x, y ∈ T => (x, y) ∈ f
+    y ∈ Y   => y ∈ Y & y ∈ T // Y ⊆ T
+            => y ∈ Y & ∃x, (x, y) ∈ f
+            => ∃x, x ∈ S & y ∈ Y & (x, y) ∈ f
+            => ∃x, x ∈ S & f(x) ∈ Y & (x, y) ∈ f
+            => ∃x, x ∈ f^-1(Y) & (x, y) ∈ f
+            => y ∈ f(f^-1(Y))
+    combine with 2.7.b, Y = f(f^-1(Y))
+<=: let Y = T, assume T = f(f^-1(T)),
+    => ∀y∃x, y ∈ T => x ∈ f^-1(T) & (x, y) ∈ f
+    => ∀y∃x, y ∈ T => (x, y) ∈ f
+    => T ⊆ f(S)
+    => T = f(S) // f: S -> T => f(S) ⊆ T
+
+2.9
+a => b:
+    y ∈ f(A) ∩ f(B) => (∃x1, x1 ∈ A & (x1, y) ∈ f) & (∃x2, x2 ∈ B & (x2, y) ∈ f)
+    as f is one-to-one, f(x1) = f(x2) = y, x1 = x2
+                    => ∃x, x ∈ A & x ∈ B & (x, y) ∈ f
+                    => y ∈ f(A ∩ B)
+    combine with problem 2.6, f(A) ∩ f(B) = f(A ∩ B) for all A, B ⊆ S
+b => a:
+    let f(x1) = f(x2) = y,
+    f({x1}) ∩ f({x2}) = f({x1} ∩ {x2}) = {y}
+    since f(∅) = ∅, it must have {x1} ∩ {x2} != ∅, or x1 = x2
+a => c:
+    x ∈ f^-1(f(A))  => x ∈ S & f(x) ∈ f(A)
+                    => x ∈ S & (x, f(x)) ∈ f & (∃x', x' ∈ A & (x', f(x)) ∈ f)
+                    => x ∈ A // x' = x by one-to-one function
+c => a:
+    let f(x1) = f(x2) = y
+    {x1} = f^-1(f({x1})) = f^-1({y}) = f^-1(f({x2})) = {x2}, x1 = x2
+b => d:
+    f(A ∩ B) = f(∅) = f(A) ∩ f(B)
+d => e:
+    if A ∪ B = C, A ∩ B = ∅, C - A = B and C - B = A:
+        x ∈ C - A   => x ∈ C & ~(x ∈ A)
+                    => x ∈ B // A ∪ B = C => (x ∈ C => x ∈ A | x ∈ B)
+        x ∈ B   => x ∈ B & ~(x ∈ A) // A ∩ B = ∅ => ~(x ∈ A & x ∈ B)
+                => x ∈ C & ~(x ∈ A) // B ⊆ C
+                => x ∈ C - A
+        and C - B = A by symmetry
+    (A - B) ∩ B = ∅ => f(A - B) ∩ f(B) = ∅
+    f(A - B) ∪ f(B) = f((A - B) ∪ B) = f(A)
+    therefore f(A - B) = f(A) - f(B)
+e => b:
+    let f(x1) = f(x2) = y
+    f({x1, x2} - {x1})  = f({x1, x2}) - f({x1})
+                        = {y} - {y}
+                        = ∅
+    {x1, x2} - {x1} = ∅, x1 = x2
+
+2.10
+let F be a one-to-one correspondence between A and B, G be a one-to-one correspondence between B and C
+R(F) = D(G) = B, G o F is well defined
+D(G o F) = D(F) = A, R(G o F) = G(F(D(F))) = G(R(F)) = G(D(G)) = R(G) = C
+assume (G o F)(x1) = (G o F)(x2),
+    (G o F)(x1) = G(F(x1)) = G(F(x2))
+    F(x1) = F(x2) // G is a one-to-one function
+    x1 = x2 // F is a one-to-one function
+therefore G o F is a one-to-one correspondence between A and C
+
+2.11
+A ~ B <=> B ~ A:
+    let F be a one-to-one correspondence between A and B
+    define G = {(y, x): (x, y) ∈ F}
+    D(G) = {y: (x, y) ∈ F} = R(F) = B
+    R(G) = {x: (x, y) ∈ F} = D(F) = A
+    if (y, x1), (y, x2) ∈ G, (x1, y), (x2, y) ∈ F, x1 = x2, G is one-to-one
+    if (y1, x), (y2, x) ∈ G, (x, y1), (x, y2) ∈ F, y1 = y2, G is a function
+let F be a one-to-one correspondence between {1, .., n} and {1, .., m}
+when n = 1, F({1}) = {F(1)} != ∅, m >= 1
+there exist (x, m), (n, y) ∈ F
+F' = (F - {(x, m), (n, y)}) ∪ {(n, m), (x, y)} is another one-to-one correspondence between {1, .., n} and {1, .., m}
+F' - {n, m} is a one-to-one correspondence between {1, .., n - 1} and {1, .., m - 1}
+by induction, m - 1 >= n - 1, m >= n
+symmetrically, n >= m, n = m
+
+2.12
+// some arguments on sets in this chapter is informal, e.g. proof of theorem 2.16, definition of infinite set
+// all the proofs of this exercise given by a quick search depend on some form of axiom of choice
+// thanks https://proofwiki.org/wiki/Infinite_Set_has_Countably_Infinite_Subset
+let g be a choice function on P(S) - {∅}, existence of such g is assured by axiom of choice
+define f: N -> S as:
+    f(0) = g(S)
+    f(n) = g(S - {f(0), .., f(n-1)})
+by definition of choice functions, f(n) ∈ S - {f(0), .., f(n - 1)} ⊆ S
+since S is infinite, S - {f(0), .., f(n-1)} is non-empty, f(N) is infinite
+assume m < n,
+    f(m) ∈ {f(0), .., f(n - 1)}, but 
+    f(n) ∈ S - {f(0), .., f(n - 1)}, f(n) != f(m)
+symmetrically n < m => f(n) != f(m)
+m != n => f(m) != f(n), f(m) = f(n) => m = n, f is one-to-one
+N ~ f(N), f(N) is countable and f(N) ⊆ S
+
+2.13
+by problem 2.12, let A be a countably infinite subset of S
+N ~ A, let F: N -> A be a one-to-one correspondence, define G as:
+    G(n) = F(n + 1), n >= 1
+G is one-to-one, R(G) = A - {F(1)}, A ~ N ~ A - {F(1)}
+let H be an one-to-one correspondence between A and A - {F(1)}, extend H by defining 
+    H(x) = x, x ∈ S - A
+then H is an one-to-one correspondence between S - {F(1)} and S, S - {F(1)} ~ S
+
+2.14
+B - A is uncountable: otherwise B = (B - A) ∪ A must be countable
+assume A ⊆ B
+if A is finite, by induction and proof of problem 2.13, B ~ B - {a1} ~ B - {a1, a2} ~ .. ~ B - A
+if A is countably infinite, let S be a countable subset of B - A, 
+let F: N -> S be a one-to-one correspondence, let G: N -> A be a one-to-one correspondence, 
+define H: N -> S ∪ A as 
+    H(2k) = F(k)
+    H(2k + 1) = G(k)
+so R(H) = S ∪ A, S ~ N ~ S ∪ A, there's a one-to-one correspondence I between S ∪ A and S
+extend I by I(x) = x for all B - (A ∪ S)
+since A, S ⊆ B, D(I) = (B - (A ∪ S)) ∪ (A ∪ S) = B, R(I) = (B - (A ∪ S)) ∪ S = B - A
+I is a one-to-one correspondence between B and B - A, B ~ B - A
+if ~(A ⊆ B), let A' = A ∩ B, B - A = B - A' and A' ⊆ B
+
+2.15
+an nth order integral polynomial has n + 1 parameters, each from the set of natural numbers N, so the set of (at most) 
+nth order integral polynomials is similar to N^(n + 1), by induction N^(n + 1) is countable for all n ∈ N
+each nth order polynomial has n roots, hence the roots of (at most) nth order integral polynomials is similar to a 
+subset of Zn+ x N^(n + 1) which is also countable
+union over all n ∈ N, by theorem 2.27 the union is also countable, the set of algebraic real numbers is countable
+
+2.16
+if A ∪ B = C, A and B are disjoint and finite, |C| = |A| + |B|:
+    induct on the size of B
+    if B = ∅, A = C, |A| = |C|
+    if |B| = 1, |A ∪ {b}| = |A| + 1:
+        let F: A -> {1, .., |A|}, extend F by (b, |A| + 1)
+        F is a one-to-one function since b ∉ A
+        D(F) = A ∪ {b}, R(F) = {1, .., |A| + 1}
+    if |B| = k + 1, for some b ∈ B, |B - {b}| = k (proved later), |A ∪ {b}| = |A| + 1 (induction)
+    A ∪ B = (A ∪ {b}) ∪ (B - {b})
+    (A ∪ {b}) and B - {b} are disjoint
+    by induction |C| = |A ∪ B| = |(A ∪ {b}) ∪ (B - {b})| = |A| + 1 + |B| - 1 = |A| + |B|
+for |S| = 1, T = P(S) = {∅, {1}}, |P(S)| = 2
+let |S| = k + 1, assume |P(S)| = 2^n for all n <= k
+let F be a one-to-one correspondence between S and {1, .., k + 1}, by one-to-one there's some (s, k + 1) ∈ S
+let S' = S - {(s, k + 1)}, S' is a one-to-one correspondence between S - {s} and {1, .., k}:
+    S' is a function: if (x, y1), (x, y2) ∈ S', (x, y1), (x, y2) ∈ S, y1 = y2
+    S' is one-to-one: similar to above
+    D(S') = S - {s}: 
+        for all (x, y) ∈ S, if x = s, y = k + 1, (x, y) is removed
+        if x != s, (x, y) != (s, k + 1), (x, y) ∈ S'
+    R(S') = {1, .., k}: similar to above
+so |S - {s}| = k, P(S - {s}) = 2^k
+for all subsets A of S, if s ∈ A, then A - {s} is a subset of S - {s}, let P1(S) = {A ∪ {s}: A ∈ P(S - {s})}, then
+P1(S) ~ P(S - {s}) (F(A) = A ∪ {s} is a one-to-one correspondence), |P1(S)| = 2^k
+if s ∉ A, A is a subset of S - {s}, let P2(S) = P(S - {s}), |P2(S)| = P(S - {s})
+P1(S) ∪ P2(S) = P(S), P1(S) and P2(S) is disjoint, P(S) = |P1(S)| + |P2(S)| = 2^(k+1)
+
+2.17
+similar to the set of real numbers
+for all a ∈ R = D(f), f(a) = ga and h has different value on the point a:
+    h(a) = 1 + ga(a) != ga(a)
+therefore h ∉ R(f), but h ∈ S, R(f) != S, there's no one-to-one correspondence between R and S
+
+2.18
+// S is similar to the power set of N
+S is infinite:
+    let T be the set of sequences of all 0s, T ⊆ S
+    let F: N ~ T be F(n) = 0^n the sequence of n 0s
+    F is one-to-one function
+    D(F) = N, R(F) ⊆ T
+    if S is finite, T is finite, R(F) is finite, N ~ R(F) is finite
+~(N ~ S), S is uncountable:
+    let F: N -> S be any function
+    define a sequence {sn} that
+        sn  = 0 if the nth bit of F(n) is 1
+            = 1 otherwise (the nth bit of F(n) = 0 or F(n) is not long enough)
+    for all n ∈ N, sn is different to F(n) at the nth bit, sn ∉ R(F), R(F) != S, ~(N ~ S)
+
+2.19
+a.  if A, B are countable, A x B is countable (similar to theorem 2.18) 
+    a circle is defined by its center and radius, S ~ (Q x Q) x Q is countable
+b.  if the interval has positive length, there must be two real numbers x < y in the interval 
+    since y - x > 0, 10^-k -> 0, {k: k >= 0, 10^-k < y - x} is nonempty
+    take any k that 10^-k < y - x, by theorem 1.14 there exists integer n that n10^-k > y, the set {n: n10^-k > y} is
+    lower bounded by n > y10^k, thus {n: n10^-k > y} has a smallest element, let m be that smallest element
+    by definition,
+        m10^-k > y
+        (m - 1)10^-k < y, also 
+        (m - 1)10^-k    = m10^-k - 10^-k
+                        > y - 10^-k
+                        > x
+    so there's a rational number (m - 1)10^-k between x and y
+    assume it's possible to choose a rational number from each interval, define a function F: S -> Q:
+        F(q) = rq, the rational number chosen from the interval
+        F is one-to-one as the intervals are disjoint
+        D(F) = S, R(F) ⊆ Q
+    if S is uncountable, R(F) and Q must be uncountable
+
+2.20
