@@ -889,3 +889,35 @@ b.  if the interval has positive length, there must be two real numbers x < y in
     if S is uncountable, R(F) and Q must be uncountable
 
 2.20
+// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+define An = {x: 0 <= x <= 1, f(x) > 1/n}
+if |An| > nM, |Σ{An}f(x)| > M, so |An| <= nM for all n
+define Bn = {x: 0 <= x <= 1, f(x) < -1/n}
+similarly |Bn| <= nM for all n
+for any x ∈ S, f(x) != 0, if f(x) > 0, as 1/n -> 0, there exists some n that f(x) > 1/n, x ∈ An
+if f(x) < 0, similarly for some n, x ∈ Bn
+S ⊆ (∪n An) ∪ (∪n Bn) where (∪n An) ∪ (∪n Bn) is a countable union of finite sets
+
+2.21
+F is not one-to-one: for any I that x1 ∈ I, F(I) = 1
+[x1, x1 + 1] and [x1, x1 + 2] are two such intervals
+
+2.22
+f(A ∪ B) = f(A ∪ (B - A)) = f(A) - f(B - A) as A and B - A are disjoint
+f(A) = f((A ∩ B) ∪ (A - B)) = f(A ∩ B) + f(A - B)
+f(B) = f((A ∩ B) ∪ (B - A)) = f(A ∩ B) + f(B - A)
+f(A ∪ B)    = f((A - B) ∪ (B - A) ∪ (A ∩ B))
+            = f(A - B) + f(B - A) + f(A ∩ B)
+            = f(A) + f(B) - 2f(A ∩ B) + f(A ∩ B)
+            = f(A) + f(B) - f(A ∩ B)
+
+2.23
+f(T) = f(A) + f(~A) = f(B) + f(~B)
+f(A ∪ B)    = f(~A) + f(~B) - f(~A)f(~B)  
+            = 2f(T) - f(A) - f(B) - (f(T) - f(A))(f(T) - f(B))
+            = 2f(T) - f(A) - f(B) - f(T)^2 + (f(A) + f(B))f(T) - f(A)f(B)
+            = -f(T)^2 + (2 + f(A) + f(B))f(T) - f(A) - f(B) - f(A)f(B)
+            = f(A) + f(B) - f(A)f(B)
+f(T)^2 - (2 + f(A) + f(B))f(T) + 2(f(A) + f(B)) = 0
+(f(T) - 2)(f(T) - f(A) - f(B)) = 0
+as f(T) != f(A) + f(B), it must have f(T) = 2
