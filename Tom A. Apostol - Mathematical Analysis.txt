@@ -886,6 +886,7 @@ b.  if the interval has positive length, there must be two real numbers x < y in
         F(q) = rq, the rational number chosen from the interval
         F is one-to-one as the intervals are disjoint
         D(F) = S, R(F) ⊆ Q
+    (the same F can be defined without the assumption by the proof of theorem 3.11)
     if S is uncountable, R(F) and Q must be uncountable
 
 2.20
@@ -921,3 +922,121 @@ f(A ∪ B)    = f(~A) + f(~B) - f(~A)f(~B)
 f(T)^2 - (2 + f(A) + f(B))f(T) + 2(f(A) + f(B)) = 0
 (f(T) - 2)(f(T) - f(A) - f(B)) = 0
 as f(T) != f(A) + f(B), it must have f(T) = 2
+
+3.1
+for all x ∈ (-∞, b), let r = |b - x| = b - x, for any y ∈ B(x;r), assume y >= b,
+    |y - x| = y - x = (y - b) + (b - x) >= r
+so y < b, (-∞, b) is open
+similarly (a, +∞) is open for all real a, the intersection (a, b) is open for all real a, b
+for all real b, R - (-∞, b] = (b, +∞) is open, (-∞, b] is closed, similarly [a, +∞) is closed, [a, b] is closed
+
+3.2
+a.  the complement R - S = ∪n (n, n + 1) is a union of collection of open sets, S is closed
+    hence any accumulation point of S must be in S
+    let x be an integer, B(x;1/2) contains only x ∈ S, x is not an accumulation point, S has no accumulation point
+b.  if a >= b, S is empty, R - S = R is open, S is both open and closed
+    if a < b, b ∈ S is not an interior point, S is not open
+    x ∈ [a, b) are accumulation points:
+        for all r > 0, |x + min{r/2, (b - x)/2} - x| < r/2, x + min{r/2, (b - x)/2} ∈ B(x;r), also 
+        a < x + min{r/2, (b - x)/2} < b, B(x;r) contains some y ∈ S - {x}
+    since a is an accumulation point, a ∉ S, S is not closed
+    b is an accumulation point: similar to above
+    (-∞, a) is open, all points in it are interior points of (-∞, a) => not an accumulation point of (a, b]
+    similarly all points (b, +∞) are not accumulation points
+c.  1 ∉ int(S), S is not open
+    for any r > 0, by Archimedean property there exists nr > 1, or r > 1/n, 1/n ∈ B(0; r), 0 is an accumulation point
+    0 ∉ S, S is not closed
+    for any other x, if x < 0, B(x; |x|) contains no positive number, x is not an accumulation point
+    if x > 0, let n be the smallest integer that 1/(n+1) < x <= 1/n
+    if x ∈ (1/(n+1), 1/n), it is an interior point, B(x; r) ⊆ (1/(n+1), 1/n) for some r
+    there's no other 1/k between 1/(n+1) and 1/n:
+        1/(n + 1) < 1/k < 1/n, n < k < n + 1, but k is an integer
+    similarly there's no other 1/k between 1/n and 1/(n - 1) if n >= 2
+    if x = 1/n, let r = (1/n - 1/(n+1))/2, B(x, r) contains no other element of S
+    0 is the only accumulation point
+d.  by problem 2.19.b, (x, x + r) ⊆ B(x, r) contains some rational numbers for any x and r > 0, every real number x is 
+    an accumulation point of S, so S is not closed
+    similarly for all rational x, (x, x + r) ⊆ B(x, r) contains some irrational numbers:
+        if r is irrational, (x + r)/2 is irrational 
+        if r is rational, x + (r - x)/√2 is irrational 
+    therefore S is not open
+e.  // thanks https://math.stackexchange.com/questions/930646
+    2^-n, 5^-m -> 0, so 2^-n and 5^-m for all n, m are accumulation points of S in addition to 0
+    none of these accumulation points is in S, S is not closed
+    let A = {2^-n} ∪ {5^-n} ∪ {0}, for any x ∉ A, there must be some B(x; r) disjoint with A: 
+        x < 0 cannot be an accumulation point as in part c
+        for all x > 0, let r = x/2, B(x; r) ⊆ (x/2, +∞), and for any x/2 only finite elements in A > x/2
+    for all 2^-n + 5^-m ∈ B(x; r/2) = (x - r/2, x + r/2), assume 2^-n <= 5^-m
+    it must have 2^-n <= 5^-m <= x - r and x - r/2 < 2^-n + 5^-m, or 5^-m >= 2^-n > r/2
+    symmetrically the same inequality holds for 2^-n >= 2^-m, there are only finite 2^-n + 5^-m in B(x; r/2)
+    thus any 2^-n + 5^-m is not a accumulation point, S is not open
+f.  1 and -1 are accumulation points not in S, S is not closed 
+    (-∞, -1), (0, 1) and (2, +∞) are open sets disjoint with (-1)^n + 1/m, no interior of them can be accumulation point
+    if any x ∈ (-1, 0) is an accumulation point, for any r > 0, 
+        if B(x; r) ⊆ (-1, 0), there exists (-1)^n + 1/m ∈ B(x; r) hence -1 + 1/m ∈ B(x; r)
+        but then B(x + 1; r) is an accumulation point of {1/m}, the only accumulation point of {1/m} is 0
+    similarly any x ∈ (1, 2) cannot be an accumulation point
+    {0, 2} are two isolated point of S, S is not open
+g.  similar to part e 
+    the set is neither open nor closed
+    {1/n} ∪ {0} are all the accumulation points
+h.  the two subsequences
+        (-1)^2k/(1 + 1/2k) -> 1
+        (-1)^(2k + 1)/(1 + 1/(2k + 1)) -> -1
+    A = {1, -1} are the set of accumulation points
+    (-∞, -1), (-1/2, 1/2) and (1, +∞) are open sets disjoint with S, no interior of them can be accumulation point
+    by the same argument as part f, no x ∈ (-1, -1/2] or [1/2, 1) can be accumulation point
+    the set is neither open nor closed
+
+3.3
+a.  in Euclidean space R^n, any n-ball B(x; r) contains infinitely many points:
+        for a point y ∈ B(x; r), let yi = xi for all i >= 2
+        y1 can take any real number in the range (x1 - r, x1 + r), there are infinitely many y1 in that range
+    in Euclidean space R^n, an interior point x of a set S is also an accumulation point:
+        for some r > 0, B(x; r) ⊆ S
+        for any 0 < r' <= r, B(x; r') contains infinitely many points in S, one of them != x
+        for any r' > r, B(x; r) ⊆ B(x; r')
+    |z| > 1, S = {(x, y): x^2 + y^2 > 1} is open:
+        for p = (x, y) ∈ S, let r = (|p| - 1)/2
+        for any p' ∈ B(p, r), ||p| - |p'|| <= |p - p'| < r
+        |p'| > |p| - r = |p| - (|p| - 1)/2 = (|p| + 1)/2 > 1
+        int(S) = S
+    all points in S are accumulation points of S
+    similarly, S' = {(x, y): x^2 + y^2 < 1} is open and disjoint to S, no point in S' is accumulation point of S
+    all points in {(x, y): x^2 + y^2 = 1} are accumulation points of S:
+        for any B(x; r), if x >= 0, (x + r/2)^2 + y^2 > 1 and |(x, y) - (x + r/2, y)| = r/2 < r
+        if x < 0, (x - r/2)^2 + y^2 > 1
+b.  since {(x, y): |(x, y)| < 1} is open, S is closed
+    no point in open set ~S is accumulation point of S
+    by part a, all points in S are accumulation points of S
+c.  same to exercise 3.2.g, {1/n} ∪ {i/m} ∪ {0} are accumulation points
+    none of them are in S, S is not closed
+    (1, 0) is an isolated point, S is not open 
+    the only accumulation point of A = {1/n} ∪ {i/m} ∪ {0} is 0:
+        for any other z = (x, y), let r = |z|/2, w ∈ B(z; r)
+        similar to part a, |w| > |z|/2, there are only finite w in B(z; r) ∩ S
+    by a similar argument, there are only finite 1/n + i/m ∈ B(z; r/2)
+d.  {(x, y): x^2 - y^2 < 1} is open:
+        for x >= 0, y > 0, let r > 0 be small enough that y - r > 0
+        for any (u, v) ∈ B(z; r), v > y - r > 0, v^2 > (y - r)^2 
+        |u - x| < r, if u - x >= 0, u >= x >= 0, u - x < r, u < x + r, |u| < |x + r|
+        if u - x < 0, u < x <= x + r, x - u < r, u > x - r >= -(x + r), |u| < |x + r|
+        u^2 - v^2   < (x + r)^2 - (y - r)^2
+                    = x^2 + 2xr + r^2 - y^2 + 2yr - r^2
+                    = x^2 - y^2 + (2x + 2y)r
+        take r < (1 - x^2 + y^2)/(2x + 2y), x^2 - y^2 + (2x + 2y)r < 1, the ball contains only points in S, x ∈ int(S)
+        for (x, 0) ∈ S, x >= 0, x^2 < 1, for all (u, v) ∈ B(x; r), again |u| < |x + r|
+        u^2 - v^2 < (x + r)^2 
+        let r < 1 - x, (x + r)^2 < 1^2 = 1, (x, 0) is an interior point
+        symmetrically all z ∈ S are interior points  
+    by a symmetric argument, {(x, y): x^2 - y^2 > 1} is open, no point in it is an accumulation point of S
+    by similar reason to part a, all points {(x, y): x^2 - y^2 = 1} are accumulation points 
+e.  open, accumulation points are {(x, y): x >= 0}
+f.  closed, accumulation points are {(x, y): x >= 0}
+
+3.4
+rational: see exercise 2.19.b
+irrational: there's a rational number r in (a, b) for any real number a < b
+then there's a irrational number in (r, b) ⊆ (a, b) (exercise 3.2.d)
+
+3.5
