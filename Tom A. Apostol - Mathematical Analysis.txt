@@ -665,7 +665,7 @@ y ∈ f(A ∪ B)    <=> ∃x ∈ A ∪ B, (x, y) ∈ f
 y ∈ f(A ∩ B)    => ∃x ∈ A ∩ B, (x, y) ∈ f
                 => ∃x, x ∈ A ∩ B & (x, y) ∈ f
                 => ∃x, (x ∈ A & (x, y) ∈ f) & (x ∈ B & (x, y) ∈ f)
-                => (∃x, x ∈ A & (x, y) ∈ f) & (∃x, x ∈ B & (x, y) ∈ f) // the reverse of this step is not true
+                => (∃x, x ∈ A & (x, y) ∈ f) & (∃x, x ∈ B & (x, y) ∈ f) // the converse of this step is not true
                 => y ∈ f(A) & y ∈ f(B)
                 => y ∈ f(A) ∩ f(B)
 
@@ -933,7 +933,7 @@ for all real b, R - (-∞, b] = (b, +∞) is open, (-∞, b] is closed, similarl
 3.2
 a.  the complement R - S = ∪n (n, n + 1) is a union of collection of open sets, S is closed
     hence any accumulation point of S must be in S
-    let x be an integer, B(x;1/2) contains only x ∈ S, x is not an accumulation point, S has no accumulation point
+    let x be an integer, B(x; 1/2) contains only x ∈ S, x is not an accumulation point, S has no accumulation point
 b.  if a >= b, S is empty, R - S = R is open, S is both open and closed
     if a < b, b ∈ S is not an interior point, S is not open
     x ∈ [a, b) are accumulation points:
@@ -1040,3 +1040,178 @@ irrational: there's a rational number r in (a, b) for any real number a < b
 then there's a irrational number in (r, b) ⊆ (a, b) (exercise 3.2.d)
 
 3.5
+assume x ∈ S and S != R, then there exists some y ∈ ~S
+assume without loss of generality x < y, let A = {z: z > x, z ∈ ~S}, y ∈ A is nonempty, inf(A) is defined
+if inf(A) ∈ S, since S is open, B(inf(A); r) ⊆ S for some r > 0, inf(A) + r/2 > inf(A) is a lower bound of A
+if inf(A) ∈ ~S, since S is closed, ~S is open, B(inf(A); r) ⊆ ~S for some r > 0
+as x ∈ S, it must have x < inf(A) - r, but for some inf(A) - r/2 < inf(A), inf(A) - r/2 ∈ A, inf(A) is not an infimum
+by definition 4.34, R is connected
+for all n >= 2, R^n = R^(n - 1) x R is inductively the cartesian product of two connected spaces which is also connected
+https://math.stackexchange.com/questions/1305810/
+
+3.6
+if S is closed, ~S is open, by theorem 3.11 ~S = ∪{F}A, where F is a countable collection of disjoint open sets
+by theorem 2.23, S = R - ∪{F}A = ∩{F}(R - A), where R - A is closed for all A
+and ∩{F}(R - A) is an intersection of a countable collection of closed sets
+
+3.7
+S is bounded and nonempty, inf(S) and sup(S) are defined, assume inf(S) ∉ S
+then for all r > 0, there's an x ∈ S that inf(S) <= x < inf(S) + r, otherwise inf(S) + r is a greater lower bound
+inf(S) and sup(S) are accumulation points of S, since S is closed, inf(S), sup(S) ∈ S
+(-∞, inf(S)) and (sup(S), +∞) are disjoint with S hence are subsets of ~S
+as S is closed, ~S is open, ~S = ∪{F}A for a countable collection F of disjoint open sets
+L = (-∞, inf(S)) and U = (sup(S), +∞) cannot be union of other disjoint open sets, L, U ∈ F
+for any (a, b) ∈ F - L - U, if a ∈ ~S, a ∈ (c, d) for some (c, d) disjoint to (a, b) 
+but (c, d) is open, a is an accumulation point of (a, b), there's some B(a; r) ⊆ (c, d) contains number in (a, b)
+therefore all endpoints of open intervals in F - L - U ∈ S
+let F' = F - L - U, [inf(S), sup(S)] - ∪{F'}A = S:
+    R - ∪{F}A = S
+    R - L - U - ∪{F'}A = S
+    [inf(S), sup(S)] - ∪{F'}A = S
+
+3.8
+n-ball:
+    if y ∈ B(x; r), ||y - x|| < r, let t = (r - ||y - x||)/2, for any z ∈ B(y; t), 
+    ||z - x||   <= ||y - x|| + ||z - y||
+                = (||y - x|| + r)/2 
+                < r
+    thus B(y; t) ⊆ B(x; r), y ∈ int(S)
+n-dimensional open interval:
+    let S be a cartesian product of n open intervals (a1, b1) x (a2, b2) x .. x (an, bn)
+    for any x = (x1, .., xn) ∈ S, xi ∈ (ai, bi), B(xi, ri) ⊆ (ai, bi) as (ai, bi) is an open set
+    take r = min{ri}, for any y ∈ B(x, r), |yi - xi| < r <= ri, yi ∈ B(xi, ri) ⊆ (ai, bi), y ∈ S
+
+3.9
+for all x ∈ int(S), there's some r > 0 that B(x; r) ⊆ S, assume int(S) is not open
+then for some x ∈ int(S) for all r > 0, there exists y ∈ B(x; r) and y ∈ S - int(S)
+by definition of int(S), for any r' > 0, B(y; r') contains a point z ∈ ~S
+but then for some y ∈ B(x; r/2) ∩ (S - int(S)), let r' < r/4, z ∈ B(y; r/4) and z ∈ ~S, but
+||x - z||   <= ||x - y|| + ||y - z||
+            < r/2 + r/4
+            < r
+z ∈ B(x; r) and x is not an interior point
+therefore int(S) is an open set
+
+3.10
+let F be the collection of all open subsets A ⊆ S
+since int(S) is an open subset of R^n contained in S, int(S) ⊆ ∪{F}A
+if A is an open subset of S, A = int(A) ⊆ int(S):
+    for all x ∈ A, B(x; r) ⊆ A ⊆ S for some r > 0, x ∈ int(S)
+therefore ∪{F}A ⊆ int(S) and ∪{F}A = int(S)
+
+3.11
+x ∈ int(S) ∩ int(T) <=> x ∈ int(S) & x ∈ int(T)
+                    <=> (∃r1, B(x; r1) ⊆ S) & (∃r2, B(x; r2) ⊆ T)
+                    <=> (∃r = min{r1, r2}, B(x; r) ⊆ S & B(x; r) ⊆ T)
+                    <=> (∃r, B(x; r) ⊆ S ∩ T)
+                    <=> x ∈ int(S ∩ T)
+x ∈ int(S) ∪ int(T) <=> x ∈ int(S) | x ∈ int(T)
+                    <=> (∃r1, B(x; r1) ⊆ S) & (∃r2, B(x; r2) ⊆ T)
+                    => ∃r = r1, B(x; r) ⊆ S | B(x; r) ⊆ T // converse not true
+                    <=> ∃r, B(x; r) ⊆ S ∪ T
+                    <=> x ∈ int(S ∪ T)
+
+3.12
+a.  let x be an accumulation point of S', then for all r > 0, there's y ∈ B(x; r/2) ∩ (S' - {x})
+    since x != y, ||x - y|| > 0
+    y ∈ S' is an accumulation point of S, there's z ∈ B(y; min{r/4, ||x - y||/2}) ∩ (S - {y}), z != y
+    ||x - z||   <= ||x - y|| + ||y - z||
+                < r/2 + r/4
+                < r
+    ||y - z|| <= ||y - x||/2, z != x
+    hence for all r > 0, there's z ∈ B(x; r) ∩ (S - {x}), x ∈ S', (S')' ⊆ S'
+b.  x ∈ S'  <=> ∀r>0∃y, y ∈ B(x; r) ∩ (S - {x})
+            <=> ∀r>0∃y, y ∈ B(x; r) & y ∈ (S - {x})
+            => ∀r>0∃y, y ∈ B(x; r) & y ∈ T - {x} // S ⊆ T
+            <=> x ∈ T'
+c.  x ∈ (S ∪ T)'    <=> ∀r>0∃y, y ∈ B(x; r) ∩ ((S ∪ T) - {x})
+                    <=> ∀r>0∃y, y ∈ B(x; r) ∩ ((S - {x}) ∪ (T - {x}))
+                    <=> ∀r>0∃y, y ∈ (B(x; r) ∩ (S - {x})) ∪ (B(x; r) ∩ (T - {x}))
+                    <=> ∀r>0∃y, y ∈ (B(x; r) ∩ (S - {x})) | y ∈ (B(x; r) ∩ (T - {x}))
+                    <=> ∀r>0, (∃y, y ∈ (B(x; r) ∩ (S - {x}))) | (∃y, y ∈ (B(x; r) ∩ (T - {x})))
+    if ∃r1>0, B(x; r1) ∩ (S - {x}) = ∅ & ∃r2>0, B(x; r2) ∩ (T - {x}) = ∅
+    then ∃r=min{r1, r2}, B(x; r1) ∩ (S - {x}) = ∅ & ∃r2>0, B(x; r2) ∩ (T - {x}) = ∅, so
+    x ∈ (S ∪ T)'    <=> ∀r>0∃y, y ∈ B(x; r) ∩ (S - {x}) | ∀r>0∃y, y ∈ (B(x; r) ∩ (T - {x})) // converse is trivial
+                    <=> x ∈ S' | x ∈ T'
+                    <=> x ∈ (S' ∪ T')
+d.  // denote closure of S by C(S)
+    (C(S))' = (S ∪ S')'
+            = S' ∪ (S')' // part c
+            = S' // part a
+e.  (C(S))' = S' ⊆ C(S), by theorem 3.22 C(S) is closed
+f.  let F be the collection of all closed subset of R^n containing S
+    for any A ∈ F, A is a closed set and S ⊆ A, then S' ⊆ A' ⊆ A by part b
+    C(S) = S ∪ S' ⊆ A, C(S) ⊆ A, C(S) ⊆ ∩{F}A
+    S ⊆ C(S), C(S) is closed, C(S) ∈ F, ∩{F}A ⊆ C(S), hence ∩{F}A = C(S)
+
+3.13
+by exercise 3.12.b, (S ∩ T)' ⊆ S' and (S ∩ T)' ⊆ T', (S ∩ T)' ⊆ S' ∩ T' ⊆ C(S) ∩ C(T)
+combine with S ∩ T ⊆ C(S) ∩ C(T), C(S ∩ T) = (S ∩ T) ∪ C(S ∩ T) ⊆ C(S) ∩ C(T)
+x ∈ S ∩ C(T)    <=> x ∈ S & x ∈ C(T)
+                => ∃r1>0, B(x; r1) ⊆ S & ∀r2>0∃y, y ∈ B(x; r2) ∩ T // S is open
+                => ∀0<r<=r1∃y, y ∈ B(x; r) ∩ S & y ∈ B(x; r) ∩ T
+                => ∀r>0∃y, y ∈ B(x; r) ∩ (S ∩ T)
+                => x ∈ C(S ∩ T)
+
+3.14
+in R^2 and R^3: for x, y ∈ S, all points on the line segment x -> y are in S
+a.  for two y1, y2 ∈ B(x; r),
+    ||x - (θy1 + (1 - θ)y2)||   = ||θ(x - y1) + (1 - θ)(x - y2)||
+                                <= ||θ(x - y1)|| + ||(1 - θ)(x - y2)||
+                                = θ||(x - y1)|| + (1 - θ)||(x - y2)||
+                                < θr + (1 - θ)r
+                                = r
+    so θy1 + (1 - θ)y2 ∈ B(x; r)
+b.  for two x1, x2 ∈ S, ai < x1i, x2i < bi for each component i
+    ith component of θx1 + (1 - θ)x2 is xi = θx1i + (1 - θ)x2i, as 0 < θ < 1, 0 < 1 - θ < 1, 
+        θai < θx1i < θbi
+        (1 - θ)ai < (1 - θ)x2i < (1 - θ)bi
+        ai < xi < bi
+    therefore θx1 + (1 - θ)x2 ∈ S
+c.  shift of an open set is also an open set:
+        let A be an open set, B = {a + c: a ∈ A}
+        if b ∈ B is not interior, for all r > 0, B(b; r) contains a point y in ~B
+        that is, y = x + c ∉ B, ||b - y|| < r, x = y - c ∉ A
+        but then ||a - x|| = ||(b - c) - (y - c)|| = ||b - y|| < r
+        B(b - c; r) for all r > 0 contains a point x in ~A and b - c ∈ A, A is not open 
+    an open set multiplied by a non-zero real number is also an open set:
+        let A be an open set, B = {ca: a ∈ A}
+        if b ∈ B is not interior, for all r > 0, |c|r > 0, B(b; |c|r) contains a point y in ~B
+        that is, y = cx ∉ B, ||b - y|| < |c|r, x = y/c ∉ A
+        but then ||a - x|| = ||b/c - y/c|| = ||b - y|| / |c| < |c|r / |c| <= r
+        for all r > 0, B(a; r) contains a point in ~A, A is not open 
+    if A, B are open sets, A + B = {a + b: a ∈ A, b ∈ B} is an open set:
+        A + B = ∪{a ∈ A}{a + b: b ∈ B} is a union of a collection of open sets
+    {θx + (1 - θ)y: x, y ∈ int(S), 0 < θ < 1}
+    = ∪{0 < θ < 1}{θx + (1 - θ)y: x, y ∈ int(S)}
+    = ∪{0 < θ < 1}(θint(S) + (1 - θ)int(S))
+    = con(int(S))
+    is an open set by the lemmas above
+    by convexity of S, θx + (1 - θ)y ∈ S, con(int(S)) ⊆ S
+    by exercise 3.10, any open set in S is a subset of int(S), con(int(S)) ⊆ int(S), int(S) is convex
+d.  for any x, y ∈ C(S), r > 0, there are x' ∈ B(x; r) ∩ S and y' ∈ B(x; r) ∩ S
+    by convexity of S, θx' + (1 - θ)y' ∈ S for all 0 < θ < 1
+    ||θx + (1 - θ)y - (θx' + (1 - θ)y')||
+    = ||θ(x - x') + (1 - θ)(y - y')||
+    <= θ||x - x'|| + (1 - θ)||y - y'||
+    < r
+    B(θx + (1 - θ)y; r) contains a point in S for all r > 0, θx + (1 - θ)y ∈ C(S), C(S) is convex 
+
+3.15
+a.  x ∈ T'  <=> ∀r>0∃y, y ∈ B(x; r) ∩ T
+            <=> ∀r>0∃y, y ∈ B(x; r) ∩ (∩{F}A)
+            <=> ∀r>0∃y, y ∈ B(x; r) ∩ (∩{F}A)
+            => ∀A∈F∀r>0∃y, y ∈ B(x; r) ∩ A
+            <=> ∀A, x ∈ A'
+b.  not true
+    let F = {(1/n, +∞): n ∈ {1, 2, ..}}
+    0 is an accumulation point of ∪{F}A:
+        for all r > 0, by Archimedean property there's nr > 1, r > 1/n, B(0, r) ∩ (1/n, +∞) != ∅
+    0 is not an accumulation point of any A:
+        for any (1/n, +∞), let r = 1/2n, B(0; r) ∩ (1/n, +∞) = ∅
+
+3.16
+
+
+
+
