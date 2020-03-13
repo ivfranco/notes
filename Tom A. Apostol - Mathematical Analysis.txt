@@ -1393,5 +1393,200 @@ by exercise 3.12.f, C(S) is the intersection of all closed sets of M containing 
 so A ⊆ S ⊆ C(A) ⊆ T ⊆ C(S) ⊆ C(A), A is dense in T
 
 3.33
-in R^n, C(AxB) = C(A) x C(B):
-    
+let A ⊆ R^n and B ⊆ R^m, C(AxB) = C(A)xC(B):
+    let x ∈ C(AxB), x is an adherent point of AxB, for all r > 0, there's y ∈ B(R^n+m)(x; r) ∩ AxB
+    ||x - y||^2 = ||x1 - y1||^2 + ||x2 - y2||^2 < r^2
+    ||x1 - y1|| < r and ||x2 - y2|| < r, 
+    x1 is an adherent point of A, x2 is an adherent point of B, x = (x1, x2) ∈ C(A)xC(B)
+    conversely, let x1, x2 be two accumulation points of A and B
+    for all r > 0, there are y1 ∈ B(R^n)(x1; r/2) ∩ A, y2 ∈ B(R^m)(x2; r/2) ∩ B
+    ||(x1, x2) - (y1, y2)||^2   = ||x1 - y1||^2 + ||x2 - y2||^2
+                                < r^2/2
+                                < r^2
+    y = (y1, y2) ∈ B(R^n+m)(x; r) ∩ AxB, x is an adherent point of AxB, C(A)xC(B) ⊆ C(AxB)
+Q^n ⊆ R^n = C(Q)^n = C(Q^n), Q^n is dense in R^n, Q^n is countable, R^n is separable
+
+3.34
+let A be the countable dense set in M, define G = {B(x; r): x ∈ A, r > 0 ∈ Q}, G is a countable collection
+for any open set S in M, for any x ∈ S, B(x; r) ⊆ S for some r > 0
+if B(x; r/3) ∩ A = ∅, B(x; r/3) ⊆ ~A, x is an interior point of ~A, x ∉ C(A), contradicting M ⊆ C(A)
+there must be y ∈ B(x; r/3) ∩ A, let r' be any rational number in (r/3, 2r/3), B(y; r') ∈ G
+||x - y|| < r/3 < r', x ∈ B(y; r')
+if z ∈ B(y; r'),
+||x - z||   <= ||x - y|| + ||y - z||
+            < r/3 + 2r/3
+            = r
+B(y; r') ⊆ B(x; r) ⊆ S, theorem 3.27 is proved for all separable metric space (M, d)
+given theorem 3.27, the proof of Lindelof covering theorem in the text is independent to the metric space
+
+3.35
+A ⊆ S ⊆ C(A)
+by exercise 3.13, B = B ∩ S ⊆ B ∩ C(A) ⊆ C(B ∩ A)
+
+3.36
+A ⊆ S ⊆ C(A), B ⊆ S ⊆ C(B)
+by exercise 3.13, A ∩ B ⊆ C(A) ∩ B ⊆ C(A ∩ B), A ∩ B is dense in C(A) ∩ B
+B ⊆ S ⊆ C(A), C(A) ∩ B = B, by transitivity A ∩ B is dense in S
+
+3.37
+1.  ρ((x1, x2), (x1, x2)) = d1(x1, x1) + d2(x2, x2) = 0
+2.  if (x1, x2) != (y1, y2), x1 != y1 or x2 != y2, d1(x1, y1) > 0 or d2(x2, y2) > 0
+    ρ(x, y) = d(x1, y1) + d(x2, y2) > 0
+3.  ρ((x1, x2), (y1, y2))   = d1(x1, y1) + d2(x2, y2)
+                            = d1(y1, x1) + d2(y2, x2)
+                            = ρ((y1, y2), (x1, x2))
+4.  ρ((x1, x2), (z1, z2)) + ρ((z1, z2), (y1, y2))
+    = d1(x1, z1) + d2(x2, z2) + d1(z1, y1) + d2(z2, y2)
+    >= d1(x1, y1) + d2(x2, y2)
+    = ρ((x1, x2), (x2, y2))
+ρ((x1, x2), (y1, y2)) = max{d1(x1, y1), d2(x2, y2)} is a metric
+property 1, 2 and 3 are trivial
+ρ((x1, x2), (z1, z2)) + ρ((z1, z2), (y1, y2))
+= max{d1(x1, z1), d2(x2, z2)} + max{d1(z1, y1), d2(z2, y2)}
+>= max{d1(x1, z1) + d1(z1, y1), d2(x2, z2) + d2(z2, y2)}
+>= max{d1(x1, y1), d2(x2, y2)}
+= ρ((x1, x2), (y1, y2))
+
+3.38
+S is compact in M <=> every infinite subset of S has an accumulation point in S
+and the right side is independent of metric space as long as S ⊆ M
+but this equivalence is given without proof
+=>:
+    assume S is compact in M, let F be an open covering of S in T
+    for all open X ∈ F, there exists some open A ∈ M and A ∩ T = X
+    define G be the collection of these corresponding open sets in M, G is an open covering of S in M:
+        x ∈ S   => x ∈ X for some X ∈ F
+                => x ∈ A for some A ∈ G
+    by compactness, a finite sub-collection G' of G is also an open covering of S
+    define
+        F' = {A ∩ T: A ∈ G'}
+    F' is a finite open covering of S in T:
+        A is open in M, A ∩ T is open in T
+        x ∈ S   => x ∈ A for some A ∈ G'
+                => x ∈ A ∩ T // S ⊆ T
+                => x ⊆ X for some X ∈ F'
+    and F' ⊆ F by the construction of G
+<=:
+    assume S is compact in T, let F be an open covering of S in M
+    G = {A ∩ T: A ∈ F} is an open covering of S in T
+    a finite sub-collection G' of G is an open covering of S in T
+    by the construction of G, for each open set X in G there's an open set A in F that X ⊆ A
+    therefore a finite sub-collection F' of F covers ∪{G'}X hence covers S
+
+3.39
+T is compact => T is closed in M => S ∩ T is closed in T
+S ∩ T is a closed subset of compact T => S ∩ T is compact in T => S ∩ T is compact in M // exercise 3.38
+
+3.40
+let F be the collection, S = ∩{F}A is closed in M as each A is compact (i.e. closed) in M
+S ∩ A = S ⊆ A for any A ∈ F is a closed subset of compact A, S is compact in A => S is compact in M
+
+3.41
+let F be the collection, S = ∪{F}A
+for any open covering G of S, for every Ai ∈ F, there's a finite sub-collection Gi of G that covers Ai
+∪Gi is a finite open covering of S:
+    ∪Gi is finite since each Gi is finite and |{Gi}| <= |{Ai}| is finite
+    x ∈ S   => x ∈ Ai for some i
+            => x is covered by Gi
+            => x is covered by ∪Gi
+therefore S is compact in (M, d)
+
+3.42
+if T ⊆ M, an adherent point of S ∩ T in (T, d) is an adherent of S ∩ M in (M, d):
+    ∀r>0∃y, y ∈ B(x; r) ∩ (S ∩ T) => ∀r>0∃y, y ∈ B(x; r) ∩ (S ∩ M)
+(a, b) is closed and bounded:
+    C((a, b)) = [a, b], all points < a or > b are not adherent point of (a, b) in R
+    hence all points < a or > b are not adherent point of (a, b) in Q
+    a, b ∉ Q, (a, b) contains all of its adherent points, (a, b) is closed in Q
+    (a, b) ∉ B(a; b - a), (a, b) is bounded
+(a, b) ∩ Q is open in Q for all a, b ∈ R:
+    (a, b) is open in R
+F = {(a + 1/n, b): n ∈ {1, 2, ..}} is an open covering of (a, b) ∩ Q:
+    for all x ∈ (a, b), x - a > 0, there's n(x - a) > 1, x - a > 1/n, a + 1/n < x < b, x ∈ ∪{F}A
+no finite sub-collection F' of F is a covering of (a, b) ∩ Q:
+    there's a maximum (a + 1/n, b) in F'
+    (a, a + 1/n) ⊆ (a, b) is disjoint with (a + 1/n, b)
+    there's a rational number in (a, a + 1/n)
+
+3.43
+x ∈ ~int(A) <=> ∀r>0∃y, y ∈ B(x; r) ∩ ~A
+            <=> y ∈ C(~A)
+
+3.44
+int(~A) = ~C(~~A) = ~C(A)
+
+3.45
+proof of exercise 3.9 is independent of metric spaces
+int(S) is open in (M, d), int(int(S)) = int(S)
+
+3.46
+a.  x ∈ int(∩Ai)    <=> ∃r, B(x; r) ⊆ ∩Ai
+                    <=> ∀i∃r, B(x; r) ⊆ Ai // **
+                    // converse: take r = min{ri}
+                    <=> ∀i, x ∈ int(Ai)
+                    <=> x ∈ ∩int(Ai)
+b.  same to part a, but {r: A ∈ F, B(x; r) ⊆ A} may not have a minimum element, converse may not be true
+c.  let F = {(-1/n, 1/n): n ∈ {1, 2, ..}}, for all A ∈ F, int(A) = A, ∩{F}int(A) = ∩{F}A = {0}
+    but {0} has no interior point, int(∩{F}A) = ∅ != ∩{F}int(A)
+
+3.47
+a.  x ∈ ∪{F}(int(A))    <=> ∃A∈F, x ∈ int(A)
+                        => ∃A∈F, x ∈ int(A) ∪ int(∪{F}A)
+                        => ∃A∈F, x ∈ int(A ∪ ∪{F}A) // exercise 3.11
+                        <=> ∃A∈F, x ∈ int(∪{F}A)
+b.  let A be the set of rational numbers in (0, 1), B be the set of irrational numbers in (0, 1)
+    int(A) = int(B) = ∅ (there's rational and irrational numbers in any nonempty open interval)
+    A ∪ B = (0, 1) is open, int(A ∪ B) = (0, 1)
+
+3.48
+a.  int(∂A) = int(C(A) ∩ C(~A)) = int(C(A)) ∩ int(C(~A))
+    if A is open, ~A is closed, C(~A) = ~A
+    int(C(A)) ∩ int(C(~A)) ⊆ C(A) ∩ int(~A)
+    x ∈ int(~A) <=> ∃r>0, B(x; r) ⊆ ~A
+                <=> ∃r>0∀y, y ∈ B(x; r) => y ∈ ~A
+                <=> ∃r>0~∃y, y ∈ B(x; r) ∩ A
+                <=> ~(x ∈ C(A))
+    int(∂A) ⊆ C(A) ∩ int(~A) = ∅
+b.  C(Q) = C(~Q) = R in (R, d), ∂Q = R
+
+3.49
+for all x ∈ A ∪ B, x ∈ A or x ∈ B
+if x ∈ A, by int(A) = ∅, for all r > 0 there's y ∈ B(x; r) ∩ ~A
+assume all such y ∈ ~A ∩ B (otherwise y ∈ ~A ∩ ~B = ~(A ∪ B) and the theorem is proved)
+A is closed, ~A is open, y is an interior point of ~A
+let r' = (r - ||y - x||)/2, B(y; r') ⊆ B(x; r):
+    for all z ∈ B(y; r')
+    ||z - x||   <= ||z - y|| + ||y - x||
+                < (r - ||y - x||)/2 + ||y - x||
+                = (r + ||y - x||)/2
+                < r
+by assumption, B(y; r') ⊆ ~A ∩ B ⊆ B, B(y; r') is an interior point of B, contradicting int(B) = ∅
+if x ∈ B, by int(B) = ∅, for all r > 0 there's y ∈ B(x; r) ∩ ~B
+assume all such y ∈ ~B ∩ A
+as int(A) = ∅, there's z ∈ B(y; r') ∩ ~A for all r' > 0
+if z ∈ ~B, the theorem is proved, assume z ∈ B
+B(z; t) must contain some w ∈ ~B otherwise z is an interior point of B
+but for small enough t, B(z; t) ⊆ B(x; r), all such w ∈ ~B ∩ A ⊆ A, z is an adherent point of A
+A is closed, z ∈ A, contradicting z ∈ B(y; r') ∩ ~A
+therefore for all x ∈ A ∪ B, B(x; r) ∩ ~(A ∪ B) != ∅, int(A ∪ B) = ∅
+
+3.50
+A = Q, B = ~Q, int(A) = int(B) = ∅, int(A ∪ B) = int(R) = R
+
+3.51
+x ∈ ∂A  <=> ∀r>0, (∃y1 ∈ B(x; r) ∩ A) & (∃y2 ∈ B(x; r) ∩ ~A)
+        <=> (∀r>0∃y1, ∈ B(x; r) ∩ A) & (∀r>0∃y2, ∈ B(x; r) ∩ ~A)
+        <=> x ∈ C(A) & x ∈ C(~A)
+        <=> x ∈ C(A) ∩ C(~A)
+and this formula is symmetric, ∂A = C(A) ∩ C(~A) = C(~A) ∩ C(A) = ∂(~A)
+
+3.52
+x ∈ ∂(A ∪ B)    <=> ∀r>0∃y∃z, y ∈ B(x; r) ∩ (A ∪ B) & z ∈ B(x; r) ∩ ~(A ∪ B)
+                <=> ∀r>0∃y∃z, y ∈ (B(x; r) ∩ A) ∪ (B(x, r) ∩ B) & z ∈ B(x; r) ∩ ~A ∩ ~B
+                => ∀r>0∃y∃z, (y ∈ B(x; r) ∩ A & z ∈ B(x; r) ∩ ~A) | (y ∈ B(x; r) ∩ B & z ∈ B(x; r) ∩ ~B)
+                => x ∈ ∂A | x ∈ ∂B
+                <=> x ∈ ∂A ∪ ∂B
+conversely, let x ∈ ∂A ⊆ C(A), for all r > 0 there are y ∈ B(x; r) ∩ A and z ∈ B(x; r) ∩ ~A
+assume all such z ∈ ~A ∩ B (otherwise theorem is proved), then x is an adherent point of B, x ∈ C(B)
+but then x ∈ C(A) ∩ C(B), contradicting C(A) ∩ C(B) = ∅
+symmetrically, ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B = ∂(A ∪ B)
