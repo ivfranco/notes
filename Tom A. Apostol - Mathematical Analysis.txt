@@ -923,6 +923,16 @@ f(T)^2 - (2 + f(A) + f(B))f(T) + 2(f(A) + f(B)) = 0
 (f(T) - 2)(f(T) - f(A) - f(B)) = 0
 as f(T) != f(A) + f(B), it must have f(T) = 2
 
+theorem 3.10
+for all a(x) < a' < x, a' ∈ S:
+    if a(x) ∈ {a: (a, x) ⊆ S}, a' ∈ (a, x) ⊆ S
+    otherwise assume {a: (a, x) ⊆ S} ∩ (a, a') = ∅, a' is a lower bound greater than a(x)
+    there must be some l ∈ {a: (a, x) ⊆ S} ∩ (a, a'), (a', x) ⊆ (l, x) ⊆ S
+similarly for all x < b' < b(x), b' ⊆ S, (a(x), b(x)) ⊆ S
+if x ∈ I = (a', b') ⊆ S, I ⊆ Ix = (a(x), b(x)):
+    assume a' < a(x), (a', x) ⊆ I ⊆ S, a' ∈ {a: (a, x) ⊆ S}, contradicting the definition of a(x)
+    similarly b' <= b(x), I ⊆ Ix
+
 3.1
 for all x ∈ (-∞, b), let r = |b - x| = b - x, for any y ∈ B(x;r), assume y >= b,
     |y - x| = y - x = (y - b) + (b - x) >= r
@@ -1590,3 +1600,138 @@ conversely, let x ∈ ∂A ⊆ C(A), for all r > 0 there are y ∈ B(x; r) ∩ A
 assume all such z ∈ ~A ∩ B (otherwise theorem is proved), then x is an adherent point of B, x ∈ C(B)
 but then x ∈ C(A) ∩ C(B), contradicting C(A) ∩ C(B) = ∅
 symmetrically, ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B = ∂(A ∪ B)
+
+4.1
+a.  |z^n| = |z|^n, if |z| = 0, {|z^n|} is constant, |z^n| -> 0
+    otherwise 0 < |z| < 1, |z^n| is decreasing, log(|z|, ε) is defined for all ε > 0, let N = min{n: n > log(|z|, ε)}
+    for all n >= N, n > log(|z|, ε), 0 < |z|^n < |z|^log(|z|, ε) = ε, |z^n| -> 0
+    the only complex number with |z| = 0 is z = 0, z^n -> 0
+    by theorem 4.14, zn -> p => |zn| -> |p|
+    if |z^n| = |z|^n -> |p| for some complex number p, for all ε > 0 and some N, ||z^n| - |p|| whenever n >= N
+    let i = inf{n: n >= log(|z|, |p| + 2ε)}, for all n >= i, |z^i| >= |z|^log(|z|, |p| + 2ε) = |p| + 2ε
+    contradicting the definition of N, {z^n} diverges
+b.  if {cn} is bounded, {|cn|} ⊆ B(z; r'), |cn| <= |cn - z| + |z - 0| < r' + |z| = r, {|cn|} ⊆ B(0; r) for some r > 0
+    for all ε > 0, take ε' = ε/r > 0, there's N that |zn| < ε' whenever n >= N
+    |cnzn| = |cn||zn| < ε'|cn| < ε'r = ε whenever n >= N, |cnzn| -> 0, cnzn -> 0
+c.  0 < 1/n! <= 1/n, 1/n -> 0 implies 1/n! -> 0
+    by part b, let zn = z be a constant sequence, z/n! = zn/n! -> 0
+d.  √(n^2 + 2) - n  = (n^2 + 2 - n^2)/(√(n^2 + 2) + n) 
+                    = 2/(√(n^2 + 2) + n)
+                    < 2/2n
+                    = 1/n
+    0 < √(n^2 + 2) - n < 1/n -> 0, √(n^2 + 2) - n -> 0
+
+4.2
+|an+2 - an+1| = |an+1 - an|/2, an+1 - an -> 0
+(2an+2 + an+1)/3 = (2an+1 + an)/3 = (2a2 + a1)/3 is a constant sequence
+(2an+1 + an)/3 + (an+1 - an)/3  = an+1 -> (2a2 + a1)/3, an -> (2a2 + a1)/3
+
+4.3
+xn -> 0:
+    if 0 < xn < 1, 0 < 1 - xn < 1, 0 < √(1 - xn) < 1, 0 < 1 - √(1 - xn) < 1
+    √(1 - xn) > 1 - xn, xn > 1 - √(1 - xn) = xn+1, {xn} is decreasing 
+    let y1 = 1 - x1, 0 < y1 < 1, yn+1 = √yn = y1^(1/2^n)
+    f(x) = y1^x is continuous, yn+1 = y1^(1/2^n) -> y1^0 = 1
+    x1 = 1 - y1, inductively yn+1 = √yn = √(1 - xn), xn+1 = 1 - yn+1, xn -> 1 - 1 = 0
+xn+1/xn -> 1/2:
+    xn+1    = 1 - √(1 - xn) 
+            = (1^2 - (1 - xn))/(1 + √(1 - xn))
+            = xn/(1 + √(1 - xn))
+    xn+1/xn = 1/(1 + √(1 - xn)) = 1/(1 + yn+1)
+    as f(x) = 1/(1 + x) is continuous on x != -1, 1/(1 + yn+1) -> 1/(1 + 1) = 1/2
+
+4.4
+(an + bn√2)^2 = an^2 + 2bn^2 + 2anbn√2 = an+1 + bn+1√2
+an+1 = an^2 + 2bn^2, bn+1 = 2anbn, an+1 >= an and bn+1 >= bn
+in fact, bn+1 >= 2a1bn = 2bn >= n, bn -> ∞, an+1 >= 2bn^2 -> ∞
+// here xn -> ∞ means xn is increasing and xn is not bounded from above
+a2 = 1 + 2 = 3, b2 = 2, a2^2 - 2b2^2 = 1
+an+1^2 - 2bn+1^2    = (an+1 + √2bn+1)(an+1 - √2bn+1)
+                    = (an + √2bn)^2(an^2 + 2bn^2 - 2√2anbn)
+                    = (an + √2bn)^2(an - √2bn)^2
+                    = 1^2 = 1
+an^2/bn^2 - 2 = 1/bn^2, an^2/bn^2 = 1/bn^2 + 2 -> 2, an/bn -> √2
+1 - 2bn^2/an^2 = 1/an^2, bn^2/an^2 = (1 - 1/an^2)/2 -> 1/2, bn/an -> √2/2, 2bn/an -> √2
+
+4.5
+if 0 < xn < 1, 0 < xn^3 < 1, 6/7 < xn+1 = (xn^3 + 6)/7 < 7/7 = 1
+    xn+1 - xn   = (xn^3 - 7xn + 6)/7
+                = (xn - 1)(xn - 2)(xn + 3)/7
+    is positive on (-3, 1), {xn} is increasing, xn -> sup({xn}) = s
+    s = lim{n -> ∞}xn+1 = lim{n -> ∞}(xn^3 + 6)/7 = (s^3 + 6)/7
+    (s - 1)(s - 2)(s + 3)/7 = 0, s = -3, 1 or 2
+    {xn} ⊆ (0, 1), -3 or 2 cannot be accumulation point of {xn}, s must be 1
+if 1 < xn < 2, 1 < xn^3 < 8, 1 < xn+1 = (xn^3 + 6)/7 < 14/7 = 2
+    xn+1 - xn is negative on (1, 2), {xn} is decreasing, xn -> inf({xn}) = i
+    i = -3, 1 or 2 as well, -3 cannot be an accumulation point of {xn} ⊆ (1, 2), x1 < 2, l must be 1
+if xn > 2, (xn - 1)(xn - 2)(xn + 3)/7 is increasing on (2, +∞)
+    xn+2 - xn+1 >= xn+1 - xn > 0 
+    xn = Σ(xk+1 - xk) >= (n - 1)(x2 - x1) = (n - 1)c -> ∞, {xn} diverges
+
+4.6
+|an+1 + an| <= |an+1| + |an| < 4
+|an+2 - an+1|   <= |an+1^2 - an^2|/8
+                = |an+1 - an||an+1 + an|/8
+                < |an+1 - an|/2
+|an+k+1 - an+k| < |an+1 - an|/2^k
+for any m >= n, 
+|am - an|   <= Σ{n <= k <= m - 1}|ak+1 - ak|
+            < Σ{0 <= k <= m - n - 1}|an+1 - an|/2^k
+            <= Σ{0 <= k}|an+1 - an|/2^k
+            = 2|an+1 - an|
+            < 2|a2 - a1|/2^(n-1)
+            = c/2^n -> 0
+for all ε > 0, there's an N that n >= N implies for all m >= n, |am - an| < ε/2
+then for two m, k >= n, |am - ak| <= |am - an| + |an - ak| < ε, {an} is a Cauchy sequence in R, {an} converges
+
+4.7
+d(x, xn) + d(xn, yn) + d(yn, y) >= d(x, y), d(xn, yn) >= d(x, y) - d(x, xn) - d(y, yn)
+d(xn, yn) <= d(xn, x) + d(x, y) + d(y, yn)
+both d(x, y) - d(x, xn) - d(y, yn) and d(xn, x) + d(x, y) + d(y, yn) -> d(x, y), d(xn, yn) -> d(x, y)
+
+4.8
+if the range of {xn} is finite, one of them must be repeated infinite times, {xn} has a constant subsequence
+otherwise the range of {xn} is infinite in S, by theorem 3.38 it has an accumulation point p in S
+B(p; 1/m) ∩ {xn} is nonempty for all integer m, take one value from each B(p; 1/m) ∩ {xn} (e.g. the one with smallest 
+index in the sequence) and the subsequence converges to p
+
+4.9
+let p be an accumulation point of A, B(p; 1/n) ∩ A is nonempty for all integer n
+choose one point xn from every B(p; 1/n) ∩ A, {xn} is a Cauchy sequence:
+    for all ε > 0, let N be an integer Nε > 2, 1/N < ε/2, for all n, m >= N, 
+    d(xn, xm)   <= d(xn, p) + d(xm, p)
+                <= 1/N + 1/N
+                < ε
+therefore {xn} converges to a point q in A, if p != q, d(p, q) > 0, but 
+0 <= d(p, q) <= d(xn, p) + d(xn, q) -> 0
+q must be p, p ∈ A, A is closed
+if S is complete, every Cauchy sequence {xn} in A converge to a point p in S
+by theorem 4.3, p is an adherent point of {xn} ⊆ A, p is an adherent point of A, p ⊆ A
+hence every Cauchy sequence converges in A to a point in A, A is complete
+
+4.10
+lim{x -> 0}f(x) = b <=> lim{x -> 0}f(-x) = b:
+    let g(x) = f(-x), g(X) = f({-x: x ∈ X})
+    lim{x -> 0}f(x) = b <=> ∀ε>0∃δ>0, f(B(0; δ) - {0}) ⊆ B(b; ε)
+                        <=> ∀ε>0∃δ>0, g(B(0; δ) - {0}) ⊆ B(b; ε) // B(0; δ) - {0} is symmetry to 0
+                        <=> lim{x -> 0}g(x) = b
+                        <=> lim(x -> 0)f(-x) = b
+a => b:
+    let g(h) = |f(x + h) - f(x)|
+    lim{h -> 0}g(h) = 0, lim{h -> 0}g(-h) = lim{h -> 0}|f(x - h) - f(x)| = 0
+    0   <= |f(x + h) - f(x - h)|
+        <= |f(x + h) - f(x)| + |f(x - h) - f(x)|
+        -> 0
+    lim{h -> 0}|f(x + h) - f(x - h)| = 0
+b & ~a:
+    define
+        f(x)    = 0 if x ∈ (a, x0) ∪ (x0, b)
+                = 1 if x = x0
+    |f(x0 + h) - f(x0 - h)| = 0 for all h != 0, f(B(0; 1) ∩ (a, b) - {0}) ⊆ B(0; ε) for all ε > 0
+    but |f(x0 + h) - f(x0)| = 1 for all h != 0
+
+4.11
+
+
+
+
