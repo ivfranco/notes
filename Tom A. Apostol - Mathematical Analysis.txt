@@ -1731,7 +1731,156 @@ b & ~a:
     but |f(x0 + h) - f(x0)| = 1 for all h != 0
 
 4.11
+lim{x -> a}f(x, y) is defined for each y
+by theorem 4.12 the limit is unique, lim{x -> a}f(x, y) = A(y) is a function
+for all ε > 0 there's δ that, |x - a| < δ implies |f(x, y) - A(y)| < ε/2
+for the same ε > 0, there exists δ' that ||(x, y) - (a, b)|| < δ' implies |f(x, y) - L| < ε/2
+let |x - a| < min(δ, δ'/2), |y - b| < δ'/2, 
+    ||(x, y) - (a, b)|| <= |x - a| + |y - b| < δ'
+    |L - A(y)|  <= |f(x, y) - L| + |f(x, y) - A(y)|
+                < ε
+// |x - a| can be arbitrary as long as (x, y) ∈ B((a, b); δ') for a range of y
+therefore lim{y -> b}(lim{x -> a}f(x, y)) = L
+symmetrically lim{x -> a}(lim{y -> b}f(x, y)) = L
+a.  f(x, y) is continuous on R^2 - {(0, 0)}
+    lim{x -> 0}f(x, y) = -y^2/y^2 = -1 if y != 0, = 0 if y = 0
+    lim{y -> 0}(lim{x -> 0}f(x, y)) = -1
+    lim{y -> 0}f(x, y) = x^2/x^2 = 1 if x != 0, = 0 if x = 0
+    lim{x -> 0}(lim{y -> 0}f(x, y)) = 1
+    let pn = (1/n, 1/n), pn -> (0, 0), f(pn) = 0 is constant for all {pn}
+    let pn = (1/n, 0), pn -> (0, 0), f(pn) = 1 is constant for all {pn}
+    if lim{(x, y) -> (0, 0)}f(x, y) has a limit L, f(pn) -> L for all sequence {pn} that converges to (0, 0)
+    therefore lim{(x, y) -> (0, 0)}f(x, y) doesn't exist
+b.  f(x, y) is continuous on R^2 - {(0, 0)}, lim{(x, y) -> (a, b)}f(x, y) = f(a, b)
+    lim{x -> 0}f(x, y) = 0
+    lim{y -> 0}f(x, y) = 0
+    lim{x -> 0}(lim{y -> 0}f(x, y)) = lim{y -> 0}(lim{x -> 0}f(x, y)) = 0
+    let pn = (1/n, 1/n), pn -> (0, 0), f(pn) = 1 for all pn != (0, 0)
+    let pn = (1/n, 0), pn -> (0, 0), f(pn) = 0
+    lim{(x, y) -> (0, 0)}f(x, y) doesn't exist
+c.  f(x, y) is continuous on x != 0
+    lim{y -> 0}f(x, y) = 0
+    ∂(sin(xy)/x)/∂x = cos(xy)y, lim{x -> 0}f(x, y) = lim{x -> 0}cos(xy)y = y
+    lim{x -> 0}(lim{y -> 0}f(x, y)) = lim{y -> 0}(lim{x -> 0}f(x, y)) = 0
+    |f(x, y)|   = |sin(xy)|/|x|
+                <= |xy|/|x|
+                <= |y|
+                <= ||(x, y)|| -> 0 iff (x, y) -> 0
+    therefore |f(x, y)| -> 0, f(x, y) -> 0
+d.  if f(x) diverges as x -> 0, λf(x) diverges for all λ != 0:
+        otherwise λf(x)/λ converges
+    if f(x) converges, g(x) diverges as x -> 0, h(x) = f(x) + g(x) diverges:
+        otherwise h(x) - f(x) = g(x) converges as x -> 0
+    f(x, y) is continuous on x != 0 and y != 0
+    f(x, y) = xsin(1/x)sin(1/y) + ysin(1/x)sin(1/y) doesn't converge as x -> 0 or y -> 0:
+        f(x) = sin(1/x) diverges as x -> 0: [-1, 1] ⊆ f(B(0; δ) - {0}) for all δ > 0
+        ysin(1/x)sin(1/y) diverges as x -> 0, xsin(1/x)sin(1/y) -> 0 as x -> 0 since sin(1/x)sin(1/y) is bounded
+        f(x, y) be the sum of convergent and divergent functions wrt. x or y cannot be convergent
+    -(|x| + |y|) <= f(x, y) <= |x| + |y|
+    since |x| + |y| <= √2||(x, y)|| -> 0, f(x, y) -> 0
+e.  let f:A -> T, p ∈ B ⊆ A, B is an open subset of A, g: B -> T be the restriction of f to B
+    if lim{x -> p}g(x) = b, lim{x -> p}f(x) = b:
+        p is an accumulation point of B and A
+        p is an interior point of B, BS(p; r) ⊆ B for some r
+        lim{x -> p}g(x) = b
+        => ∀ε>0∃δ>0, g((BS(p; δ) - {p}) ∩ B) ⊆ BT(b; ε)
+        // let δ' = min{δ, r}, BS(p; δ) ⊆ B ⊆ A, BS(p; δ') ∩ B = BS(p; δ')
+        => ∀ε>0∃δ>0, g((BS(p; δ') - {p})) ⊆ BT(b; ε)
+        => ∀ε>0∃δ'>0, f((BS(p; δ') - {p})) ⊆ BT(b; ε) // f is an extension of g f(x) = g(x) for the domain of g
+        => ∀ε>0∃δ'>0, f((BS(p; δ') - {p}) ∩ A) ⊆ BT(b; ε) // B ⊆ A
+        => lim{x -> p}f(x) = b
+    let A = B ∪ C B and C disjoint, f: B -> T, g: C -> T, define h:A -> T that
+        h(x)    = f(x) if x ∈ B
+                = g(x) if x ∈ C
+    if lim{x -> p}f(x) = lim{x -> p}g(x) = b, lim{x -> p}h(x) = b:
+        (∀ε>0∃δ>0, f(BS(p; δ) ∩ B - {p}) ⊆ BT(b; ε)) & (∀ε>0∃δ'>0, g(BS(p; δ) ∩ C - {p}) ⊆ BT(b; ε))
+        => ∀ε>0∃r>0, h(BS(p; r) ∩ A - {p}) ⊆ BT(b; ε) // r = min{δ, δ'} > 0
+        => lim{x -> p}h(x) = b
+    f(x, y) is continuous on x, y != π/2 + πn, tanx != tany
+    consider an open interval x, y ∈ S = (-π/2, π/2) around 0
+    tanx is one-to-one in the interval, tanx = tany iff x = y
+    fix y, when x ∈ ((-y, y) ∩ S) - {0}, f(x, y) = (sinx - siny)/(tanx - tany)
+    lim{x -> 0}f(x, y) = cosy if y != 0
+    when y = 0, f(x, y) = cosx when x != 0, lim{x -> 0}f(x, 0) = 1
+    lim{y -> 0}(lim{x -> 0}f(x, y)) = 1
+    symmetrically, lim{x -> 0}(lim{y -> 0}f(x, y)) = 1
+    let B = {(x, y): x != y, (x, y) ∈ S}, C = S - B = {(x, y): x = y, (x, y) ∈ S}
+    f(x, y) = cos^3(x) -> 1 in C as (x, y) -> (0, 0)
+    f(x, y) = (sinx - siny)/(tanx - tany)
+            = 2cos((x + y)/2)sin((x - y)/2) / (sin(x - y)/cosxcosy)
+            = cos((x + y)/2)cosxcosy/cos((x - y)/2)
+            -> 1 in B as (x, y) -> (0, 0)
+    therefore lim{(x, y) -> (0, 0)}f(x, y) = 1
 
+4.12
+if m!x is an integer, m!πx = π + kπ, cos(m!πx) = ±1, cos(m!πx)^2n = 1
+if m!x is not an integer, |cos(m!πx)| < 1, |cos(m!πx)^2n| -> 0 as n -> ∞
+lim{n -> ∞}cos(m!πx) = A(m) exists, A(m) = 1 when m!x is an integer, A(m) = 0 when m!x is not an integer
+for all rational x, x = p/q for some integers p and q, for m >= q, m!x is an integer, lim{m -> ∞}A(m) = 1
+if x is irrational, m!x cannot be an integer, A(m) = 0 is constant, lim{m -> ∞}A(m) = 0
 
+4.13
+for all irrational p, by continuity, for all ε > 0, there's δ > 0 that d(f(p), f(x)) < ε whenever d(p, x) < δ
+there's a rational number x ∈ B(p; δ), d(f(p), 1) < ε for all ε > 0, f(p) = 1
 
+4.14
+for all ε > 0, for some δ > 0, d(a, p) < δ => d(f(a), f(p)) < ε
+let |x - a| < δ, ||a - (x, a1, .., an)|| = |x - a| < δ, |f(a) - f(p)| = |g(a1) - g(x)| < ε
+g(x) is continuous at x = a1
 
+4.15
+let f(x, y) = 0 if x = 0 or y = 0
+            = 1 otherwise
+g(x) = f(x, 0) = 0 is continuous 
+h(y) = f(0, y) = 0 is continuous
+all B((0, 0); δ) contains some point (x, y) that f(x, y) = 1, f is not continuous at (0, 0)
+
+4.16
+f(x):
+    for all x ∈ [0, 1] and δ > 0, B(x; δ) contains both rational and irrational numbers
+    |f(x) - f(p)| = 1 for some p ∈ B(x; δ), f(x) is not continuous anywhere in [0, 1]
+g(x):
+    at x = 0, for all ε > 0, let δ = ε, B(x; δ) ∩ [0, 1] = (0, ε)
+    for all p ∈ (0, ε), f(p) = 0 or p < ε, g(x) is continuous at 0
+    when x != 0, for all δ > 0,
+    if x is rational, f(x) = x, B(x; δ) contains a irrational number p, f(p) = 0, |f(x) - f(p)| = x > 0
+    if x is irrational, f(x) = 0, (x, x + δ) ⊆ B(x; δ) contains a rational number p, f(p) = p > x, |f(x) - f(p)| > x > 0
+h(x):
+    if x is rational, x = m/n, f(x) = 1/n > 0, for all δ > 0 B(x; δ) contains a irrational number p, f(p) = 0
+    |f(x) - f(p)| > 1/n > 0, h is not continuous at x
+    if x is irrational, f(x) = 0, for all ε > 0, there's some N that Nε > 1, ε > 1/N
+    let {xmn} be the set of rational numbers m/n where n <= N, m <= n, {xmn} is finite so have no accumulation point
+    for some B(x; r), r > 0, B(x; r) is disjoint with {xmn} // otherwise x is an accumulation point of {xmn}
+    if any rational p ∈ B(x; r), the denominator of p > N, f(p) < 1/N < ε, |f(x) - f(p)| = f(p) < ε
+    h is continuous at all irrational numbers in [0, 1]
+
+4.17
+a.  if x is rational, f(x) = x is rational, f(f(x)) = x
+    if x is irrational, f(x) = 1 - x is irrational, f(f(x)) = 1 - (1 - x) = x
+b.  if x is rational, 1 - x is rational, f(x) + f(1 - x) = x + (1 - x) = 1
+    if x is irrational, f(x) + f(1 - x) = 1 - x + 1 - (1 - x) = 1
+c.  when x = 1/2, for all ε > 0, let δ = ε, if p ∈ B(1/2; δ) is rational, f(p) = p ∈ B(1/2; δ)
+    if p is irrational, f(p) = 1 - p, |f(p) - 1/2| = |1 - p - 1/2| = |1/2 - p| < δ
+    f(B(1/2; ε)) ⊆ B(1/2; ε), f is continuous at 1/2
+    if x > 1/2 be a rational number, let an irrational p ∈ (x, x + δ) for any δ, f(p) = 1 - p < 1 - x < x
+    |f(x) - f(p)|   = |x - 1 + p|
+                    > |x - 1 + x|
+                    = |2x - 1|
+                    = 2|x - 1/2| > 0
+    if x > 1/2 is irrational, let a rational p ∈ (x, x + δ) for any δ, f(p) = p > x > 1 - x
+    |f(x) - f(p)|   = |p - 1 + x|
+                    > |x - 1 + x|
+                    = 2|x - 1/2| > 0
+    symmetrically at x < 1/2, f is not continuous
+d.  for any r in [0, 1], if r is rational, let x = r ∈ [0, 1], f(x) = r
+    if r is irrational, let x = 1 - r ∈ [0, 1], f(x) = 1 - (1 - r) = r
+e.  if x, y are rational, f(x + y) - f(x) - f(y) = 0
+    if x is rational, y is irrational, x + y is irrational
+        f(x + y) - f(x) - f(y) = 1 - (x + y) - x - 1 + y = -2x is rational
+    symmetrically if x is irrational, y is rational, the the result is rational
+    if both x and y are irrational, assume x + y is rational
+        f(x + y) - f(x) - f(y) = x + y - 1 + x - 1 + y = 2(x + y) - 2 is rational
+    if x + y is irrational,
+        f(x + y) - f(x) - f(y) = 1 - (x + y) - 1 + x - 1 + y = -1 is rational
+
+4.18
