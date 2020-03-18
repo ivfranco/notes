@@ -1884,3 +1884,116 @@ e.  if x, y are rational, f(x + y) - f(x) - f(y) = 0
         f(x + y) - f(x) - f(y) = 1 - (x + y) - 1 + x - 1 + y = -1 is rational
 
 4.18
+// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+let g: S -> U, f: g(S) -> T, f o g continuous at p, g maps open balls to open sets, then f is continuous at g(p)
+    for all ε > 0 there's δ, f(g(BS(p; δ))) ⊆ BT(f(g(p)); ε)
+    g(BS(p; δ)) is an open set, g(p) ∈ g(BS(p; δ)), BU(g(p); δ') ⊆ g(BS(p; δ)) for some δ'
+    f(BU(g(p); δ')) ⊆ f(g(BS(p; δ))) ⊆ BT(f(g(p)); ε) for all ε > 0, f is continuous at g(p)
+f(x) = f(x + 0) = f(x) + f(0), f(0) = 0
+f(x) is continuous at x0, f(x) - f(x0) = f(x - x0) is continuous at x0
+g(x) = x - x0 maps open intervals to open intervals, lim{x -> x0}f(x - x0) = lim{y -> 0}f(y) = f(0) = 0
+for any r ∈ R, f(x) = f(r) + f(x - r)
+lim{x -> r}f(x) = lim{x -> r}(f(r) + f(x - r))
+                = f(r) + lim{x -> r}f(x - r)
+                = f(r) + lim{y -> 0}f(0)
+                = f(r)
+f is continuous on R
+for all positive integer n and n, 
+f(1) = f(Σ1/n) = Σf(1/n) = nf(1/n), f(1/n) = f(1)/n
+f(m/n) = f(Σ1/n) = mf(1/n) = m/n * f(1)
+f(x) + f(-x) = f(0) = 0, f(-x) = -f(x)
+for all x ∈ Q, f(x) = f(1)x = ax
+for irrational x, assume f(x) < ax, |f(x) - ax| = r > 0
+for any δ > 0, let q ∈ (x, x + δ) be a rational number, f(q) = aq > ax
+|f(q) - f(x)| > |ax - f(x)| = r, f is not continuous at x
+symmetrically, f is not continuous at x if f(x) > ax, f(x) = ax for all x ∈ R
+
+4.19
+for all x ∈ [a, b], r > 0, 
+if g(x + r) ∈ f([a, x]), g(x + r) = g(x)
+otherwise g(x + r) ∈ f((x, x + r]) > g(x)
+for all ε > 0, assume for all δ > 0, g(B(x; δ)) contains a number g(p) outside B(g(x); ε)
+if p > x, g(p) > g(x), |g(p) - g(x)| = g(p) - g(x) >= ε
+p = x + r < x + δ, g(p) ∈ f((x, x + r]) ⊆ f((x, x + δ)), g(p) = f(q) for some q ∈ (x, x + δ)
+but then |f(q) - f(x)| >= |f(q) - g(x)| = |g(p) - g(x)| >= ε, f is not continuous at x
+if p < x, g(p) < g(x) |g(p) - g(x)| = g(x) - g(p) >= ε
+p = x - r > x - δ, by a similar argument there's p < q <= x that f(q) - f(p) >= ε, f is not continuous
+
+4.20
+fi(x) is continuous at a for all i
+fi(Bn(a; δi)) ⊆ B(fi(a); ε) for all i and ε > 0
+take δ = min{δi}, assume f is not continuous at a, there's some x ∈ Bn(a; δ) that |f(a) - f(x)| >= ε
+if f(a) > f(x), f(a) = fi(a) for some i, fi(x) <= f(x), |fi(a) - fi(x)| >= |f(a) - f(x)| >= ε, fi is not continuous at a
+if f(a) < f(x), symmetrically fi is not continuous at a for some i 
+f(x) = max{fi(x)} is continuous at a
+
+4.21
+// almost identical to the proof of theorem 4.31
+let ε = f(p)/2, for some δ, f(Bn(p; δ)) ⊆ B(f(p); ε) = (f(p)/2, 3f(p)/2) ⊆ (0, +∞)
+since S is open, p is an interior point, Bn(p; δ') ⊆ S for some δ'
+take r = min{δ, δ'}
+
+4.22
+A = f^-1({0}), {0} is closed in R, by theorem 4.24 A is closed in S
+A = A ∩ S and S is closed in R, A is closed in R
+
+4.23
+=>: assume f is continuous
+    for all (x, y) ∈ A, f(x) = f(x) + ε > y, f(B(x; δ)) ⊆ B(f(x); ε/2) for some δ > 0
+    P = B(x; δ) x (-∞, f(x) - ε/2) ⊆ A is an open interval in R^2, (x, y) ∈ P, B((x, y); r) ⊆ P ⊆ A, A is open
+    symmetrically B is open
+<=: assume A and B are open
+    for a point x, for all ε > 0, (x, f(x) - ε) ∈ A
+    B((x, f(x) - ε); r) ⊆ A for some r > 0
+    the 2-ball B((x, f(x) - ε); r) contains a 2-d open interval 
+        I = (x - r√2/2, x + r√2/2) x (f(x) - ε, f(x) - ε + r√2/2) = X x Y
+    therefore x ∈ X implies x > f(x) - ε + r√2/2 > f(x) - ε
+    symmetrically, x ∈ X implies x < f(x) - ε, f(B(x; r√2/2)) ⊆ B(f(x); ε), f is continuous at all x ∈ R
+
+4.24
+Ωf(T) >= 0 for all T != ∅:
+    if T is nonempty, x ∈ T, 0 = f(x) - f(x) ∈ {f(x) - f(y): x, y ∈ T} <= sup{f(x) - f(y): x, y ∈ T}
+s(h) = Ωf(B(x; h) ∩ S) is increasing:
+    if h1 < h2, B(x; h1) ∩ S ⊆ B(x; h2) ∩ S
+    and for all A ⊆ B, {f(x) - f(y): x, y ∈ A} ⊆ {f(x) - f(y): x, y ∈ B}, Ωf(A) <= Ωf(B)
+R(s) is bounded from below, inf{R(s)} exists in R
+S is a nonempty closed interval, B(x; h) ∩ S is infinite for all x ∈ S and h > 0
+lim{h -> 0+}s(h) = inf{R(s)}:
+    for all ε > 0, s(h) >= inf{R(s)} >= inf{R(s)} - ε
+    if inf{R(s)} ∈ R(s), s(δ) = inf{R(s)} for some δ > 0
+    by monotonicity, s((0, δ)) = {inf{R(s)}} ⊆ B(inf{R(s)}, ε)
+    if i = inf{R(s)} ∉ R(s), there exists s(δ) ∈ (i, i + ε) for all ε
+    by monotonicity, s((0, δ)) ⊆ (i, s(δ)] ⊆ B(i; ε)
+if f is continuous at x, for all ε > 0 there's δ that
+    f(B(x; δ) ∩ S) ⊆ B(f(x); ε/2)
+for all y, z ∈ B(x; δ) ∩ S, |f(y) - f(z)| <= |f(y) - f(x)| + |f(z) - f(x)| < ε
+0 <= inf{R(s)} < ε for all ε, inf{R(s)} = 0
+conversely, assume inf{R(s)} = 0
+if r(δ) = inf{R(s)} = 0 for some δ > 0, f(B(x; δ) ∩ S) = {f(x)} ⊆ B(f(x); ε) for all ε > 0
+otherwise r(δ) ∈ (0, ε) for all ε > 0
+for all y ∈ B(x; δ) ∩ S, |f(y) - f(x)| < ε, f(B(x; δ) ∩ S) ⊆ B(f(x); ε), f is continuous at x
+
+4.25
+assume without loss of generality that x1 < x2
+[x1, x2] ⊆ [a, b] is compact, f(p) = inf{f([x1, x2])} for some p ∈ [x1, x2]
+for all r > 0, q ∈ B(p; r) ∩ [x1, x2], f(q) >= f(p), p is a local minimum
+
+4.26
+f(0) != f(1) by the conditions, if f(0) < f(1),
+let 0 < x < y < 1, assume f(x) < f(0), by theorem 4.33 f takes all values in (f(x), f(1)) on (x, 1)
+f(0) ∈ (f(x), f(1)), contradicting to the conditions on f, f(x) > f(0)
+similarly, f(y) < f(1) and f(x) < f(y), f is strictly increasing on [0, 1]
+symmetrically, if f(0) > f(1), f is strictly decreasing on [0, 1]
+
+4.27
+a.  let f(x) = inf{f([0, 1])}, there must be another y != x that f(y) = f(x), let y > x
+    assume f is continuous on [a, b]
+    f cannot be constant on [x, y], let f(z) = sup{f([x, y])}, f(z) > f(x) = f(y), x < z < y
+    f(0), f(1) > f(x) by definition, a value p in the interval (f(x), min{f(0), f(z)}) must be repeated three times:
+        at least once in (0, x) => (f(x), f(0))
+        at least once in (x, z) => (f(x), f(z))
+        at least once in (z, y) => (f(y), f(z))
+b.  
+        
+
+
