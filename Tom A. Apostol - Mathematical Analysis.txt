@@ -1601,6 +1601,16 @@ assume all such z ∈ ~A ∩ B (otherwise theorem is proved), then x is an adher
 but then x ∈ C(A) ∩ C(B), contradicting C(A) ∩ C(B) = ∅
 symmetrically, ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B ⊆ ∂(A ∪ B), ∂A ∪ ∂B = ∂(A ∪ B)
 
+theorem 4.16
+=>: assume f is continuous at p
+    for all ε > 0 there's some δ, f(B(p; δ)) ⊆ B(f(p); ε)
+    if xn -> p, for n >= N, xn ∈ B(p; δ), f(xn) ∈ f(B(p; δ)) ⊆ B(f(p); ε), f(xn) -> f(p)
+<=: assume f(xn) -> f(p) for all xn -> p
+    assume f is not continuous at p, for all ε, δ > 0, f(B(p; δ)) contains a value outside B(f(p); ε)
+    let {xn} be the sequence that, xn ∈ B(p; 1/n), d(f(p), f(xn)) >= ε for some constant ε
+    but f(xn) -> f(p), d(f(p), f(xn)) cannot be greater than a positive constant for all n
+    f must be continuous at p
+
 4.1
 a.  |z^n| = |z|^n, if |z| = 0, {|z^n|} is constant, |z^n| -> 0
     otherwise 0 < |z| < 1, |z^n| is decreasing, log(|z|, ε) is defined for all ε > 0, let N = min{n: n > log(|z|, ε)}
@@ -1993,7 +2003,142 @@ a.  let f(x) = inf{f([0, 1])}, there must be another y != x that f(y) = f(x), le
         at least once in (0, x) => (f(x), f(0))
         at least once in (x, z) => (f(x), f(z))
         at least once in (z, y) => (f(y), f(z))
-b.  
-        
+b.  let A = Q ∩ [0, 1], B = ~Q ∩ [0, 1]
+    A = {x1, x2, ..} is countable, it can be divided to two similar sets A1 = {x1, x3, ..} and A2 = {x2, x4, ..}
+    B is uncountable, let 0.x1x2x3... be the binary representation of x ∈ B 
+    let B1 be the set of irrational number in the form 0.0x2x3..
+    let B2 be the set of irrational number in the form 0.1x2x3..
+    B1 and B2 are disjoint: 
+        0.011111.. = 0.1 is not irrational
+    B1 and B2 are similar:
+        if x = 0.0x2x3.. ∈ B1 is irrational, x + 1/2 = 0.1x2x3.. ∈ B2 is also irrational and vice versa
+        if x1 != x2, x1 + 1/2 != x2 + 1/2
+    let g be a one-to-one correspondence from A2 ∪ B2 to A1 ∪ B1
+    f(x) = x if x ∈ A1 ∪ B1, f(x) = g(x) if x ∈ A2 ∪ B2, f is two-to-one on [0, 1]
+c.  // thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+    if f is continuous on an open interval I, I have more than one local maximum / minimum, then a value f(x) is 
+    repeated 3 times on I:
+        let x1 < x2 be the first two local maximums
+        by exercise 4.25, there's a local minimum y between x1 and x2,
+        let y1 be the first and only local minimum in (x1, x2), f is decreasing on [x1, y1] and increasing on [y1, x2]
+        assume without loss of generality f(x1) <= f(x2), 
+        B(x1; r1) ⊆ I for some r > 0, for all x ∈ B(x1; r2), f(x) <= f(x1), let r = min{r1, r2}
+        f is increasing on [x1 - r/2, x1], either f is constant on [x1 - r/2, x1] or f(x - r/2) < f(x1)
+        f(x - r/2) is repeated three times:
+            once at x1 - r/2
+            once in (x1, y1)
+            once in (y1, x2)
+    remove all the discontinuities, 0 and 1, and the corresponding x's that map to the same value, an even number of
+    points are removed from [0, 1], resulting in a finite, odd collection of open intervals {Ik}, f is continuous on
+    each Ik since discontinuities are all removed
+    remove the finite number of local maximum / minimum and the corresponding x's with the same value from {Ik}, again 
+    an even number of points are removed, resulting in a finite, odd collection of open intervals {Ij}
+    f must be strictly monotonic on all the Ij (local maximums / minimums are all removed, f cannot be constant)
+    f(Ij) = Rj is an open interval:
+        Rj doesn't have a minimum (or maximum) element, if min{Rj} = f(a), B(a; r) ⊆ Ij, f(a - r/2) < f(a)
+        if Rj is bounded, for any r ∈ (inf{Rj}, sup{Rj}) = (a, b)
+        there's p ∈ (a, (r - a)/2) and q ∈ ((b - r)/2, b) by the definition of infimum and supremum, by theorem 4.33
+        r ∈ [p, q] ⊆ Rj, (inf{Rj}, sup{Rj}) = Rj
+        similarly if Rj is not bounded from above or below, all number in (-∞, sup{Rj}), (inf{Rj}, +∞) or R ⊆ Rj
+    if Ri ∩ Rj != ∅, Ri = Rj:
+        let Ri = (ai, bi), Rj = (aj, bj), assume without loss of generality ai <= aj <= bi <= bj
+        if Ri != Rj, ai != aj or bi != bj, assume ai < aj,  aj ∈ Ri and aj ∉ Rj
+        f is two-to-one, there must be another Rk that aj ∈ Rk, ak < aj < bk
+        but then for some δ, (aj, aj + δ) is covered by Ri, Rj and Rk, any value in that interval is repeated 3 times
+    but there are odd number of intervals Ij, they cannot be mapped two-to-one to a set of Rj, f must have infinite
+    number of discontinuities
 
+4.28
+a.  f(x) = 2x for x ∈ (0, 1/2), f(x) = 1 for x ∈ [1/2, 1)
+b.  no such f, continuous function maps connected set to connected set
+c.  no such f, Q is disconnected
+d.  f([0, 1]) = {0}, f([2, 3]) = {1}
+    the two sets are separated by a constant, for small enough δ the other set can be ignored
+e.  no such f, [0, 1] x [0, 1] is compact but R^2 is not
+f.  no such f, again (0, 1) x (0, 1) is not compact
+g.  f(x, y) = (tan(π(x - 1/2)), tan(π(y - 1/2)))
 
+4.29
+=>: assume f is continuous 
+    f^-1(int(B)) ⊆ f^-1(B), since f is continuous, f^-1(int(B)) the image of an open set is open
+    int(f^-1(B)) is the maximum open set contained in f^-1(B), f^-1(int(B)) ⊆ int(f^-1(B))
+<=: assume f^-1(int(B)) ⊆ int(f^-1(B)) for all B ⊆ T
+    let A be an open set in T, f^-1(int(A)) = f^-1(A) ⊆ int(f^-1(A)), f^-1(A) is open
+    the preimage of all open sets is open, f is continuous
+
+4.30
+=>: assume f is continuous
+    let x ∈ C(A) be an adherent point of A
+    for all ε > 0, there's δ that f(BS(x; δ)) ⊆ BT(f(x); ε)
+    there's y ∈ BS(x; δ) ∩ A, f(y) ∈ BT(f(x); ε) ∩ f(A), f(x) is an adherent point of f(A)
+    f(C(A)) ⊆ C(f(A))
+<=: assume f(C(A)) ⊆ C(f(A)) for all A ⊆ S
+    let B ⊆ T be a closed set, A = f^-1(B), f(A) = B, f(C(A)) ⊆ C(f(A)) = B, C(A) ⊆ A, A is closed
+    preimage of every closed set is closed, f is continuous 
+
+4.31
+=>: assume f is continuous on S
+    let g: A -> T be the restriction of f to A ⊆ S, let p be an accumulation point of A
+    p is also an accumulation point of S, for all ε > 0 there's δ, f(BS(p; δ) ∩ S) ⊆ BT(f(x); ε)
+    g(BS(p; δ) ∩ A) = f(BS(p; δ) ∩ A) ⊆ f(BS(p; δ) ∩ S) ⊆ BT(f(x); δ), g is continuous on A
+<=: assume f is continuous on every compact subset of S
+    let {xn} ⊆ S be a sequence converges to p, A = {p, x1, x2, ..} is compact:
+        if the range of {xn} is finite, every finite set is compact
+        otherwise an infinite subset of A is a subsequence of A hence has the same limit p
+        p is an accumulation point of any subsequence of A, by theorem 3.38 A is compact
+    by theorem 4.16, f(xn) -> f(p) in S for all {xn} ⊆ S converges to p, f is continuous on S
+
+4.32
+=>: assume f is continuous and closed
+    by exercise 4.30, f(C(A)) ⊆ C(f(A))
+    f(A) ⊆ f(C(A)), f(C(A)) is closed, C(f(A)) is the minimum closed set containing f(A)
+    C(f(A)) ⊆ f(C(A)) ⊆ C(f(A)), f(C(A)) = C(f(A))
+<=: assume f(C(A)) = C(f(A)) for all A ⊆ S, f: S -> T
+    by exercise 4.30, f is continuous
+    for all closed set A, f(A) = f(C(A)) = C(f(A)), the image of A is closed, f is closed
+
+4.33
+let xn = (-1)^n * 1/n, xn is a Cauchy sequence since xn -> 0
+define f: (R - {0}) -> {0, 1} as:
+    f(x)    = 1 if x > 0
+            = 0 if x < 0
+f is continuous on R - {0}:
+    R - {0} = (-∞, 0) ∪ (0, +∞) are the union of two disjoint open sets
+    for all p ∈ (-∞, 0), B(p; r) ⊆ (-∞, 0) for some r, f(B(p; r)) = {0}
+    similarly f is continuous on (0, +∞)
+f(xn) = (-1)^n, for all n >= N, |f(xn) - f(xn+1)| = 1, f(xn) is not a Cauchy sequence
+
+4.34
+f(x) = tan(πx/2) is a one-to-one corresponding between (-1, 1) and R
+both tan and arctan are continuous on the domain, (-1, 1) and R are homeomorphic
+
+4.35
+[0, 1] is compact, f is continuous and one-to-one, by theorem 4.29 f^-1 is also continuous and one-to-one
+let T = [0, 1] x [0, 1] - {f(0), f(1/2), f(1)}, S = (0, 1/2) ∪ (1/2, 1), g: T -> S is f^-1 restricted to T
+g is continuous on T and g(T) = S, T is arc-wise connected but S is disconnected, contradicting theorem 4.37
+
+4.36
+=>: assume S is disconnected
+    S = A ∪ B for two nonempty disjoint open sets A and B, let p be an adherent point of A
+    B(p; δ) contains a point in A for all δ, if p ∈ B, since B is open, B(p; r) ⊆ B for some r, thus p ∈ A
+    C(A) ⊆ A, A is both open and closed, A != S
+<=: assume A ⊆ S, A != S, A != ∅, A is both open and closed in S
+    let B = S - A, B is both open and closed in (S, d)
+    A ∪ B = S, A ∩ B = ∅, S is disconnected
+
+4.37
+immediate from 4.36
+
+4.38
+let x, y ∈ S, x != y, if S is connected, [x, y] ⊆ S:
+    assume for some x < z < y, z ∉ S
+    let A = {x: x < z, x ∈ S}, B = {x: x > z, x ∈ S}
+    x ∈ A, y ∈ B, A and B are non-empty
+    A = (-∞, z) ∩ S is open in S, similarly B is open is S, A and B are disjoint, S is disconnected
+if i = inf{S} and s = sup{S} are defined, (inf{S}, sup{S}) ⊆ S // the same argument as in exercise 4.27.c
+S is an open, closed or half-open interval depends on whether inf{S}, sup{S} ∈ S
+if S is not bounded from above or below, by similar reasoning (-∞, sup{S}), (inf{S}, +∞) or R ⊆ S
+otherwise S = {x} or S = {0} are both connected
+
+4.39
+assume Y is disconnected, Y = A ∪ B, A and B are nonempty, disjoint and open in S
