@@ -490,7 +490,7 @@ cosz^3 - 3coszsinz^2    = cosz(cosz^2 - 3sinz^2)
                         = cos3z
 
 1.46
-// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+// thanks solutions manual
 (sin2x + isinh2y)/(cos2x + cosh2y)
 = (2sinscosx + i2coshysinhy)/(2cosx^2 - 1 + 2sinhy^2 + 1)
 = (2sinscosx + i2coshysinhy)/(2cosx^2 + 2sinhy^2)
@@ -890,7 +890,7 @@ b.  if the interval has positive length, there must be two real numbers x < y in
     if S is uncountable, R(F) and Q must be uncountable
 
 2.20
-// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+// thanks solutions manual
 define An = {x: 0 <= x <= 1, f(x) > 1/n}
 if |An| > nM, |Σ{An}f(x)| > M, so |An| <= nM for all n
 define Bn = {x: 0 <= x <= 1, f(x) < -1/n}
@@ -1894,7 +1894,7 @@ e.  if x, y are rational, f(x + y) - f(x) - f(y) = 0
         f(x + y) - f(x) - f(y) = 1 - (x + y) - 1 + x - 1 + y = -1 is rational
 
 4.18
-// thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+// thanks solutions manual
 let g: S -> U, f: g(S) -> T, f o g continuous at p, g maps open balls to open sets, then f is continuous at g(p)
     for all ε > 0 there's δ, f(g(BS(p; δ))) ⊆ BT(f(g(p)); ε)
     g(BS(p; δ)) is an open set, g(p) ∈ g(BS(p; δ)), BU(g(p); δ') ⊆ g(BS(p; δ)) for some δ'
@@ -2015,7 +2015,7 @@ b.  let A = Q ∩ [0, 1], B = ~Q ∩ [0, 1]
         if x1 != x2, x1 + 1/2 != x2 + 1/2
     let g be a one-to-one correspondence from A2 ∪ B2 to A1 ∪ B1
     f(x) = x if x ∈ A1 ∪ B1, f(x) = g(x) if x ∈ A2 ∪ B2, f is two-to-one on [0, 1]
-c.  // thanks https://www.csie.ntu.edu.tw/~b89089/solution.html
+c.  // thanks solutions manual
     if f is continuous on an open interval I, I have more than one local maximum / minimum, then a value f(x) is 
     repeated 3 times on I:
         let x1 < x2 be the first two local maximums
@@ -2141,4 +2141,79 @@ if S is not bounded from above or below, by similar reasoning (-∞, sup{S}), (i
 otherwise S = {x} or S = {0} are both connected
 
 4.39
+int(C(X) ∩ ~X) = ∅:
+    int(C(X) ∩ ~X) = int(C(X)) ∩ int(~X), but int(~X) = ~C(X) and int(C(X)) ⊆ C(X)
 assume Y is disconnected, Y = A ∪ B, A and B are nonempty, disjoint and open in S
+by exercise 4.36,  A is open and closed in (Y, d), A ∩ X is open and closed in (X, d), as X is connected, A ∩ X = ∅ or X
+if A ∩ X = ∅, A is disjoint to X, A ⊆ Y - X ⊆ C(X) - X = C(X) ∩ ~X
+A is open in S, for all x ∈ A, for some r > 0, B(x; r) ⊆ A ⊆ C(X) ∩ ~X, but int(C(X) ∩ ~X) is empty, A must be empty
+if A ∩ X = X, (A ∩ X) ∪ (B ∩ X) = X, B ∩ X = ∅ since A and B are disjoint, by the same argument B must be empty 
+therefore Y cannot be disconnected
+
+4.40
+by exercise 4.39, if U(x) is not closed, C(U(x)) is a bigger set than U(x) and C(U(x)) is also connected, contradicting
+the definition of a component
+
+4.41
+by the same argument in exercise 4.38, if a connected subset I of S with at least two different points, I is an interval
+S is open, for every x ∈ S, B(x; r) ⊆ S for some r > 0, every component set is infinite
+if inf{I} (or sup{I}) ∈ I, inf{I} ∈ S and B(inf{I}; r) ⊆ S, I is not a maximum connected set
+all components of (S, d) must be open intervals, by theorem 3.11 (a(x), b(x)) is the maximum open interval containing x, 
+F the collection of component intervals is also the collection of maximum connected sets
+this doesn't contradict exercise 4.40 since an open set in R may be closed in S, specifically is I = (a, b) is a
+component of S, neither a nor b ∈ S:
+    if a ∈ S, B(a; r) ⊆ S, (a - r/2, b) ⊆ S, I is not maximum
+
+4.42
+assume S is disconnected, S = A ∪ B, both A and B are closed and open in (S, d), S is compact, both A and B are compact
+define f: AxB -> R as
+    f(x, y) = ||x - y||
+f is the composition of subtraction and norm, f is continuous on AxB
+A and B are disjoint, f(x, y) > 0 on AxB, inf{f(AxB)} is defined
+AxB is compact:
+    obviously AxB is bounded
+    let x = (x1, x2) be an adherent point of AxB, y = (a, b) ∈ B2(x; r) ∩ AxB for all r > 0
+    a ∈ B1(x1; r) and b ∈ B1(x2; r), x1 ∈ C(A) = A, x2 ∈ C(B) = B, (x1, x2) ∈ AxB, AxB is closed
+if 0 = inf{f(AxB)}, 0 is an accumulation point of f(AxB), 0 ∈ f(AxB), contradicting f(x, y) > 0
+therefore inf{f(AxB)} > 0, A and B is separated by a positive distance
+for all ε > 0, a ∈ A, b ∈ B, there's a finite sequence {xn} that
+    x0 = a, xn = b, ||xk - xk-1|| < ε
+easily proved by induction, there must be some k that xk ∈ A and xk+1 ∈ B, ||xk+1 - xk|| < ε
+but then inf{f(AxB)} = 0, therefore S must be connected
+
+4.43
+=>: assume S is connected
+    if A ⊆ S is a proper subset, ~A is not empty, A and ~A cannot be both open
+    assume wlog A is not open, some x ∈ A is also an adherent point of ~A, x ∈ ∂A, ∂A is nonempty
+<=: assume every proper subset of S has nonempty boundary
+    assume S is disconnected, A ∪ B = S, A and B are open, nonempty and disjoint
+    by exercise 4.36 A and B are both closed, C(A) = A, C(B) = B, ∂A = C(A) ∩ C(B) = ∅, but A is a proper subset of S
+
+4.44
+let S be a convex subset of R^n, for any two point x, y ∈ S, λx + (1 - λ)y ∈ S for all λ ∈ [0, 1]
+f(λ) = λx + (1 - λ)y is a continuous function f: [0, 1] -> S, f(0) = x, f(1) = y, S is arc-wise connected
+by theorem 4.42 S is connected
+
+4.45
+// thanks solutions manual, the exercise is wrong
+the counterexample given in the solutions manual is:
+define
+    f1(x) = cos(2πx/(1 + x) - π/2), f1([0, +∞)) = [-1, 1] as 2πx/(1 + x) - π/2 takes every value on [-π/2, 3π/2)
+    f2(x) = sin(2πx/(1 + x) - π/2), similarly f2([0, +∞)) = [-1, 1]
+f(x) = (f1(x), 1 - f2(x)) is one-to-one on [0, +∞) as [-π/2, 3π/2) is an interval with length < 2π
+f([0, +∞)) is the unit circle with center (0, 1)
+let f(x) = (f1(x), f2(x) - 1) on (-∞, 0), f((-∞, 0)) is the unit circle with center (0, -1) - {(0, 0)}
+at everywhere other than 0, components of f are composition of continuous functions
+lim{x -> 0-}f(x) = lim{x -> 0+}f(x) = (0, 0) = f(0), f is continuous at 0, f is continuous on R
+let A = R - {p} for any point p != 0, A is disconnected and open, but f(A) is connected
+
+4.46
+let f be a two-valued function on A ∪ B, since A and B are continuous image of intervals on R, A and B are connected
+f is constant on A and B, f(A) = {a} and f(B) = {b}
+by continuity, there's f(B((0, 0); δ)) ⊆ B(f(0, 0); 1), f must be constant on B((0, 0); δ)
+(0, 0) ∈ A and B((0, 0); δ), B((0, 0); δ) ∩ A != ∅, and for all I = (0, δ), there's x ∈ I that sin(1/x) = 0:
+    there's positive integer n that nδπ > 1, 0 < 1/nπ < δ
+    let x = 1/nπ, sin(1/x) = sin(nπ) = 0
+and ||(x, 0) - (0, 0)|| < δ, (x, 0) ∈ B ∩ B((0, 0); δ), f(B(0, 0); δ) = {a, b}, a must be equal to b
+f is constant on A ∪ B, A ∪ B is connected
+A ∪ B is not arc-wise connected: assume g: [0, 1] -> 
