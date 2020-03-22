@@ -1702,8 +1702,11 @@ both d(x, y) - d(x, xn) - d(y, yn) and d(xn, x) + d(x, y) + d(y, yn) -> d(x, y),
 4.8
 if the range of {xn} is finite, one of them must be repeated infinite times, {xn} has a constant subsequence
 otherwise the range of {xn} is infinite in S, by theorem 3.38 it has an accumulation point p in S
-B(p; 1/m) ∩ {xn} is nonempty for all integer m, take one value from each B(p; 1/m) ∩ {xn} (e.g. the one with smallest 
-index in the sequence) and the subsequence converges to p
+B(p; 1/m) ∩ {xn} is nonempty for all integer m, take one value from each B(p; 1/m) ∩ {xn} in a way that:
+    take any point xk(1) from B(p; 1)
+    for xk(n+1), B(p; 1/n+1) ∩ {xn} must contain infinite points
+    there must be one point xm in it that m > k(n), define m = k(n+1)
+then {xk(n)} is a subsequence of {xn} and {xk(n)} converges to p
 
 4.9
 let p be an accumulation point of A, B(p; 1/n) ∩ A is nonempty for all integer n
@@ -2216,4 +2219,63 @@ by continuity, there's f(B((0, 0); δ)) ⊆ B(f(0, 0); 1), f must be constant on
     let x = 1/nπ, sin(1/x) = sin(nπ) = 0
 and ||(x, 0) - (0, 0)|| < δ, (x, 0) ∈ B ∩ B((0, 0); δ), f(B(0, 0); δ) = {a, b}, a must be equal to b
 f is constant on A ∪ B, A ∪ B is connected
-A ∪ B is not arc-wise connected: assume g: [0, 1] -> 
+A ∪ B is not arc-wise connected: assume g: [0, 1] -> A ∪ B has g(0) = (0, 0) and g(1) = (1, sin1)
+g = (gx, gy) is continuous, gx and gy are continuous real-valued functions, gy(p) = sin(1/gx(p)) for gx(p) > 0
+gx(0) = 0, gx(1) = 1, by theorem 4.38 gx takes any value between 0 and 1 on [0, 1]
+g([0, 1]) is the continuous image of a compact set, g([0, 1]) must also be compact on R^2, g([0, 1]) is closed
+but (0, 1) is an accumulation point of g([0, 1]) and (0, 1) ∉ A ∪ B:
+    for all ε > 0, (0, ε) contains an x that sin(1/x) = 1, ||(0, 1) - (x, 1)|| = x < ε
+    x ∈ gx([0, 1]), (x, 1) ∈ g([0, 1])
+g([0, 1]) is not closed, A ∪ B is not arc-wise connected
+
+4.47
+Fi is closed for all i, ∩Fi is closed
+∩Fi ⊆ F1 which is compact, ∩Fi is bounded, ∩Fi is compact
+assume ∩Fi = A ∪ B, A and B are open and closed in ∩Fi
+assume for all i, Fi is not in A ∪ B, let xi ∈ Fi - A ∪ B, {xi} is an infinite sequence in compact set F1
+by Cantor intersection theorem, {xi} has an accumulation point in ∩Fi
+by exercise 4.8, there's a subsequence {xk(n)} that xk(n) -> x
+// by solutions manual, there's open sets X and Y that A ⊆ X, B ⊆ Y, X and Y disjoint
+// then 
+
+4.48
+if S = ∅, T = R^n, R^n - T = ∅ is connected, similarly if S = R^n, R^n - T = R^n is connected
+assume S != ∅ or R^n, S cannot also be closed otherwise R^n is disconnected by exercise 4.36
+S != C(S), C(S) ∩ ~S is nonempty
+define F = {U(x) the component of x in ~S: x ∈ ~S}, for all U(x) ∈ F, C(S) ∩ U(x) != ∅:
+    if U(x) ⊆ ~C(S), U(x) is connected in ~C(S), let V(x) be the component containing x in ~C(S)
+    U(x) ⊆ V(x) by the definition of V(x), V(x) ⊆ U(x) by the definition of U(x), U(x) = V(x)
+    ~C(S) is open, by theorem 4.44 U(x) is open in ~C(S) and R^n, U(x) is closed in ~S and R^n
+    U(x) is open and closed in R^n, U(x) = R^n or ∅, both contradicting the definition of U(x) and S
+T ∈ F, define F' = F - {T}, ~T = S ∪ ∪{F'}A
+define P = S ∪ ∪{A ∈ F'}(C(S) ∩ A), S ⊆ P ⊆ C(S), by exercise 4.39 P is connected, ~T = P ∪ ∪{F'}A
+let f be a two-valued function on ~T, if x ∈ P and y ∈ A for some A ∈ F', f(x) = f(y):
+    by definition of P, P ∩ A is nonempty, P and A are connected, f(x) = f(y)
+similarly, if both x, y ∈ P or ∪{F'}A, f(x) = f(y), f is constant on ~T, ~T is connected
+
+4.49
+assume {x: d(x, a) = r} = ∅ for some a ∈ S, r > 0, then B(a; r) is closed:
+    by exercise 3.31, the closed B(a; r) is closed
+    as {x: d(x, a) = r}, {x: d(x, a) < r} = {x: d(x, a) <= r}, B(a; r) is closed
+B(a; r) is both open and closed, as S is not bounded, B(a; r) != S, also a ∈ B(a; r), B(a; r) is nonempty
+by exercise 4.36, S is disconnected, therefore {x: d(x, a) = r} must be nonempty for all a ∈ S and r > 0
+
+4.50
+denote f(B(p; δ)) ⊆ B(f(p); ε) as Q(p, δ, ε)
+∀ε>0∃δ>0∀p∈S, Q(p, δ, ε) => ∀ε>0∀p∈S∃δ>0, Q(p, δ, ε)
+
+4.51
+for all δ > 0, |f(x + δ/2) - f(x)| = (x + δ/2)^2 - x^2 = xδ + δ^2/4 is not bounded
+for all ε, δ > 0, there's some x that f(B(x; δ)) is not contained in B(f(x); ε), f is not uniformly continuous
+
+4.52
+C(S) is bounded:
+    S ⊆ B(0; r) for some r, C(S) ⊆ C(B(0; r)) = {x: d(0, x) <= r} ⊆ B(x; 2r)
+C(S) is bounded and closed in R^n, C(S) is compact
+there's some δ > 0 for all x ∈ S, f(B(x; δ)) ⊆ B(f(x); 1)
+define F = {B(x; δ): x ∈ S}, F is an open covering of C(S):
+    let x be an adherent point of S, there's some y ∈ S that d(x, y) < δ/2, x ∈ B(y; δ)
+by Heine-Borel theorem, there's a finite sub-collection F' of F that is also a covering of C(S) and S
+let M = max{f(x): B(x; δ) ∈ F'}, for all x ∈ S ⊆ ∪{F'}A, f(x) < M + 1, f is bounded on S
+
+4.53
