@@ -2230,13 +2230,14 @@ g([0, 1]) is not closed, A ∪ B is not arc-wise connected
 
 4.47
 Fi is closed for all i, ∩Fi is closed
-∩Fi ⊆ F1 which is compact, ∩Fi is bounded, ∩Fi is compact
-assume ∩Fi = A ∪ B, A and B are open and closed in ∩Fi
-assume for all i, Fi is not in A ∪ B, let xi ∈ Fi - A ∪ B, {xi} is an infinite sequence in compact set F1
-by Cantor intersection theorem, {xi} has an accumulation point in ∩Fi
-by exercise 4.8, there's a subsequence {xk(n)} that xk(n) -> x
-// by solutions manual, there's open sets X and Y that A ⊆ X, B ⊆ Y, X and Y disjoint
-// then 
+F = ∩Fi ⊆ F1 which is compact, F is bounded, F is compact
+assume F = A ∪ B, A and B are open and closed in compact set F, A and B are compact (closed) in R^n
+by exercise 4.57, there's disjoint open sets U and V that A ⊆ U and B ⊆ V, F ⊆ U ∪ V
+assume for all i, Fi - (U ∪ V) is nonempty, take xi ∈ Fi - (U ∪ V)
+{xi} ⊆ F1, {xi} has an accumulation point in F1, by the proof of Cantor intersection theorem xi -> x for some x ∈ F
+x ∈ U or x ∈ V, there's a B(x; r) ⊆ U or V, contradicting the definition of {xi}
+there must be some i, Fi ⊆ U ∪ V, U ∩ Fi, V ∩ Fi is open and disjoint in Fi, Fi is disconnected
+therefore F = ∩Fi must be connected
 
 4.48
 if S = ∅, T = R^n, R^n - T = ∅ is connected, similarly if S = R^n, R^n - T = R^n is connected
@@ -2279,3 +2280,91 @@ by Heine-Borel theorem, there's a finite sub-collection F' of F that is also a c
 let M = max{f(x): B(x; δ) ∈ F'}, for all x ∈ S ⊆ ∪{F'}A, f(x) < M + 1, f is bounded on S
 
 4.53
+for all ε > 0, there's some δ1 > 0 that, g(B(y; δ1)) ⊆ B(g(y); ε > 0) for all y = f(x) ∈ f(S)
+there's δ2 > 0 that, f(B(x; δ2)) ⊆ B(f(x); δ1), h(B(x; δ2)) ⊆ g(B(f(x); δ1)) ⊆ h(h(x); ε) for all x ∈ S
+
+4.54
+for all ε > 0, there's δ > 0 that f(B(x; δ)) ⊆ B(f(x); ε/2)
+there's N that for all n >= N, d(xn, xN) < δ, xn ∈ B(xN; δ)
+for all m, n >= N, 
+    d(f(xm), f(xn)) <= d(f(xm), f(xN)) + d(f(xn), f(xN))
+                    < ε/2 + ε/2
+                    = ε
+therefore {f(xm)} is a Cauchy sequence
+the two-valued function in exercise 4.33 is not uniformly continuous, for all δ > 0, B(δ/2; δ) contains some negative
+number, f(B(δ/2; δ)) = {0, 1}
+
+4.55
+let p be an adherent point of A
+let xn -> p be any sequence converges to p, f(xn) must converge:
+    {xn} is a Cauchy sequence, by exercise 4.54 {f(xn)} is a Cauchy sequence
+    T is complete, f(xn) -> b for some b ∈ T
+let yn -> p be another sequence in A, it must have f(yn) -> b as well:
+    by uniform continuity, for all ε > 0, there's δ that f(BS(xn; δ)) ⊆ BT(f(xn); ε) for all xn
+    dS(xn, yn) -> 0, there's K that dS(xn, yn) < δ for all n >= K
+    yn ∈ BS(xn; δ), f(yn) ∈ BT(f(xn); ε), dT(f(xn), f(yn)) < ε
+    dT(f(xn), f(yn)) -> 0, f(yn) -> b, b is the unique limit of {f(xn)} when xn -> p
+define f(p) = b, all xn -> p have f(xn) -> b, f is continuous at p
+for some ε > 0 there's δ that, f(BS(x; δ)) ⊆ BT(f(x); ε/2) for all x ∈ A
+for all x ∈ BS(p; δ) ∩ A, d(x, p) < δ, dT(f(x), f(p)) < ε/2
+if x is another adherent point defined as above, there's some y ∈ BS(x; r) ∩ A ⊆ BS(p; δ) ∩ A, r <= δ
+d(y, p) < δ, d(y, x) < r <= δ, by the same argument
+    dT(f(x), f(p))  <= dT(f(x), f(y)) + dT(f(p), f(y))
+                    < ε/2 + ε/2
+                    = ε
+this δ for ε/2 on A is the new δ for ε in the new uniform continuity of C(A)
+
+4.56
+a.  for all ε > 0, for all p ∈ S and any x ∈ B(p; ε) and a ∈ A,
+        d(x, a) <= d(p, a) + d(x, a)
+        fA(x)   = inf{d(x, a): a ∈ A} 
+                <= inf{d(p, x) + d(p, a): a ∈ A}
+                = d(p, x) + inf{d(p, a): a ∈ A}
+                < ε + fA(p)
+    similarly, fA(p) < fA(x) + ε, |fA(x) - fA(p)| < ε, fA is uniformly continuous on S
+b.  =>: assume x ∈ C(A)
+        {d(x, a): a ∈ A} is bounded from below by 0
+        for all δ > 0, there's a ∈ B(x; δ) ∩ A, inf{d(x, a): a ∈ A} cannot be any positive number
+    <=: assume inf{d(x, a): a ∈ A} = 0
+        if for some δ > 0, B(x; δ) ∩ A = ∅, δ is a greater lower bound
+
+4.57
+by exercise 4.56, g(x) = fA(x) - fB(x) is continuous, for an open set A g^-1(A) is open
+U = g^-1((-∞, 0)) and V = g^-1((0, +∞)) are disjoint open sets on S
+if x ∈ A = C(A), fA(x) = 0, A and B are disjoint, fB(x) > 0, g(x) = fA(x) - fB(x) < 0, x ∈ U
+similarly if x ∈ B, x ∈ U, U and V are two disjoint open sets that A ⊆ U and B ⊆ V
+
+4.58
+a.  lim{x -> 0}sinx/x = lim{x -> 0}cosx = 1 != f(0), removable discontinuity, f(x) is continuous everywhere else
+b.  lim{x -> 0}e^(1/x) doesn't exist, lim{x -> 0-}e^(1/x) = 0, lim{x -> 0+}e^(1/x) = ∞
+    irremovable discontinuity, f(x) is continuous everywhere else
+c.  lim{x -> 0}e^(1/x) + sin(1/x) doesn't exist, unremovable discontinuity, continuous everywhere else
+d.  lim{x -> 0+}1/(1 - e^(1/x)) = 0, lim{x -> 0-}1/(1 - e^(1/x)) = 1, irremovable discontinuity at x = 0
+    for all x ∈ R - {0},, e^(1/x) != 1, continuous everywhere else
+
+4.59
+a.  (0, 0)
+b.  (xy)^2 + (x - y)^2 = 0 only when (x, y) = (0, 0), lim{(x, y) -> (0, 0)}f(x, y) doesn't exist
+c.  // informal
+    let z = xy, sin(xy)/x = sin(z)/z * y = g(z)h(y)
+    (x, y) -> (0, b) iff (z, y) -> (0, b) for b != 0
+    lim{(x, y) -> (0, b)}f(x, y) = lim{(z, y) -> (0, b)}g(z)h(y) = y
+    f is continuous on R^2
+d.  lim{(x, y) -> (a, 0)}f(x, y) and lim{(x, y) -> (0, b)}f(x, y) doesn't exist for all a, b != 0
+    lim{(x, y) -> (0, 0)}f(x, y) = 0 = f(0, 0)
+e.  for all tanx = tany, if sinx != siny, the limit doesn't exist
+    otherwise by exercise 4.11, f is continuous
+
+4.60
+for two open intervals P and Q on R, if R is increasing on P and Q, P ∩ Q != ∅, then f is increasing on P ∪ Q:
+    if P ⊆ Q or Q ⊆ P, nothing to prove
+    assume wlog P = (a, b), Q = (c, d), a <= c < b <= d
+    let x, y ∈ P ∪ Q, x < y, if x, y ∈ P or Q, f(x) <= f(y)
+    otherwise x ∈ P - Q = (a, c), y ∈ Q, there's some z ∈ (c, y) ⊆ P ∩ Q that f(x) <= f(z) <= f(y)
+    symmetrically x ∈ P and y ∈ Q - P, f(x) <= f(y)
+assume there's some q, p that a < q < p < b but f(q) > f(p)
+define X = {x: (q, x) is increasing}, X is bounded from above by p, sup(X) = s is defined
+but then f is increasing on B(s; r) for some r > 0, B(s; r) ∩ (q, x) != ∅, f is increasing on (q, s + r/2)
+s + r/2 ∈ X, contradicting the definition of s
+
+4.61
