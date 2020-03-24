@@ -2368,3 +2368,78 @@ but then f is increasing on B(s; r) for some r > 0, B(s; r) ∩ (q, x) != ∅, f
 s + r/2 ∈ X, contradicting the definition of s
 
 4.61
+f is continuous on compact set S = [a, b], f([a, b]) = [inf(S), sup(S)]
+if inf(S) = sup(S), f is constant on [a, b], assume inf(S) < sup(S)
+if for any x ∈ (a, b), f(x) = inf(S) or sup(S), for some r > 0 B(x; r) ⊆ S and x is a local maximum or minimum
+assume wlog f(a) = inf(S), then f(b) = sup(S), f(a) < f(b)
+assume for some p, q ∈ (a, b), p < q, f(p) > f(q), then f(a) < f(q) < f(p) < f(b)
+A = [p, b] is compact, inf(f(A)) ∈ f(A), q ∈ (q, b), f(q) < f(p) < f(b), for some t ∈ (q, b) f(t) = sup(A)
+then t is an interior local minimum of [q, b] and [a, b], therefore f must be increasing on (a, b)
+f(a) = sup(S), f(p) >= f(a) for all p ∈ [a, b], f(p) <= f(b) for all p ∈ [a, b], f is increasing on [a, b]
+additionally, if for some p < q, f(p) = f(q), f is constant on [p, q], any point in (p, q) is local maximum and minimum
+f must be strictly monotonic on [a, b]
+
+4.62
+there's no local maximum / minimum on (a, b):
+    let p be a local minimum of f on (a, b), B(p; r) ⊆ (a, b)
+    there's x ∈ (p - r, p), y ∈ (p, p + r) that f(x), f(y) > f(p)
+    [x, p] and [p, y] are compact, (f(p), f(x)) ⊆ f((x, p)), (f(p), f(y)) ⊆ f((p, y)), the two images are not disjoint
+by exercise 4.61, f is strictly monotonic on [a, b]
+
+4.63
+a.  for increasing f, p < q, f(p+) <= f(q-):
+        f(p+) = inf{f(x): x > p} = inf(A), f(q-) = sup{f(x): x < q} = sup(B)
+        there's some m ∈ (p, q) that, f(m) ∈ A ∩ B, by definition f(p+) <= f(m) <= f(q-)
+    let a = x0, b = xn+1,
+    Σ{1 <= k <= n}(f(xk+) - f(xk-)) - f(b-) + f(a+)
+    = -Σ{0 <= k <= n}(f(xk+1-) - f(xk+))
+    <= 0
+    Σ{1 <= k <= n}(f(xk+) - f(xk-)) <= f(b-) - f(a+)
+b.  the only kind of discontinuity is f(p-) != f(p+):
+        if f(p-) (or f(p+)) doesn't exist, {f(x): x < p} is not bounded from above
+        there must be y ∈ [a, p), f(y) > f(b)
+        if f(p-) = f(p+), f(p-) <= f(p) <= f(p+), f(p) = f(p-) = f(p+)
+    sum of an uncountable set of positive numbers cannot be finite:
+        let A be a set of positive numbers, ΣA <= M for some constant M
+        let An = {x: x >= M/n, x ∈ A}, ΣAn <= ΣA <= M, |An| <= n
+        if x ∈ A, x > 0, there's nx > 1, x > 1/n, x ∈ An
+        A = ∪An is a countable union of finite sets, A must be countable
+    so the set of discontinuities must be countable 
+c.  every open sub-interval has uncountable elements but there are only countable discontinuities
+
+4.64
+define g: [0, 2] -> R as:
+    g(x)    = x on [0, 1]
+            = x + 1 on (1, 2]
+g is not continuous and strictly increasing 
+by theorem 4.52 g^-1 is strictly increasing on g(S)
+let f = g^-1, f^-1 = g is not continuous
+
+4.65
+a.  for an open set T ⊆ f(S), let x ∈ f^-1(T)
+    for all ε > 0 and f(x) ∈ f(S), f(S) is open, there's some B(f(x); r) ⊆ f(S) with r <= ε
+    f^-1 is strictly increasing, let p = f^-1(f(x) - r/2), q = f^-1(f(x) + r/2), p < x < q
+    for some B(x; δ) ⊆ (p, q), for all y ∈ B(x; δ), f(p) < f(y) < f(q), f(B(x; δ)) ⊆ B(f(x); r) ⊆ B(f(x); ε)
+b.  f(S) is connected in R, f(S) is empty, a singleton or an interval
+    when f(S) is empty or a singleton there's nothing to prove
+    if f(S) is an interval, let int(f(S)) = (a, b), where a or b may be unbounded
+    by part a, f is continuous on f^-1((a, b))
+    if f(x) = a, x = sup(S)
+    for all ε > 0, B(a; ε) ∩ f(S) ⊆ [a, a + ε), there's some p that f(y) = p ∈ (a, a + ε) ∩ f(S)
+    x < y, let δ = (y - x)/2, B(x; δ) ∩ S ⊆ (x, y), f(B(x; δ)) ⊆ B(a; ε)
+    symmetrically if f(x) = b, f is continuous at x
+    f is continuous on f^-1((a, b)) ∪ f^-1({a, b}) = f^-1(f(S)) = S
+c.  by part a, f is continuous on f^-1(int(f(S)))
+    if for some x, f(x) ∈ f(S) - int(f(S)), then x is an isolated point of f(S) or an accumulation point of f(S) 
+    if f(x) is isolated:
+        assume x is not isolated, there's infinite {xn} ⊆ S - {x} that xn -> x
+        {xn} = ({xn} ∩ (-∞, x)) ∪ ({xn} ∩ (x, +∞)), one of them must be infinite
+        assume wlog {yn} = {xn} ∩ (-∞, x) is infinite, {f(yn)} is bounded from above by f(x) by strictly increasing f
+        sup{f(yn)} = f(x-) <= f(x), since f(S) is closed, f(x-) ∈ f(S), there's some y = f^-1(f(x-))
+        if f(x-) = f(x), f(x) is not isolated, so f(x-) < f(x), y < x
+        but there's some yn that y < yn < x, f(yn) > y = sup{f(yn)}, contradiction
+        so x is isolated in S, f(B(x; δ)) = {f(x)} ⊆ B(f(x); ε) for some δ and all ε > 0, f is continuous at x
+    if f(x) is an accumulation point:
+        for all ε > 0, B(f(x); ε) ∩ f(S) is infinite
+        let p, q be two points in B(f(x); ε) ∩ f(S), 
+
