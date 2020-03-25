@@ -2441,5 +2441,107 @@ c.  by part a, f is continuous on f^-1(int(f(S)))
         so x is isolated in S, f(B(x; δ)) = {f(x)} ⊆ B(f(x); ε) for some δ and all ε > 0, f is continuous at x
     if f(x) is an accumulation point:
         for all ε > 0, B(f(x); ε) ∩ f(S) is infinite
-        let p, q be two points in B(f(x); ε) ∩ f(S), 
+        if both B(f(x); ε) ∩ f(S) ∩ (-∞, f(x)) and B(f(x); ε) ∩ f(S) ∩ (f(x), +∞) are not empty
+        it can be proved in the same way as part a
+        otherwise assume wlog B(f(x); ε) ∩ f(S) ⊆ [f(x); +∞):
+            sup{f(y): y < x} = u < f(x) 
+            as f(S) is closed, u = f(y) for some y, (y, x) is disjoint with S, x is left isolated
+            take any f(z) ∈ B(f(x); ε), f(B(x; z - x) ∩ S) = f((x, z)) ⊆ B(f(x); ε), f is continuous at x
+    
+4.66
+a.  d(f, f) = ||f - f|| = 0
+    if f, g are bounded, f - g is bounded
+    d(f, g) = sup|f(x) - g(x)| >= 0 as |f(x) - g(x)| >= 0
+    d(f, g) = ||f - g|| = sup|f(x) - g(x)| = sup|g(x) - f(x)| = ||g - f|| = d(g, f)
+    ||f|| + ||g|| >= ||f + g||:
+        ∀x∈S∀y∈S, |f(x)| <= ||f|| & |g(y)| <= ||g||
+        => ∀x∈S∀y∈S, x = y => |f(x)| <= ||f|| & |g(y)| <= ||g||
+        => ∀x∈S, |f(x)| <= ||f|| & |g(x)| <= ||g||
+        => ∀x∈S, |f(x)| + |g(x)| <= ||f|| + ||g||
+        => ∀x∈S, |f(x) + g(x)| <= ||f|| + ||g||
+        => ||f|| + ||g|| is an upper bound of |f(x) + g(x)|
+        => ||f|| + ||g|| >= ||f + g||
+    d(f, g) + d(g, h)   = ||f - g|| + ||g - h||
+                        >= ||f - g + g - h||
+                        = ||f - h||
+                        = d(f, h)
+b.  for all ε > 0, there's some N that if m, n >= N, d(fm, fn) = sup|fm(x) - fn(x)| < ε
+    |fm(x) - fn(x)| < ε for all x in S, {fn(x)} is a Cauchy sequence in R, fn(x) -> y
+    and {fn(x)} converges uniformly on S: 
+        for all ε > 0 and all x ∈ S, there's N that |fm(x) - fn(x)| < ε/2
+        by the proof of theorem 4.8, let b be the limit of {fn(x)}, |fn(x) - b| < ε for all x
+    define f:S -> R, f(x) = lim{n -> ∞}fn(x)
+    for all ε > 0 and x ∈ S, there's N that, |f(x) - fn(x)| < ε/2
+    d(f, fn) = sup|f(x) - fn(x)| <= ε/2 < ε, fn -> f, (B(S), d) is complete
+
+4.67
+a.  let f be an adherent point of C(S)
+    for all ε > 0, there's g ∈ C(S) that sup|f(x) - g(x)| < ε/4
+    there's also δ > 0 that g(BS(x; δ)) ⊆ B(g(x); ε/2)
+    for all y ∈ B(x; δ)
+    |f(y) - f(x)|   <= |f(y) - g(y)| + |g(y) - g(x)| + |g(x) - f(x)|
+                    < ε/4 + ε/2 + ε/4
+                    = ε
+    hence f is continuous on S
+b.  closed subset of a complete space is complete:
+        assume T complete, B ⊆ T is closed, let {xn} ⊆ B be a Cauchy sequence
+        {xn} ⊆ T, xn -> p for some p ∈ T
+        p is an accumulation point of {xn} and B, p ∈ B, {xn} converges in B
+    C(S) is a closed subset of B(S), C(S) is complete
+
+4.68
+a.  d(p, pn)    <= Σ{n <= k}d(pk, pk+1)
+                <= d(pn, pn+1) * 1/(1 - α)
+                <= d(x, f(x)) * α^n/(1 - α)
+b.  f(x) - f(y) = 1/2 * (x + 2/x - y - 2/y)
+                = 1/2 * (x - y) + (y - x)/xy
+    xy >= 1, -(x - y)/2 <= f(x) - f(y) <= (x - y)/2, |f(x) - f(y)| <= 1/2|x - y|
+    f(√2) = (√2 + 2/√2)/2 = √2, √2 is a fixed point, by theorem 4.48 it is unique 
+    f(1) = 3/2
+    |p - pn|    <= |3/2 - 1|(1/2)^n/(1 - 1/2)
+                = (1/2)^n
+
+4.69
+a.  the contraction in exercise 4.68 in space R - {√2}
+b.  f(x) = 2x, |f(x) - f(y)| = 2|x - y|, f^n(x) -> ±∞ for all |x| > 1
+
+4.70
+there's some αm ∈ B(0, 1), if αm <= 0, d(f^m(x), f^m(y)) = 0 for all x, y ∈ S, f^m(x) is a unique fixed point in S
+if 0 < αm < 1, f^m is a contraction in complete space S, f^m has a unique fixed point p, f^m(p) = p
+d(f^n(x), f^n(y)) < αn * d(x, y) -> 0
+for all ε > 0, for there's N that for all n >= N, d(f^n(x), f^n(p)) < ε/2
+let pn = f^n(x), d(pn+2, pn+1) <= αnd(pn+1, pn)
+there's some N that for all n >= N, αn < 1, by proof of theorem 4.48 {pn} converges
+the subsequence {pmk} converges to p, {pn} converges to p as well
+
+4.71
+a.  assume f(p) = p, f(q) = q for some p != q
+    d(f(p), f(q)) = d(p, q) < d(p, q), there cannot be more than one fixed point of f in S
+    let S = ((0, +∞), d), f(x) = x/2
+    |f(x) - f(y)| = |x - y|/2 < |x - y|, but the only fixed point 0 ∉ S
+b.  f(x) is continuous:
+        for all ε > 0, whenever d(x, y) < ε, d(f(x), f(y)) < ε
+    let f:S -> S be a continuous function, let g(x) = d(x, f(x)), g:S -> R is continuous:
+        for all ε > 0, there's δ that f(B(x; δ)) ⊆ B(f(x); ε/2)
+        take r = min{δ, ε/2}, for all y ∈ B(x; r):
+            d(y, f(y))  <= d(y, x) + d(x, f(x)) + d(f(x), f(y))
+                        < d(x, f(x)) + ε
+        symmetrically, d(x, f(x)) < d(y, f(y)) + ε, g(y) ∈ B(g(x); ε)
+    S is compact, the image g(S) is compact
+    define dn = d(f^n+1(x), f^n(x)) for some x ∈ S, dn is decreasing and bounded from below, {dn} ⊆ f(S)
+    then {dn} has a accumulation point and limit in S, g(y) = d(y, f(y)) = inf{dn}
+    if g(y) > 0, y != f(y), g(f(y)) < g(y), g(y) is not the infimum
+    therefore g(y) = 0, f(y) = y, y is a fixed point, by part a y is unique
+c.  define f:[0, 1/2] -> R, f(x) = x^2
+    when x != y, |x + y| < 1, |f(x) - f(y)| = |x + y||x - y| < |x - y|
+    for all 0 < α < 1, let x = 1/2, there's y that x + y > α
+    |f(x) - f(y)| = |x + y||x - y| > α|x - y|
+
+4.72
+a.  cn+1 = d(pn+1, pn+2) = d(f(pn), f(pn+1))
+    if pn = pn+1, cn+1 = cn, otherwise cn+1 < cn
+b.  by exercise 4.71, g(x) = d(x, f(x)) is continuous, lim{n -> ∞}g(pk(n)) = g(lim{n -> ∞}pk(n)) = g(q)
+    {g(pk(n))} is a subsequence of {cn}, as cn converges, cn -> g(q) = d(q, f(q)) = c
+    if q != f(q), g(f(q)) < g(q), but g(q) is the infimum, thus q = f(q) is a fixed point 
+    by exercise 4.71.a, q is unique, pn -> q for all x
 
