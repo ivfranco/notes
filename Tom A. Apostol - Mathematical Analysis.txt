@@ -2675,11 +2675,207 @@ b.  let Fn be a determinant of n x n functions f11, .., fnn
             = Σ(-1)^(k+1) * (f1k' * F{1, k} + f1k * F{1, k}')
             = Σ(-1)^(k+1) * (f1k' * F{1, k} + f1k * ΣD{1, k},j)
             = Dn+1,1 + Σ(-1)^(k+1)f1k * ΣD{1,k},j
-            = Dn+1,1 + Σ{1 <= j <= n}Σ{1 <= k <= n+1}(-1)^(k+1)f1k * D{1,k}j
+            = Dn+1,1 + Σ{1 <= j <= n}Σ{1 <= k <= n+1}(-1)^(k+1)f1k * D{1,k},j
             = Dn+1,1 + Σ{1 <= j <= n}Dn+1,j+1
             = ΣDn+1,k
 
 5.9
+a.  by exercise 5.8, Wn' = ΣDn,k
+    for all k but k = n, kth and k+1th rows of Dn,k are equal, Dn,k = 0, Wn' = Dn,n
+b.  if h = Σckfk = 0, h^(n) = Σckfk^(n) = 0 for all n
+    the columns of Wronskian are linearly dependent, the determinant is 0
+c.  W = fg' - f'g = 0
+    assume f != 0 on (a, b), 
+    (g/f)'  = g'/f - gf'/f^2
+            = g'/f - fg'/f^2
+            = g'/f - g'/f
+            = 0
+    g/f is a constant on (a, b), let k = g/f, kf = g, kf - g = 0
 
+5.10
+if lim{x -> b-}f'(x) = p exists and is finite, for all x ∈ (b - δ, b), f'(x) ∈ B(p; 1) for some δ
+as lim{x -> b-}f(x) = +∞, there must be some x on (b - δ, b) that
+    f(x) > f(b - δ) + δ(p + 1)
+    f(x) - f(b - δ) > δ(p + 1)
+    (f(x) - f(b - δ))/δ > p + 1
+by mean-value theorem, there must be some y ∈ (b - δ, x) that
+    f(x) - f(b - δ) = f'(y)(x - (b - δ))
+    f'(y)   = (f(x) - f(b - δ))/(x - (b - δ)) 
+            > (f(x) - f(b - δ))/δ 
+            > p + 1
+but y ∈ (b - δ, b), f'(y) < p + 1, therefore lim{x -> b-}f'(x) cannot be finite
 
+5.11
+if h > 0, let (a, b) = (x, x + h), the mean-value theorem has the form
+    (f(x + h) - f(x))/(x + h - x) = f'(c)
+    (f(x + h) - f(x))/h = f'(c) for some c in (x, x + h)
+    x < c < x + h, let θ = (c - x)/h, c = x + θh, 0 < θ < 1
+and symmetrically proved if h < 0
+a.  (f(x + h) - f(x))/h = (2xh + h^2)/h
+                        = 2x + h
+                        = 2(x + h/2)
+                        = f'(x + h/2)
+    θ = 1/2
+b.  (f(x + h) - f(x))/h = (3x^2h + 3xh^2 + h^3)/h
+                        = 3x^2 + 3xh + h^2
+                        = 3(x + θh)^2
+                        = 3x^2 + 6θxh + 3θ^2h^2
+    h^2θ^2 + 2xhθ - xh - h^2/3 = 0
+    d   = 4x^2h^2 + 4h^2(xh + h^2/3)
+        = 4x^2h^2 + 4xh^3 + 4h^4/3
+    θ   = (±√(4x^2h^2 + 4xh^3 + 4h^4/3) - 2xh)/2h^2
+        = (±√(x^2 + xh + h^2/3) - x)/h
+    if x > 0,
+        xh + h^2/3 > 0 when h(h + 3x) > 0, xh + h^2/3 is negative on (-3x, 0)
+        on (-3x, 3x), θ = ((√x^2 + xh + h^2/3) - x)/h
+        lim{h -> 0}θ    = lim{h -> 0}((√x^2 + xh + h^2/3) - x)'
+                        = lim{h -> 0}1/2 * 1/√(x^2 + xh + h^2/3) * (x + 2h/3)
+                        = 1/2 * x/√x^2
+                        = 1/2
+    if x < 0, 
+        -x > 0, when h -> 0, |√(x^2 + O(x)) - x|/|h| ≒ |2x|/|h| > 1
+        for small h it must have θ = (-√(x^2 + xh + h^2/3) - x)/h
+        similarly,
+        lim{h -> 0}θ    = -1/2 * x/√x^2
+                        = 1/2 * x/-x
+                        = 1/2
+c.  (f(x + h) - f(x))/h = (e^(x + h) - e^x)/h
+                        = e^x * (e^h - 1)/h
+                        = e^(x + θh)
+    (e^h - 1)/h = e^θh
+    log((e^h - 1)/h) = θh
+    θ = log((e^h - 1)/h)/h
+    lim{h -> 0}θ    = lim{h -> 0}(log((e^h - 1)/h))'
+                    = lim{h -> 0}(he^h - e^h + 1)/h(e^h - 1)
+    as e^h = Σh^n/n! = 1 + h + h^2/2 + O(h^3),
+    he^h - e^h + 1  = h + h^2 - h - h^2/2 + O(h^3) = h^2/2 + O(h^3)
+    h(e^h - 1) = h(h + h^2/2 + O(h^3)) = h^2 + O(h^3)
+    lim{h -> 0}θ    = lim{h -> 0}(h^2/2 + O(h^3))/(h^2 + O(h^3))
+                    = 1/2
+d.  (f(x + h) - f(x))/h = (log(x + h) - logx)/h
+                        = log((x + h)/x)/h
+                        = 1/(x + θh)
+    x + θh = h/log((x + h)/x)
+    θ   = (h/log((x + h)/x) - x)/h
+        = 1/log(1 + h/x) - x/h
+    let y = h/x
+    lim{h -> 0}θ    = lim{y -> 0}(1/log(1 + y)) - 1/y
+                    = lim{y -> 0}(y - log(1 + y))/ylog(1 + y)
+    log(1 + y) = Σ{n >= 1}(-1)^(n+1) * y^n/n = y - y^2/2 + O(y^3)
+    y - log(1 + y) = y^2/2 + O(y^3)
+    ylog(1 + y) = y^2 + O(y^3)
+    lim{h -> 0}θ    = lim{y -> 0}(y^2/2 + O(y^3))/(y^2 + O(y^3))
+                    = 1/2
+                    
+5.12
+f'(x) = 12x^3 - 6x^2 - 2x
+g'(x) = 12x^2 - 6x - 2
+f'(x)/g'(x) = x when g'(x) != 0
+(f(1) - f(0))/(g(1) - g(0)) = (1 - 1)/(-1 - 0) = 0
+at 0 < x1 = (√33 - 3)/12 < 1, f'(x1) = g'(x1) = 0, (f(1) - f(0))g'(x1) = (g(1) - g(0))f'(x1) = 0
+but the quotient is not defined at x1
 
+5.13
+when n = 1, theorem 5.20 has the form 
+    (f(b) - f(a))g'(x1) = (g(b) - g(a))f'(x1), a < x1 < b
+a.  f'(x) = cosx, g'(x) = -sinx
+    (sinb - sina)-sin((a + b)/2)    = -2sin((a - b)/2)cos((a + b)/2)sin((a + b)/2)
+                                    = (cosb - cosa)cos((a + b)/2)
+b.  f'(x) = e^x, g'(x) = -e^-x
+    (e^b - e^a)-e^-((a + b)/2)  = -(e^((b - a)/2) - e^((a - b)/2))
+                                = (e^-b - e^-a)e^((a + b)/2)
+for both part a and b, f'(x) = g(-x), g'(x) = -f(x)
+if additionally
+    (f(a) - f(b))f((a + b)/2) = (g(b) - g(a))g(-(a + b)/2)
+then x1 = (a + b)/2 in theorem 5.20 with n = 1
+
+5.14
+for all ε > 0, let 1/N < ε, for all n, m >= N, by mean-value theorem,
+    |f(1/n) - f(1/m)|   = |f'(c)(1/n - 1/m)|
+                        < |1/n - 1/m|
+                        < |1/N|
+                        < ε
+therefore {an} is a Cauchy sequence, {an} converges in complete space R
+
+5.15
+by mean-value theorem, for all x on (a, b),
+    f(x) - f(c) = f'(r)(x - c)
+    f'(r) = (f(x) - f(c))/(x - c)
+for some r between x and c
+f'(c) = lim{x -> c}(f(x) - f(c))/(x - c)
+for all ε > 0, there's δ that,
+    for x in B(c; δ), |(f(x) - f(c))/(x - c) - f'(c)| < ε
+let xn = min{c + 1/n, c + δ/2}, there's an rn ∈ (c, xn) with f'(rn) = (f(x) - f(c))/(x - c)
+rn -> c, f'(rn) -> f'(c), by theorem 4.12 lim{x -> c}f'(x) = f'(c)
+
+5.16
+for all ε > 0, there's δ that f'(B(c; δ)) ⊆ B(A; ε)
+for all x ∈ B(c; δ),
+    (f(x) - f(c))/(x - c) = f'(r), r ∈ (x, c) or (c, x)
+r ∈ B(c; δ), (f(x) - f(c))/(x - c) = f'(c) ∈ B(A; ε)
+therefore f'(c) = lim{x -> c}(f(x) - f(c))/(x - c) = A
+
+5.17
+g'(x)   = f'(x)/x - f(x)/x^2
+        = (xf'(x) - f(x))/x^2
+for all a < b ∈ [0, 1],
+    g(b) - g(a) = g'(r)(b - a)
+                = (rf'(r) - f(r))/r^2 * (b - a)
+where
+    f(r)    = f(r) - f(0)
+            = f'(q)(r - 0)
+            = rf'(q)
+for some 0 < q < r
+f'(x) is increasing, rf'(q) <= rf'(r), g(b) - g(a) >= 0
+
+5.18
+let g(x) = e^-λx, g'(x) = -λe^-λx = -λg(x), g and gf are differentiable
+g(a)f(a) = g(b)f(b) = 0, by Rolle's theorem there's some a < c < b that 
+    (gf)'(c)    = (g'f + f'g)(c)
+                = (-λgf + f'g)(c)
+                = 0
+g(x) is never 0, -λf(c) + f'(c) = 0, λf(c) = f'(c)
+
+5.19
+for some p on (a, c) and q on (c, b), 
+    f'(p)   = (f(c) - f(a))/(c - a)
+            = (f(b) - f(a))/(b - a)
+            = (f(b) - f(c))/(b - c)
+            = f'(q)
+by Rolle's theorem, f''(r) = 0 for some r on (p, q) ⊆ (a, b)
+
+5.20
+f(a) = f(b) = 0 => f'(c) = 0 for some c ∈ (a, b)
+f'(a) = f'(c) = f'(b) = 0 => f''(p) = f''(q) = 0 for some p ∈ (a, c), q ∈ (c, b)
+f''(p) = f''(q) = 0 => f'''(r) = 0 for some r ∈ (p, q)
+
+5.21
+let f(p) = f(q) = 0 for some p, q ∈ (0, 1)
+p and q are local minimas of continuous f, f'(p) = f'(q) = 0
+f(p) = f(q), there's r ∈ (p, q) with f'(r) = 0
+by exercise 5.20 there's some c with f'''(c) = 0
+
+5.22
+a.  assume c > 0, for some ε < c there's δ that, f'((δ, +∞)) ⊆ B(c; ε)
+    f'(y) > c - ε > 0 for all y > δ
+    as f(x) -> 1, there's r that for all x, y ∈ (r, +∞), f(x), f(y) ∈ B(1; (c - ε)/2), |f(x) - f(y)| < c - ε
+    take x ∈ max{r, δ}, y = x + 1
+    |f(y) - f(x)|/|y - x|   = |f(y) - f(x)|
+                            = f'(r)
+                            < c - ε
+    for some r ∈ (max{r, δ}, +∞)
+    but then f'(r) > c - ε and f'(r) < c - ε
+    symmetrically c < 0 leads to the same contradiction, c = 0
+b.  f(x + 1) - f(x) = f'(r) for some r ∈ (x, x + 1)
+    as x -> ∞, r -> ∞, f(x + 1) - f(x) = f'(r) -> 1
+    assume a = 0, f(x - [x]) <= sup{f([0, 1))} is bounded by a constant
+    lim{x -> ∞}f(x)/x   = lim{x -> ∞}(Σ{1 <= k <= [x]}(f(x - k + 1) - f(x - k)) + f(x - [x]))/x
+                        = lim{x -> ∞}(Σ{1 <= k <= [x]}(f(x - k + 1) - f(x - k)) + f(x - [x]))/([x] + (x - [x]))
+                        = lim{x -> ∞}(Σ{1 <= k <= [x]}(f(x - k + 1) - f(x - k)) + f(x - [x]))/([x] + O(1))
+                        = lim{x -> ∞}(f(x + 1) - f(x))
+                        = 1
+    since limit of average is limit of sequence by Cesaro
+    when a > 0, the first [a] terms can be filled by 0, the limit of sequence is still 1
+c.  by the same argument of part b, f(x + 1) - f(x) -> 0, f(x)/x -> 0
+
+5.23
