@@ -2879,3 +2879,125 @@ b.  f(x + 1) - f(x) = f'(r) for some r ∈ (x, x + 1)
 c.  by the same argument of part b, f(x + 1) - f(x) -> 0, f(x)/x -> 0
 
 5.23
+f'(0) = lim{x -> 0}(f(x) - f(0))/x = 0
+there's δ that, for y ∈ (0, δ), (f(y) - f(0))/y ∈ B(0; h)
+but for all y > 0, (f(y) - f(0))/y = f'(r) >= h for some r ∈ (0, y)
+
+5.24
+let g(x) = f(2a - x), by chain rule g(x) is differentiable on [a - h, a + h]
+a.  let t(x) = f(x) - g(x), t(a) = f(a) - f(a) = 0
+        (t(a + h) - t(a))/h = t'(a + θh)
+        (f(a + h) + f(a - h))/h = f'(a + θh) + f'(a - θh)
+    for some 0 < θ < 1
+b.  let t(x) = f(x) + g(x), t is differentiable on [a - h, a + h]
+    by exercise 5.11,
+        (t(a + h) - t(a))/h = t'(a + λh)
+        (f(a + h) + f(a - h) - 2f(a))/h = f'(a + λh) - g'(a - λh)
+    for some 0 < λ < 1
+c.  L'Hospital's rule, case 0/0, restricted to finite first derivative:
+        assume finite f', g' exist at c, g'(c) != 0, f(c) = g(c) = 0, then
+        lim{x -> c}f(x)/g(x)    = lim{x -> c}(f(x) - f(c))/(g(x) - g(c))
+                                = lim{x -> c}((f(x) - f(c))/(x - c))/((g(x) - g(c))/(x - c))
+                                = f'(c)/g'(c)
+    when f'(x) is continuous, 
+    lim{h -> 0}(f(a + h) - f(a - h))/h  = lim{h -> 0}(f'(a + θh) + f'(a - θh)), 0 < θ(h) < 1 for all h
+                                        = 2f'(a)
+    f(x) is continuous, f(a + h), f(a - h) -> f(a), the limit has the form 0/0
+    by L'Hospital's rule, 
+        lim{h -> 0}(f(a + h) - 2f(a) + f(a - h))/h^2
+        = lim{h -> 0}(f'(a + h) - f'(a - h))/2h
+        = 2f''(a)/2 
+        = f''(a)
+    since f' is continuous given existence of f''
+d.  define f as:
+        f(x)    = -1 on [a - h, a)
+                = 0 at a
+                = 1 on (a, a + h]
+    lim{h -> 0}(f(a + h) + f(a - h) - 2f(a))/h^2 = 0, but f is not continuous, f' and f'' doesn't exist
+
+5.25
+for all ε > 0, there's δ that, for all x ∈ B(c; δ),
+    |(f(x) - f(c))/(x - c) - f'(c)| < ε/2
+since c ∈ B(x; δ), δ is universal for all c,
+    |(f(c) - f(x))/(c - x) - f'(x)| = |(f(x) - f(c))/(x - c) - f'(x)|
+                                    < ε/2
+    |f'(x) - f'(c)| < ε/2 * 2 = ε
+f'(B(c; δ)) ⊆ B(f'(c); ε) for all c, f' is uniformly continuous
+
+5.26
+on [a, b],
+    |f(x) - f(y)|/|x - y| = f'(r) <= α < 1 for some r ∈ (a, b)
+    |f(x) - f(y)| <= α|x - y| for some α < 1
+f is a contraction on [a, b], f has a unique fixed point on [a, b]
+
+5.27
+let f(x) = x^2sin(1/x), g(x) = x, f'(x) = 2xsin(1/x) - sin(1/x), g'(x) = 1 != 0
+f(x)/g(x) = xsin(1/x) -> 0 as x -> 0
+f'(x)/g'(x) = 2xsin(1/x) - sin(1/x) doesn't converge at 0
+
+5.28
+// errata: the definition of F in the hint is wrong
+// thanks solutions manual
+define F, G that
+    F(x) = f(x) - (x - c)^(n-2)f^(n)(c)/(n - 2)!
+    G(x) = g(x) - (x - c)^(n-2)g^(n)(c)/(n - 2)!
+both F(x) and G(x) are nth order differentiable on (a, b)
+    F^(k)(x) = f^(k)(x) - (x - c)^(n-2-k)f^(n)(c)/(n - 2 - k)! for k <= n - 3
+    F^(n-2)(x) = f^(n-2)(x) - f^(n)(c)
+    F^(n-1)(x) = f^(n-1)(x)
+    F^(n)(x) = f^(n)(x)
+    f^(k)(c) = 0 for all 0 <= k <= n - 3 and k = n - 1
+    F^(n-2)(c) = -f^(n)(c)
+by theorem 5.20, expand to n-1th order,
+    (F(x) - Σ{0, n-2}(x - c)^kf^(k)(c)/k!)G^(n-1)(x1) = (G(x) - Σ{0, n-2}(x - c)^kg^(k)(c)/k!)F^(n-1)(x1)
+    f(x)g^(n-1)(x1) = g(x)f^(n-1)(x1)
+    f(x)/g(x) = f^(n-1)(x1)/g^(n-1)(x1), x1 between x and c
+    lim{x -> c}(f(x)/g(x))  = lim{x -> c}f^(n-1)(x1)/g^(n-1)(x1)
+                            = lim{x1 -> c}f^(n-1)(x1)/g^(n-1)(x1)
+                            = f^(n)(c)/g^(n)(c)
+    by L'Hospital's rule
+
+5.29
+define
+    F(t) = f(t) + \sum_{k=1}^{n-1} \frac{f^{(k)}(t)}{k!}(x - t)^k
+    G(t) = g(t) = t
+then by the proof of theorem 5.20,
+    F'(t) = \frac{(x - t)^{n-1}}{(n - 1)!}f^{(n)}(t)
+    // this is unreadable as plain text, no latex anymore
+    G'(t) = 1
+    F'(x1)(G(x) - G(c)) = G'(x1)(F(x) - F(c))
+    ((x - x1)^(n-1) / (n - 1)!)(x - c) = f(x) - f(c) - Σ{1, n-1}f^(k)(c)/k! * (x - c)^k
+    f(x) = Σ{0, n-1}(x - c)^kf^(k)(c)/k! + (x - c)(x - x1)^(n-1)/(n - 1)!
+since x1 is between x and c, |x - x1| < |x - c| and x - x1, x - c has the same sign
+(x - x1)/(x - c) > 0, (x - x1)/(x - c) < 1, 0 < 1 - θ < 1, 0 < θ < 1
+    (x - x1) / (x - c) = 1 - θ
+    x - x1 = x - θx - c + θc
+    -x1 = -θx - (1 - θ)c
+    x1 = θx + (1 - θ)c
+    (x - c)(x - x1)^(n-1) / (n - 1)! = (1 - θ)^(n-1)(x - c)^n / (n - 1)! * f^(n)(θx + (1 - θ)c)
+
+5.30
+=>:
+    let (fn) be the component functions of f, define gn:R -> R^n as:
+        gn(x) = a, where an = fn(x), ak = 0 for all k != n
+    then lim{x -> c}gn(x) = b, where bn = lim{x -> c}fn(x), bk = 0 for all k != n:
+        for all ε > 0, there's δ that |bn - fn(x)| < ε whenever |c - x| < δ
+        ||b - gn(x)||  = √(bn - fn(x))^2
+                        = |bn - fn(x)|
+                        < ε
+    as f = Σgn, by theorem 4.14, f(x) -> b where fn(x) -> bn as x -> c
+    since lim{h -> 0}(fn(cn + h) - f(cn))/h = fn'(c), lim{h -> 0}(f(c + h) - f(c))/h = f'(c)
+<=:
+    lim{h -> 0}(f(c + h) - f(c))/h exist means lim{h -> 0}(fn(c + h) - f(c)) exist for all component function fn 
+    let x = c + h, h = x - c, 
+        lim{h -> 0}(fn(c + h) - f(c))   = lim{x -> c}(fn(x) - f(c))/(x - c)
+                                        = f'(c)
+    whenever the limit is defined
+    and f'(c) is defined as the vector of derivatives of each fn at c
+
+5.31
+g = ||f||^2 = Σfn^2 is a constant function
+g' = Σ2fnfn' = 2(f . f') = 0, f . f' = 0
+
+5.32
+
