@@ -3000,4 +3000,141 @@ g = ||f||^2 = Σfn^2 is a constant function
 g' = Σ2fnfn' = 2(f . f') = 0, f . f' = 0
 
 5.32
+// thanks solutions manual
+// the phrasing of the exercise should be changed to: f is never zero in any component
+for all components fn of f,
+    fn'/fn = λ
+so λ is a continuous function defined on R, the anti-derivative of λ exists
+f'(x) = λ(x)f(x) is a first order linear ODE, the solution is
+    f(x) = ce^int(a, x, λ(y)dy), c = f'(a)/f(a) for arbitrary a
+let u(x) = e^int(a, x, λ(y)dy), u(x) is positive, fn(x) = u(x)cn for all n
+f(x) = u(x)c for a constant vector c
+
+5.33
+fixing x or y, the function f(x) and f(y) are differentiable everywhere but (0, 0)
+D1f(x, y) exists at (0, 0):
+    lim{x -> 0}(f(x, 0) - f(0, 0))/x = 0
+symmetrically, D2f(0, 0) = 0
+D1f(x, y)   = y/(x^2 + y^2) - xy/(x^2 + y^2)^2 * 2x
+            = y/(x^2 + y^2) - 2x^2y/(x^2 + y^2)^2 when (x, y) != (0, 0)
+            = 0 when (x, y) = (0, 0)
+by symmetry,
+D2f(x, y)   = x/(x^2 + y^2) - 2xy^2/(x^2 + y^2)^2 when (x, y) != (0, 0)
+            = 0 when (x, y) = (0, 0)
+f(x, y) is not continuous at (0, 0):
+    when x = y, f(x, y) = x^2/2x^2 = 1/2 = lim{x -> 0}f(x, x)
+    when y = 0, f(x, y) = 0 = lim{x -> 0}f(x, 0)
+
+5.34
+f(x, 0) = 0 = lim{x -> 0}(f(x, 0) - f(0, 0))/x = D1(0, 0)
+f(0, y) = -y^3/y^2 = -y, D2(0, 0) = -1
+D1(x, y)    = (2xy(x^2 + y^2) - y(x^2 - y^2)2x)/(x^2 + y^2)^2
+            = 2xy(x^2 + y^2 - x^2 + y^2)/(x^2 + y^2)^2
+            = 4xy^3/(x^2 + y^2)^2
+D1f(x, 0) = 0, D1,1f(x, 0) = 0 for all x
+D1f(0, y) = 0, D1,2f(0, y) = 0 for all y
+D2f(x, y)   = ((x^2 - 3y^2)(x^2 + y^2) - y(x^2 - y^2)2y)/(x^2 + y^2)^2
+            = (x^4 + x^2y^2 - 3x^2y^2 - 3y^4 - 2x^2y^2 + 2y^4)/(x^2 + y^2)^2
+            = (x^4 - 4x^2y^2 - y^4)/(x^2 + y^2)^2
+D2f(x, 0) = x^4/x^4 = 1, D2f(x, 0) is not continuous at 0
+D2f(0, y) = -y^4/y^4 = -1, D2,2f(0, y) = 0 for all y
+
+5.35
+if f is differentiable at c, there's a continuous f* that f(z) - f(c) = (z - c)f*(z) for all z in S
+define g* = f*(~z), g* is a composition of continuous functions, g* is continuous
+if z, c ∈ S*, ~z, ~c ∈ S,
+    g(z) - g(c) = ~f(~z) - ~f(~c)
+                = ~(f(~z) - f(~c))
+                = ~(~z - ~c)f*(~c)
+                = (z - c)g*(c)
+for all z in S*, g is differentiable at c, g is differentiable on S*
+
+5.36
+a.  sinz = sinxcoshy + icosxsinhy
+    u(x, y) = sinxcoshy, v(x, y) = cosxsinhy
+    D1u(x, y)   = cosxcoshy
+                = D2v(x, y)
+    D1v(x, y)   = -sinxsinhy
+                = -D2u(x, y)
+    f'(z)   = D1u(x, y) + iD2v(x, y)
+            = cosxcoshy - isinxsinhy
+b.  cosz = cosxcoshy - isinxsinhy
+    u(x, y) = cosxcoshy, v(x, y) = -sinxsinhy
+    D1u(x, y)   = -sinxcoshy
+                = D2v(x, y)
+    D1v(x, y)   = -cosxsinhy
+                = D2u(x, y)
+    f'(z) = -sinxcoshy - icosxsinhy
+c.  |z| = √(x^2 + y^2)
+    u(x, y) = √(x^2 + y^2), v(x, y) = 0
+    when y = 0, f(z) = |x| is not x-differentiable at (0, 0)
+    D1u(x, y)   = x/√(x^2 + y^2)
+                = D2v(x, y) only when x = 0, y != 0
+    when x = 0, f(z) = |y| is not y-differentiable at (0, 0)
+    D2u(x, y)   = y/√(x^2 + y^2)
+                = -D1v(x, y) only when y = 0, x != 0
+    hence f satisfies both equations on no z
+d.  ~z = x - iy
+    u(x, y) = x, v(x, y) = -y
+    D1u(x, y)   = 1
+                != D2v(x, y)
+    D1v(x, y)   = 0
+                = -D2u(x, y)
+    f satisfies both equations at no z
+e.  arg(z) is not continuous on the negative x-axis:
+        every neighorhood contains both arg(z) ~ -π and arg(z) ~ π
+    by wikipedia https://en.wikipedia.org/wiki/Argument_(complex_analysis),
+    arg(z)  = 2arctan(y/(|z| + x)) anywhere but negative axis
+            = u(x, y)
+    v(x, y) = 0
+    // thanks wolframalpha
+    D1u(x, y)   = -y/|z|^2
+                = D2v(x, y) only when y = 0, x != 0
+    D2u(x, y)   = x/|z|^2
+                = D1v(x, y) only when x = 0, y != 0
+    f satisfies both equation at no z
+f.  Log(z) = log|z| + iarg(z)
+    u(x, y) = log(x^2 + y^2)/2, v(x, y) = arg(z)
+    v is not continuous on negative x-axis, D2v doesn't exist there
+    D1u(x, y)   = x/|z|^2
+                = D2v(x, y)
+    D1v(x, y)   = -y/|z|^2
+                = -D2u(x, y)
+    f'(z)   = x/|z|^2 - iy/|z|^2
+            = 1/z
+g.  z is differentiable on C
+    => z^2 is differentiable on C
+    => e^(z^2) is differentiable on C
+    Cauchy-Riemann equations hold for all z ∈ R
+    z^2 = x^2 - y^2 + i2xy:
+        u(x, y) = x^2 - y^2, v(x, y) = 2xy
+        D1u(x, y) = 2x, D1v(x, y) = 2y
+        (z^2)' = 2x + i2y = 2z
+    f'(c)   = e^(z^2) * (z^2)'
+            = e^(x^2 - y^2)(cos2xy + isin2xy)(2x + i2y)
+            = e^(x^2 - y^2)(2xcos2xy - 2ysin2xy + i2xsin2xy + i2ycos2xy)
+    u(x, y) = e^(x^2 - y^2)(2xcos2xy - 2ysin2xy)
+    v(x, y) = e^(x^2 - y^2)(2xsin2xy + 2ycos2xy)
+h.  z^α = e^αLogz
+    Logz is differentiable on R - (-∞, 0] x {0} = S
+    => αlogz is differentiable on S
+    => e^αLogz is differentiable on S
+    f'(z)   = e^αLogz * Log'(z)
+            = e^αLogz * (x/|z|^2 - iy/|z|^2)
+    let α = a + bi,
+    f(z)    = e^αLogz
+            = e^(a + bi)(log|z| + iarg(z))
+            = e^(alog|z| - barg(z) + iaarg(z) + iblog|z|)
+            = e^(alog|z| - barg(z))(cos(aarg(z) + blog|z|) + isin(aarg(z) + blog|z|))
+    u(x, y) = e^(alog|z| - barg(z))cos(aarg(z) + blog|z|)
+    v(x, y) = e^(alog|z| - barg(z))sin(aarg(z) + blog|z|)
+    when α is a nonnegative integer, inductively z^α is differentiable on C
+
+5.37
+if a = 0, b != 0
+    bv^2 = c
+    vD1v = vD2v = vD1u = vD2u = 0
+    
+    
+
 

@@ -4,7 +4,7 @@ Who produced these notes is not a graduate in computer or mathematics related fi
 There is no warranty for any part of the notes to be correct, neither mathematically nor grammatically.
 
 ## Reading:
-- (maybe) Mathematical analysis, Tom A. Apostol, 2nd Edition
+- (partial) Mathematical analysis, Tom A. Apostol, 2nd Edition
 
 ## Read (in temporal order):
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
