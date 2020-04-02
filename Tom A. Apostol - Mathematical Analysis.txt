@@ -3133,8 +3133,31 @@ h.  z^α = e^αLogz
 5.37
 if a = 0, b != 0
     bv^2 = c
-    vD1v = vD2v = vD1u = vD2u = 0
-    
-    
+    if v is 0 anywhere, bv^2 = c = 0, v and f must be constant 
+    assume v is never 0, vD1v = vD2v = vD1u = vD2u = 0
+    D1v = D2v = D1u = D2u = 0 on D, f is constant on D
+if a != 0, b != 0
+    au^2 + bv^2 = c
+    auD1u + bvD1v = 0 (1)
+    auD2u + bvD2v = 0 (2)
+by Cauchy-Riemann equations, 
+    -auD1v + bvD1u = 0 (3)
+    auD2v - bvD2u = 0 (4)
+(1) * D1v + (3) * D1u:
+    auD1uD1v + bvD1v^2 - auD1vD1u + bvD1u^2 = 0
+    bv(D1v^2 + D1u^2) = 0
+    bv^2(D1v^2 + D1u^2) = 0 (5)
+(2) * D2u + (4) * D2v:
+    auD2u^2 + bvD2uD2v + auD2v^2 - bvD2uD2v = 0
+    au(D2u^2 + D2v^2) = 0
+    au^2(D2u^2 + D2v^2) = 0
+    au^2(D1v^2 + D1u^2) = 0 (6)
+(5) + (6):
+    (au^2 + bv^2)(D1u^2 + D1v^2) = 0
+    c(D1u^2 + D1v^2) = 0
+if c = 0, au^2 + bv^2 = 0, a, b != 0, u and b must be 0 on D, f is constant
+if c != 0, D1u^2 + D1v^2 = 0, D1u = D1v = 0, f'(c) = D1u + iD1v = 0, f is constant
+
+
 
 
