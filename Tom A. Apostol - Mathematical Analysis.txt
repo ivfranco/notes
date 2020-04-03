@@ -3158,6 +3158,25 @@ by Cauchy-Riemann equations,
 if c = 0, au^2 + bv^2 = 0, a, b != 0, u and b must be 0 on D, f is constant
 if c != 0, D1u^2 + D1v^2 = 0, D1u = D1v = 0, f'(c) = D1u + iD1v = 0, f is constant
 
+6.1
+a.  |f'(x)| = |xsin(1/x) - x^2cos(1/x)/x^2|
+            = |xsin(x) - cos(1/x)|
+            <= 2 on [0, 1]
+    f are of bounded variation
+b.  when x = 1/(kπ + π/2), sin(1/x) = sin(kπ + π/2) = (-1)^(k+1)
+    let P = {0, 1/(nπ + π/2), .., 1/(π/2), 1}
+    Σ{2, n+1}|Δfk|  = Σ{1, n}((√1/(πk + π/2)) + √1/(π(k-1) + π/2))
+                    >= Σ{1, n}(√1/π(k + 1) + √1/πk)
+                    >= Σ{1, n}√1/πk
+                    -> ∞
+    √x * sin(1/x) is not of bounded variation
 
-
-
+6.2
+a.  by exercise 5.1.a, f is differentiable on (a, b), f'(c) = 0 for all c ∈ (a, b)
+    by theorem 5.14 f is constant on [a, b]
+    when α = 1, for all partition P = {xk} of [a, b],
+        Σ|Δfk|  = Σ|f(xk) - f(xk-1)|
+                < ΣM|xk - xk-1|
+                = M(b - a)
+    Vf(a, b) = sup{Σ(P)} <= M(b - a), f is of bounded variation on [a, b]
+b.  
