@@ -3178,5 +3178,142 @@ a.  by exercise 5.1.a, f is differentiable on (a, b), f'(c) = 0 for all c ∈ (a
         Σ|Δfk|  = Σ|f(xk) - f(xk-1)|
                 < ΣM|xk - xk-1|
                 = M(b - a)
-    Vf(a, b) = sup{Σ(P)} <= M(b - a), f is of bounded variation on [a, b]
-b.  
+    f is of bounded variation on [a, b]
+b.  // thanks https://math.stackexchange.com/questions/1566955/
+    let C be the Cantor set:
+        the set defined by recursively deleting the middle third from the connected interval of the set
+        C0 = [0, 1]
+        C1 = [0, 1/3] ∪ [2/3, 1]
+        ...
+        C = C∞
+    define f(x) = d(x, C)^α, where d(x, C) = inf{d(x, y): y ∈ C} is defined as in exercise 4.56
+    there are 2^(k-1) disjoint open intervals in ~C of length (1/3)^k for each k >= 1
+    f(x) is continuous on such an open interval Ik with
+        sup{f(x): x ∈ Ik} = (3^-k/2)^α
+        inf{f(x): x ∈ Ik} = 0
+    therefore Δfk on a closed subset of Ik >= (3^-k/2)^α
+    Σ(P)    >= Σ2^(k-1)(3^-k/2)^α
+            = (1/6)^α * Σ(2/3^α)^k
+    is unbounded for 3^α <= 2, α <= log2/log3
+    f(x) = d(x, C) satisfies uniform Lipschitz condition of order 1:
+        |f(x) - f(y)| <= |x - y| by exercise 4.56.a
+    f(x) = x^α, 0 < α <= 1 satisfies order α on [0, 1]:
+        for all 0 <= x < y <= 1, let d = y - x
+        let g(x)    = |f(x) - f(y)| - |x - y|^α
+                    = (x + d)^α - x^α - d^α
+        g is defined on [0, 1 - d]
+        g'(x)   = α(x + d)^(α-1) - αx^(α-1)
+                > 0 for all positive d 
+        g(1 - d)    = 1 - (1 - d)^α - d^α
+                    <= 1 - (1 - d) - d
+                    = 0
+        as x^α >= x on [0, 1] for 0 < α <= 1
+        therefore g(x) is non-positive on [0, 1 - d], |f(x) - f(y)| < |x - y|^α
+    if f satisfies order α on A, g satisfies order β on f(A), g o f satisfies order αβ on A:
+        |g(f(x)) - g(f(y))| < M|f(x) - f(y)|^β
+                            < MN|x - y|^αβ  // x^β is increasing for β > 0
+    hence f(x) = d(x, C)^α satisfies order α for all 0 < α < log2/log3, but f(x) is not of bounded variation
+c.  let f(x) = 1/logx when x != 0, f(0) = 0 on [0, 1/2]
+    lim{x -> 0}f(x) = 0, f(x) is continuous
+    fix x = 0, x < y <= 1
+    |f(x) - f(y)|   = -1/logy
+    |x - y|^α = y^α
+    |f(x) - f(y)|/|x - y|   = -1/y^αlogy
+                            = -y^-α/logy
+                            -> ∞ as y -> 0 for all positive α by L'Hospital's rule
+    as 1/logx is monotonic and bounded, f(x) is of bounded variation on [0, 1/2]
+
+6.3
+x and x^n are bounded on any closed interval [a, b] for any n, x^n+1 is of bounded variation
+a polynomial is a sum of finite x^nk which is also of bounded variation
+between any two zero points xk-1 and xk of f'(x), f'(x) is nonnegative or nonpositive, f is monotonic on [xk-1, xk]
+let a = x0, b = xn+1,
+Vf(a, b)    = ΣVf(xk+1, xk)
+            = Σ(f(xk+1) - f(xk))
+
+6.4
+by theorem 6.15, if f is of bounded variation on [a, b], f = g - h where g and h are increasing on [a, b]
+g, h ∈ S, -h ∈ S, f = g - h ∈ S
+
+6.5
+let s = sup(A), for all δ/2 > 0 there's x ∈ (s - δ, s] that,
+    f(s) >= f(x) > x > s - δ/2 > s - δ
+thus f(s) = > s, sup(A) ∈ A
+assume s ∈ (0, 1), for all δ > 0, f(s + δ) < s
+f(s) > s, let ε = f(s) - s for some ε > 0
+f(s) <= f(s + ε/2) < s + ε/2, contradicting f(s) = s + ε
+as f(0) > 0, s must be 1 and 1 ∈ A, f(1) > 1
+
+6.6
+a.  if f is of bounded variation on R, f is bounded on R:
+        let Vf(-∞, +∞) = M
+        if f is unbounded on R, there's |f(x)| > |f(0)| + 2M for some x, assume wlog x > 0
+        P = {0, x} is a partition of [0, x] and 
+            Vf(0, x)    >= |f(x) - f(0)|
+                        >= |f(x)| - |f(0)|
+                        = 2M
+        but M >= Vf(0, x) by definition
+    if f and g are of bounded variation on R, f + g, f - g, fg are of bounded variation on R:
+        let h = f + g, for all partition P of all closed interval [a, b],
+            Σ(P)    = Σ|h(xk) - h(xk-1)|
+                    <= Σ(|f(xk) - f(xk-1)| + |g(xk) - g(xk-1)|
+                    <= Vf(a, b) + Vg(a, b)
+                    <= Vf(-∞, +∞) + Vg(-∞, +∞)
+        so Vh(-∞, +∞) <= Vf(-∞, +∞) + Vg(-∞, +∞) is finite
+        // denote Vf(-∞, +∞) as Vf(R)
+        let h = -f, Vh(R) = Vf(R):
+            for al partition P, 
+            Σf(P)   = Σ|f(xk) - f(xk-1)|
+                    = Σ|-f(xk) - -f(xk-1)|
+                    = Σ|h(xk) - h(xk-1)|
+                    = Σh(P)
+            Vf(R) = sup{Vf(a, b)} = sup{Vh(a, b)} = Vg(R)
+        f - g = f + (-g) is of bounded variation on R
+        by exactly the same argument in the text, Vfg(R) <= sup{R(f)}Vg(R) * sup{R(g)}Vf(R)
+    by exactly the same argument in the text, V1/f(R) <= Vf(R)/m^2 if |1/f(x)| >= m > 0
+    for all c, Vf(-∞, c) + Vf(c, +∞) = Vf(R):
+        all closed interval [a, b] either is 
+            entirely in (-∞, c]: Vf(a, b) <= Vf(-∞, c)
+            entirely in [c, +∞): Vf(a, b) <= Vf(c, +∞)
+            in both: Vf(a, b) = Vf(a, c) + Vf(c, b) <= Vf(-∞, c) + Vf(c, +∞)
+        so Vf(R) = sup{Vf(a, b)} <= Vf(-∞, c) + Vf(c, +∞)
+        contersely, let a < b <= c <= s < t
+            Vf(a, b) + Vf(s, t) <= Vf(a, b) + Vf(b, s) + Vf(s, t)
+                                = Vf(a, t)
+                                <= Vf(R)
+        so Vf(-∞, c) + Vf(c, +∞) <= Vf(R)
+    similarly, Vf(-∞, a) + Vf(a, b) = Vf(-∞, b)
+    define V(x) = Vf(-∞, x), V is an increasing function:
+        for all a < b, V(b) - V(a) = Vf(a, b) >= 0
+    V - f is an increasing function:
+        let D = V - f, for all a < b,
+        D(b) - D(a) = Vf(a, b) - (f(b) - f(a))
+        by definition Vf(a, b) >= f(b) - f(a)
+b.  if f is bounded and monotonic on R, |f(x)| <= M for some constant M
+    for all partition P on arbitrary [a, b], assume wlog f is increasing,
+        Σ(P)    = Σ|f(xk) - f(xk-1)|
+                = Σ(f(xk) - f(xk-1))
+                = f(b) - f(a)
+                <= 2M
+    f is of bounded variation on R iff f = g - h, g and h bounded and increasing on R:
+        f = V - (V - f), V and V - f are increasing and bounded
+        conversely by part a, g and h are of bounded variation, g - h = f is of bounded variation
+
+6.7
+a.  let C(P) = {k: Δk = 0}, P = A(P) ∪ B(P) ∪ C(P), A, B and C are disjoint, ΣC(P) = 0
+    ΣP  = ΣA(P) + ΣB(P) + ΣC(P)
+        = ΣA(P) + ΣB(P)
+    for all partition P of [a, b]
+    V(x) = Vf(a, x) = pf(a, x) + nf(a, x) = p(x) + n(x)
+b.  p(x) + n(x) = V(x), pf(a, x), nf(a, x) >= 0
+    0 <= p(x) <= V(x), 0 <= n(x) <= V(x)
+c.  for all a <= x < y <= b, for all partition P of [a, x],
+    Q = P ∪ {y} is a partition of [a, y] and 
+    Σp(Q)   = Σp(P) + max{0, f(y) - f(x)}
+            >= Σp(P)
+    hence p(y) >= p(x), similarly 
+    Σn(Q)   = Σn(P) + |min{0, f(y) - f(x)}|
+            >= Σn(P)
+    and n(x) too is increasing
+d.  
+    
