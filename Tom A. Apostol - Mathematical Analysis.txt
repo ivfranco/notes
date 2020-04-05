@@ -3301,10 +3301,30 @@ b.  if f is bounded and monotonic on R, |f(x)| <= M for some constant M
 
 6.7
 a.  let C(P) = {k: Δk = 0}, P = A(P) ∪ B(P) ∪ C(P), A, B and C are disjoint, ΣC(P) = 0
-    ΣP  = ΣA(P) + ΣB(P) + ΣC(P)
-        = ΣA(P) + ΣB(P)
-    for all partition P of [a, b]
-    V(x) = Vf(a, x) = pf(a, x) + nf(a, x) = p(x) + n(x)
+    for all partition P of [a, b],
+    ΣP  = Σ{A(P)}Δfk + Σ{B(P)}|Δfk| + Σ{C(P)}0
+        = Σ{A(P)}Δfk + Σ{B(P)}|Δfk|
+        <= pf(a, b) + nf(a, b)
+    if both pf(a, b) and nf(a, b) are achievable, there's partitions P1 and P2 that:
+    1.  A(P1) and B(P2) are disjoint
+    2.  A(P1) and B(P2) achieves pf(a, b) and nf(a, b)
+        if an interval [a, b] in A(P1) contains an interval [c, d] in B(P2):
+            f(d) < f(c), f(a) < f(b)
+            if f(c) < f(a), f(b) - f(d) > f(b) - f(a)
+            if f(d) > f(b), f(c) - f(a) > f(b) - f(a)
+            max{0, f(c) - f(a)} + max{0, f(b) - f(d)} > f(b) - f(a)
+            P1 ∪ {c, d} has greater positive variation than P1 and A(P1 ∪ {c, d}) is disjoint to P2
+        if [a, b] in A(P1) and [c, d] in B(P2) overlaps, let a < c < b < d:
+            f(a) < f(b), f(c) > f(d)
+            if f(c) >= f(b), f(c) - f(a) >= f(b) - f(a)
+            if f(c) < f(b), |f(d) - f(b)| > |f(d) - f(c)|
+            P1' = P1 ∪ {c} or P2' = P2 ∪ {b} has no lower positive/negative variation and is disjoint to the other 
+    by a similar argument, when pf(a, b) and nf(a, b) are not achievable, for all ε > 0,
+    there's P that 
+        pf(a, b) - Σ{A(P)}Δfk < ε/2
+        nf(a, b) - Σ{B(P)}|Δfk| < ε/2
+        pf(a, b) + nf(a, b) - Σ(P) < ε
+    so Vf(a, b) = sup{Σ(P)} >= pf(a, b) + nf(a, b)
 b.  p(x) + n(x) = V(x), pf(a, x), nf(a, x) >= 0
     0 <= p(x) <= V(x), 0 <= n(x) <= V(x)
 c.  for all a <= x < y <= b, for all partition P of [a, x],
@@ -3315,5 +3335,174 @@ c.  for all a <= x < y <= b, for all partition P of [a, x],
     Σn(Q)   = Σn(P) + |min{0, f(y) - f(x)}|
             >= Σn(P)
     and n(x) too is increasing
-d.  
-    
+d.  for all partition P,
+    f(x) - f(a) = Σ{P}Δk
+                = Σ{A(P)}Δfk - Σ{B(P)}|Δfk|
+    {Σ{A(P)}Δfk - Σ{B(P)}|Δfk|: P ∈ P[a, b]} = {f(x) - f(a)}
+    which proves the case when both p(x) and n(x) are achievable
+    by part a, pf(a, b) and nf(a, b) can be achieved or infinitely approached simultaneously by the same partition P
+    assume n(x) and p(x) both not achievable, for all ε > 0, there's
+        p(x) - Σ{A(P)}Δfk < ε
+        n(x) > Σ{B(P)}|Δfk|
+        p(x) - n(x) < Σ{A(P)}Δfk - Σ{B(P)}|Δfk| + ε
+                    = Σ(P) + ε
+                    = f(x) - f(a) + ε
+    a symmetric argument gives p(x) - n(x) > f(x) - f(a) - ε for all ε > 0, f(x) - f(a) = p(x) - n(x)
+    the case only one of p(x) and n(x) is achievable is similar
+e.  immediate from part a and d
+f.  if f is continuous at c, V is continuous at c, V(c-) = V(c)
+    for x < c, 
+        0 <= |p(c) - p(x)| <= V(c) - V(x)
+    let x -> c, p is increasing, p(c-) exists
+        0 <= |p(c) - p(c-)| <= V(c) - V(c-) = 0
+    symmetrically, |p(c+) - p(c)| = 0, p is continuous at c
+    n = V - p is difference of two continuous function at c
+
+6.8
+a.  let y = f(t) = e^2πit, f(t) = g(t) on D(f), y = g(t)
+    let y = g(t) = e^2πit, if t ∈ (1, 2], t - 1 ∈ D(f) and 
+        f(t - 1)    = e^2πi(t - 1)
+                    = e^i2πt * e^-2πi
+                    = e^i2πt
+                    = g(t)
+    thus R(f) = R(g)
+    g is not one-to-one on its domain, if there's any continuous and strictly monotonic u: [0, 2] -> [0, 1] that
+        g(t) = f(u(t))
+    then g should be one-to-one
+b.  define g1: [0, 1] -> C and g2: [1, 2] -> C be two restrictions of g
+    both g1 and g2 are equivalent to f
+    if f and g are equivalent, if f has finite length on [a, b], u: [c, d] -> [a, b] is continuous and monotonic,
+    f(t) = g(u(t)), then Λf(a, b) = Λg(c, d):
+        for all partition P = {xk} of [a, b], let Q = u^-1(P) = {yk}, Q is a partition of [c, d] and 
+        ΣΛf(P)  = Σ{P}|f(xk) - f(xk-1)|   = Σ{P}|g(u^-1(xk)) - g(u^-1(xk-1))|
+                = Σ{Q}|g(yk) - g(yk-1)|
+                = ΣΛg(Q)
+        and vice versa, sup{Λf(P)} = sup{Λg(Q)}
+    Λg(0, 2)    = Λg(0, 1) + Λg(1, 2)
+                = 2Λf(0, 1)
+
+6.9
+a.  by theorem 6.19, s is continuous and strictly increasing on compact set [a, b], s is one-to-one
+    by theorem 4.29, s^-1 is continuous and one-to-one 
+    by theorem 4.52, s^-1 is strictly increasing on [0, L]
+b.  s^-1: [0, L] -> [a, b] is strictly increasing and continuous
+    so g(t) = f(s^-1(t)) is equivalent to f(t)
+
+6.10
+a.  metric of C is the same to norm of R^2
+    t and 2b - t are strictly monotonic and continuous on [a, b], both are of bounded variation
+    2b - t is strictly monotonic from [b, 2b - a] to [a, b], g'(t) = g(2b - t) and g(t) are equivalent
+    Vg(a, b) = Vg'(b, 2b - a), g' is of bounded variation
+    by theorem 6.17, h is rectifiable on [a, b] and [b, 2b - a]
+    if f is rectifiable on [a, b] and [b, c], f is rectifiable on [a, c]:
+        given a partition P of [a, c], P ∪ {b} is the disjoint union of a partition P1 of [a, b] and P2 of [b, c]
+        Λf(P) <= Λf(a, b) + Λf(b, c) is finite 
+    therefore h is rectifiable on [a, 2b - a]
+b.  h is the plot of f and g on [a, b]
+c.  fix x, let (x, y) ∈ ∂S = C(S) ∩ C(~S)
+    if x < a or x > b, there's a B(x) disjoint with S, x ∈ [a, b]
+    assume f(x) < y < g(x), let g(x) - y = u, y - f(x) = v
+    as f and g are continuous at x, for some δ1 and δ2
+        f(z) - f(x) < v/2 for z ∈ B(x; δ1)
+        g(x) - g(z) > u/2 for z ∈ B(x; δ2)
+    let δ = min{δ1, δ2, u/2, v/2}, B((x, y); δ) is interior to S, ∂S ⊆ Γ
+    conversely, (x, f(x)) and (x, g(x)) are in the closure of S and ~S, Γ ⊆ ∂S, Γ = ∂S
+d.  -(g(t) - f(t))/2 is of bounded variation
+    g(2b - t) and f(2b - t) is rectifiable in R1 <=> is of bounded variation, so is (g(2b - t) - f(2b - t))/2
+    the two components of H(t) are of bounded variation, H is rectifiable
+    let u = (f - g)/2, v = (g - f)/2, u > 0 > v on (a, b), u = v = 0 at a and b
+    H(t)    = t + iu(t) if t ∈ [a, b]
+            // errata, the original definition t + i(g - f)/2 cannot be the boundary of S0
+            = 2b - t + iv(t) if t ∈ [b, 2b - a]
+    by exactly the same argument of part c, Γ0 = ∂S0
+e.  the condition on y of S0 can be expressed as
+        |2y| <= g(x) - f(x)
+    hence (x, y) ∈ S0 <=> (x, -y) ∈ S0
+f.  on [b, 2b - a], H(t) = ~H(2b - t)
+    for all f: [a, b] -> C, Vf(a, b) = V~f(a, b):
+        given partition P on [a, b],
+        Λf(P)   = Σ|(x(tk), y(tk)) - (x(tk-1), y(tk-1))|
+                = Σ√((x(tk) - x(tk-1))^2 + (y(tk) - y(tk-1))^2)
+                = Σ√((x(tk) - x(tk-1))^2 + (y(tk-1) - y(tk))^2)
+                = Σ|(x(tk), -y(tk)) - (x(tk-1), -y(tk-1))|
+                = Λ~f(P)
+    similarly Λf(a, b) = Λ-f(a, b)
+    hence VH(a, b) = V~H(b, 2b - a) = VH(b, 2b - a)
+    VH(a, 2b - a) = 2VH(a, b)
+    for arbitrary x, y and z, 
+        4x^2(y + z)^2 >= 0
+        4x^4 + 4y^2z^2 - 8x^yz <= 4x^4 + 4y^2z^2 + 4x^2(y^2 + z^2)
+        (2x^2 - 2yz)^2 <= 4(x^2 + y^2)(x^2 + z^2)
+        2x^2 - 2yz <= 2√(x^2 + y^2)(x^2 + z^2)
+        4x^2 + (y - z)^2 <= 2x^2 + y^2 + z^2 + 2√(x^2 + y^2)(x^2 + z^2)
+        √(4x^2 + (y - z)^2) <= √(x^2 + y^2) + √(x^2 + z^2)
+    given partition P of [a, b], 
+        ΛH(P)   = Σ|(xk, (f(xk) - g(xk))/2) - (xk-1, (f(xk-1) - g(xk-1))/2)|
+                = Σ√(Δxk^2 + (Δfk - Δgk)^2/4)
+                = 1/2 * Σ√(4Δxk^2 + (Δfk - Δgk)^2)
+                <= 1/2 * Σ(√(Δxk^2 + Δfk^2) + √(Δxk^2 + Δgk^2))
+                = 1/2 * (Λf(P) + Λg(P))
+                <= 1/2 * (Λf(a, b) + Λg(a, b))
+                = Λh(a, 2b - a)/2 
+        ΛH(a, 2b - a)   = 2ΛH(a, b)
+                        <= Λh(a, 2b - a)
+
+6.11
+denote bk - ak by Δxk, f(bk) - f(ak) by Δfk (as usual)
+for all ε > 0 and all c ∈ [a, b], there's δ that
+    Σ|Δfk| < ε whenever ΣΔxk < δ
+consider the disjoint set of open intervals consists of a single interval (x, c) or (c, x)
+whenever |x - c| < δ, Σ|Δfk| = |f(x) - f(c)| < ε, f is continuous at c => f is continuous on [a, b]
+divide [a, b] to intervals of length <= 1,
+there's a δ that, for closed intervals [u, v] of length <= δ/2 and given a partition of [u, v],
+    Σ(P)    = Σ|Δfk|
+            < 1
+as ΣΔxk = v - u < δ
+every closed interval of finite length can be divided into finite number of intervals of length <= δ/2, and 
+Vf(a, b)    = ΣVf(xk-1, xk) // xk - xk-1 <= δ/2 < δ
+            < 2(b - a)/δ
+hence f is of bounded variation on [a, b]
+
+6.12
+for all ε > 0, let δ = ε/M,
+Σ|Δfk|  < ΣM|Δxk|
+        = MΣΔxk
+        < M * ε/M
+        = ε
+
+6.13
+|f|:
+    for all ε > 0, there's δ that,
+    Σ||f(xk)| - |f(xk-1)||  <= Σ|f(xk) - f(xk-1)|
+                            < ε
+    whenever ΣΔxk < δ
+cf:
+    let for all ε/|c| > 0, there's δ that
+    Σ|cf(xk) - cf(xk-1)|    <= Σ|c||f(xk) - f(xk-1)|
+                            < |c| * ε/|c|
+    whenever ΣΔxk < δ
+f + g:
+    for all ε > 0, there's δ1, δ2 that
+    Σ|f(xk) + g(xk) - f(xk-1) - g(xk-1)|    = Σ|Δfk + Δgk|
+                                            <= Σ(|Δfk| + |Δgk|)
+                                            < ε/2 + ε/2
+    whenever ΣΔxk < min{δ1, δ2}
+fg:
+    if f, g are absolutely continuous on [a, b], f, g are of bounded variation on [a, b], f and g are bounded on [a, b]
+    |f(x)| <= A, |g(x)| <= B
+    for all ε > 0, there's δ1 and δ2 that
+    Σ|f(xk)g(xk) - f(xk-1)g(xk-1)|  <= Σ(|f(xk)g(xk) - f(xk-1)g(xk)| + |f(xk-1)g(xk) - f(xk-1)g(xk-1)|)
+                                    = Σ(|g(xk)||f(xk) - f(xk-1)| + |f(xk-1)||g(xk) - g(xk-1)|)
+                                    <= |B|Σ|Δfk| + |A|Σ|Δgk|
+                                    < |B| * ε/|B| + |A| * ε/|A|
+                                    = ε
+    whenever ΣΔxk < min{δ1, δ2}
+1/g, g bounded away from 0:
+    let |1/g(x)| > m > 0
+    ∀εm^2>0∃δ,
+    Σ|1/g(xk) - 1/g(xk-1)|  = Σ|g(xk) - g(xk)|/|g(xk)||g(xk-1)|
+                            <= Σ|Δgk|/m^2
+                            < εm^2 / m^2
+                            = ε
+    whenever ΣΔxk < δ
+f/g: immediate from fg and 1/g 
