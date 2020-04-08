@@ -3506,3 +3506,44 @@ fg:
                             = ε
     whenever ΣΔxk < δ
 f/g: immediate from fg and 1/g 
+
+7.1
+S(P, 1, α)  = ΣΔαk
+            = α(b) - α(a)
+for all partition P of [a, b], take arbitrary Pε, for all P ⊇ Pε,
+    |S(P, 1, α) - α(b) + α(a)| = 0 < ε
+so int(a, b, fdα) = α(b) - α(a)
+
+7.2
+// errata: int(a, b, fdα) is defined for every monotonic function f
+// not clear how it can be proved when only monotonic f ∈ R(α) has 0 integration
+assume α is not constant, there's some x ∈ [a, b) that α(x) != α(b)
+define f as:
+    f = 0 on [a, x]
+    f = 1 on (x, b]
+f is monotonic on [a, b], int(a, b, fdα) = 0, int(a, b, αdf) is defined and
+    int(a, b, αdf) = α(x)
+by theorem 7.9, hence by theorem 7.6, 
+    int(a, b, fdα)  = f(b)α(b) - f(a)α(a) - int(a, b, αdf)
+                    = α(b) - α(x)
+                    != 0
+therefore α(x) = α(b) for all x ∈ [a, b], α is constant on [a, b]
+
+7.3
+a.  for all ε > 0, let Pε be an arbitrary partition with ||Pε|| < δ
+    if P ⊇ Pε, ||P|| <= ||Pε|| < δ, and |S(P, f, α) - A| < ε
+    by definition 7.1, int(a, b, fdα) = A
+b.  f(c-) = f(c), α(c+) = α(c), α is monotonic
+    by theorem 7.9, int(a, b, fdα) exists and equals to f(c)(α(c+) - α(c-)) = 1
+    for all δ > 0, define P that, [xk-1, xk] = [c - δ/4, c + δ/4] ∈ P, ||P|| < δ
+    S(P, f, α)  = Σf(tk)Δαk
+                = f(tk)(α(c + δ/4) - α(c - δ/4))
+                = 1 if tk >= c
+                = 0 if tk < c 
+    so int(a, b, fdα) is not defined according to the second definition
+
+7.4
+
+    
+
+    
