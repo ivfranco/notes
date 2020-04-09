@@ -10,7 +10,7 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
 - Types and Programming Languages, Benjamin C. Pierce, in Haskell
 - Automata and Computability, Dexter C. Kozen
-- Introduction to the Theory of Computation, Michael Sipser, 3rd Edition
+- (partial) Introduction to the Theory of Computation, Michael Sipser, 3rd Edition
 - Design Patterns, Gang of Four, in Typescript
 - Introduction to Modern Cryptography, Johnathan Katz & Yehuda Lindell
 - Cryptography Engineering: Design Principles and Practical Applications, Niels Ferguson et al., in Rust

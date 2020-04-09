@@ -3543,7 +3543,133 @@ b.  f(c-) = f(c), α(c+) = α(c), α is monotonic
     so int(a, b, fdα) is not defined according to the second definition
 
 7.4
+let I = int(a, b, fdx), there's some Pε that for all P ⊇ Pε,
+    U(P, f) - I <= U(P, f) - L(P, f)
+                < ε/4
+let M = sup{|f(x)|: x ∈ [a, b]}, N = |Pε|, δ = ε/4MN, if ||P|| < δ let
+    U(P, f) = ΣMk(f)Δxk
+            = S1 + S2
+where S1 is the sum of terms whose interval contains no point of Pε (i.e. whose intervals are sub-intervals of Pε)
+S2 is the sum of remaining terms which contains at least one point of Pε
+as S1 may be considered as intervals of a partition P finer than Pε,
+    S1 <= U(Pε, f) < I + ε/4
+and since Mk(f) <= M, S2 has fewer terms than |Pε| = N, length of each interval of S2 <= ||P|| < δ
+    S2 <= NMδ = ε/4
+adding the two inequality gives
+    U(P, f) < I + ε/2 if ||P|| < δ
+similarly,
+    L(P, f) > I - ε/2 if ||P|| < δ'
+hence take ||P|| < min{δ, δ'},
+    |S(P, f) - I|   <= U(P, f) - L(P, f)
+                    < ε
+so the integral exists according to the second definition
+
+7.5
+f is continuous on [0, a) and continuous from left at a
+Σ{n<=a}anf(n)   = int(1, a, fdA) + a1f(1)   // theorem 7.10
+                = A(a)f(a) - A(1)f(1) + A1f(1) - int(1, a, Adf)
+                = A(a)f(a) - int(1, a, Adf)
+
+7.6
+a.  Σ1/k^s  = int(1, n, 1/x^sd[x]) + 1 // theorem 7.11
+            = 1/n^s * n - 1 - int(1, n, [x]d(1/x^s)) + 1  // integration by parts
+            = 1/n^(s-1) + s * int(1, n, [x]/x^(s+1)dx) // theorem 7.8, x^(s+1) is continuous on [1, n]
+b.  Σ1/k    = int(1, n, 1/xdx) - int(1, n, (x - [x] - 1/2)/x^2dx) + (1 + 1/n)/2
+            = logn - int(1, n, (x - [x])/x^2dx) + 1/2 * int(1, n, 1/x^2dx) + (1 + 1/n)/2
+            = logn - int(1, n, (x - [x])/x^2dx) + 1
+
+7.7
+let A(x) = 2[x/2] - [x], x is constant on every interval [n, n + 1)
+when n = 2k, 2[n/2] - [n] = 2k - 2k = 0, A(n+) - A(n-) = 1
+when n = 2k + 1, 2[n/2] - [n] = 2k - 2k - 1 = -1, A(n+) - A(n-) = -1
+Σ(-1)^kf(k) = int(1, 2n, fdA) + f(1)
+            = -f(1) - int(1, 2n, Adf) + f(1)
+            = int(1, 2n, f'(x)([x] - 2[x/2])dx)
+
+7.8
+φ1 is continuous almost everywhere, φ2(x) = int(0, x, φ1dt) exist on [1, n] and φ2'(x) = φ1(x)
+for all integer n,
+    φ2(n)   = int(0, n, φ1dt)
+            = Σint(k, k+1, φ1dt)
+            = 0
+int(1, n, f'(x)(x - [x] - 1/2)dx)   = int(1, n, f'(x)φ1(x)dx) // φ1(x) != x - [x] - 1/2 only at finite points
+                                    = int(1, n, f'dφ2)
+                                    = f'(n)φ2(n) - f'(1)φ2(1) - int(1, n, φ2df')
+                                    = -int(1, n, f''φ2dx)
+
+7.9
+logn!   = Σlogk
+        = int(1, n, logxdx) + int(1, n, φ2(x)/x^2 dx) + logn/2
+        = (n + 1/2)logn - n + 1 + int(1, n, φ2(x)/x^2 dx)
+
+7.10
+a.  π(.) is a step function continuous from right with jump 1 at every prime number p
+    logt is continuous on (0, +∞)
+    int(3/2, x, logtdπ) = Σ{2, [x]}logp 
+                        = k(x)
+    similarly, k(.) is a step function continuous from right with jump logp at every prime number p
+    1/logt is continuous on (0, +∞)
+    int(3/2, x, 1/logt dk)  = Σ{2, [x]}logp/logp
+                            = Σ{p <= n}1
+b.  k(x)    = int(3/2, x, logtdπ)
+            = π(x)log(x) - int(3/2, x, π(t)dlogt)
+            = π(x)log(x) - int(3/2, x, π(t)/t dt)
+            = π(x)log(x) - int(2, x, π(t)/t dt) - int(3/2, 2, π(t)/t dt)
+            = π(x)log(x) - int(2, x, π(t)/t dt) // π(t)/t = 0 on [3/2, 2)
+    π(x)    = int(3/2, x, 1/logt dk)
+            = k(x)/logx - int(3/2, x, kd1/logt)
+            = k(x)/logx + int(3/2, x, k/tlog^2t dt)
+            = k(x)/logx + int(2, x, k/tlog^2t dt)
+
+7.11
+a.  when α↑, ΣMk(f)Δαk  >= ΣmΔαk for bounded f and m = inf{f(x)}, inf{U(P, f, α)} is defined on any interval in [a, b]
+    let P1, P2 be two partition on [a, c], [c, b] that
+        U(P1, f, α) - uint(a, c, fdα) < ε/4
+        U(P2, f, α) - uint(c, b, fdα) < ε/4
+    P = P1 ∪ P2 is a partition of [a, b] and
+        U(P, f, α) = U(P1, f, α) + U(P2, f, α)
+        U(P, f, α) - uint(a, c, fdα) - uint(c, b, fdα) < ε/2
+    let Pε be a partition that 
+        U(Pε, f, α) - uint(a, b, fdα) < ε/2
+    let P' = P ∪ Pε, c ∈ P', P' satisfies all the inequalities above, 
+        |U(P', f, α) - uint(a, c, fdα) - uint(c, b, fdα)| < ε/2
+        |U(P', f, α) - uint(a, b, fdα)| < ε/2
+        |uint(a, b, fdα) - uint(a, c, fdα) - uint(c, b, fdα)| < ε
+    for all ε > 0, uint(a, b, fdα) = uint(a, c, fdα) + uint(c, b, fdα)
+b.  Mk(f + g)   = sup{f(x) + g(x): x ∈ [xk-1, xk]}
+                <= sup{f(x) + g(y): x, y ∈ [xk-1, xk]} // supremum of a super set
+                = Mk(f) + Mk(g)
+    when α↑, for all partition P of [a, b],
+        U(P, f + g, α)  = ΣMk(f + g)Δαk
+                        <= Σ(Mk(f) + Mk(g))Δαk
+                        = U(P, f, α) + U(P, g, α)
+        inf{U(P, f + g, α)} <= inf{U(P, f, α) + U(P, g, α)}
+    similarly, mk(f + g) >= mk(f) + mk(g) and
+        inf{L(P, f + g, α)} >= inf{L(P, f, α) + L(P, g, α)}
+
+7.12
+let α = x, define f:[1, 2] -> R as:
+    f(x)    = x when x is rational
+    f(x)    = -x when x is irrational
+f is not continuous from left or right at any point in (1, 2), int(1, 2, fdα) doesn't exist
+|f(x)| = x is continuous everywhere on [1, 2], int(1, 2, |f|dα) exists
+
+7.13
+a.  f ∈ BV([a, b]), by theorem 7.32, β ∈ BV([a, b]), β is continuous on [a, b]
+    by theorem 7.27, β ∈ R(f), f ∈ R(β), int(a, b, fdβ) exists
+    apply second mean-value theorem, for some x0 ∈ [a, b],
+        int(a, b, fdβ)  = f(a)int(a, x0, dβ) + f(b)int(x0, b, dβ)
+                        = f(a)β(x0) + f(b)(β(b) - β(x0))
+                        = f(a)int(a, x0, gdα) + f(b)(int(a, b, gdα) - int(a, x0, gdα))
+                        = f(a)int(a, x0, gdα) + f(b)int(x0, b, gdα)
+b.  by theorem 7.27 f ∈ R(α), by theorem 7.23 and α = V - (V - α), fg ∈ R(α), int(a, b, fgdα) exist
+    by theorem 7.26
+        int(a, b, fgdα) = int(a, b, fdβ)
+                        = f(a)int(a, x0, gdα) + f(b)int(x0, b, gdα)
+
+7.14
+
+
 
     
 
-    
