@@ -3507,6 +3507,27 @@ fg:
     whenever ΣΔxk < δ
 f/g: immediate from fg and 1/g 
 
+theorem 7.3
+let c1α + c2β = γ
+S(P, f, γ)  = Σf(tk)Δγk
+            = Σf(tk)(c1Δαk + c2Δβk)
+            = c1S(P, f, α) + c2S(P, f, β)
+for all ε > 0, there's partitions Pε and Qε of [a, b] that,
+    |S(P, f, α) - int(a, b, fdα)| < ε/2|c1|
+    |S(P, f, β) - int(a, b, fdβ)| < ε/2|c2|
+let P = Pε ∪ Qε, for all partition Q ⊇ P, 
+    |S(Q, f, γ) - c1int(a, b, fdα) - c2int(a, b, fdβ)|
+    < |c1| * ε/2|c1| + |c2| * ε/2|c2|
+    = ε
+so int(a, b, fdγ) = c1int(a, b, fdα) + c2int(a, b, fdβ)
+
+theorem 7.21
+applying theorem 7.20 to g = |f| once only gives 
+    int(a, b, fdα) <= int(a, b, |f|dα)
+to have theorem 7.21 theorem 7.20 must be applied again to -f:
+    int(a, b, -fdα) = -int(a, b, fdα)
+                    <= int(a, b, |f|dα)
+
 7.1
 S(P, 1, α)  = ΣΔαk
             = α(b) - α(a)
@@ -3668,8 +3689,121 @@ b.  by theorem 7.27 f ∈ R(α), by theorem 7.23 and α = V - (V - α), fg ∈ R
                         = f(a)int(a, x0, gdα) + f(b)int(x0, b, gdα)
 
 7.14
+by theorem 7.24, f ∈ R(V)
+for all partition P of [a, b],
+    Σ|f(tk)|(α(xk) - α(xk-1))   <= Σ|f(tk)||α(xk) - α(xk-1)|
+                                <= Σ|f(tk)|(V(xk) - V(xk-1))
+hence
+    |int(a, b, fdα)|    <= int(a, b, |f|dα)
+                        <= int(a, b, |f|dV)
+                        <= int(a, b, MdV)
+                        = MV(b) - MV(a)
+                        <= MV(b) // MV(a) >= 0
+
+7.15
+let M = sup{|f|}, let βn = α - αn, f ∈ R(βn)
+as Vβn(a, b) -> 0, there's N for all n >= N,
+    Vβn(a, b) < ε/2M
+    |S(P, f, βn)|   = |Σf(tk)Δβnk|
+                    <= Σ|f(tk)Δβnk|
+                    <= Σ|MVβn(xk-1, xk)|
+                    = MΣVβn(xk-1, xk)
+                    = MVβn(a, b)
+                    < ε/2
+so |int(a, b, fdβn)| <= ε/2 < ε, it has
+    |int(a, b, fdα) - int(a, b, fdαn)|  = |int(a, b, fdβn)|
+                                    < ε
+for all ε > 0, int(a, b, fdαn) -> int(a, b, fdα)
+
+7.16
+// no idea how to prove fg ∈ R(α)
+// a similar exercise of Rudin assumed α↑ from beginning
+// in fact Rudin's book assumed α↑ throughout the chapter of Riemann-Stieltjes integration
+1/2 * int(a, b, int(a, b, (f(x)g(y) - f(y)g(x))^2dα(y))dα(x))
+= 1/2 * int(a, b, int(a, b, f(x)^2g(y)^2 - 2f(x)g(x)f(y)g(y) + f(y)^2g(x)^2 dα(y))dα(x))
+// int(a, b, f(y)^2dα(y)), int(a, b, g(y)^2dα(y)), int(a, b, f(y)g(y)dα(y)) are constants
+= int(a, b, f(x)^2dα(x)) * int(a, b, g(x)^2dα(x)) - int(a, b, f(x)g(x)int(a, b, f(y)g(y)dα(y)))
+= int(a, b, f(x)^2dα(x)) * int(a, b, g(x)^2dα(x)) - int(a, b, f(x)g(x)dα(x))^2
+since det[f(x), g(x); f(y), g(y)]^2 is non-negative on [a, b] x [a, b], α↑, the integral is non-negative 
+
+7.17
+(f(y) - f(x))(g(y) - g(x))  = f(y)g(y) - f(y)g(x) - f(x)g(y) + g(x)g(x)
+1/2 * int(a, b, int(a, b, (f(y) - f(x))(g(y) - g(x))dα(y))dα(x))
+= 1/2 * int(a, b, int(a, b, f(y)g(y) - f(y)g(x) - f(x)g(y) + g(x)g(x) dα(y))dα(x))
+= int(a, b, fgdα)(α(b) - α(a)) - int(a, b, fdα)int(a, b, gdα)
+if α↑ and both f, g increasing (or decreasing), f(y) - f(x) and g(y) - g(x) have the same sign
+(f(y) - f(x))(g(y) - g(x)) >= 0, the first integral is nonnegative
+if f increasing, g decreasing (or vice versa), (f(y) - f(x))(g(y) - g(x)) <= 0, the first integral is nonpositive
+
+7.18
+for n >= 1, let P be a partition:
+    xk = a + k(b - a)/n
+    S(P, f, x)  = Σf(tk)Δxk
+                = Σf(tk)(b - a)/n
+where a + (k - 1)(b - a)/n <= tk <= a + k(b - a)/n, take tk = a + k(b - a)/n gives
+    S(P, f, x)  = Σf(a + k(b - a)/n)(b - a)/n
+by exercise 7.4, as f ∈ R on [a, b], for all ε > 0 there's δ, ||P|| < δ implies S(P, f, x) ∈ B(int(a, b, fdx); ε)
+let N = [(b - a)/δ] + 1, for all n >= N, ||P|| < δ, |S(P, f, x) - int(a, b, fdx)| < ε
+lim{n -> ∞}(b - a)/n * Σf(a + k(b - a)/n) = int(a, b, fdx)
+1.  let f(x) = 1/(x^2 + 1), a = 0, b = 1
+    f(a + k(b - a)/n)   = f(k/n) 
+                        = 1/(k^2/n^2 + 1)
+                        = n^2/(k^2 + n^2)
+    lim{n -> ∞}Σn/(k^2 + n^2)   = lim{n -> ∞}1/n * Σn^2/(k^2 + n^2)
+                                = lim{n -> ∞}(1 - 0)/n * Σf(k/n)
+                                = int(0, 1, 1/(x^2 + 1) dx)
+                                = arctan(1) - arctan(0)
+                                = π/4
+2.  n(n^2 + k^2)^(-1/2) = √(n^2/(k^2 + n^2))
+    let a = 0, b = 1, f(x) = √(1/(x^2 + 1))
+    lim{n -> ∞}Σ(k^2 + n^2)^(-1/2)  = int(0, 1, √(1/(x^2 + 1)) dx)
+                                    = arcsinh(1) - arcsinh(0)
+                                    = log(1 + √2)
+
+7.19
+a.  f'(x)   = 2int(0, x, e^-t^2 dt) * e^-x^2
+    e^-x^2(t^2 + 1)/(t^2 + 1) is continuous on R^2
+    g'(x)   = int(0, 1, (-(t^2 + 1) * 2x * e^-x^2(t^2 + 1))/(t^2 + 1)  dt)
+            = int(0, 1, (-2x * e^-x^2(t^2 + 1))dt) // theorem 7.40
+            = -2e^-x^2 * int(0, 1, xe^-(xt)^2 dt)
+            // let h(t) = xt, change integral from [0, 1] to [0, x]
+            // h'(t) = x is continuous on [0, 1]
+            = -2e^-x^2 * int(0, x, e^-t^2 dt)
+            = -f'(x)
+    (g + f)' = g' + f', g + f is constant on R
+    at x = 0,
+    f(0) + g(0) = 0 + int(0, 1, 1/(t^2 + 1) dt)
+                = arctan(1)
+                = π/4
+b.  by theorem 7.38, 
+    lim{x -> ∞}g(x) = int(0, 1, lim{x -> ∞}e^-x^2(t^2 + 1)/(t^2 + 1) dt)
+                    = int(0, 1, 0dt)
+                    = 0
+    therefore
+    lim{x -> ∞}f(x) = lim{x -> ∞}(f(x) + g(x)) - g(x)
+                    = π/4
+    lim{x -> ∞}√f(x)    = √π/2
+
+7.20
+x↑, |g| ∈ R on [a, b]
+for all partition P of [a, x], 
+Σ|Δfk|  = Σ|int(xk-1, xk, gdt)|
+        <= Σint(xk-1, xk, |g|dt)
+        = int(a, x, |g|dt)
+also 
+Σ|Δfk|  = Σ|int(xk-1, xk, gdt)|
+        = Σ|g(tk)|(xk - xk-1)
+        = S(P, |g|, t)
+by the definition of int(a, x, |g|dt) = A, for all ε > 0 there's partition Pε that
+|S(Pε, |g|, t) - A| = A - S(Pε, |g|, t)
+                    = A - Σ|Δfk|
+                    < ε
+therefore int(a, x, |g|dt) = sup{Σ|Δfk|} = V|g|(a, x)
+
+7.21
+for all component function fi, fi' = (f')i exists, fi is uniformly continuous on [a, b]
+by exercise 4.52 fi must be bounded, fi ∈ R, |fi| ∈ R, Vfi(a, b) = int(a, b, |fi|dx) is finite 
+Λf(a, b) <= ΣVfi(a, b) is finite, the curve is rectifiable
 
 
-
-    
 
