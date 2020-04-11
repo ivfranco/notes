@@ -3804,6 +3804,76 @@ therefore int(a, x, |g|dt) = sup{Σ|Δfk|} = V|g|(a, x)
 for all component function fi, fi' = (f')i exists, fi is uniformly continuous on [a, b]
 by exercise 4.52 fi must be bounded, fi ∈ R, |fi| ∈ R, Vfi(a, b) = int(a, b, |fi|dx) is finite 
 Λf(a, b) <= ΣVfi(a, b) is finite, the curve is rectifiable
+for a partition P of [a, b],
+    Λf(P)   = Σ{k}√Σ{i}Δfik^2
+            = Σ{k}√Σ{i}(fi'(tik)Δxk)^2
+            = Σ{k}Δxk√Σ{i}fi'(tik)^2
+fi' is continuous, for all non-negative A, √(A + fi'(x)^2) is uniformly continuous on [a, b]
+for all ε > 0, there's δi that whenever |x - y| < δi, |√(A + fi'(x)^2) - √(A + fi(y)^2)| < ε/3n(b - a)
+let ||P|| < min{δi}, for an arbitrary tk in [xk-1, xk], fix all but one tik at a time and by triangle inequality, 
+    |√Σ{i}fi'(tik)^2 - √Σ{i}fi'(tk)^2|  <= Σ|√(Ai + fi'(tik)^2) - √(Ai + fi'(tk)^2)|
+                                        < n * ε/3n(b - a)
+                                        = ε/3(b - a)
+where
+    |Λf(P) - S(P, ||f'||)|  = Σ{k}Δxk * |√Σ{i}fi'(tik)^2 - √Σ{i}fi'(tk)^2|
+                            < ΣΔxk * ε/2(b - a)
+                            = ε/3
+by definition of Λf(a, b) = sup{Λf(P)}, there's a partition Pε that, for all P ⊇ Pε,
+    |Λf(a, b) - Λf(P)| < ε/3
+by definition of int(a, b, ||f'||dx), there's a partition Qε that, for all P ⊇ Qε,
+    |S(P, ||f'||) - int(a, b, ||f'||dx)| < ε/3
+take P = Pε ∪ Qε and ||P|| < min{δi},
+    |Λf(a, b) - int(a, b, ||f'||dx)|    <= |Λf(a, b) - Λf(P)| 
+                                        + |Λf(P) - S(P, ||f'||)| 
+                                        + |S(P, ||f'||) - int(a, b, ||f'||dx)|
+                                        < ε
+for arbitrary ε, Λf(a, b) = int(a, b, ||f'||dx)
 
+7.22
+a.  Ik-1(x) - Ik(x) = 1/k! * int(a, x, k(x - t)^(k-1)f^(k)(t) - (x - t)^kf^(k+1)(t) dt)
+                    = 1/k! * int(a, x, d-(x - t)^kf^(k)(t))
+                    = 1/k! * (x - a)^kf^(k)(a)
+b.  assume f^(n) is finite on [a, b], then f^(k) for all k <= n - 1 is continuous and bounded, f^(k) ∈ R
+    define Ik(x), k <= n - 2 as
+        Ik(x) = int(c, x, (x - t)^kf^(k+1)(t) dt)
+    then 
+        I0(x)   = int(c, x, f'(t) dt)
+                = f(x) - f(c)
+        Σ{1, n-2}(Ik-1(x) - Ik(x))  = Σ{1, n-2}f^(k)(c)(x - c)^k/k!
+                                    = I0(x) - In-2(x)
+                                    = f(x) - f(c) - int(c, x, (x - t)^(n-2)f^(n-1)(t) dt)
+        f(x) = f(c) + Σ{1, n-2}f^(k)(c)(x - c)^k/k! + int(c, x, (x - t)^(n-2)f^(n-1)(t) dt)
 
+7.23
+a.  // theorem 7.40 and 7.32 cannot be applied here, fn(x) is a mixture of both
+    lim{x -> c}(int(0, x, (x - t)^nf(t)dt) - int(0, c, (c - t)^nf(t)dt))/(x - t)
+    = lim{x -> c}int(c, x, (x - t)^nf(t)dt)/(x - t)
+    + lim{x -> c}int(0, c, ((x - t)^n - (c - t)^n)f(t)dt)/(x - t)
+    = (x - x)^nf(x) + int(0, c, Dx(x - t)^nf(t)dt)
+    = n * int(0, c, (x - t)^(n-1)f(t)dt)
+    hence fn+1' = fn for n >= 1, fn^(n) = f
+b.  // thanks solutions manual
+    (f1)n = fn+1:
+        f1(t) = int(0, t, f(u)du)
+        f1' = f, f1(0) = 0
+        (f1)n(x)    = 1/(n-1)! * int(0, x, (x - t)^(n-1)f1 dt)
+                    = 1/n! * int(0, x, f1d(-(x - t)^n))
+                    = 1/n! * (-f1(x)(x - x)^n + f1(0)x^n - int(0, x, -(x - t)^ndf1(t))) // integration by parts
+                    = 1/n! * int(0, x, (x - t)^nf(t)dt)
+                    = fn+1(x)
+    assume wlog f(a) > 0, f1(a) = int(0, a, f(t)dt) < 0
+    if f(t) >= 0 on [0, a], f1(a) >= 0, so there must be some 0 <= a1 < a that f(a1) < 0
+    assume for all n <= k, there's no less change of signs in f on [0, a] than (fi(a))
+    for n = k + 1, (fi(a)) = (f(a), (f1)i(a))
+    by induction there's no less change of sign of f1 than ((f1)i(a)) on [0, a]
+    denote the number of change of signs of f1 in [0, a] as M
+        (when there's infinite change of sign, let M = k + 1 and consider only the first k + 1 change of sign)
+    there's a sequence of points (xi) of length M + 1 that, f1(xi)f1(xi+1) < 0
+    by theorem 7.32 f1 are continuous, there's f1(yi) = 0 between every xi and xi+1
+    as f1(0) = 0, there's at least M + 1 zero point of f1 on [0, a], between each two there's a point x that f(x) != 0
+    int(yi, xi+1, fdt) = f1(xi+1) - f1(yi) and int(xi+1, yi+1, fdt) = f1(yi+1) - f1(xi) have different signs
+    f must take different signs on (yi, xi+1) and (xi+1, yi+1) as value of f at endpoints do not effect the integral
+    f is continuous, there's at least M change of sign of f on [0, a]
+    if f(a) and f1(a) has the same sign, the theorem is proved 
+    when f(a)f1(a) < 0, 
 
