@@ -3915,7 +3915,7 @@ c.  for all x, F(x) = int(0, 1, fdy) = 1 is constant
     int(0, 1, Fdx) = 1
 
 7.26
-a.  1.  f is discontinuous at only countable points, by Lebesgue's criteria
+a.  1.  f is discontinuous at only countable points, by Lebesgue's criterion
     2.  f is monotonic and of bounded variation, int(0, 1, xdf) exists and so is int(0, 1, fdx)
 b.  int(0, x, fdx)  = lim{n -> ∞}int(2^-n, x, fdx):
         as f(x) >= 0 on [0, 1], for 0 <= x <= 1, 
@@ -3943,3 +3943,193 @@ b.  int(0, x, fdx)  = lim{n -> ∞}int(2^-n, x, fdx):
                         = xA(x) - A(x)^2/3
 
 7.27
+0 < 1/f'(x) <= 1/m is increasing on [a, b]
+int(a, b, cosf(x)dx)    = int(a, b, cosf(x)f'(x)/f'(x)dx) // f'(x) != 0 on [a, b]
+                        = 1/m * int(x0, b, cosf(x)f'(x)dx)
+                        = 1/m * int(x0, b, dsinf(x))
+                        = 1/m * (sinf(b) - sinf(x0))
+therefore |int(a, b, cosf(x)dx)| <= 2/m
+
+7.28
+let Q(x, h) = B(x; h) ∩ Q, I(x; h) = B(x; h) ∩ (R - Q), B(x; h) = Q(x; h) ∪ I(x; h)
+f(I(x; h)) = {0} for all x and h, consider Ωf(Q(x; h) ∩ [0, 1])
+by exercise 4.16, for all N there's a δ that Q(x; h) contains only rational number m/n, n >= N except x
+for all ε > 0, there's N that |G(n)| < ε for all n >= N, which implies for some δ,
+    f(Q(x; δ) - {x}) ⊆ B(0; ε), combine with f(I(x; h)) = {0},
+    f(B(x; δ) - {x}) ⊆ B(0; ε)
+    Ωf(B(x; δ)) < |G(n)| + ε
+so ωf(x) = |G(n)|
+when x is irrational, again by exercise 4.16 for all ε > 0, there's δ for all y ∈ Q(x; δ), |f(y)| < ε
+Ωf(B(x; δ)) < ε, ωf(x) = 0, f is continuous at x
+f is discontinuous on only countable points, by Lebesgue's criterion f ∈ R
+
+7.29
+for rational x, f(x) = f(m/n) = G(n) = 1/n > 0, h(x) = g(1/n) = 0
+for irrational x, f(x) = 0, h(x) = 1
+h is continuous nowhere on [0, 1], by Lebesgue's criterion h ∉ R
+
+7.30
+a.  f = V - (V - f), where V and V - f are increasing
+    all discontinuity of V and V - f must be positive jump discontinuity
+    by theorem 6.2 the set of discontinuity is countable, f ∈ R
+b.  subset of a set with measure zero has measure zero, f ∈ R on [c, d] ⊆ [a, b]
+    if f is continuous at c, 
+        f^2 is continuous at c
+        |f| = √f^2 is continuous at c
+    if f, g ∈ R, their sets of discontinuity F and G have measure zero
+    the discontinuity of fg ⊆ F ∪ G has measure zero, fg ∈ R
+c.  1/g is continuous whenever g is continuous and nonzero
+    if g is bounded away from 0, 1/g ∈ R, f/g ∈ R
+d.  let F, G be the sets of discontinuity of f and g, F = G
+    if f ∈ R, μ(F) = 0 = μ(G), g ∈ R and vice versa
+e.  define F, G, H similarly
+    if g is continuous at c, f is continuous at g(c), h is continuous at c
+    H ⊆ G, μ(H) = 0, h ∈ R
+
+7.31
+if f, g are continuous at c, 
+    logf is continuous as f > 0
+    glogf is continuous
+    e^glogf = f^g is continuous
+the set of discontinuity of f^g is smaller than union of f and g, f^g ∈ R
+
+7.32
+a.  C is an intersection of countable closed sets, C is closed
+    C ⊆ [0, 1], C is bounded, C is compact in R
+    a covering of S is a covering of any subset of S, μ(C) <= μ(An) for all n
+    for all ε > 0, take some n that (2/3)^n < ε/2
+    An is a union of 2^n disjoint closed intervals, each of length 3^-n
+    each closed interval [a, b] can be covered by an open interval of length b - a + δ for any δ > 0:
+        [a, b] ⊆ (a - δ/2, b + δ/2)
+    let δ = ε/2^(n+1), there's an open covering of An with total length 
+        2^n * (3^-n + ε/2^(n+1))    = (2/3)^n + ε/2
+                                    < ε
+    μ(C) <= μ(An) < ε, C has measure zero
+b.  =>: define x0 = 0, xn = Σ{1, n}an3^-n, xn ∈ An is the left endpoint of a closed interval in An:
+            x0 = 0 is left endpoint of [0, 1]
+            all closed intervals in An has length 3^-n, xn is the left endpoint of one of them
+            xn+1 = xn + an+13^-(n+1), an+1 = 0 or 2 is the left endpoint of a closed interval in An+1
+        x = x∞ ∈ An for all n, x ∈ ∩An = C
+    <=: {x: x = Σan3^-n, an ∈ {0, 1, 2}} = [0, 1] is the base-3 representation of any real number in [0, 1]
+        define S = {x: x = Σ{1, ∞}an3^-n, an = 0 or 2}
+        let x = Σan3^-n and x ∉ S, let k be the first integer that ak = 1,
+        xk-1 is a left endpoint of some closed interval of length 3^-(k-1) in Ak-1
+        by calculation in part c, 0 <= Σ{k+1, ∞}an3^-n <= 3^-k, consider 3 cases:
+        1.  an = 2 for all n > k
+            Σ{k+1, ∞}an3^-n = 3^-k, in which case 
+            x = Σbn3^-k where 
+                bn = an when n < k
+                bn = 2 when n = k
+                bn = 0 when n > k
+            so x ∈ S     
+        2.  an = 0 for all n > k
+            similarly x = Σbn3^-k where 
+                bn = an when n < k
+                bn = 0 when n = k
+                bn = 2 when n > k
+            again x ∈ S
+        3.  there's some t > k that at = 1
+            0 < Σ{k+1, ∞}an3^-k < 3^-k, x is immediately removed in the construction of Ak+1
+        hence C ⊆ S
+c.  each sequence (an) defines a distinct number in C:
+        let (an) and (bn) be two different sequences, let k be the first ak != bk
+        assume wlog ak = 2, bk = 0
+        Σan3^-n - Σbn3^-n   = 2 * 3^-k + Σ{k+1, ∞}(an - bn)3^-n
+                            >= 2 * 3^-k + 2Σ{k+1, ∞}3^-n
+                            = 2 * 3^-k + 2 * 3^-(k+1) * Σ{0, ∞}3^-n
+                            = 2 * 3^-k + 2 * 3^-(k+1) * 3/2
+                            = 3^-k
+                            > 0
+    C is one-to-one to the set of sequences (an), which in turn is one-to-one to power set of N, which is uncountable
+d.  set of discontinuity of f has measure zero, f ∈ R
+
+7.33
+a.  0 < x, 1 - x < 1, 0 < x^n, (1 - x)^n < 1, 0 < x^n(1 - x)^n/n! < 1/n!
+b.  f^(k)(x) = Σn!/ai!bi! * x^ai(1-x)^bi, 0 <= ai, bi <= n:
+        f(x) = x^n(1-x)^n/n!, a1 = b1 = n
+        assume a term of f^(k)(x) is n!/a!b! * x^a(1 - x)^b = g(x), consider its derivative in 3 cases
+        1.  both a and b > 0
+            g'(x)   = n!/a!b! * (ax^(a-1)(1 - x)^b + x^ab(1 - x)^(b-1))
+                    = n!(a-1)!b! * x^(a-1)(1 - x)^b + n!/a!(b-1)! * x^a(1 - x)^(b-1)
+            both terms have the same form as g(x)
+        2.  a = 0, b > 0 (or a > 0, b = 0)
+            g'(x)   = n!/a!(b-1)! * (1 - x)^(b-1)
+        3.  a = b = 0
+            g'(x)   = 0
+        hence f^(k+1) has the same form as f^(k)
+    when a != 0, b != 0, g(1) = g(0) = 0
+    when a = 0, b >= 0, g(1) = 0, g(0) = n!/b! for some b <= n
+    when a >= 0, b = 0, symmetric
+    all terms in f^(k)(1) and f^(k)(0) are integers, f^(k)(1) and f^(k)(0) are integers
+c.  F(x)    = b^nΣ(-1)^kf^(2k)(x)π^2(n-k)
+            = b^nΣ(-1)^kf^(2k)(x)(a/b)^(n-k)
+            = Σ(-1)^kf^(2k)(x)a^(n-k)b^k
+    is a sum of integers
+d.  for all k >= 2n + 1, f^(k) = 0:
+        take derivative decreases the power of x or 1 - x in a term of f^(k)
+        the 2n order derivative is a constant, for all k >= 2n + 1 f^(k) = 0
+    d/dx (F'(x)(sinπx - πF(x)cosπx)
+    = F''(x)sinπx + πF'(x)cosπx - πF'(x)cosπx + π^2F(x)sinπx
+    = b^n(Σ{0, n}(-1)^kf^(2k+2)(x)π^2(n-k) + Σ{0, n}(-1)^kf^(2k)(x)π^2(n-k+1))sinπx
+    = b^n(Σ{0, n-1}(-1)^kf^(2k+2)(x)π^2(n-k) + Σ{1, n}(-1)^kf^(2k)(x)π^2(n-k+1) + f(x)π^2(n+1))sinπx
+    = b^n(Σ{0, n-1}(-1)^kf^(2k+2)(x)π^2(n-k) + Σ{0, n-1}(-1)^(k+1)f^(2k+2)(x)π^2(n-k) + f(x)π^2(n+1))sinπx
+    = π^2a^nf(x)sinπx
+e.  int(0, 1, π^2a^nsinπx dx)   = F'(1)sinπ - πF(1)cosπ - F'(0)sin0 + πF(0)cos0
+                                = π(F(1) + F(0))
+    πint(0, 1, a^nsinπx dx) = F(1) + F(0)
+f.  n! grows faster than a^n for any a, for sufficiently large n, 0 < πa^n/n! < 1
+    0 < πa^nf(x)sinπx < 1 on (0, 1/2) ∪ (1/2, 1) for sufficiently large n, so is the integral F(1) + F(0)
+
+7.34
+S(P, f, α)  = Σf(tk)Δαk
+            = Σf(tk)α'(sk)Δxk // xk-1 < sk < xk, xk-1 <= tk <= xk for arbitrary tk
+            = Σf(sk)α'(sk)Δxk // take tk = sk
+            = S(P, fα')
+for all ε > 0, there's partitions Pε and Qε of [a, b] that for all P ⊇ Pε, Q ⊇ Qε,
+    |S(P, f, α) - int(a, b, fdα)| < ε/2
+    |S(Q, fα') - int(a, b, fα'dx)| < ε/2
+    |int(a, b, fdα) - int(a, b, fα'dx)| <= |int(a, b, fdα) - S(P, f, α)| + |S(P, f, α) - int(a, b, fα'dx)|
+                                        < ε
+as ε is arbitrary, int(a, b, fdα) = int(a, b, fα'dx)
+
+7.35
+there's a finite partition P, for all choices of tk, 
+    S(P, f) = Σf(tk)Δxk > I/2
+let A = {k: [xk-1, xk] ⊆ T}, B = ~A
+    I/2 < S(P, f) 
+        = Σ{A}f(tk)Δxk + Σ{B}f(tk)Δxk
+        < MΣ{A}Δxk + hΣ{B}Δxk // f(tk) <= M, there's always some f(tk) < h in each interval of B
+        <= MΣ{A}Δxk + h(b - a) // B has total length <= b - a
+    Σ{A}Δxk > (I/2 - h(b - a))/M
+            = I/2 * (1 - (b - a)/(M + b - a))/M
+            = I/2(M + b - a)
+            = h
+
+7.36
+a.  by theorem 7.39, h(x) = int(a, b, K(x, t)φ(t)dt) is continuous on [a, b]
+    g(x) + λh(x) is continuous on [a, b], T: C[a, b] -> C[a, b]
+b.  |λ| < 1/M(b - a), M(b - a)|λ| < 1
+    for any two continuous function defined on [a, b], 
+    |T(f)(x) - T(g)(x)| = |λ||int(a, b, K(x, t)f(t)dt) - int(a, b, K(x, t)g(t)dt)|
+                        = |λ||int(a, b, K(x, t)(f(t) - g(t))dt)|
+                        <= |λ|int(a, b, |K(x, t)(f(t) - g(t))|dt)
+                        <= M|λ|int(a, b, |f(t) - g(t)|dt)
+                        <= M|λ|(b - a)||f - g||
+                        < ||f - g||
+    therefore T is a contraction on C[a, b]
+
+7.37
+a.  f(x, φ(x)) is continuous on [a - h, a + h]:
+        for all ε > 0, there's δ that, f(B((x, y); δ)) ⊆ B(f(x, y); ε)
+        φ is continuous, there's r that φ(B(x; r)) ⊆ B(φ(x); δ/2)
+        take s = min{δ/2, r}, f(y, φ(y)) ∈ B(f(x, φ(x)); ε) whenever y ∈ B(x; s)
+    =>: assume φ'(x) = f(x, φ(x)) on (a - c, a + c)
+        let G(x) = int(a, x, f(t, φ(t))dt)
+        G'(x) = f(x, φ(x)) = φ'(x), φ(x) = G(x) + b for some constant b
+    <=: φ(x) = b + int(a, x, f(t, φ(t))dt)
+        φ'(x) = f(x, φ(x))
+b.  
+
+    
+
+                
