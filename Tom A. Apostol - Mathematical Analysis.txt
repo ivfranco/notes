@@ -4123,13 +4123,54 @@ a.  f(x, φ(x)) is continuous on [a - h, a + h]:
         for all ε > 0, there's δ that, f(B((x, y); δ)) ⊆ B(f(x, y); ε)
         φ is continuous, there's r that φ(B(x; r)) ⊆ B(φ(x); δ/2)
         take s = min{δ/2, r}, f(y, φ(y)) ∈ B(f(x, φ(x)); ε) whenever y ∈ B(x; s)
-    =>: assume φ'(x) = f(x, φ(x)) on (a - c, a + c)
+    =>: assume φ'(x) = f(x, φ(x)) on (a - c, a + c), φ(a) = b
         let G(x) = int(a, x, f(t, φ(t))dt)
-        G'(x) = f(x, φ(x)) = φ'(x), φ(x) = G(x) + b for some constant b
+        G'(x) = f(x, φ(x)) = φ'(x), φ(x) = G(x) + C for some constant C
+        φ(a) = G(a) + C = 0 + C = b, C = b
     <=: φ(x) = b + int(a, x, f(t, φ(t))dt)
-        φ'(x) = f(x, φ(x))
-b.  
+        φ'(x) = f(x, φ(x)), φ(a) = b
+b.  assume f is an accumulation point of S, for all ε > 0 there's a function g ∈ S that 
+        d(f, g) = ||f - g||
+                = sup{|f(x) - g(x)|: x ∈ [a - c, a + c]}
+                < ε
+        |f(x) - b|  <= |g(x) - b| + |f(x) - g(x)|
+                    <= Mc + ε
+    for arbitrary ε, |f(x) - b| <= Mc, f ∈ S
+c.  given φ ∈ S, |φ(x) - b| <= Mc, by part a T(φ) is continuous on [a - c, a + c]
+    |T(φ)(x) - b|   = |int(a, x, f(t, φ(t))dt)|
+                    <= int(a, x, |f(t, φ(t))|dt) // assume wlog x >= a
+                    <= M(x - a)
+                    <= Mh
+                    <= Mc
+    hence T(φ) ∈ S
+d.  let g, h ∈ S, |g(x) - b|, |h(x) - b| <= Mc
+    |T(g)(x) - T(h)(x)| = |int(a, x, f(t, g(t)) - f(t, h(t))dt)|
+                        <= int(a, x, |f(t, g(t)) - f(t, h(t))|dt)
+                        <= int(a, x, A|g(t) - h(t)|dt)
+                        <= A||g - h||(x - a)
+                        <= Ah||g - h||
+    where Ah < 1, T is a contraction on S, there's a unique function φ that T(φ) = φ
+    combine with part a, y' = f(x, y), y(a) = b has a unique solution
 
-    
+theorem 8.3
+a.  there's N and M that, if n >= max{N, M},
+        L - ε <= an <= U + ε
+        L <= U + 2ε
+    for arbitrary ε, L <= U
+b.  =>: assume an -> p
+        for all ε > 0, there's N for all n >= N,
+            p - ε < an < p + ε
+        so p = U = L
+    <=: assume U = L
+        there's N and M for all n >= max{N, M},
+            p - ε < an < p + ε
+        so lim{n -> ∞}an = p
+c.  =>: assume an -> +∞
+        {an} is not bounded above, limsup{n -> ∞} = +∞
+        given M, there's N that n >= N implies -an < -M, -an is bounded above but not below
+        for all p, there's N that n >= N implies -an < p - 1, {-an} has no finite finite limit superior
+        liminf{n -> ∞}an = limsup{n -> ∞}-an = +∞
+d.  symmetric to part c
 
-                
+
+
