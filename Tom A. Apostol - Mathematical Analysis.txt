@@ -4152,25 +4152,94 @@ d.  let g, h ∈ S, |g(x) - b|, |h(x) - b| <= Mc
     where Ah < 1, T is a contraction on S, there's a unique function φ that T(φ) = φ
     combine with part a, y' = f(x, y), y(a) = b has a unique solution
 
-theorem 8.3
-a.  there's N and M that, if n >= max{N, M},
-        L - ε <= an <= U + ε
-        L <= U + 2ε
-    for arbitrary ε, L <= U
-b.  =>: assume an -> p
-        for all ε > 0, there's N for all n >= N,
-            p - ε < an < p + ε
-        so p = U = L
-    <=: assume U = L
-        there's N and M for all n >= max{N, M},
-            p - ε < an < p + ε
-        so lim{n -> ∞}an = p
-c.  =>: assume an -> +∞
-        {an} is not bounded above, limsup{n -> ∞} = +∞
-        given M, there's N that n >= N implies -an < -M, -an is bounded above but not below
-        for all p, there's N that n >= N implies -an < p - 1, {-an} has no finite finite limit superior
-        liminf{n -> ∞}an = limsup{n -> ∞}-an = +∞
-d.  symmetric to part c
+theorem 8.33
+Σan is convergent, an -> 0 as n -> ∞
+for all ε > 0, there's N, M that 
+    yn < y + ε/2
+    an < ε/2
+for all n >= max{N, M}
+by x <= y, each chunk of {pk} and {qr} has at least one term
+by how pk is chosen, the term pk added to make the sum just over yn must have  
+    bt = pk = am, m >= k >= n
+    Σ{1 <= s <= t-1}bs < yn
+    Σ{1 <= s <= t}bs < yn + pk < y + ε
+after that the sum decreases towards xn < yn, for all greater t the sum <= y + ε
+for all ε > 0, there's an yn > y - ε 
+and positive terms pk are added to Σbn until the sum exceeds yn somewhere in the sequence, limsup{n -> ∞} = y
+liminf{n -> ∞} = x similarly
 
+8.1
+a.  if U is finite, for all ε > 0, there's N that for all n >= N,
+        an < U + ε/2
+        un <= U + ε/2 < U + ε
+    for all n >= N, there's m > n >= N that
+        un >= am > U - ε
+    hence un ∈ B(U; ε) for all ε > 0, un -> U
+    if U = -∞, {an} has no finite limit superior
+    assume u = lim{n -> ∞}un is finite, u must be a finite limit superior of {an}:
+        for all ε > 0, there's some uN ∈ B(u; ε), an <= uN < u + ε for all n >= N
+        un ∈ C({an}), u = inf{un} ∈ C({un}) ⊆ C({an}), u is an adherent point of {an}
+        if u is an accumulation point of {an}, there's infinite an > u - ε for all ε
+        if u is an isolated point of {an}, (B(u; r) - {u}) ∩ {an} = ∅
+        there must be infinite an = u otherwise an <= u - r for sufficiently large n, lim{un} <= u - r
+    hence u = -∞ = U
+b.  symmetric with the sequence bn = -an
+c.  for each integer k, there's an integer N that
+        an < U + 1/k whenever n >= N
+    also there's m > N that
+        U + 1/k > am > U - 1/k
+    let s(k) = m, a(s(k)) is a sequence that
+        a(s(k)) ∈ B(U; 1/k)
+    so a(s(k)) -> U
+    similar subsequences of {an} can be constructed for V symmetrically
+d.  when U = V is finite, by theorem 8.3 an -> U = V, all subsequence of {an} converges to the same value
 
+8.2
+a.  let limsup{n -> ∞}an = A, limsup{n -> ∞}bn = B, limsup{n -> ∞}(an + bn) = C
+    {an}, {bn} bounded below, A and B are either finite or +∞
+    if either is +∞, A + B is no less than any number in extended real set
+    assume both A, B are finite, {an}, {bn}, {an + bn} are bounded, by exercise 8.1, 
+        A = lim{n -> ∞}sup{ak: k >= n}
+        B = lim{n -> ∞}sup{bk: k >= n}
+        C = lim{n -> ∞}sup{ak + bk: k >= n}
+    since
+        sup{ak: k >= n} + sup{bk: k >= n}   = sup{ak + bs: k, s >= n}
+                                            >= sup{ak + bk: k >= n}
+    for all ε > 0 there's N that
+        cn <= an + bn < A + B + ε
+    hence C <= A + B + ε for all ε, C <= A + B
+b.  if both A and B = +∞, {an} and {bn} are both not bounded above, {anbn} is not bounded above, C = +∞ <= A + B
+    if both A and B are finite, A and B are bounded above
+    if A (or B) = 0, let M = sup{bn}, for all ε > 0, there's N that whenever n >= N,
+        0 < an < ε/M
+        0 < anbn <= anM < ε
+        anbn -> 0 = C
+    if both A and B > 0, for all 3AB >= ε > 0, there's N that whenever n >= N,
+        an < A + ε/3B
+        bn < B + ε/3A
+        anbn    < (A + ε/3B)(B + ε/3A)
+                = AB + ε/3 + ε/3 + ε^2/9AB
+                <= AB + ε
+    therefore C <= AB
 
+8.3
+theorem 8.3:
+    a.  there's N and M that, if n >= max{N, M},
+            L - ε <= an <= U + ε
+            L <= U + 2ε
+        for arbitrary ε, L <= U
+    b.  =>: assume an -> p
+            for all ε > 0, there's N for all n >= N,
+                p - ε < an < p + ε
+            so p = U = L
+        <=: assume U = L
+            there's N and M for all n >= max{N, M},
+                p - ε < an < p + ε
+            so lim{n -> ∞}an = p
+    c.  =>: assume an -> +∞
+            {an} is not bounded above, limsup{n -> ∞} = +∞
+            given M, there's N that n >= N implies -an < -M, -an is bounded above but not below
+            for all p, there's N that n >= N implies -an < p - 1, {-an} has no finite limit superior
+            liminf{n -> ∞}an = limsup{n -> ∞}-an = +∞
+    d.  symmetric to part c
+theorem 8.4:
