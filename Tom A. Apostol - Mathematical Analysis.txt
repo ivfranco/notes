@@ -4243,3 +4243,163 @@ theorem 8.3:
             liminf{n -> ∞}an = limsup{n -> ∞}-an = +∞
     d.  symmetric to part c
 theorem 8.4:
+    let limsup{n -> ∞}an = A, limsup{n -> ∞}bn = B
+    if {bn} is not bounded above, B = +∞ >= A
+    if {bn} is bounded above, so is {an}, by exercise 8.1, 
+        A = lim{n -> ∞}sup{ak: k >= n}
+        B = lim{n -> ∞}sup{bk: k >= n}
+    since 
+        sup{ak: k >= n} <= sup{bk: k >= n}
+    it must have A <= B
+    liminf is symmetric 
+
+8.4
+if {an+1/an} is bounded, let limsup{n -> ∞}an+1/an = A >= 0, for all ε > 0, there's N for all n >= N,
+    an+1/an < A + ε
+    an  < aN * (A + ε)^(n - N)
+        = aN/(A + ε)^N * (A + ε)^n
+        = c(A + ε)^n, c > 0
+    (an)^(1/n) < c^(1/n) * (A + ε)
+    limsup{n -> ∞}an^(1/n)  = lim{n -> ∞}sup{ak^(1/k): k >= n}
+                            <= lim{n -> ∞}c^(1/n) * (A + ε)
+                            = A + ε
+as ε is arbitrary, limsup{n -> ∞}an^(1/n) <= limsup{n -> ∞}an+1/an
+a symmetric argument gives liminf{n -> ∞}an+1/an <= liminf{n -> ∞}an^(1/n)
+the inequality in the middle is an implication of theorem 8.3.a
+
+8.5
+lim{n -> ∞}an+1/an  = lim{n -> ∞}(1 + 1/n)^n
+                    = e
+by exercise 8.4, limsup{n -> ∞}n/(n!)^(1/n) = liminfP{n -> ∞}n/(n!)^(1/n) = e
+by theorem 8.3.b, lim{n -> ∞}n/(n!)^(1/n) = e
+
+8.6
+let A = limsup{n -> ∞}an, if an is not bounded above, A = +∞ >= limsup{n -> ∞}σn
+if A is finite or -∞, for all ε > 0, there's N that for all n >= N,
+    an < A + ε
+    σn  = Σ{1, n}ak/n
+        = Σ{1, N}ak/n + Σ{N+1, n}ak/n
+        < c/n + (n - N)(A + ε)/n
+        < c/n + A + ε, c depends on ε
+    limsup{n -> ∞}σn    = lim{n -> ∞}sup{ak: k >= n}
+                        <= lim{n -> ∞}sup{c/n + A + ε: k >= n}
+                        = A + ε
+as ε is arbitrary, limsup{n -> ∞}σn <= A
+a symmetric argument gives liminf{n -> ∞}an <= liminf{n -> ∞}σn
+
+8.7
+a.  for all ε > 0,
+        cosn <= 1 < 1 + ε
+    for all ε > 0 and integer m,  
+        cos(x) is continuous, there's δ that cos(B(0; δ)) ⊆ B(1; ε)
+        let πk be the decimal representation of π with k digits after dot, |πk - π| <= 10^-k
+        there must be some n that for all k >= n, |πk - π| < δ
+        take some k that k >= n and 10^k > m, πk10^k > m is an integer
+        |πk10^k - π10^k| < δ, cos(πk10^k) = cos(πk10^k - π10^k) ∈ B(1; ε)
+    so limsup{n -> ∞} = 1
+    similarly liminf{n -> ∞} = -1
+b.  (1 + 1/n)cosnπ = (1 + 1/n)(-1)^n
+    |an| = 1 + 1/n -> 1, for all ε > 0 there's N that n >= N implies an < 1 + ε
+    an > 1 for all even n, there are inifinitely many an > 1 - ε for any ε, limsup{n -> ∞}an = 1
+    {an} is bounded, liminf{n -> ∞}an = lim{n -> ∞}inf{ak: k >= n} = -1
+c.  {an} sin(nπ/3) = √3/2 for all n = 6k + 1, {an} is not bounded from above, limsup{n -> ∞}an = +∞
+    an >= 0 for all n, nsin(nπ/3) = 0 for all n = 3k, liminf{n -> ∞}an = 0
+d.  sin(nπ/2)cos(nπ/2) = sin(nπ)/2 = 0, limsup{n -> ∞}an = liminf{n -> ∞}an = 0
+e.  lim{n -> ∞}n/(1 + n)^n = 0, (-1)^n * n/(1 + n)^n -> 0, limsup{n -> ∞}an = limsup{n -> ∞}an = 0
+f.  an  = 0 if n = 3k
+        = 1/3 if n = 3k + 1
+        = 2/3 if n = 3k + 2
+    limsup{n -> ∞}an = lim{n -> ∞}sup{ak: k >= n} = 2/3
+    liminf{n -> ∞}an = lim{n -> ∞}inf{ak: k >= n} = 0
+
+8.8
+since (√(n + 1) - √n)(√(n + 1) + √n) = 1, 
+    an+1 - an   = 2(√(n + 1) - √n) - 1/√(n + 1)
+                = 2/(√(n + 1) + √n) - 1/√(n + 1)
+                > 2/2√(n + 1) - 1/√(n + 1)
+                = 0
+{an} is strictly increasing, a1 = 1, let s(n,m) = Σ{n, m}1/√k, t(n,m) = int(n, m, 1/√x dx), dn = s(1,n) - t(1,n)
+f(x) = 1/√x is positive and decreasing, so
+    s(1,n) - t(1,n) = s(1,2) - t(1,2) + s(2,n) - t(2,n)
+                    >= s(1,2) - t(1,2)
+                    = 3 - 2√2 
+                    > 0
+by theorem 8.23, d = lim{n -> ∞}dn exists and d > 0, it has
+    lim{n -> ∞}2√n - Σ{1,n}1/√k = lim{n -> ∞}int(1, n, 1/√x dx) + 2 - Σ{1,n}1/√k
+                                = lim{n -> ∞}-dn + 2
+                                < 2
+
+8.9
+see exercsie 4.6
+
+8.10
+if either a1 or a2 = 0, an = 0 for all n, L = (a1a2^2)^(1/3) = 0
+if a1, a2 > 0, (a1a2)^(1/2) > 0, an > 0 for all n, let bn = logan, an = e^bn
+bn+2 = (logan + logan+1)/2 = (bn+1 + bn)/2
+by exercise 4.2, bn -> (b1 + 2b2)/3, as e^x is continuous, 
+    lim{n -> ∞}an   = lim{n -> ∞}e^bn
+                    = e^(loga1 + 2loga2)/3
+                    = (a1a2^2)^(1/3)
+
+8.11
+// errata: a2n+1 = 1/2 * (a2n + a2n-1)
+// thanks solutions manual
+by induction, an > 0 for all n
+    a2n+1   = (a2n + a2n-1)/2 
+            >= √a2na2n-1
+    a2n+2   = a2na2n-1/a2n+1
+            <= √a2na2n-1
+            <= a2n+1
+also starting from a3 >= a4, by induction, 
+    a2n+1   = (a2n + a2n-1)/2
+            <= a2n-1
+    a2n+2   = a2na2n-1/a2n+1
+            >= a2n
+a4 <= a6 <= .. <= a5 <= a3, both {a2n} and {a2n+1} converge
+let a2n -> A, a2n+1 -> B, 
+    B   = lim{n -> ∞}a2n+3
+        = lim{n -> ∞}(a2n+1 + a2n+2)/2
+        = (A + B)/2
+hence B = A, {an} converges with 
+    a2n+2   = a2na2n-1/a2n+1
+            = a2n-2a2n-3a2n-1/a2n+1a2n-1
+            = a2n-2a2n-3/a2n+1
+            = a2a1/a2n+1
+            = 16/a2n+1
+    A   = lim{n -> ∞}a2n+2
+        = lim{n -> ∞}16/a2n+1
+        = 16/A
+    A   = 4
+
+8.12
+an+1 - an   = an^3/3 - an + 2/3
+            = 1/3 * (x - 1)^2(x + 2)
+            >= 0 on [-2, +∞)
+as a1 = -3/2, {an} is increasing
+when an <= 1, an+1 = an^3/3 + 2/3 <= 1, {an} is bounded above, an -> A for some A in [-3/2, 1]
+A   = lim{n -> ∞}an+1
+    = lim{n -> ∞}an^3/3 + 2/3
+    = A^3/3 + 2/3
+A^3 - 3A + 2 = 0, A = 1
+when an = -2, an+1 = an^3/3 + 2/3 = -2 = an, a1 = -2 makes {an} constant
+
+8.13
+an+1    = (3 + 3an)/(3 + an)
+        = 1 + 2an/(3 + an)
+        = 1 + 2(1 - 3/(3 + an))
+        = 3 - 6/(3 + an)
+is increasing on an, for an >= √3,
+an+1    >= (3 + 3√3)/(3 + √3)
+        = √3
+an+1/an = (3/an + 3)/(3 + an)
+        <= 1 // 3/an <= an
+{an} is decreasing and bounded below, let an -> A, √3 <= A <= 3
+A   = lim{n -> ∞}an+1
+    = lim{n -> ∞}(3 + 3an)/(3 + an)
+    = (3 + 3A)/(3 + A)
+A^2 - 3 = 0, A = √3
+
+8.14
+b3b1 - b2^2 = 1 = (-1)^(1+1)
+assume bn+2bn - bn+1^2,
+    bn+3bn+1 - bn+2^2   = 
