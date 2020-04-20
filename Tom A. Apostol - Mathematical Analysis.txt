@@ -4402,4 +4402,90 @@ A^2 - 3 = 0, A = √3
 8.14
 b3b1 - b2^2 = 1 = (-1)^(1+1)
 assume bn+2bn - bn+1^2,
-    bn+3bn+1 - bn+2^2   = 
+    bn+3bn+1 - bn+2^2   = (bn+2 + bn+1)bn+1 - bn+2^2
+                        = bn+2(bn+1 - bn+2) + bn+1^2
+                        = -bn+2bn + bn+1^2
+                        = -1 * (-1)^(n+1)
+                        = (-1)^(n+2)
+when n = 5, bn+1bn >= n^2, for all n >= 5, n^2 >= (n + 1)^2 and 
+    bn+2bn+1    = (bn+1 + bn)bn+1
+                = bn+1^2 + bn+1bn
+                >= bn+1^2 + n^2
+                >= 2n^2
+                >= (n + 1)^2
+    |an+1 - an| = |bn+2/bn+1 - bn+1/bn|
+                = |bn+2bn - bn+1^2|/bn+1bn
+                <= 1/bn+1bn
+                <= 1/n^2
+for all m >= n >= N,
+    |am - an|   <= Σ{n, m}ak - ak+1|
+                <= Σ{N, ∞}1/n^2
+                = 1/N^2 * π/6
+{an} satisfies Cauchy condition so an -> A for some A >= 1,
+    A   = lim{n -> ∞}an+1 = lim{n -> ∞}bn+2/bn+1
+        = lim{n -> ∞}(bn+1 + bn)/bn+1
+        = lim{n -> ∞}1 + 1/an
+        = 1 + 1/A
+    A^2 - A - 1 = 0, A = (1 + √5)/2
+
+8.15
+a.  for all s there's N that for n >= N, e^n >= n^s
+    for some N for all n >= N, 
+        e^n >= n^5
+        n^3e^-n <= n^-2
+    and Σan converges absolutely by comparison test
+b.  let p, q be fixed real numbers where q != 0
+    as logn/loglogn is increasing on [e^e, +∞) and not bounded above, there's N that n >= N >= 2 implies:
+        logn/loglogn >= p/q
+        qlogn >= ploglogn
+        n^q >= (logn)^p
+    hence for sufficiently large n, 
+        n >= (logn)^p
+        1/n <= 1/(logn)^p
+    and (logn)^p must diverge by comparison test
+    when p = 0, (logn)^p = 1, Σ1 = +∞
+c.  p^n * n^p >= 0 for all p 
+    n/logn is not bounded and increasing on some [N, +∞)
+    for all real q > 1 and real k, for sufficiently large n,
+        n/logn >= k/logq
+        nlogq >= klogn
+        q^n >= n^k
+    when p >= 1, p^n * n^p >= n, Σan is not bounded
+    when 0 < p < 1, q = 1/p > 1, q^n >= n^(p+2) for sufficiently large n,
+    p^n * n^p   = (1/q)^n * n^p
+                <= 1/n^(p+2) * n^p
+                <= 1/n^2
+    so Σan converges by comparison test
+d.  for all n >= 2, 0 < q < p, n^(p-q) is increasing and not bounded above, there's N that n >= N implies:
+        n^(p-q)/2 >= 1
+        n^p/2 >= n^q
+        n^p >= n^p - n^q >= n^p/2
+        1/n^p <= 1/(n^p - n^q) <= 2/n^p
+    by comparison test, Σan converges <=> 1/n^p converges <=> p > 1
+e.  an = 1/n * n^(1/n)
+    lim{n -> ∞}an/(1/n) = lim{n -> ∞}1/n^(1/n)
+                        = 1
+    Σan diverges
+f.  p^n > q^n, q/p < 1, (q/p)^n -> 0, there's N for n >= N,
+        q^n = p^n(q/p)^n <= p^n/2
+        p^n/2 <= p^n - q^n <= p^n
+    by two comparison tests, 1/(p^n - q^n) converges <=> 1/p^n converges <=> 0 < p < 1
+g.  lim{x -> ∞}xlog(1 + 1/x)    = lim{x -> ∞}log(1 + 1/x)/(1/x)
+                                = lim{x -> ∞}1/(1 + 1/n) // L'Hospital
+                                = 1
+    xlog(1 + 1/x) is continuous, lim{n -> ∞}nlog(1 + 1/n) = 1
+    lim{n -> ∞}1/nlog(1 + 1/n) = 1 != 0, Σan diverges
+h.  n >= 2, logn^logn > 0
+    loglogn is increasing and not bounded above, for all k > 0, there's N for all n >= N,
+        klogn <= logn * loglogn
+        n^k <= logn^logn
+        1/n^k >= 1/logn^logn 
+    take k = 2, by comparison test Σan converges
+i.  loglogn > 0 when n >= 3
+    for sufficiently large n and any k, 
+        logn + loglogn + plogloglogn >= klogn
+        nlogn(loglogn)^p >= n^k
+    take k = 2, by comparison test Σan converges
+j.  loglogn > 0 when n >= 3
+    for sufficiently large n,
+        (logloglogn)^2 >= 
