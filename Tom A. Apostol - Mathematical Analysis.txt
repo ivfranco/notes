@@ -4481,11 +4481,87 @@ h.  n >= 2, logn^logn > 0
         n^k <= logn^logn
         1/n^k >= 1/logn^logn 
     take k = 2, by comparison test Σan converges
-i.  loglogn > 0 when n >= 3
-    for sufficiently large n and any k, 
-        logn + loglogn + plogloglogn >= klogn
-        nlogn(loglogn)^p >= n^k
-    take k = 2, by comparison test Σan converges
-j.  loglogn > 0 when n >= 3
-    for sufficiently large n,
-        (logloglogn)^2 >= 
+i.  loglogn > 0 when n >= 3, an positive
+    if p <= 0, an >= 1/nlogn, an diverges by comparison test:
+        int(3, n, 1/xlogx dx)   = loglogn - loglog3 -> +∞, by integration test Σ1/nlogn diverges
+    if 0 < p <= 1, 0 < loglogn^p <= loglogn for loglogn >= 1,
+        int(3, n, 1/xlogxloglogx dx) = logloglogn - logloglog3 -> +∞, 1/nlognloglogn diverges
+        an >= 1/nlognloglogn diverges
+    // thanks wolframalpha
+    if p > 1,
+        int(3, n, 1/xlogx(loglogx)^p dx)    = (loglogn)^(1-p)/(1 - p) - C
+                                            -> -C
+    by integration test Σan converges
+j.  (logn - loglogn * logloglogn)'  = 1/n - logloglogn/nlogn - loglogn/nlognloglogn
+                                    = 1/n - (logloglogn + 1)/nlogn
+                                    = 1/n * (1 - (logloglogn + 1)/logn)
+                                    = 1/n * (logn - logloglogn - 1)/logn
+                                    > 0 for n > e
+    loge - logloge * loglogloge > 1, logn > loglogn * logloglogn for n > e
+    n > (loglogn)^loglogn for n > e, Σan diverges by comparison test
+k.  lim{n -> ∞}(√(1 + n^2) - n)/(1/n)   = lim{n -> ∞}n/(√(1 + n^2) + n)
+                                        = lim{n -> ∞}1/(√(1/n^2 + 1) + 1)
+                                        = 1/2
+    by limit test Σan diverges
+l.  (n - √n(n - 1))'    = 1 - (2n - 1)/√n(n - 1)
+                        < 0 when n > 1
+    n - √n(n - 1) >= 0 is bounded below, n - √n(n - 1) converges to some value A in [0, 1)
+    lim{n -> ∞}n^(3/2)(√(n - 1) - √n)   = lim{n -> ∞}(n^(3/2) - n√(n - 1))/√(n - 1)
+                                        = lim{n -> ∞}(3/2 * √n - √(n - 1) - n/2√(n - 1)) * 2√(n - 1) // L'Hospital
+                                        = lim{n -> ∞}(3√n(n - 1) - 3n + 2)
+                                        = 2 - 3A
+    by limit test, Σan converges <=> n^(p - 3/2) converges <=> p < 1/2
+m.  limsup{n -> ∞}|an|^(1/n)    = limsup{n -> ∞}n^(1/n) - 1
+                                = 0
+    by root test Σan converges absolutely
+n.  // thanks wolframalpha
+    lim{n -> ∞}(√(n + 1) - 2√n + √(n - 1))n^(3/2) = -1/4
+    by limit test, Σan converges <=> n^(p - 3/2) converges <=> p < 1/2
+
+8.16
+there are 9^n numbers with n digits and no 0:
+    n = 1, |{1, .., 9}| = 9
+    n = k + 1, an k+1-digit number starts with digit 1 - 9 and a k-digit number with no 0
+when n has k digits, 1/n <= 1/10^(k-1), additionally 1/n < 1/10^(k-1) when k >= 2 and n has no 0
+Σnk < Σ{1, ∞}9^k/10^(k-1)
+    = 9{0, ∞}(9/10)^k
+    = 90
+
+8.17
+Σan converges: 0 < an/n! <= (n - 1)/n! <= 1/n^2 for sufficiently large n
+<=: let A = Σ(n - 1)/n!, if A is rational, Σan/n! is rational as their difference is a finite sum of rational numbers
+    (n - 1)/n!  = n/n! - 1/n!
+                = 1/(n - 1)! - 1/n!
+    let bn = -1/n!, an = bn+1 - bn
+    Σ(n - 1)/n! = lim{n -> ∞}bn - b1
+                = 1
+=>: assume an < n - 1 are a sequence of integers, Σan/n! = p/q for integer p and q
+    q!Σan/n! is an integer, but
+        Σ{1, q}anq!/n! is a finite sum of integers
+        Σ{q+1, ∞}anq!/n!    = q!Σ{q+1, ∞}an/n!
+                            < q!Σ{q+1, ∞}(n - 1)/n!
+                            = q!/q!
+                            = 1
+    therefore q!Σan/n! cannot be an integer, Σan/n! cannot be rational
+
+8.18
+a.  lim{n -> ∞}Σ{qn+1, pn}1/k   = lim{n -> ∞}Σ{1, pn}1/k - Σ{1, qn}1/k
+                                = lim{n -> ∞}(logpn + C + O(1/pn) - logqn - C - O(1/qn))
+                                = log(p/q) + lim{n -> ∞}O(1/pn) - O(1/qn)
+    where 
+        |O(1/pn) - O(1/qn)| <= |O(1/pn)| + |O(1/qn)|
+                            = O(1/n)
+    hence
+        lim{n -> ∞}O(1/pn) - P(1/qn) = 0
+b.  when n = 1, s2 = Σ(-1)^(k+1)/k = 1 - 1/2 = 1/2 = x1
+    assume s2n = xn,
+        s2n+2   = s2n + 1/(2n + 1) - 1/(2n + 2)
+                = xn + 1/(2n + 1) - 1/(2n + 2)
+                = Σ{n+1, 2n+1}1/k + 1/(2n + 2) - 2/(2n + 2)
+                = Σ{n+1, 2n+2}1/k - 1/(n + 1)
+                = Σ{n+2, 2n+2}1/k
+                = xn+1
+    lim{n -> ∞}Σ{1, n}(-1)^(k+1)/k  = lim{n -> ∞}Σ{1, 2n}(-1)^(k+1)/k
+                                    = lim{n -> ∞}Σ{n+1, 2n}1/k
+                                    = log2
+c.  
