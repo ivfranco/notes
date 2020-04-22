@@ -4545,18 +4545,21 @@ when n has k digits, 1/n <= 1/10^(k-1), additionally 1/n < 1/10^(k-1) when k >= 
     therefore q!Σan/n! cannot be an integer, Σan/n! cannot be rational
 
 8.18
-a.  lim{n -> ∞}Σ{qn+1, pn}1/k   = lim{n -> ∞}Σ{1, pn}1/k - Σ{1, qn}1/k
+a.  a few lemmas:
+        O(1/pn) <= M/pn
+                <= M'/n
+        O(1/pn) = O(1/n)
+        |O(f(n)) - O(f(n))| <= |O(f(n))| + |O(f(n))|
+                            = O(f(n))
+        if f(n) -> 0, lim{n -> ∞}O(f(n)) = 0 as |O(f(n))| <= M|f(n)|
+    lim{n -> ∞}Σ{qn+1, pn}1/k   = lim{n -> ∞}Σ{1, pn}1/k - Σ{1, qn}1/k
                                 = lim{n -> ∞}(logpn + C + O(1/pn) - logqn - C - O(1/qn))
-                                = log(p/q) + lim{n -> ∞}O(1/pn) - O(1/qn)
-    where 
-        |O(1/pn) - O(1/qn)| <= |O(1/pn)| + |O(1/qn)|
-                            = O(1/n)
-    hence
-        lim{n -> ∞}O(1/pn) - P(1/qn) = 0
-b.  when n = 1, s2 = Σ(-1)^(k+1)/k = 1 - 1/2 = 1/2 = x1
-    assume s2n = xn,
-        s2n+2   = s2n + 1/(2n + 1) - 1/(2n + 2)
-                = xn + 1/(2n + 1) - 1/(2n + 2)
+                                = log(p/q) + lim{n -> ∞}O(1/n) - O(1/n)
+                                = log(p/q)
+    b.  when n = 1, s2 = Σ(-1)^(k+1)/k = 1 - 1/2 = 1/2 = x1
+        assume s2n = xn,
+            s2n+2   = s2n + 1/(2n + 1) - 1/(2n + 2)
+                    = xn + 1/(2n + 1) - 1/(2n + 2)
                 = Σ{n+1, 2n+1}1/k + 1/(2n + 2) - 2/(2n + 2)
                 = Σ{n+1, 2n+2}1/k - 1/(n + 1)
                 = Σ{n+2, 2n+2}1/k
@@ -4564,4 +4567,160 @@ b.  when n = 1, s2 = Σ(-1)^(k+1)/k = 1 - 1/2 = 1/2 = x1
     lim{n -> ∞}Σ{1, n}(-1)^(k+1)/k  = lim{n -> ∞}Σ{1, 2n}(-1)^(k+1)/k
                                     = lim{n -> ∞}Σ{n+1, 2n}1/k
                                     = log2
-c.  
+c.  insert parentheses to group every p + q terms, define
+        an = Σ{(n-1)p+1, np}1/(2k - 1) - Σ{(n-1)q+1, nq}1/2k
+    define Sn be the partial sum of Σan,
+        Sn  = Σ{1, np}1/(2k - 1) - Σ{1, nq}1/2k
+            = Σ{1, 2np}1/k - Σ{1, np}1/2k - Σ{1, nq}1/2k
+            = log(2np) + C + O(1/n) - 1/2 * (log(np) + log(nq) + 2C + O(1/n))
+            = log(2np) - log(n√(pq)) + O(1/n)
+            = log(2√(p/q)) + O(1/n)
+            = log2 + log(p/q)/2 + O(1/n)
+        lim{n -> ∞}Sn = log2 + log(p/q)/2
+    Σan is convergent, p + q is constant, (-1)^(n+1)/n -> 0
+    by theorem 8.14, the arrangement converges to the same value
+d.  Σ(-1)^(n+1)(1/(3n - 2) - 1/(3n - 1))    = Σ(-1)^(n+1)(1/(3n - 2) - 1/(3n - 1) + 1/3n) - Σ(-1)^(n+1)/3n
+                                            = Σ(-1)^(n+1)/n - Σ(-1)^(n+1)/3n
+                                            = log2 * 2/3
+
+8.19
+Σ|cn|   = Σ√(an^2 + bn^2)
+        >= Σ|an|
+        = +∞
+Σcn is not absolutely convergent
+1/√n -> 0 is decreasing, Σan converges, Σbn converges absolutely, Σcn = Σan + iΣbn converges conditionally
+
+8.20
+// both immediate from theorem 8.23
+a.  int(1, n, logx/x dx) = log(n)^2
+    Σ{1, n}logk/k = log(n)^2 + A + O(logn/n)
+b.  int(2, n, 1/xlogx dx) = log(log(n)) - loglog2
+    Σ{1, n}logk/k   = log(log(n)) - loglog2 + D + O(1/nlogn)
+                    = log(log(n)) + B + O(1/nlogn)
+
+8.21
+a.  n + a > 0, (n + a)^-s > 0 
+    for s > 1, (n + a)^-s < n^-s, by comparison test Σζ(s, a) converges
+    Σ{h, 1, k}Σ{n, 0, ∞}ζ(s, h/k)   = Σ{h, 1, k}Σ{n, 0, ∞}(n + h/k)^-s
+                                    = Σ{h, 1, k}Σ{n, 0, ∞}(kn + h)^-s * k^s
+                                    = k^s * Σ{h, 1, k}Σ{n, 0, ∞}(kn + h)^-s
+                                    = k^s * Σ{0, ∞}(n + 1)^-s
+                                    = k^sζ(s)
+b.  by part a, 
+        ζ(s, 1/2) + ζ(s, 1) = 2^sζ(s)
+        Σ(n - 1/2)^-s = (2^s - 1)ζ(s)
+        Σ(2n - 1)^-s * 2^s = (2^s - 1)ζ(s)
+        Σ(2n - 1)^-s = (1 - 2^-s)ζ(s)
+    hence
+        Σ(-1)^(n-1)/n^s = 2Σ(2n - 1)^-s - Σn^-s
+                        = (2 - 2^(1-s))ζ(s) - ζ(s)
+                        = (1 - 2^(1-s))ζ(s)
+
+8.22
+// thanks solutions manual
+(an + n^-2p)/2 >= √an * n^-p, sum of the left side is convergent, by comparison test Σ√an * n^-p is convergent
+lim{n -> ∞}int(2, n, 1/x(logx)^2)   = lim{n -> ∞}1/logn - 1/log2
+                                    = -1/log2
+so Σan = Σ1/n(logn)^2 converges, but Σ√an/√n = 1/nlogn diverges by integration test
+
+8.23
+if Σnan converges, its partial sum is bounded, Σan = Σnan * 1/n converges by Dirichlet's test
+
+8.24
+=>: Σan - a1/2  = Σ(an + an+1)/2
+                >= Σ√anan+1
+    partial sums are bounded, Σ√anan+1 is convergent
+<=: assume Σ√anan+1 converges and {an} monotonic, 
+    if {an} change signs, it may do so only once between some aN-1 and aN, an >= 0 or an =< 0 for all n >= N
+    √anan+1 >= 0 for all n >= N, Σ√anan+1 has bounded partial sums 
+    assume wlog an > 0 for all n, if an is increasing, √anan+1 >= Σan^2 = an, Σan has bounded partial sums
+    similarly if an is decreasing, √anan+1 >= √an+1^2 = an+1, Σan has bounded partial sums
+
+8.25
+a.  |an| -> 0 as n -> ∞, for some N, n >= N implies
+        |an| < 1
+        an^2 < |an|
+    so Σ|an^2| converges by comparison test
+b.  |an| -> 0, for some N, n >= N implies
+        |an| < 1/2
+        |an/(1 + an)|   = |an|/(1 + an)
+                        < 2|an|
+    so Σ|an/(1 + an)| converges by comparison test
+c.  same argument to part b, |an^2| -> 0
+
+8.26
+// thanks solutions manual
+define Σ{1, n}(1/k)/n * sin(nx) = an * bn
+an+1 - an   = Σ{1, n+1}(1/k)/(n + 1) - Σ{1, n}(1/k)/n
+            = 1/(n + 1)^2 - Σ{1, n}(1/n - 1/(n + 1))1/k
+            = 1/(n + 1)^2 - Σ{1, n}1/n(n + 1) * 1/k
+            < 0
+by formula 13,
+|Σsin(nx)|  = |sin(nx/2)sin((n + 1)x/2)/sinx/2|
+            <= 1/|sin(x/2)|
+by Dirichlet's test, Σanbn converges
+
+8.27
+a.  Σ(bn - bn+1) = b1 - lim{n -> ∞}bn, {bn} converges, 
+    Σan converges => {Anbn+1} converges
+    An is bounded, let M >= |An| for all n,
+        Σ|An(bk+1 - bk)| <= MΣ|bk+1 - bk|
+    is bounded as Σ|bk+1 - bk| converges, ΣAn(bk+1 - bk) converges absolutely
+    by theorem 8.27, Σanbn converges
+b.  |An| <= M, 0 <= lim{n -> ∞}|Anbn+1| <= lim{n -> ∞}M|bn+1| = 0
+    Σ|an(bk+1 - bk)| converges as in part a
+
+8.28
+a.  for p, q >= N, f(p, q) <= 1/2N
+    lim{p, q -> ∞}f(p, q)   = lim{p -> ∞}lim{q -> ∞}f(p, q)
+                            = lim{q -> ∞}lim{p -> ∞}f(p, q)
+                            = 0
+b.  lim{p -> ∞}lim{q -> ∞}f(p, q) = 0
+    lim{q -> ∞}lim{p -> ∞}f(p, q) = 1
+    when p = q, p/(p + q) = 1/2
+    when 2p = q, p/(p + q) = 1/3, the double limit doesn't exist
+c.  double limit doesn't exist:
+        when p = q, f(p, q) = (-1)^p/2 doesn't converge
+    lim{p -> ∞}f(p, q) doesn't exist:
+        limsup{p -> ∞}f(p, q) = 1, liminf{p -> ∞}f(p, q) = -1
+    lim{p -> ∞}lim{q -> ∞}f(p, q) = 0
+d.  lim{p, q -> ∞}f(p, q) = 0:
+        for all ε > 0, take N = 2ceil(1/ε) + 1, whenever p, q >= N, 
+        |(-1)^(p+q)(1/p + 1/q)| = 1/p + 1/q
+                                < ε
+    lim{p -> ∞}f(p, q) doesn't exist:
+        for any N, there's p >= N that f(p, q) is posititve or negative, the only possible limit is 0
+        but |f(p, q)| >= 1/q for all p
+    symmetrically lim{q -> ∞}f(p, q) doesn't exist
+e.  lim{p, q -> ∞}f(p, q) = 0:
+        for q > N, |f(p, q)| < 1/N
+    lim{p -> ∞}f(p, q) doesn't exist:
+        f(p, q) oscillates between the two values 1/q and -1/q
+    lim{p -> ∞}lim{q -> ∞}f(p, q) = 0:
+        lim{q -> ∞}f(p, q) = 0
+f.  double limit doesn't exist:
+        when p = q, f(p, q) = 1
+        when p = q + 1, f(p, q) = -1
+    lim{p -> ∞}f(p, q) doesn't exist:
+        similar 
+    symmetrically lim{q -> ∞}f(p, q) doesn't exist
+g.  lim{p, q -> ∞}f(p, q) = 0:
+        for p > N, |f(p, q)| <= 1/q < 1/N
+    lim{p -> ∞}f(p, q) doesn't exist:
+        by exercise 8.7.a, for all N there's p >= N, cosp >= 1/2 or cosp <= -1/2
+    lim{p -> ∞}lim{q -> ∞}f(p, q) = 0:
+        similar to double limit
+h.  lim{p, q -> ∞}f(p, q) = 0:
+        by formula 13, Σ{1, q}sin(n/p)  = sin(q/2p)sin((q + 1)/2p)/sin(1/2p)
+                                        <= 1/sin(1/2p)
+        let r = 1/2p be an open map, 
+        r -> 0 as p -> ∞, p/sin(1/2p) = 2sin(r)/r, lim{p -> ∞}p/sin(1/2p) = lim{r -> 0}2sin(r)/r = 2
+        let g(q) = 1/q^2, h(p, q) = Σ{1, q}sin(n/p), f(p, q) = g(q)h(p, q), g(q) -> 0, h(p, q) is bounded
+        lim{p, q -> ∞}f(p, q) = 0
+    lim{p -> ∞}f(p, q) doesn't exist:
+        f(p, 1) = psin(1/p) diverges
+    lim{p -> ∞}lim{q -> ∞}f(p, q) = 0:
+        same to double limit
+
+8.29
+a.  
