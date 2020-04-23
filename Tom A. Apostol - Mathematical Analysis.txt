@@ -4723,4 +4723,83 @@ h.  lim{p, q -> ∞}f(p, q) = 0:
         same to double limit
 
 8.29
-a.  
+a.  =>: assume Σ|f(m, n)| converges to A
+        there's N that p, q >= N implies |S(p, q) - A| < 1
+        for all p, q >= N, S(p, q) < A + 1
+        {S(p, q): p, q < N} is a finite set hence is bounded, {S(p, q)} is bounded
+    <=: assume {S(p, q)} is bounded
+        let A = sup{S(p, q)}
+        for all ε > 0, there's pair (p, q) that |S(p, q) - A| < ε
+        for all m, n >= max{p, q}, S(m, n) contains more positive terms, S(p, q) <= S(m, n) <= A
+        |S(m, n) - A| < ε, lim{p, q -> ∞}S(p, q) = A
+b.  assume lim{p, q -> ∞}S(p, q) = S, for all ε > 0 there's N that, whenever p, q > N,
+        |s(p, q) - s(N, N)| <= S - S(N, N)
+                            < ε/2
+    let r, t > N,
+        |s(r, t) - s(p, q)| <= |s(r, t) - s(N, N)| + |s(p, q) - s(N, N)|
+                            < ε
+    let T = {s(p, q)}, if T is finite, let d = min{|x - y|: x, y ∈ T}
+    take ε = d/2, for some N whenever p, q > N, s(p, q) is constant
+    if T is infinite, T is bounded and has an accumulation point A 
+    for all ε > 0, there's N that for all p, q, s, t > N,  
+        |s(p, q) - s(r, t)| < ε/2
+    there are only finite s(p, q) with p, q <= N, so there must be one p, q > N that
+        s(p, q) ∈ B(A; ε/2)
+    then for all r, t > N, 
+        |A - s(r, t)|   <= |A - s(r, t)| + |s(r, t) - s(p, q)|
+                        < ε
+    therefore lim{p, q -> ∞}s(p, q) = A
+c.  e^-(m^2 + n^2) = e^-m^2 * e^-n^2
+    e^-n^2 <= 1/n^2, by comparison test Σe^-n^2 converges
+    by theorem 8.44, Σf(m, n) converges absolutely
+
+8.30
+by theorem 8.42, 
+    Σa(n)x^mn   = Σ{1, ∞}Σ{1, ∞}a(n)x^mn
+                = Σ{1, ∞}a(n)Σ{1, ∞}(x^n)^m
+                = Σ{1, ∞}a(n)(1/(1 - x^n) - 1) // |x^n| < 1
+                = Σ{1, ∞}a(n)x^n/(1 - x^n)
+let G(n) be a rearrangement of Σf(m, n) such that terms is ordered by the product mn
+for a particular k = mn, k/m = n is an integer, m|k
+insert parentheses to group all terms with the same product mn, by theorem 8.42,
+    ΣG(n)   = Σ{1, ∞}Σ{d|n}a(d)x^(d * n/d)
+            = Σ{1, ∞}Σ{d|n}a(d)x^n
+            = Σ{1, ∞}A(n)x^n
+            = Σa(n)x^mn
+
+8.31
+when α <= 0, the (m + in)^-α >= 1, the series is not bounded
+when 0 < α <= 1, consider the subseries with m = n,
+    Σ|n + in|^-α    = Σ(n√2)^-α
+                    = √2^-α * Σn^-α
+diverges, the double series must also diverge
+define s(p) = Σ{m + n <= p}f(m, n)
+when α > 1, group terms of Σf(m, n) diagonally it has:
+    s(p)    = Σ{n = 2, p}Σ{m = 1, n-1}f(m, n - m)
+            = Σ{n = 2, p}Σ{m = 1, n-1}|m + i(n - m)|^-α
+where 
+    √((n - 1)^2 + 1)    = √(n^2 - 2n + 1)
+                        = |1 + i(n - 1)|
+                        <= |m + i(n - m)|
+                        <= |n/2 + in/2|
+                        = n√2
+hence
+    Σ{2, p}(n - 1)/(n√2)^α  = √2^-α * Σ{2, p}(n - 1)/n^α
+                            = √2^-α * Σ{2, p}(1/n^(α-1) - 1/n^α)
+                            <= s(p)
+so s(p) the partial sum of Σf(m, n) is not bounded if α <= 2
+also
+    s(p)    <= s(p + 1)
+            <= Σ{2, p+1}(n - 1)/(n^2 + 1)^(α/2)
+            <= Σ{2, p+1}(n - 1)/(n^2 - 1)^(α/2)
+            = Σ{2, p+1}(n - 1)^(1-α/2) * (n + 1)^(-α/2)
+where (n - 1)^(1-α/2) < 1, (n + 1)^(-α/2) bounded when α > 2
+s(p) is bounded when α > 2, Σf(m, n) converges absolutely 
+
+8.32
+a.  |cn|    = Σ{0, n}1/√(k + 1) * 1/√(n - k + 1)
+            = Σ{0, n}1/√(k + 1)(n - k + 1)
+            >= Σ{0, n}2/(k + 1 + n - k + 1)
+            = Σ{0, n}2/(n + 2)
+    is not bounded, the series diverges
+b.  
