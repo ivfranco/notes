@@ -4966,8 +4966,91 @@ b.  Σn^-2 converges, by theorem 8.55 Π(1 - an) converges
                         = Π{2, m}(n + 1)Π{2, m}(n - 1)/(Π{2, m}n)^2
                         = (m + 1)/2m
                         -> 1/2
-c.  
-    
-c.  
-        
+c.  (n^3 - 1)/(n^3 + 1) = 1 - 2/(n^3 + 1), Σ2/(n^3 + 1) converges by comparison test
+    // thanks wolframalpha
+    Π{2, m}(n^3 - 1)/(n^3 + 1) = 2(m^2 + m + 1)/3m(m + 1):
+        m = 2, (2^3 - 1)/(2^3 + 1) = 2(2^2 + 2 + 1)/6(2 + 1)
+        2(m^2 + m + 1)/3m(m + 1) * ((m + 1)^3 - 1)/((m + 1)^3 + 1)
+        = 2(m^2 + m + 1)/3m(m + 1) * m((m + 1)^2 + (m + 1) + 1)/(m + 2)(m^2 + m + 1)
+        = 2((m + 1)^2 + (m + 1) + 1)/3(m + 1)(m + 2)
+    therefore Π(n^3 - 1)/(n^3 + 1) = 2/3
+d.  |z^(2^n)| = |z|^(2^n) <= |z|^n for |z| < 1, by comparison test Σz^(2^n) converges absolutely
+    Π{0, m}(1 + z^(2^n)) = Σ{0, 2^(m+1) - 1}z^n:
+        m = 0, 1 + z^(2^0) = 1 + z = Σ{0, 1}z^n
+        Σ{0, 2^m - 1}z^n * (1 + z^(2^m))    = Σ{0, 2^m - 1}(z^n + z^(2^m + n))
+                                            = Σ{0, 2^(m+1) - 1}z^n
+    therefore Π(1 + z^(2^n)) -> 1/(1 - z)
 
+8.40
+an -> 0, sn -> s != 0, an/sn-1 -> 0, there's N that 1 + an/sn-1 > 0 for all n >= N
+a1Π{2, m}(1 + an/sn-1) = sm:
+    m = 2, a1(1 + a2/a1) = a1 + a2 = s2
+    sm * (1 + am+1/sm)  = sm + am+1
+                        = sm+1
+therefore Π(1 + an/sn-1) = Σan != 0
+
+8.41
+a.  Π{2, m}(1 + 1/(2^m - 2)) = 2Σ{1, m}2^-n:
+        1 + 1/(2^2 - 2) = 3/2 = 2 * 3/4 = 2(1/2 + 1/4)
+        2Σ{1, m}2^-n * (1 + 1/(2^(m+1) - 2))    = 2(1 - 2^-m)(2^(m+1) - 1)/(2^(m+1) - 2)
+                                                = (1 - 2^-m)(2^(m+1) - 1)/(2^m - 1)
+                                                = 1 - 2^(m+1)
+                                                = Σ{1, m+1}2^-n
+    thus Π{2, ∞}(1 + 1/(2^m - 2)) = Σ{1, ∞}2^-n = 1
+b.  Π{2, m}(1 + 1/(n^2 - 1)) = 2Σ{1, m}1/n(n + 1):
+        Σ{1, m}1/n(n + 1) = Σ{1, m}(1/n - 1/(n + 1)) = 1 - 1/(m + 1)
+        1 + 1/(2^2 - 1) = 4/3 = 2(1 - 1/3)
+        2(1 - 1/m)(1 + 1/(m^2 - 1)) = (m - 1) * 2/m * m^2/(m + 1)(m - 1)
+                                    = 2m/(m + 1)
+                                    = 2(1 - 1/(m + 1))
+    therefore Π{2, ∞}(1 + 1/(n^2 - 1)) = Σ{1, ∞}1/n(n + 1) = 1
+
+8.42
+// thanks https://en.wikipedia.org/wiki/Trigonometric_functions#Sum_and_difference_formulas
+when x = 2kπ, let 2k = 2^p * q where q is odd, cos(x/2^p) = cos(qπ) = 0
+in that case convergence of Πcos(x/2^n) depends only on n > p where x/π2^n is not an integer, cos(x/2^n) != 0
+the product Π{p+1, m}cos(x/2^n) = Π{1, m}cos((x/2^p)/2^n), it's sufficient to consider only x != 2kπ
+when x != 2kπ, x/2^n != kπ, sin(x/2^n) != 0, cos(x/2^n) can be expressed as:
+    cos(x/2^n) = sin(x/2^(n-1))/2sin(x/2^n)
+    Π{1, m}cos(x/2^n)   = Π{1, m}sin(x/2^(n-1))/2sin(x/2^n)
+                        = sinx/2^msin(x/2^m)
+let r = x/y be a strictly monotonic function of y
+    lim{y -> ∞}ysin(x/y)    = lim{r -> 0}xsin(r)/r
+                            = x
+so lim{m -> ∞}msin(x/m) = x, {2^msin(x/2^m)} is its sub-sequence with the same limit,
+    Πcos(x/2^n) = lim{m -> ∞}sinx/2^msin(x/2^m)
+                = sinx/x
+
+8.43
+a.  1/√n is decreasing and positive, Σ(-1)^n/√n converges
+    logx <= x - 1 when 0 < x <= 1:
+        log1 = 1 - 1 = 0
+        d(logx - x + 1)/dx  = 1/x - 1
+                            > 0 on (0, 1)
+    Π{1, ∞}(1 - 1/2n) = 0:
+        log(Π{1, m}(1 - 1/2n))  = Σ{1, m}log(1 - 1/2n)
+                                <= Σ{1, m}-1/2n
+        is not bounded below and decreasing
+        log(Π{1, m}(1 - 1/2n)) -> -∞, Π{1, m}(1 - 1/2n) -> 0
+    for n = 2m + 1,
+        Π{2, n}(1 + (-1)^k/√k)  = Π{1, m}(1 + 1/√2k) * Π{1, m}(1 - 1/√(2k + 1))
+                                <= Π{1, m}(1 + 1/√2k) * Π{1, m}(1 - 1/√2k)
+                                = Π{1, m}(1 - 1/2k)
+                                -> 0
+    hence Π{2, n}(1 + (-1)^n/√n) > 0, liminf{n -> ∞}Π{2, n}(1 + (-1)^n/√n) = 0
+    the product diverges to 0 or oscillates
+b.  1 + an > 0 when n >= 2, for n >= 2, the sum
+        Σ{2, n}ak = Σ{1, m}1/n
+    diverges, for n = 2m, the product
+        Π{3, n}(1 + ak) = Π{1, m}(1 - 1/√k)(1 + 1/√k + 1/k)
+                        = Π{1, m}(1 - 1/k) + (1 - 1/√k)/k
+                        = Π{1, m}1 - 1/k + 1/k - 1/k√k
+                        = Π{1, m}1 - 1/k√k
+    converges as Σ1/n√n converges, when n = 2m + 1, 
+        Π{3, n}(1 + ak) = Π{1, m}(1 - 1/k√k) * (1 - 1/(2m + 1))
+    also converges since 1 - 1/(2m + 1) -> 1
+
+8.44
+=>: assume Σ(-1)^kak converges
+    for n >= 3, n = 2k + 1 or 2k + 2, an < a2k/(1 + a2k) < 1, log(1 - an) is defined
+    Σ{3, m}
