@@ -5127,4 +5127,21 @@ take n = N + 1, |fn(x)| < M, for all m > n and all x,
             < M + 1
 for all m <= n, fm(x) <= sup{Mm} is finite, {fn(x)} is uniformly bounded
 
-
+9.13
+sn(x) - sm(x)   = ΣFk(x)(gk(x) - gk+1(x)) + gn+1(x)Fn(x) - gm+1(x)Fm(x)
+                = -Σ{m+1, n}(Fn(x) - Fk(x))(gk(x) - gk+1(x)) + Σ{m+1, n}Fn(x)(gk(x) - gk+1(x)) 
+                + gn+1(x)Fn(x) - gm+1(x)Fm(x)
+                = -Σ{m+1, n}(Fn(x) - Fk(x))(gk(x) - gk+1(x)) + Fn(x)(gm+1(x) - gn+1(x)) 
+                + gn+1(x)Fn(x) - gm+1(x)Fm(x)
+                = -Σ{m+1, n}(Fn(x) - Fk(x))(gk(x) - gk+1(x)) + (Fn(x) - Fm(x))gm+1(x)
+{gn} is uniformly bounded, |gn(x)| <= M, gn(x) - gm(x) <= 2M
+by theorem 9.5, for all ε > 0 there's N that n, m > N implies
+    |Σ{m+1, n}fn(x)|    = |Fn(x) - Fm(x)|
+                        < ε/4M
+    |sn(x) - sm(x)| <= |Σ{m+1, n}(Fn(x) - Fk(x))(gk(x) - gk+1(x))| + |Fn(x) - Fm(x)||gm+1(x)|
+                    <= Σ{m+1, n}|Fn(x) - Fk(x)|(gk(x) - gk+1(x)) + |Fn(x) - Fm(x)||gm+1(x)|
+                    <= ε/4M * Σ(gk(x) - gk+1(x)) + ε/4M * M
+                    = ε/4M * (gm+1(x) - gn+1(x)) + ε/4
+                    = ε/2 + ε/4
+                    < ε
+again by theorem 9.5, Σfn(x)gn(x) converges uniformly
