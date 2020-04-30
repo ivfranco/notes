@@ -5117,6 +5117,10 @@ by exercise 1.49,
     (8m^4 + O(m^3))π^4/45(2m + 1)^4 < Σ1/k^4 < (8m^4 + O(m^3))π4/45(2m + 1)^4
 when m -> ∞, both sides have limit π^4/90
 
+theorem 9.20
+f(p) = |p - z0| is a continuous function R^2 -> R
+f(T) is a closed and bounded set in R, p = sup{f(T)} ∈ f(T)
+
 9.1
 for all fn, there's a constant Mn that |fn(x)| <= Mn for all x ∈ S
 there's some N that for all n >= N, 
@@ -5126,6 +5130,123 @@ take n = N + 1, |fn(x)| < M, for all m > n and all x,
     |fm(x)| <= |fn(x) - fm(x)| + |fn(x)|
             < M + 1
 for all m <= n, fm(x) <= sup{Mm} is finite, {fn(x)} is uniformly bounded
+
+9.2
+a.  if fn -> f, gn -> g uniformly on S, fn + gn -> f + g uniformly on S:
+        for all ε > 0, there's integers N, M, for all x ∈ S,
+        n > max{N, M} implies |fn(x) - f(x)| < ε/2 and |gn(x) - g(x)| < ε/2 
+        |fn(x) + gn(x) - f(x) - g(x)| < ε
+    constant function converges uniformly for sure
+    on a bounded interval S, |x| <= M
+    for all ε > 0, n > [M/ε] + 1,
+        |x|/n   <= M/n
+                < M/(M/ε)
+                = ε
+    x/n -> 0 uniformly, fn(x) = x + x/n converges uniformly on S
+    1/n -> 0 uniformly, define pn(x) = gn(x) - 1/n
+    on irrational x or 0, pn(x) = 0
+    on rational x = a/b, pn(x) = b
+    so gn(x) = pn(x) + 1/n converges uniformly
+b.  on any bounded interval S, the set {a: rational x = a/b ∈ S} is unbounded:
+        for some sub-interval of S which contains no integer, let a1/b1 < a2/b2 be two rational numbers ∈ S
+        assume wlog 0 < a1/b1 < a2/b2, a1b2 < a2b1
+        for sufficiently large prime number p, there's an integer in (a1p/b1, a2p/b2) and a1p/b1 > max{a1, a2}
+        let q be an integer in (a1p/b1, a2p/b2), a1/b1 < q/p < a2/b2, q/p ∈ S
+        q/p is not an integer, gcd(q, p) = 1, q > max{a1, a2}
+        this process can be repeated indefinitely, numerator is not bounded
+    on rational x = a/b,
+        fn(x)gn(x)  = x(1 + 1/n)(b + 1/n)
+                    = xb + 1/n^2 + x(b + 1)/n
+                    = xb + 1/n^2 + x/n + a/n
+                    -> 0
+    a is unbounded, fn(x)gn(x) cannot converge uniformly
+
+9.3
+a.  see exercise 9.2
+b.  by exercise, {fn} and {gn} are uniformly bounded on S
+    let |fn(x)| <= A, |gn(x)| <= B for all n and x
+    for all ε > 0, there's N that, for all x ∈ S, n > N implies:
+        |fn(x) - f(x)| < ε/2B
+        |gn(x) - g(x)| < ε/2A
+        |fn(x)gn(x) - f(x)g(x)| <= |fn(x)gn(x) - fn(x)g(x)| + |fn(x)g(x) - f(x)g(x)|
+                                <= A|gn(x) - g(x)| + B|fn(x) - f(x)|
+                                < ε/2 + ε/2
+                                = ε
+
+9.4
+for all ε > 0, there's δ that,
+    |g(x) - g(y)| < ε whenever |x - y| < δ
+there's N that for all x ∈ S,
+    |fn(x) - f(x)| < δ whenever n > N
+    |g(f(x)) - g(fn(x))| < ε
+
+9.5
+a.  1/(nx + 1) -> 0 for all x
+    for all n, let x < 1/n, 1/(nx + 1) > 1/2, fn(x) cannot converge uniformly
+b.  let gn(x) <= fn(x) <= hn(x), if gn -> f and hn -> f uniformly, fn -> f uniformly:
+        for all ε > 0 there's N that for all x, 
+        |gn(x) - f(x)|  < ε
+        |hn(x) - f(x)|  < ε
+        |fn(x) - f(x)|  <= max{|gn(x) - f(x)|, |hn(x) - f(x)|} 
+                        < ε
+    fn(x)   = x/(nx + 1) 
+            = 1/(n + 1/x) 
+            -> 0
+    0 <= fn(x) <= 1/n, fn -> 0 uniformly
+
+9.6
+g is continuous on [0, 1], g([0, 1]) is a compact interval, g is bounded on [0, 1], |g(x)| <= M
+g(x)x^n -> 0 uniformly on any [0, p] with p < 1:
+    0 <= |g(x)|x^n <= Mp^n
+g(x) continuous, there's a δ that
+    |g(x)x^n| <= [g(x)| < ε whenever x ∈ (1 - δ, 1]
+therefore |g(x)x^n| < ε whenever n > N for all x in [0, 1]
+
+9.7
+fn -> f uniformly, fn are continuous, f is continuous, f(xn) -> f(x)
+for all ε > 0 there's N that n > N implies:
+    |fn(xm) - f(xm)| < ε/2 for each m
+    |f(xn) - f(x)| < ε/2
+hence
+    |fn(xn) - f(x)| <= |fn(xn) - f(xn)| + |f(xn) - f(x)|
+                    < ε
+
+9.8
+=>: assume
+        1.  fn -> f, f is continuous
+        2.  ∀ε>0∃δ>0∃m>0∀x∈S, n > m & |fk(x) - f(x)| => |fk+n(x) - f(x)| < ε
+    fn and f are continuous, for all x0 ∈ S, there's a neighborhood B(x0) in which 
+        |f(x0) - f(x)| < δ/3
+        |fn(x0) - fn(x)| < δ/3
+    fn -> f, there's some N that for all k > N,
+        |fk(x) - f(x)| < δ/3
+        |fk(x0) - f(x0)|    <= |fk(x0) - fk(x)| + |fk(x) - f(x)| + |f(x) - f(x0)|
+                            < δ
+    {B(x0)} is an open cover of S, S is compact, a finite sub-collection of {B(x0)} covers S
+    there's an N that for all x0 ∈ S, k > N implies:
+        |fk(x0) - f(x0)| < δ
+        |fk+n(x0) - f(x0)| < ε for all n > m
+    therefore fn -> f uniformly
+<=: assume fn -> f uniformly
+    by theorem 9.2, f is continuous
+    for all ε > 0, there's m that n > m implies |fn(x) - f(x)| < ε for all x ∈ S
+    δ can be an arbitrary value
+
+9.9
+a.  {fn(x)} is decreasing, let δ = ε, m = 1, for all n > m,
+        |fk+n(x) - f(x)|    <= |fk(x) - f(x)|
+                            < ε
+    by exercise 9.8 fn -> f uniformly
+b.  fn(x) = 1/(nx + 1) is continuous on (0, 1)
+    f(x) = 0 is continuous on (0, 1)
+    {fn(x)} is decreasing
+    but fn -> f not uniformly, Dini's theorem may not be true when S is not compact
+
+9.10
+when x = 0 or x = 1, fn(x) = 0
+when x ∈ (0, 1), n^c(1 - x^2)^n -> 0 as exponential function grows faster than polynomial function
+fn -> 0 pointwise on [0, 1]
+
 
 9.13
 sn(x) - sm(x)   = ΣFk(x)(gk(x) - gk+1(x)) + gn+1(x)Fn(x) - gm+1(x)Fm(x)
