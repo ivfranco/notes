@@ -5244,9 +5244,45 @@ b.  fn(x) = 1/(nx + 1) is continuous on (0, 1)
 
 9.10
 when x = 0 or x = 1, fn(x) = 0
-when x ∈ (0, 1), n^c(1 - x^2)^n -> 0 as exponential function grows faster than polynomial function
+when x ∈ (0, 1), fn(x) <= n^c(1 - x^2)^n -> 0 as exponential function grows faster than polynomial function
 fn -> 0 pointwise on [0, 1]
+for all c <= 0, fn(x) >= fn+1(x) for all x ∈ [0, 1], fn and f are continuous, fn -> f uniformly
+when c > 0,
+    fn'(x)  = n^c((1 - x^2)^n - 2nx^2(1 - x^2)^(n-1))
+            = n^c(1 - x^2)^(n-1) * (1 - x^2 - 2nx^2)
+            = n^c(1 - x^2)^(n-1) * (1 - (2n + 1)x^2)
+is positive on (0, √(1/(2n + 1))) and negative on (√(1/(2n + 1)), 1), fn(x) has a global maximum at √(1/(2n + 1))
+// thanks solutions manual
+let xn = 1/√(2n + 1), xn -> 0, if fn -> f uniformly, by exercise 9.7, fn(xn) -> f(x) = 0
+fn(xn)  = n^c/√(2n + 1) * (1 - 1/(2n + 1))^n
+        = n^c/√(2n + 1) * ((1 - 1/(2n + 1))^(2n+1))^(n/(2n+1))
+let yn = (1 - 1/(2n + 1))^(2n+1), gn(y) = y^(n/(2n+1))
+{yn} is a subsequence of (1 - 1/n)^n which is increasing and has limit 1/e, yn ∈ [0, 1/e]
+n/(2n + 1) = 1/(2 + 1/n), gn(y) <= gn+1(y) on [0, 1], gn -> √y uniformly, gn(yn) -> g(y) = 1/√e
+for c < 1/2, 
+    |fn(x)| <= |fn(xn)|
+            -> 0
+uniformly on [0, 1]
+when c >= 1/2, fn(xn) does not converge to 0, fn cannot converge uniformly to 0
+int(0, 1, n^cx(1 - x^2)^n dx)   = n^(c-1)/2
+                                -> 0
+iff c < 1, integration by terms is correct iff c < 1
 
+9.11
+Σx^n(1 - x) = (1 - x)Σx^n
+            = x on (0, 1)
+            = 0 at 0 or 1
+the limit function is not continuous but each partial sum is continuous
+if sn converges uniformly the limit function should also be continuous
+Σ(-x)^n(1 - x)  = (1 - x)-x/(1 + x)
+                = (x^2 - x)/(1 + x) on [0, 1]
+let fn(x) = (-1)^n, |Σfn(x)| <= 1 is uniformly bounded
+let gn(x) = x^n(1 - x), gn+1(x) <= gn(x) for x in [0, 1]
+gn(x) <= x^n -> 0 uniformly on [0, 1) and gn(x) is constant at 1, gn -> 0 uniformly on [0, 1]
+by Dirichlet's test, Σfn(x)gn(x) converges uniformly 
+
+9.12
+immediate from Dirichlet's test
 
 9.13
 sn(x) - sm(x)   = ΣFk(x)(gk(x) - gk+1(x)) + gn+1(x)Fn(x) - gm+1(x)Fm(x)
@@ -5266,3 +5302,65 @@ by theorem 9.5, for all ε > 0 there's N that n, m > N implies
                     = ε/2 + ε/4
                     < ε
 again by theorem 9.5, Σfn(x)gn(x) converges uniformly
+
+9.14
+a.  fn(x)   = x/(1 + nx^2)
+            -> 0 if x != 0
+            = 0 if x = 0
+    f(x) = 0
+    fn'(x)  = ((1 + nx^2) - 2nx^2)/(1 + nx^2)^2
+            = (1 - nx^2)/(1 + nx^2)^2
+            = O(n)/(n^2x^4 + O(n))
+            -> 0 if x != 0
+            = 1 if x = 0
+    f'(x) = 0 = g(x) on R - {0}
+b.  for all x > 0, fn(x) = x/(1 + nx^2) = 1/(1/x + nx)
+    for all ε > 0, for all 0 < x < ε,
+        fn(x)   < 1/(1/x)
+                = x
+                < ε
+    for all x > ε and n > 1/ε^2,
+        fn(x)   < 1/nx
+                <= 1/nε
+                < 1/(ε/ε^2)
+                = ε
+    hence fn -> f uniformly on [0, +∞)
+    as fn(-x) = -fn(x), fn -> f uniformly on R
+c.  g is not continuous at 0, fn cannot uniformly converge to g on any interval containing 0
+    fn'(x)  = (1 - nx^2)/(1 + nx^2)^2
+            = 1/(1 + nx^2) - nx^2/(n^2x^4 + 2nx^2 + 1)
+            = 1/(1 + nx^2) - 1/(nx^2 + 2 + 1/nx^2)
+    where 1/(1 + nx^2) and 1/(nx^2 + 2 + 1/nx^2) < 1/nx^2 converges uniformly on all interval bounded from 0
+    (1 - nx^2)/(1 + nx^2)^2 = 1 at x = 1, by continuity a there's a neighborhood B(0; δ) in which fn(x) > 1/2
+    therefore fn'(x) doesn't converge uniformly on any interval of the form (0, a)
+    as fn'(-x) = fn'(x), fn'(x) converges uniformly on on [a, +∞) and (-∞, a] for any a > 0
+
+9.15
+0 <= 1/(ne^(n^2x^2)) <= 1/n, fn -> 0 uniformly on R
+fn'(x)  = -2nxe^(-n^2x^2)
+        -> 0 on R - {0} as exponential function grows faster than polynomial function
+        = 0 at 0
+for all n, when x = 1/n√2 (the maximum point of logx - n^2x^2),
+    logx - n^2x^2 = -(log2)/2 - logn - 1/2 
+take ε that logε <= (log2)/2 - 1/2, 
+    logx - n^2x^2   = -(log2)/2 - logn - 1/2 
+                    >= logε - log2n
+                    = log(ε/2n)
+    xe^(-n^2x^2)    >= ε/2n
+    2nxe^(-n^2x^2)  >= ε
+for all n, fn'(x) doesn't converge uniformly
+
+9.16
+let gn(x) = int(0, x, fn(x)dx), g(x) = int(0, x, fdx), by theorem 9.8,
+    gn -> g uniformly on [0, 1]
+by theorem 7.32, each gn is continuous on [0, 1]
+let xn = 1 - 1/n, xn -> 1, by exercise 9.8, 
+    lim{n -> ∞}int(0, 1 - 1/n, fn(x) dx)    = lim{n -> ∞}gn(xn)
+                                            = g(1)
+                                            = int(0, 1, fdx)
+
+9.17
+when S(f) and S(g) exist, S(f + g) = S(f) + S(g):
+    lim{n -> ∞}1/n * Σf(k/n) + lim{n -> ∞}1/n * Σg(k/n) = lim{n -> ∞}(1/n * Σ(f(k/n) + g(k/n)))
+fn -> f uniformly, for all ε > 0 there's N that n > N implies 
+    |fn(x) - f(x)| < ε
