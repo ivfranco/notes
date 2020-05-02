@@ -5362,5 +5362,39 @@ let xn = 1 - 1/n, xn -> 1, by exercise 9.8,
 9.17
 when S(f) and S(g) exist, S(f + g) = S(f) + S(g):
     lim{n -> ∞}1/n * Σf(k/n) + lim{n -> ∞}1/n * Σg(k/n) = lim{n -> ∞}(1/n * Σ(f(k/n) + g(k/n)))
-fn -> f uniformly, for all ε > 0 there's N that n > N implies 
-    |fn(x) - f(x)| < ε
+when S(f), S(|f|) exist, |S(f)| <= S(|f|):
+    |1/n * Σf(k/n)| <= 1/n * Σ|f(k/n)| for each n
+fn -> f uniformly, for all ε > 0 there's N that p, q > N implies 
+    |fp(x) - fq(x)| < ε/2
+    |S(fp) - S(fq)| = |S(fp - fq)|
+                    = lim{n -> ∞}|1/n * (Σfp(k/n) - fq(k/n))|
+    where |1/n * (Σfp(k/n) - fq(k/n))| <= 1/n * Σ|fp(k/n) - fq(k/n)| < 1/n * nε/2 = ε/2
+hence 
+    |S(fp) - S(fq)| <= ε/2 < ε for all p, q > N
+{S(fn)} is a Cauchy sequence, {S(fn)} converges to a limit S
+for all ε > 0 there's N that for all p > N,
+    |fp(x) - f(x)| < ε/3 for all x ∈ [0, 1]
+    |1/n * Σfp(k/n) - 1/n * Σf(k/n)|    <= 1/n * Σ|fp(k/n) - f(k/n)|
+                                        < 1/n * nε/3
+                                        = ε/3 for all n
+    |S(fp) - S| < ε/3
+as 1/n * Σfp(k/n) -> S(fp), there's some M that for all n > M,
+    |1/n * Σfp(k/n) - S(fp)| < ε/3
+hence
+    |1/n * Σf(k/n) - S| < ε
+therefore S(fn) -> S = S(f) as n -> ∞
+
+9.18
+fn -> 0 pointwise
+for all n, let x = 1/n, 1/(1 + n^2x^2) = 1/2, fn cannot converge uniformly
+int(0, x, 1/(1 + n^2t^2) dt)    = arctan(nx)/n
+                                -> 0 for all x > 0
+int(0, x, 0 dt) = 0, term-by-term integration permissible
+
+9.19
+let sn(x) = Σ{1, n}x/k^α(1 + kx^2) be the partial sums
+when x = 0, sn(x) = 0
+when x != 0, x/n^α(1 + nx^2) <= x/n^(1+α)x^2 <= 1/x * 1/n^(3/2), by comparison {sn(x)} converges for each x
+
+
+
