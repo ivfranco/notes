@@ -5395,6 +5395,106 @@ int(0, x, 0 dt) = 0, term-by-term integration permissible
 let sn(x) = Σ{1, n}x/k^α(1 + kx^2) be the partial sums
 when x = 0, sn(x) = 0
 when x != 0, x/n^α(1 + nx^2) <= x/n^(1+α)x^2 <= 1/x * 1/n^(3/2), by comparison {sn(x)} converges for each x
+// thanks solutions manual
+1 + nx^2 >= 2√nx
+for x != 0, 
+    |x/n^α(1 + nx^2)|   <= |x/n^α2√nx|
+                        = 1/2n^(α + 1/2)
+by M-test, Σx/n^α(1 + nx^2) converges uniformly on R if α > 1/2
 
+9.20
+let gn(x) = sin(1 + x/n)/√n, 
+|sin(1 + x/n)/√n|   <= 1/√n
+                    -> 0
+gn -> 0 pointwise on R
+on a compact set S, |x| <= M, cos(1 + x/n) -> cos1 > 0, sin(1 + x/n) -> sin1 > 0 uniformly
+there's an N for all n > N and all x ∈ S,
+dgn(x)/dn   = (cos(1 + x/n)(-x/n^2)√n - sin(1 + x/n)/2√n)/n
+            = (-xcos(1 + x/n) - n/2 * sin(1 + x/n))/n^(5/2)
+            < 0
+a sub-sequence of gn(x) is decreasing for all x ∈ S, by Dini's theorem gn(x) -> 0 uniformly on compact set S
+by exercise 9.12, Σ(-1)^ngn(x) converges uniformly on S
 
+9.21
+let sn be the partial sums, when x = 1, 
+    sn  = Σ(1/(2n + 1) - 1/(2n + 2))
+        = 1 - lim{n -> ∞}1/(2n + 2)
+        = 1
+when x ∈ [0, 1),
+    sn  = Σ{0, n}x^(2k+1)/(2k + 1) - Σ{0, n}x^(k+1)/2(k + 1)
+        = 1/2 * Σ{1, n+1}(-1)^(k+1)x^k/k + Σ{[n/2 + 1], n}x^(2k+1)/(2k + 1)
+where 
+    Σ{1, n}(-1)^(k+1)x^k/k -> log(1 + x) by formula 37
+    x^(2k+1)/(2k + 1) is a subseries of x^n/(n + 1) <= x^n, Σ{[n/2 + 1], n}x^(2k+1)/(2k + 1) -> 0 by Cauchy condition
+sn(x) -> log(1 + x)/2 pointwise on [0, 1), the limit function is not continuous, the convergence is not uniform
 
+9.22
+Σan converges absolutely, for all ε > 0 there's N that n > N implies
+    |Σ{n+1, n+p}ansin(nx)|  <= Σ{n+1, n+p}|an||sin(nx)|
+                            <= Σ{n+1, n+p}|an|
+                            < ε
+for all x and all p, Σansin(nx) satisfies Cauchy's condition of uniform convergence
+similarly Σancos(nx) converges uniformly on R
+
+9.23
+// thanks 
+//  An Introduction to the Theory of Infinite Series, T. J. I'A. Bromwich
+//  The Uniform Convergence of a Certain Class of Trigonometrical Series, T. W. Chaundy & A. E. Jolliffe
+=>: assume nan -> 0
+    sin(nx) is periodic, if Σansin(nx) = lim{n -> ∞}sn converges on [0, 2π) it converges on R
+    sn(0) = sn(π) = 0, if x ∈ (π, 2π), x = 2π - θ, θ ∈ (0, π) and 
+        sin(nx) = sin(n(2π - θ))
+                = sin(2πn - nθ)
+                = -sin(nθ)
+    hence if {sn} converges on (0, π) it converges on R
+    nan -> 0, let Mn = sup{kak: k >= n}, lim{n -> ∞}Mn = limsup{n -> ∞}nan = 0, {Mn} is decreasing
+    when x ∈ (0, π), 
+        |sn(x) - sm(x)| = |Σ{m+1, n}Fk(x)(ak - ak+1) + an+1Fn(x) - am+1Fm(x)|
+                        <= Σ{m+1, n}|Fk(x)|(ak - ak+1) + an+1|Fn(x)| + am+1|Fm(x)|
+                        <= Σ{m+1, n}(ak - ak+1)/|sin(x/2)| + an+1/|sin(x/2)| + am+1/|sin(x/2)|
+                        = 2am+1/sin(x/2)
+                        <= 2am/sin(x/2)
+        sin(x/2) >= x/π as sin(x)/x is decreasing on (0, 2π)
+    if x ∈ [π/n, π), 
+        |Σ{n+1, n+p}aksin(kx)|  < 2an/sin(x/2)
+                                <= 2an/(x/π)
+                                <= 2nan
+    if x ∈ (0, π/n), let m = [π/x], x = π/(m + a), 0 <= a < 1, if n + p <= m,
+        |Σ{n+1, n+p}aksin(kx)|  = Σ{n+1, n+p}aksin(kx)
+                                <= Σ{n+1, n+p}ak * kx
+                                <= Mn+1πp/(m + a)
+                                <= Mnπ
+    if n + p > m, 
+        |Σ{n+1, n+p}aksin(kx)|  <= |Σ{n+1, m}aksin(kx)| + |Σ{m+1, n+p}aksin(kx)|
+                                <= Mnπ + 2am+1/sin(x/2)
+                                <= Mnπ + 2am+1/(x/π)
+                                = Mnπ + 2am+1(m + a)
+                                < Mnπ + 2(m + 1)am+1
+                                <= (π + 2)Mn
+    both Mn and nan -> 0, for all ε > 0, there's N for all n > N, all p and all x ∈ (0, π),
+        |Σ{n+1, n+p}aksin(kx)| < ε
+    therefore Σansin(nx) converges uniformly on R
+<=: assume Σansin(nx) converges uniformly, for all ε > 0 there's N that n > N implies
+        εsin(1/2)/2 > |Σ{n, 2n-1}aksin(kx)|
+    take x = 1/2n, sin(1/2) = sin(nx) < sin((2n - 1)x) < sin(1)
+        |Σ{n, 2n-1}aksin(kx)|   = Σ{n, 2n-1}aksin(kx)
+                                >= na2nsin(1/2)
+        ε > 2na2n
+    similarly, there's N that n > N implies ε > 2(n - 1)a2n-1, nan -> 0
+
+9.24
+when s = 0, Σann^-s = Σan is constant
+when s > 0, n^-s -> 0 is decreasing, Σan is bounded, by Dirichlet's test Σann^-s converges uniformly on [0, +∞)
+each partial sum Σ{1, n}ak * k^-s is continuous, the limit function must also be continuous, lim{s -> 0+}Σann^-s = Σan
+
+9.25
+let t = s - 1 - h/2 > 0, 
+    Σn^-s   = Σn^-(1 + h/2) * n^-t
+where Σn^-(1 + h/2) uniformly bounded, n^-t -> 0 is decreasing
+by Dirichlet's test Σn^-s uniformly converges on t > 0
+for all s > 1, let h = s - 1, logn/n^(h/2) -> 0 is decreasing for sufficiently large n:
+    (logn/n^(-h/2))'    = (n^(h/2 - 1) - logn * h/2 * n^(h/2 - 1))/n^h
+                        = n^(-h/2 - 1) * (1 - hlogn/2)
+                        < 0 for sufficiently large n
+s - h/2 > 1, Σn^(-x) is uniformly bounded on (s - h/2, +∞), Σlogn/n^x converges uniformly on (s - h/2, +∞)
+by theorem 9.14, ζ'(s) = Σ-logn/n^s
