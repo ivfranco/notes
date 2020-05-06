@@ -5440,6 +5440,7 @@ similarly Σancos(nx) converges uniformly on R
 // thanks 
 //  An Introduction to the Theory of Infinite Series, T. J. I'A. Bromwich
 //  The Uniform Convergence of a Certain Class of Trigonometrical Series, T. W. Chaundy & A. E. Jolliffe
+//  solutions manual
 =>: assume nan -> 0
     sin(nx) is periodic, if Σansin(nx) = lim{n -> ∞}sn converges on [0, 2π) it converges on R
     sn(0) = sn(π) = 0, if x ∈ (π, 2π), x = 2π - θ, θ ∈ (0, π) and 
@@ -5498,3 +5499,180 @@ for all s > 1, let h = s - 1, logn/n^(h/2) -> 0 is decreasing for sufficiently l
                         < 0 for sufficiently large n
 s - h/2 > 1, Σn^(-x) is uniformly bounded on (s - h/2, +∞), Σlogn/n^x converges uniformly on (s - h/2, +∞)
 by theorem 9.14, ζ'(s) = Σ-logn/n^s
+let f(s) = 1/n^s, f^(k)(s) = (-logn)^k/n^s
+(logn)^k/n^t -> 0 for all k and t > 0, the sequence is also decreasing for sufficiently large n:
+    d((logn)^k/n^t)/dn  = (k(logn)^(k-1) * n^(t-1) - (logn)^k * t * n^(t-1))/n^2t
+                        = n^(-t-1) * (logn)^(k-1) * (k - tlogn)
+                        < 0 for sufficiently large n
+by the same argument Σf^(k)(s) converges uniformly on [1 + h, +∞) for any h > 0
+ζ^(k)(s) = (-1)^kΣ(logn)^k/n^s
+
+9.26
+exponential function grows faster than polynomial functions, n^(3/2)x/e^(n^2x^2) -> 0 for all x
+fn(x)^2 = n^3x^2e^-2n^2x^2
+int(-1, 1, fn(x)^2 dx)  = 2n^3int(0, 1, x^2e^(-2n^2x^2) dx)
+                        = 1/√2 * int(0, 1, √2n * (√2nx)^2e^(-(√2nx)^2) dx)
+                        = 1/√2 * int(0, √2n, y^2e^-y^2 dy)
+                        = -1/√2 * int(0, √2n, yd(e^-y^2/2))
+                        = -1/2√2 * (√2ne^(-2n^2) - int(0, √2n, e^-y^2dy))
+                        -> 1/2√2 * √π/2
+                        = √π/4√2
+                        > 0
+
+9.27
+// thanks solutions manual
+// looks like the proof depends on measure theory, will go back here after chapter 10
+
+9.28
+a.  1 >= cos(x)^2n >= 0, int(0, π, cos(x)^2n dx) >= 0, int(a, b, cos(x)^2n dx) <= b - a
+    for all ε > 0, |cos(ε/4)| < 1, there's some N that n > N implies:
+        cos(ε/4)^2n < ε/2π, cos(x)^2n < ε/2π on [ε/4, π - ε/4]
+        int(0, π, cos(x)^2n dx) <= int(0, ε/4, 1dx) + int(ε/4, π - ε/4, cos(x)^2n dx) + int(π - ε/4, π, 1dx)
+                                <= ε/4 + ε/2π * (π - ε/2) + ε/4
+                                < ε
+    hence lim{n -> ∞}int(0, π, cos(x)^2n dx) = 0
+    fn(π) = cos(π)^n = (-1)^n diverges
+b.  fn(0) = 1, for x ∈ (0, π/2], |cos(x)| < 1, fn(x) = cos(x)^n -> 0
+    the limit function is not continuous, fn(x) doesn't converge uniformly
+
+9.29
+for all x ∈ [0, 1], let N = [2/x] + 1, for all n > N,
+    2/n < x, fn(x) = 0
+hence fn(x) -> 0 pointwise on [0, 1], but 
+    int(0, 1, fn(x)dx)  = int(1/n, 2/n, ndx)
+                        = 1
+
+9.30
+if f is continuous and increasing on S, C({xn}) ⊆ S, limsup{n -> ∞}f(xn) = f(limsup{n -> ∞}xn):
+    let limsup{n -> ∞}xn = p, for all ε > 0, there's δ > 0 that |f(x) - f(p)| < ε whenever |x - p| < δ
+    as f is increasing, f(x) - f(p) < ε for all x - p < δ
+    there's some N that n > N implies xn < p + δ, f(xn) < f(p) + ε
+    for all M there's n > M, xn > p - δ, f(xn) > f(p) - ε, limsup{n -> ∞}f(xn) = f(p)
+similarly, if f is continuous and decreasing on S, liminf{n -> ∞}f(xn) = f(limsup{n -> ∞}xn)
+by exercise 8.4, 
+    liminf{n -> ∞}|an+1/an| <= limsup{n -> ∞}an^(1/n) = 1/r <= limsup{n -> ∞}|an+1/an|
+1/x is continuous and decreasing,
+    liminf{n -> ∞}|an/an+1| <= r <= limsup{n -> ∞}|an/an+1|
+
+9.31
+a.  x^k is increasing and continuous, 
+        limsup{n -> ∞}(an^k)^(1/n)  = limsup{n -> ∞}(an^(1/n))^k
+                                    = (1/r)^k
+    r = 2^k
+b.  1   > limsup{n -> ∞}|anz^kn|^(1/n)
+        = limsup{n -> ∞}|an|^(1/n) * |z|^k
+        = |z|^k/r
+    |z|^k < r = 2, |z| < 2^(1/k)
+c.  limsup{n -> ∞}|anz^(n^2)|^(1/n) = limsup{n -> ∞}|an|^(1/2) * z^n
+                                    = +∞ if |z| > 1
+                                    = 1/2 if |z| = 1
+                                    = 0 if |z| < 1
+    radius of convergence is 1
+
+9.32
+Σanx^n * (1 + Ax + Bx^2)    = Σ{0, ∞}anx^n + Σ{0, ∞}Aanx^(n+1) + Σ{0, ∞}Banx^(n+2)
+                            = Σ{2, ∞}anx^n + Σ{2, ∞}Aan-1x^n + Σ{2, ∞}Ban-2x^n + a0 + a1x + Aa0x
+                            = Σ{2, ∞}(an + Aan-1 + Ban-2)x^n + a0 + a1x + Aa0x
+                            = a0 + (a1 + Aa0)x
+Σanx^n  = (a0 + (a1 + Aa0)x)/(1 + Ax + Bx^2)
+
+9.33
+a.  for all k >= 0,
+        lim{x -> 0}e^(-1/x^2)/x^k   = lim{y -> ∞}e^(-y^2)/(1/y)^k
+                                    = lim{y -> ∞}y^k/e^(y^2)
+                                    = 0 as exponential function grows faster than polynomial functions
+    f^(n)(x) = Σane^(-1/x^2)/x^kn a finite sum:
+        f^(0)(x) = f(x) = e^(-1/x^2)
+        assume f^(n)(x) = Σane^(-1/x^2)/x^kn
+        (ane^(-1/x^2)/x^kn)'    = an(e^(-1/x^2) * -2/x^3 * x^k - e^(-1/x^2) * kx^(k-1))/x^2k
+                                = ane^(-1/x^2)(-2x^(-k-3) - kx^(-k-1))
+    therefore f^(n+1)(0)    = lim{n -> ∞}f^(n)(x)/x
+                            = 0
+b.  Σf^(n)(0)/n! * x^n = 0, the series is convergent on R, but e^(-1/x^2) != 0 for all R - {0}
+
+9.34
+a.  for α < 0, 
+        (-1)^nC(α, n)   = (-1)^nΠ{1, n}(α - k)/n!
+                        = Π{0, n-1}(-α + k)/n!
+                        = -α/n * Π{1, n-1}(-α + k)/k
+                        >= -α/n
+    by comparison test Σ(-1)^nC(α, n) diverges
+    for α = 0, ΣC(α, n)(-1)^n = 0
+    for α > 0, when α is an integer, ΣC(α, n)(-1)^n is a finite sum
+    // thanks soluions manual
+    let an = nC(α, n)(-1)^n,
+        0   < an+1/an
+            = (n - α)/n
+            < 1 for sufficiently large n
+    |an+1| < |an|, an+1 and an has same sign for sufficiently large n, assume wlog for some N an >= 0 whenever n > N
+    {an} is decreasing and positive, an -> A for some A >= 0, also
+        an - an+1   = nC(α, n)(-1)^n - (n + 1)C(α, n+1)(-1)^(n+1)
+                    = nC(α, n)(-1)^n - (α - n)C(α, n)(-1)^(n+1)
+                    = (-1)^nC(α, n)(n - α + n)
+                    = αC(α, n)(-1)^n
+    ΣC(α, n)(-1)^n  = Σ(an - an+1)/α
+                    = (a1 - A)/α
+    converges whenever α > 0
+b.  when α <= -1, 
+        C(α, n) = Π{1, n}(α - k + 1)/k
+                <= -Π{1, n}k/k
+    is not bounded, ΣC(α, n) cannot converge
+    when -1 < α < 0, define 
+        an  = |C(α, n)| 
+            = -α(-α + 1)..(-α + n - 1)/n!
+            > 0
+        C(α, n) = (-1)^nan 
+    an+1/an = (n - α)/(n + 1)
+            < 1
+    {an} is decreasing and positive, an -> B for some B >= 0
+    an  = Π{1, n}(-α + k - 1)/k
+        = Π{1, n}(1 - (α + 1)/k)
+    as Σ(1 - (α + 1)/k) diverges, an diverges to 0, ΣC(α, n) = Σ(-1)^nan converges
+    an  = -α/n * Π{1, n-1}(-α + k)/k
+        > -α/n
+    by comparison test Σ|C(α, n)| = Σan diverges, ΣC(α, n) converges conditionally 
+    when α = 0, ΣC(α, n) = 0
+    when α > 0, again define an = |C(α, n)|
+    an+1/an = |α - n|/(n + 1)
+            = (n - α)/(n + 1) for sufficiently large n
+            < 1
+    (n + 1)an+1 = (n - α)an
+    nan - (n + 1)an+1 = αan > 0
+    {nan} is decreasing and positive, nan -> A for some A >= 0
+    Σan = Σ(nan - (n + 1)an+1)/α
+        = 1/α - A/α
+    converges, ΣC(α, n) converges absolutely
+
+9.35    
+anx^n <= an when 0 <= x <= 1, Σan converges, by M-test Σanx^n converges uniformly on [0, 1]
+assume r = 1, if Σan converges, Σanx^n converges uniformly on [0, 1], the limit function f is continuous on [0, 1]
+lim{x -> 1-}f(x) = Σan
+
+9.36
+Σan diverges, an >= 0, its partial sums are not bounded above
+for all M > 0, there's N that n > N implies:
+    Σ{0, n}ak > 2M
+for all n there's x ∈ (0, 1) that for all 0 <= k <= n and all y > x, 
+    y^k > x^k >= x^n >= 1/2
+    Σany^n  > Σ{0, n}aky^k 
+            > 1/2 * Σ{0, n}ak
+            > M
+let δ = 1 - x, Σany^n > M whenever x ∈ (1 - δ, 1), lim{x -> 1-}anx^n = +∞
+
+9.37
+by exercise 9.36, if Σan is not bounded, lim{x -> 1-}anx^n = +∞
+if lim{x -> 1-}Σanx^n = A, Σan converges, by exercise 9.35 Σanx^n converges uniformly on [0, 1]
+Σan = lim{x -> 1-}Σanx^n
+
+9.38
+a.  by defintion,
+        e^x = Σx^n/n!
+        xe^xt/(e^x - 1) = xΣ(xt)^n/n! / (Σ{0, ∞}x^n/n! - 1)
+                        = Σ(xt)^n/n! / Σ{1, ∞}x^(n-1)/n!
+                        = Σ(xt)^n/n! / Σ{0, ∞}x^n/(n + 1)!
+    by theorem 9.26, there's a neighborhood B(0, δ) in which, 
+        Σqnx^n  = 1/Σ{0, ∞}x^n/(n + 1)!
+        xe^xt/(e^x - 1) = Σqnx^n * Σ(xt)^n/n!
+                        = Σpnx^n // theorem 9.24
+    where each pn is unique 
+b.  
