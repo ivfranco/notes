@@ -5675,4 +5675,60 @@ a.  by defintion,
         xe^xt/(e^x - 1) = Σqnx^n * Σ(xt)^n/n!
                         = Σpnx^n // theorem 9.24
     where each pn is unique 
-b.  
+b.  at x = 0, 
+        ΣPn(t)x^n/n!    = P0(t)
+                        = e^tx * ΣPn(0)x^n/n!
+                        = P0(0)
+    in B(0, δ), 
+        ΣPn(t)/n! * x^n = e^xt * ΣPn(0)/n! * x^n
+                        = Σ(t^n/n! * x^n) * Σ(Pn(0)/n! * x^n)
+                        = Σ(Σ{0, n}Pk(0)t^(n-k)/k!(n-k)!) * x^n
+    Pn(t)/n!    = Σ{0, n}Pk(0)t^(n-k)/k!(n - k)!
+    Pn(t)   = Σ{0, n}C(n, k)Pk(0)t^(n-k)
+c.  at t = 0, 
+        x/(e^x - 1) = ΣPn(0)x^n/n!
+                    = 1/Σx^n/(n + 1)!
+        1   = ΣPn(0)x^n/n! * Σx^n/(n + 1)!
+            = Σ(Σ{0, n}Pk(0)/k!(n - k + 1)!)x^n
+        Pk(0) = 1
+        Σ{0, n}Pk(0)/k!(n - k + 1)! = 0 for all n >= 1
+        Σ{0, n}Pk(0)(n + 1)!/k!(n - k + 1)! = 0
+        Σ{0, n}C(n+1, k)Pk(0) = 0
+        Σ{0, n-1}C(n, k)Pk(0) = 0 for all n >= 1
+    take n = 2,
+        B0 + 2B1 = 0
+        B1 = -1/2
+d.  Pn'(t)  = Σ{0, n-1}C(n, k)Pk(0)(n - k)t^(n-k-1)
+            = Σ{0, n-1}n!/k!(n - k)!Pk(0)(n - k)t^(n-k-1)
+            = nΣ{0, n-1}(n - 1)!/k!(n - 1 - k)!Pk(0)t^(n-k-1)
+            = nPn-1(t)
+e.  Σ(Pn(t + 1) - Pn(t))x^n/n!  = ΣPn(t + 1)x^n/n! - ΣPn(t)x^n/n!
+                                = xe^(t+1)x/(e^x - 1) - xe^tx/(e^x - 1)
+                                = (e^x - 1)xe^tx/(e^x - 1)
+                                = xe^tx
+                                = Σx(tx)^n/n!
+                                = Σx^(n+1)t^n/n!
+                                = 1 + Σ{1, ∞}x^nt^(n-1)/(n - 1)!
+                                = 1 + Σ{1, ∞}nt^(n-1)/n! * x^n
+    hence for n >= 1, Pn(t + 1) - Pn(t) = nt^(n-1)
+f.  ΣPn(1 - t)x^n/n!    = xe^(1 - t)x/(e^x - 1)
+                        = xe^xe^-tx/(e^x - 1)
+                        = xe^(-tx)/(1 - e^-x)
+                        = -xe^(-tx)/(e^-x - 1)
+                        = ft(-x)
+                        = ΣPn(t)(-x)^n/n!
+    hence Pn(1 - t) = (-1)^nPn(t)
+g.  in the neighborhood B(0; δ),
+        ΣB2n+1x^2n+1/(2n + 1)!  = 1/2 * (ΣBnx^n/n! - ΣBn(-x)^n/n!)
+                                = 1/2 * (x/(e^x - 1) + x/(e^-x - 1))
+                                = 1/2 * (x/(e^x - 1) + xe^x/(1 - e^x))
+                                = 1/2 * x(1 - e^x)/(e^x - 1)
+                                = -x/2
+    let b2n = 0, b2n+1 = B2n+1/(2n + 1)!,
+        Σ{0, ∞}B2n+1x^2n+1/(2n + 1)!    = Σ{0, ∞}bnx^n/n!
+                                        = -x/2
+    therefore B1 = -1/2, B2n+1 = 0 for all n >= 1
+h.  by part e, 
+        (Pn+1(k) - Pn+1(0))/(n + 1) = Σ{0, k-1}(Pn+1(s + 1) - Pn+1(s))/(n + 1)
+                                    = Σ{0, k-1}(n + 1)s^n/(n + 1)
+                                    = Σ{0, k-1}s^n
