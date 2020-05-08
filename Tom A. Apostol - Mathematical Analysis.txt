@@ -5732,3 +5732,27 @@ h.  by part e,
         (Pn+1(k) - Pn+1(0))/(n + 1) = Σ{0, k-1}(Pn+1(s + 1) - Pn+1(s))/(n + 1)
                                     = Σ{0, k-1}(n + 1)s^n/(n + 1)
                                     = Σ{0, k-1}s^n
+
+definition 10.8.c
+max(fn+1, gn+1) >= fn and gn
+                >= max(fn, gn)
+max is a continuous function R^2 -> R:
+    for all ε > 0, if (z, w) ∈ B((x, y); ε), max(x, y) - √(ε/2) <= max(z, w) <= max(x, y) + ε
+as (fn(x), gn(x)) -> (f(x), g(x)), min(fn(x), gn(x)) -> min(f(x), g(x))
+similarly
+min(fn+1, gn+1) >= fn or gn
+                >= min(fn, gn)
+min(fn(x), gn(x)) -> min(f(x), g(x)) as min(f, g) = -max(-f, -g)
+
+theorem 10.10.b
+I1 ∩ I2 is at most a single point on R with measure zero
+f1 ∈ U(I1), f2 ∈ U(I2), there's sequence of functions {sn}, {tn} that
+    sn ↑ f1 a.e. on I1, tn ↑ f2 a.e. on I2
+define a sequence of functions {rn} as:
+    rn  = sn on I1
+        = tn on I - I1
+rn is a step function (I1 ∩ I2 is the only new point in the partition), rn ↑ f a.e. on I and 
+    int(I, fn)  = lim{n -> ∞}int(I, rn)   
+                = lim{n -> ∞}int(I1, sn) + lim{n -> ∞}int(I - I1, tn)
+                = int(I1, f1) + lim{n -> ∞}int(I2, tn)
+                = int(I1, f1) + int(I2, f2)
