@@ -5756,3 +5756,78 @@ rn is a step function (I1 ∩ I2 is the only new point in the partition), rn ↑
                 = lim{n -> ∞}int(I1, sn) + lim{n -> ∞}int(I - I1, tn)
                 = int(I1, f1) + lim{n -> ∞}int(I2, tn)
                 = int(I1, f1) + int(I2, f2)
+
+theorem 10.17
+a.  integral of step functions are invariant under translation: only (xk - xk-1) matters not each xk
+    let f ∈ U(I), g ∈ U(I + c), g(x) = f(x - c),
+    there's a sequence {fn} that fn ↑ f a.e. on I, lim{n -> ∞}int(I, fn) = int(I, f)
+    let gn(x) = fn(x - c), gn(x) -> f(x - c) = g(x), gn+1(x) >= g(x), gn ↑ g a.e. on I + c
+        int(I, f)   = lim{n -> ∞}int(I, fn)   
+                    = lim{n -> ∞}int(I+c, gn) // invariance of integral of step function under translation
+                    = int(I+c, g)
+    integral of upper functions are invariant under translation
+    finally let f ∈ L(I), g ∈ L(I + c), g(x) = f(x - c)
+    f = f1 - f2, f1, f2 ∈ U(I)
+    define g1(x) = f1(x - c), g2(x) = f2(x - c), g1 - g2 = g on I + c, similar to above g1, g2 ∈ U(I + c)
+    int(I + c, g)   = int(I + c, g1) - int(I + c, g2)
+                    = int(I, f1) - int(I, f2)
+                    = int(I, f)
+b.  let f ∈ S(I), let g(x) = f(x/c) for some c > 0
+    g(x) is a step function on cI:
+        f vanishes outside some [a, b] ∈ I => g vanishes outside some [ca, cb] ∈ cI
+        f is constant on (xk-1, xk) of a partition P = {xk} => g is constant on (cxk-1, cxk) of a partition cP = {cxk}
+    int(cI, g) = int(I, f):
+        assume g(x) = ck on each interval (cxk-1, cxk), f(x) = ck on each interval (xk-1, xk)
+        int(cI, g)  = Σck(cxk-1 - cxk)
+                    = cΣck(xk-1 - xk)
+                    = cint(I, f)
+    let f ∈ U(I), let g(x) = f(x/c) for some c > 0 
+    there's step functions fn ↑ f a.e. on I, let gn = fn(x/c)
+    gn ∈ S(cI), gn+1(x) >= gn(x) and 
+        lim{n -> ∞}gn(x)    = lim{n -> ∞}fn(x/c)
+                            = f(x/c) a.e. on cI
+    hence gn ↑ g, g ∈ U(cI),
+        int(cI, g)  = lim{n -> ∞}int(cI, gn)  
+                    = lim{n -> ∞}cint(I, fn)
+                    = cint(I, f)
+    let f ∈ L(I), g(x) = f(x/c) on cI
+    f = f1 - f2, f1, f2 ∈ U(I), let g1(x) = f1(x/c), g2(x) = f2(x/c), by argument above g1, g2 ∈ U(cI)
+    g1 - g2 = g, 
+        int(cI, g)  = int(cI, g1) - int(cI, g2) 
+                    = cint(I, f1) - cint(I, f2)
+                    = cint(I, f)
+c.  let f ∈ S(I), g(x) = f(-x) is defined on -I
+    g is a step function on -I:
+        f vanishes outside [a, b] => g vanishes outside [-a, -b]
+        f is constant in each interval of a partition {xk} => g is constant in each interval of {-xk}
+    f(x) = ck in (xk-1, xk) => g(x) = ck between (-xk, -xk-1),
+        int(-I, g)  = Σck(-xk - -xk-1)
+                    = Σck(xk-1 - xk)
+                    = int(I, f)
+    let f ∈ U(I), g(x) = f(-x) on -I
+    there's fn ↑ f where fn ∈ S(I), define gn(x) = fn(-x), gn ∈ S(-I),
+        lim{n -> ∞}gn(x)    = lim{n -> ∞}fn(-x)
+                            = f(-x)
+                            = g(x)
+        gn+1(x) >= gn(x)
+    gn ↑ g on -I and
+        int(-I, g)  = lim{n -> ∞}int(-I, gn)
+                    = lim{n -> ∞}int(I, fn)
+                    = int(I, f)
+    let f ∈ L(I), there's f1, f2 ∈ U(I) that f = f1 - f2
+    define g1, g2: -I -> R, g1(x) = f1(-x), g2(x) = f2(-x), g1, g2 ∈ U(I), g1 - g2 = g, g ∈ L(I)
+    int(-I, g1) - int(-I, g2) = int(I, f1) - int(I, f2) = int(I, f)
+
+theorem 10.18.b
+let f1 = u1 - v1, f2 = u2 - v2, u1, v1 ∈ U(I1), u2, v2 ∈ U(I2)
+define
+    u   = u1 on I1
+        = u2 on I - I1
+    v   = v1 on I1
+        = v2 on I - I1
+u - v = f on I, u, v ∈ U(I) by theorem 10.10.b, f ∈ L(I),
+    int(I1, f1) + int(I2, f2)   = int(I1, u1) - int(I1, v1) + int(I2, u2) - int(I2, v2)
+                                = int(I1, u1) + int(I2, u2) - (int(I1, v1) + int(I2, v2))
+                                = int(I, u) - int(I, v)
+                                = int(I, f)
+
