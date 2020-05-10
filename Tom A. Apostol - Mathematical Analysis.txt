@@ -5831,3 +5831,42 @@ u - v = f on I, u, v ∈ U(I) by theorem 10.10.b, f ∈ L(I),
                                 = int(I, u) - int(I, v)
                                 = int(I, f)
 
+theorem 10.30, gn -> f a.e. on I
+wherever |f(x)| <= g(x), for all ε > 0, there's N that n > N implies
+    |fn(x) - f(x)| < ε/2
+    |fn(x)| <= |fn(x) - f(x)| + |f(x)|
+            < g(x) + ε/2
+-g <= gn <= g for all n
+if fn(x) > g(x) >= 0,
+    min(fn(x), g(x))    = g(x)
+                        > fn(x) - ε/2
+    fn  > g(x)
+        >= gn(x)   
+        = max(min(fn, g), -g)
+        = max(g, -g)
+        = g(x)
+        > fn(x) - ε/2
+if fn(x) < -g(x) <= 0,
+    min(fn(x), g(x))    = fn(x)
+    fn(x)   < -g(x)
+            <= gn(x)   
+            = max(min(fn(x), g(x)), -g(x))    
+            = max(fn(x), -g(x))
+            = -g(x)
+            < fn(x) + ε/2
+otherwise -g(x) <= fn(x) <= g(x) and gn(x) = fn(x)
+|gn(x) - fn(x)| < ε/2, |gn(x) - f(x)| < ε, gn -> f a.e. on I
+
+errata of theorem 10.31:
+    |fn| is increasing => int(I, |fn|) is increasing
+
+theorem 10.38, example 2, lim{x -> ∞}f(x) = p iff lim{n -> ∞}f(xn) = p for all increasing xn -> ∞, x1 >= 1
+=>: let lim{x -> ∞}f(x) = p, immediate from theorem 4.12
+<=: if f(x) doesn't converge to p as x -> ∞, there's ε > 0, for all M there's x > M and |f(x) - p| > ε
+    take xn that xn > n and |f(xn) - p| >= ε, define un = inf{xk: k >= n}
+    un >= n, u1 >= 1, un -> ∞ is increasing, un -> ∞
+    but if there's infinite xn < f(x) - ε, lim{n -> ∞}un = liminf{n -> ∞} <= f(x) - ε
+    if there's only finite xn < f(x) - ε, lim{n -> ∞}un = liminf{n -> ∞} >= f(x) - ε
+
+theorem 10.39: a lemma "boundary of an interval has measure zero" is given without proof
+guess will be proved later during the introduction to measure of sets
