@@ -5733,6 +5733,8 @@ h.  by part e,
                                     = Σ{0, k-1}(n + 1)s^n/(n + 1)
                                     = Σ{0, k-1}s^n
 
+// no solutions manual starting from this chapter, a lot of the exercises won't be solved  
+
 definition 10.8.c
 max(fn+1, gn+1) >= fn and gn
                 >= max(fn, gn)
@@ -5870,3 +5872,31 @@ theorem 10.38, example 2, lim{x -> ∞}f(x) = p iff lim{n -> ∞}f(xn) = p for a
 
 theorem 10.39: a lemma "boundary of an interval has measure zero" is given without proof
 guess will be proved later during the introduction to measure of sets
+
+theorem 10.39, example 2
+x^(a-1)|logx| is continuous on each interval [1/n, 1], by Lebesgue's criterion its Riemann integrable on [1/n, 1] 
+let 
+    In = [1/n, 1]
+    fn(x)   = x^(a-1)|logx| on [1/n, 1]
+            = 0 on (0, 1/n)
+fn increases on (0, 1], their integral converges:
+    int(I, fn)  = int(1/n, 1, fndx)
+                = 1/a^2 - (1/n)^a * (1 + alogn)/a^2
+                -> 1/a^2
+by Levi's theorem in L, the limit function is Lebesgue integrable on (0, 1]
+by theorem 10.33, Me^(-x/2) ∈ L((1, +∞))
+by theorem 10.18, g(x) ∈ L([0, +∞))
+
+theorem 10.40
+G is continuous on an interval X    => it's bounded on any closed sub-interval of X
+                                    => there's a sequence of functions Gn = G on X except an interval of length < 1/n
+                                    => each Gn ∈ R ⊆ L(X) ⊆ M(X)
+                                    => there's a sequence of step functions -> G a.e. on X
+                                    => G ∈ M(X)
+                                    => fG ∈ M(X)
+
+the first property of definition 10.48 is not true
+1 ∈ L([0, 1]), but [0, 1] has an unmeasurable subset T, 1 ∉ L(T)
+the discussion of measure theory is quite informal here
+
+similarly theorem 10.49.a is not true
