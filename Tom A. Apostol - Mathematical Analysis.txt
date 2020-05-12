@@ -5900,3 +5900,56 @@ the first property of definition 10.48 is not true
 the discussion of measure theory is quite informal here
 
 similarly theorem 10.49.a is not true
+
+10.1
+if f >= g (and symmetrically g >= f),
+    max(f, g) = f, min(f, g) = g
+    max(f, g) + min(f, g) = f + g
+    f + h >= g + h, max(f + h, g + h) = f + h = max(f, g) + h
+    min(f + h, g + h) = g + h = min(f, g) + h
+
+10.2
+proved below definition 10.8
+
+10.3
+if {int(I, sn)} converges, by Levi's theorem, sn -> g a.e. on I, f = lim{n -> ∞}sn = g a.e. on I
+g ∈ L(I), by theorem 10.21 f ∈ L(I), but f >= 1 ∈ M(I), by theorem 10.35 1 ∈ L(I), but I is unbounded, 1 ∉ L(I)
+
+10.4
+a.  sn vanishes outside the closed interval [0, 1]
+    sn = 1 on a finite number of (possibly overlapping) closed intervals and = 0 anywhere else
+    sn+1 = max{f1, .., fn+1} >= max{f1, .., fn} = sn, {sn} is increasing
+    for all x ∈ [0, 1], if x ∈ IN, sn(x) = 1 = f(x) for all n >= N, otherwise sn(x) = 0 = f(x), sn -> f everywhere on I
+b.  μ(In) <= μ([rn - 4^-n, rn + 4^-n]) = 2/4^n, int(I, sn) = μ(∪In) <= Σμ(In) <= 2Σ{1, n}4^-n <= 2/3
+    int(I, f) = lim{n -> ∞}int(I, sn) <= 2/3
+c.  let P = {xk} be the partition of a step function sn, sn is constant on each (xk-1, xk)
+    there's a rational number in (xk-1, xk), if sn <= -f(x), sn must <= -1 on each (xk-1, xk)
+    sn must be <= -1 a.e. (anywhere but endpoints of P), int(I, sn) <= -1
+d.  if -f ∈ U(I), int(I, f + -f) = int(I, f) + int(I, -f) <= -1/3, but f - f = 0
+
+10.5
+int(0, ∞, e^-nx - 2e^-2nx dx)   = int(0, ∞, d(-e^(-nx)/n + e^(-2nx)/n))
+                                = 0
+Σint(0, ∞, e^-nx - e^-2nx dx)   = 0
+when x > 0, 
+Σ(e^-nx - 2e^-2nx)  = 1/(e^x - 1) - 2/(e^2x - 1)
+int(0, ∞, Σ(e^-nx - 2e^-2nx))   = int(0, ∞, d(log(e^x - 1) - x - log(e^2x - 1) + 2x))
+lim{x -> ∞}log(e^x - 1) - x = lim{x -> ∞}log(e^2x - 1) - 2x 
+                            = 0
+lim{x -> 0}log(e^x - 1) - x - log(e^2x - 1) + 2x    = lim{x -> 0}log((e^x - 1)/(e^2x - 1))
+                                                    = -log2 // (e^x - 1)/x -> 1 as x -> 0
+int(0, ∞, Σ(e^-nx - 2e^-2nx))   = log2
+
+10.6
+a.  let f(x) = log(1/(1 - x)) = -log(1 - x), f^(n)(x) = (n - 1)!/(1 - x)^n is nonnegative on I = [0, 1)
+    by Bernstein's theorem, f(x) = Σx^n/n on I
+    define fn = Σ{1, n}x^k/k on [0, 1], fn -> f a.e. on I
+    fn ∈ R ⊆ L(I), {fn} is increasing on I,
+        int(I, f)   = lim{n -> ∞}int(I, fn)   
+                    = lim{n -> ∞}int(0, 1, Σ{1, n}x^k/k dx)
+                    = lim{n -> ∞}Σ{1, n}1/k * int(0, 1, x^kdx)
+                    = lim{n -> ∞}Σ{1, n}1/k * 1/(k + 1)
+                    = lim{n -> ∞}Σ{1, n}(1/k - 1/(k + 1))
+                    = 1 - lim{n -> ∞}1/(n + 1)
+                    = 1
+b.  
