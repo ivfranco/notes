@@ -5952,4 +5952,61 @@ a.  let f(x) = log(1/(1 - x)) = -log(1 - x), f^(n)(x) = (n - 1)!/(1 - x)^n is no
                     = lim{n -> ∞}Σ{1, n}(1/k - 1/(k + 1))
                     = 1 - lim{n -> ∞}1/(n + 1)
                     = 1
-b.  
+b.  x^(p-1)/(1 - x) * -log(x) = Σx^(n+p-1) * -log(x)
+    where 
+        int(0, 1, x^(n+p-1)log(x))  = int(0, 1, d(x^(n+p)((n + p)log(x) - 1)/(n + p)^2)
+                                    = -1/(n + p)^2
+    by the same argument of part a, 
+        int(0, 1, x^(p-1)/(1 - x) * log(1/x) dx)    = -Σint(0, 1, x^(n+p-1)log(x) dx)
+                                                    = Σ1/(n + p)^2
+    // this integral is a form of the first-order polygamma function 
+
+10.7
+a.  int(a, b, |fn|) <= int(a, b, g) <= int(a, ∞, g) = M, int(a, ∞, fn) and int(a, ∞, |fn|) exist by theorem 10.33
+    |f(x)| = lim{n -> ∞}|fn(x)| <= g(x), int(a, ∞, |f|) exists
+    0 <= |f| - f <= 2|f|, int(a, ∞, f) exists
+    for all ε > 0, there's b0, N that b > b0, n > N implies
+        |int(b, ∞, f)|  <= int(b, ∞, |f|)
+                        < ε/3
+        |int(b, ∞, g)|  < ε/3 
+        |f - fn| < ε/3(b0 - a) on [a, b0] // uniform convergence
+        pn > b0
+        |int(a, ∞, f) - int(a, pn, fn)| <= |int(b0, ∞, f)| + |int(b0, pn, fn)| + |int(a, b0, f) - int(a, b0, fn)|
+                                        < ε/3 + int(b0, pn, |fn|) + ε/3
+                                        <= 2ε/3 + int(b0, pn, g)
+                                        < 2ε/3 + int(b0, ∞, g)
+                                        < ε
+b.  fn = (1 - x/n)^n * x^p -> e^-x * x^p pointwise on [0, +∞)
+    on any [0, b], b >= 0, 1 - x/n > 0 for n > b
+    let gn(x)   = (1 - x/n)^n
+                = e^nlog(1 - x/n)
+                = e^hn(x)
+    hn -> -x pointwise on [0, b], -x is bounded on [0, b], if hn -> -x uniformly hn is bounded for sufficiently large n
+    dhn(x)/dn   = log(1 - x/n) + n/(1 - x/n) * x/n^2
+                = log((n - x)/n) + x/(n - x)
+                = log(y) + (1 - y) // y = (n - x)/n
+    y ↑ 1 as n ↑ ∞, log(y) + (1 - y) = 0 at y = 1, log(y) + (1 - y) is increasing on (0, 1), hn ↑ -x for large n
+    |hn(x) - (-x)|  = -hn(x) - x
+    -hn(0) - 0 = 0
+    d(-hn(x) - x)/dx    = x/(n - x)
+                        > 0
+    the difference is maximized at x = b, as hn(b) -> -b, hn -> -x uniformly on [0, b]
+    by exercise 9.4, gn -> e^-x uniformly on [0, b]
+    by exercise 9.3, fn -> e^-x * x^p uniformly on [0, b] for each b >= 0
+    fn is bounded and continuous on [0, b], fn ∈ R on [0, b]
+    by the argument above, fn ↑ e^-x * x^p ∈ L([a, +∞)), the integrand of the Gamma function
+    by part a, int(0, n, (1 - x/n)^nx^p dx) = int(0, ∞, e^-x * x^p dx)
+
+10.8
+define functions 
+    gn(x) = inf{fn(x), fn+1(x), ...}
+lim{n -> ∞}gn(x) = liminf{n -> ∞}fn(x) = f(x), gn -> f a.e. on I
+int(I, gn) <= int(I, fn) <= A, {int(I, gn)} converges
+by Levi's theorem in L, int(I, gn) -> int(I, f)
+
+10.9
+a.  int(1, b, |x^-psinx| dx)    <= int(1, b, x^-p dx)
+                                = 1/(-p + 1) * int(1, b, d(x^(-p+1)))
+                                = (1 - b^(-p+1))/(p - 1)
+                                <= 1/(p - 1)
+    
