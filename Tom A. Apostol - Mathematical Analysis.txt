@@ -6005,8 +6005,115 @@ int(I, gn) <= int(I, fn) <= A, {int(I, gn)} converges
 by Levi's theorem in L, int(I, gn) -> int(I, f)
 
 10.9
-a.  int(1, b, |x^-psinx| dx)    <= int(1, b, x^-p dx)
+a.  int(1, b, |x^-psinx| dx)    <= int(1, b, 1/x^-p dx)
                                 = 1/(-p + 1) * int(1, b, d(x^(-p+1)))
                                 = (1 - b^(-p+1))/(p - 1)
                                 <= 1/(p - 1)
-    
+    as Σ|sinx|/x^p  <= Σ1/x^p converges for p > 1, Σsinx/x^p converges absolutely, int(1, ∞, sinx/x^p dx) exists
+    by theorem 10.33, sinx/x^p ∈ L([1, +∞)), Lebesgue integral equals improper Riemann integral
+b.  // the hint (integration by parts) is for part b, not part a
+    both the limits
+        lim{b -> ∞}x^-pcos(x)
+        int(1, ∞, x^(-p-1)cos(x) dx)
+    exist, by integration by parts int(1, ∞, x^-psinx dx) exists
+    when x ∈ [nπ + π/4, nπ + 3π/4], |sinx| >= √2/2,
+        x^-p|sinx|  >= x^-p * √2/2
+                    >= √2/2x
+    it also has x^-p|sinx| >= 0 elsewhere in [1, nπ], hence
+        int(1, nπ, x^-p|sinx| dx) >= int(π, nπ, g(x) dx) // g(x) = 0 on [1, π]
+    also on each interval [nπ + π/4, nπ + 3π/4],
+        x <= (n + 1)π
+        int(nπ, (n + 1)π, g(x) dx)  >= π/2 * √2/2(n + 1)π
+                                    = √2/4(n + 1)
+        int(π, nπ, g(x) dx) = Σ{1, n-1}int(kπ, (k + 1)π, g(x) dx)
+                            >= √2/4 * Σ{1, n - 1}1/(k + 1)
+                            = √2/4 * Σ{2, n}1/k
+    the last integral is unbounded, f ∉ L([1, +∞))
+
+10.10
+a.  int(0, ∞, 2sinxcosx/2x dx)  = int(0, ∞, sin(2x)/2x dx)    
+                                = 1/2 * int(0, ∞, siny/y dy)
+                                = π/4
+b.  int(0, ∞, sinxcosx/x dx)    = int(0, ∞, sinx/x d(sinx))
+                                = lim{x -> ∞}(sinx)^2/x - lim{x -> 0}sinx^2/x - int(0, ∞, sinxd(sinx/x))
+                                = 0 - 0 - int(0, ∞, sinx * (cosx * x - sinx)/x^2 dx)
+                                = -int(0, ∞, sinxcosx/x dx) + int(0, ∞, (sinx)^2/x^2 dx)
+    int(0, ∞, (sinx)^2/x^2 dx)  = 2int(0, ∞, sinxcosx/x dx)
+                                = π/2
+c.  int(0, ∞, sin(2x)^2/x^2 dx) = 4 * int(0, ∞, sin(2x)^2/(2x)^2 dx)
+                                = 4 * 1/2 * int(0, ∞, siny^2/y^2 dy)
+                                = π
+    int(0, ∞, sinx^4/x^2 dx)    = int(0, ∞, sinx^2(1 - cosx^2)/x^2 dx)
+                                = int(0, ∞, sinx^2/x^2 dx) - int(0, ∞, sinx^2cosx^2/x^2 dx)
+                                = π/2 - 1/4 * int(0, ∞, sin(2x)^2/x^2 dx)
+                                = π/4
+d.  int(0, ∞, sinx^4/x^4 dx)    = -1/3 * int(0, ∞, sinx^4d(1/x^3))
+                                = -1/3 * (lim{x -> ∞}sinx^4/x^3 - lim{x -> 0}sinx^4/x^3 - int(0, ∞, 4sinx^3cosx/x^3 dx))
+                                = -2/3 * int(0, ∞, sinx^3cosx d(1/x^2))
+                                = -2/3 * (lim{x -> ∞}sinx^3cosx/x^2 - lim{x -> 0}sinx^3cosx/x^2 
+                                - int(0, ∞, (3sinx^2cosx^2 - sinx^4)/x^2 dx))
+                                = 2/3 * (3/4 * int(0, ∞, sin(2x)^2/x^2 dx) - int(sinx^4/x^2 dx))
+                                = 2/3 * (3π/4 - π/4)
+                                = π/3
+
+10.11
+if p < -1, let d = (-1 - p)/2, p + d < -1, d > 0, x^p = x^(p+d) * x^-d, for sufficiently large n, 
+    qloglogn < dlogn
+    (logn)^q < n^d
+    (logn)^q/n^d < 1
+    x^p * (logn)^q  < x^(p+d)
+by comparison test Σx^p(logx)^q converges, int(a, +∞, x^p(logx)^q dx) exists as improper Riemann integral
+x^p(logx)^q > 0, the Lebesgue integral also exists
+if p = -1, q < -1, let q = -1 - d, d > 0
+    int(a, ∞, (logx)^q/x dx)    = int(a, ∞, (logx)^q d(logx))
+                                = lim{x -> ∞}(logx)^(q+1) - (loga)^(q+1) - int(a, ∞, (logx)^(2q+1)/x dx)
+hence int(a, ∞, (logx)^q/x dx) exists iff int(a, ∞, (logx)^(2q+1)/x dx) exists
+2q + 1  = -2 - 2d + 1 
+        = -1 - 2d
+for some k, 2^k * d >= 1, as Σ1/x(logx)^2 converges, int(a, ∞, (logx)^q/x dx) exists and all q < -1
+
+10.12
+a.  0 <= sin(1/x) <= 1/x on [1, +∞)
+    int(0, b, sin(1/x)^2 dx)    <= int(1, b, 1/x^2 dx)
+                                <= int(1, ∞, 1/x^2 dx)
+    as sin(1/x)^2 >= 0, both improper Riemann and Lebesgue integral exist
+b.  for all real p and q > 0, for sufficiently large x, 
+        (p - 2)logx <= x^q
+        x^(p-2) <= e^(x^q)
+        x^(p-2) * e^(-x^q) <= 1
+        x^p * e^(-x^q) <= 1/x^2
+    x^p * e^(-x^q) is bounded and continuous on any [0, b], int(0, ∞, x^p * e^(-x^q)) exists
+
+10.13
+a.  0   <= e^-(t^2 + t^-2) 
+        = e^-t^2 * e^-t^(-2)
+        <= e^-t^2 // 0 < e^-t^(-2) < 1
+    int(0, ∞, e^-(t^2 + t^-2) dt)   <= int(0, ∞, e^-t^2 dt)
+                                    = √π/2
+    limit exists as both improper Riemann and Lebesgue integral
+b.  on [0, 1], 0 <= cosx <= 1, 
+        int(0, 1, cosx/√x dx)   <= int(0, 1, 1/√x dx)
+                                = 1/2
+    on [1, +∞), 
+        int(1, ∞, cosx/√x dx)   = int(1, ∞, 1/√x d(sinx))
+                                = lim{x -> ∞}sinx/√x - sin1 + 1/2 * int(1, ∞, sinx/x^(3/2) dx)
+    both limits on the right side exist (exercise 10.9), int(1, ∞, cosx/√x dx) exist
+    by a similar argument of exercise 10.9.b, int(0, b, |cosx|/√x dx) is unbounded
+    the integral exists as improper Riemann but not Lebesgue
+c.  on [1, 2], 0 <= logx < 1,
+        int(1, 2, logx/x√(x^2 - 1) dx) <= int(1, 2, 1/x√(x^2 - 1) dx)
+    let y = √(x^2 - 1), x = √(y^2 + 1), dx/dy = y/√(y^2 + 1),
+        int(1, 2, 1/x√(x^2 - 1) dx) = int(0, √3, 1/y√(y^2 + 1) * y/√(y^2 + 1) dy)
+                                    = int(0, √3, 1/(y^2 + 1) dy)
+                                    = arctan(√3)
+                                    = π/3
+    on [2, +∞), √(x^2 - 1) >= x/2, 
+        int(2, +∞, logx/x√(x^2 - 1) dx) <= int(2, +∞, logx/x^2 dx)
+    the integral on the right side converges by exercise 10.11
+    the integral exists as both improper Riemann and Lebesgue
+d.  on [0, 1], e^-x * sin(1/x) is bounded and continuous a.e., the function is Riemann integrable
+    on [1, +∞), 1 >= sin(1/x) >= 0, 
+        int(1, ∞, e^-x * sin(1/x))  <= int(1, ∞, e^-x dx)
+                                    = 1/e
+    the integral exists as both improper Riemann and Lebesgue
+e.  
