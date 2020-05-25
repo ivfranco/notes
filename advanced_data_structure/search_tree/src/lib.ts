@@ -3,14 +3,19 @@ export {
   Internal,
   Leaf,
   Factory,
+  Tree,
   left_rotation,
   right_rotation,
   is_ordered,
+  is_connected,
+  connect_left,
+  connect_right,
   connect_by_key,
   find,
   narrow_to_leaf,
   find_interval,
-  make_tree,
+  make_tree_bottom_up as make_tree,
+  make_tree_top_down,
   depth,
   size,
 };
@@ -88,6 +93,19 @@ function is_ordered<K, V>(node: BNode<K, V>, cmp: Comparator<K>): boolean {
   }
 
   return true;
+}
+
+function is_connected<K, V>(node: BNode<K, V>): boolean {
+  if (node.kind == "Leaf") {
+    return true;
+  } else {
+    return (
+      node.left_child.parent == node &&
+      node.right_child.parent == node &&
+      is_connected(node.left_child) &&
+      is_connected(node.right_child)
+    );
+  }
 }
 
 function connect_left<K, V>(parent: Internal<K, V>, child: BNode<K, V>) {
@@ -200,7 +218,9 @@ interface Factory<K, V, L extends Leaf<K, V>, I extends Internal<K, V>> {
   create_internal(key: K, left_child: L | I, right_child: L | I): I;
 }
 
-function make_tree<K, V, L extends Leaf<K, V>, I extends Internal<K, V>>(
+// bottom up construction of optimal tree
+// expect (key, value) pair sorted by keys
+function make_tree_bottom_up<K, V, L extends Leaf<K, V>, I extends Internal<K, V>>(
   pairs: [K, V][],
   factory: Factory<K, V, L, I>
 ): L | I | null {
@@ -225,4 +245,109 @@ function make_tree<K, V, L extends Leaf<K, V>, I extends Internal<K, V>>(
   }
 
   return nodes[0][0];
+}
+
+// the top down version doesn't fit well into the type system
+// key and value of a leaf may be placeholders instead of the expected type during construction
+// expect (key, value) pairs sorted by keys
+function make_tree_top_down<K, V, L extends Leaf<K | null, V | null>, I extends Internal<K | null, V | null>>(
+  pairs: [K, V][],
+  factory: Factory<K | null, V | null, L, I>
+): L | I | null {
+  interface StackObject {
+    node: L;
+    target: I | null;
+    leaves: number;
+  }
+
+  function split_leaf(leaf: L): I {
+    let left_child = factory.create_leaf(null, null);
+    let right_child = factory.create_leaf(null, null);
+    let internal = factory.create_internal(null, left_child, right_child);
+
+    // fix parent pointers
+    let parent = leaf.parent;
+    if (parent) {
+      if (parent.left_child == leaf) {
+        connect_left(parent, internal);
+      } else {
+        connect_right(parent, internal);
+      }
+    }
+
+    return internal;
+  }
+
+  if (pairs.length == 0) {
+    return null;
+  }
+
+  pairs = pairs.reverse();
+  // need access to one leaf to traverse back to the root
+  let leaf = factory.create_leaf(null, null);
+  let stack: StackObject[] = [
+    {
+      node: leaf,
+      target: null,
+      leaves: pairs.length,
+    },
+  ];
+
+  while (stack.length > 0) {
+    let { node, target, leaves } = <StackObject>stack.pop();
+    if (leaves == 1) {
+      // left child is expended first, pairs can be inserted in increasing order
+      let [key, value] = <[K, V]>pairs.pop();
+      node.key = key;
+      node.value = value;
+      if (target) {
+        target.key = key;
+      }
+      leaf = node;
+    } else {
+      // key of an internal node should be the key of the left-most leaf of its right subtree
+      let internal = split_leaf(node);
+      let left_object = {
+        node: <L>internal.left_child,
+        // `internal` is in the right subtree of `target`
+        // its left subtree inherits its target
+        target: target,
+        // WARNING: javascript has no integer type
+        leaves: Math.floor(leaves / 2),
+      };
+      let right_object = {
+        node: <L>internal.right_child,
+        // the key of `internal` comes from its right tree
+        target: internal,
+        leaves: leaves - left_object.leaves,
+      };
+
+      // order here is crucial, left-most child must be on top of the stack
+      stack.push(right_object);
+      stack.push(left_object);
+    }
+  }
+
+  let root: I | L = leaf;
+  while (root.parent) {
+    root = <I | L>root.parent;
+  }
+
+  return root;
+}
+
+abstract class Tree<K, V> {
+  abstract root: BNode<K, V> | null;
+  abstract cmp: Comparator<K>;
+
+  abstract insert(key: K, value: V): void;
+  abstract delete(key: K): V | null;
+
+  find(search_key: K): V | null {
+    if (this.root == null) {
+      return null;
+    } else {
+      return find(search_key, this.root, this.cmp);
+    }
+  }
 }

@@ -1,5 +1,17 @@
 export { NaiveTree, NaiveFactory };
-import { Internal, Leaf, Factory, connect_by_key, find, narrow_to_leaf, find_interval } from "./lib";
+import {
+  Internal,
+  Leaf,
+  Factory,
+  Tree,
+  connect_by_key,
+  find,
+  narrow_to_leaf,
+  find_interval,
+  connect_left,
+  connect_right,
+  right_rotation,
+} from "./lib";
 import { Comparator, Ordering } from "./comparator";
 
 type NaiveNode<K, V> = NaiveInternal<K, V> | NaiveLeaf<K, V>;
@@ -8,15 +20,13 @@ class NaiveInternal<K, V> implements Internal<K, V> {
   kind: "Internal" = "Internal";
   parent: NaiveInternal<K, V> | null = null;
   key: K;
-  left_child: NaiveNode<K, V>;
-  right_child: NaiveNode<K, V>;
+  left_child!: NaiveNode<K, V>;
+  right_child!: NaiveNode<K, V>;
 
   constructor(key: K, left_child: NaiveNode<K, V>, right_child: NaiveNode<K, V>) {
     this.key = key;
-    this.left_child = left_child;
-    left_child.parent = this;
-    this.right_child = right_child;
-    right_child.parent = this;
+    connect_left(this, left_child);
+    connect_right(this, right_child);
   }
 }
 
@@ -46,20 +56,13 @@ class NaiveLeaf<K, V> implements Leaf<K, V> {
   }
 }
 
-class NaiveTree<K, V> {
+class NaiveTree<K, V> extends Tree<K, V> {
   cmp: Comparator<K>;
   root: NaiveNode<K, V> | null = null;
 
   constructor(cmp: Comparator<K>) {
+    super();
     this.cmp = cmp;
-  }
-
-  find(search_key: K): V | null {
-    if (this.root == null) {
-      return null;
-    } else {
-      return find(search_key, this.root, this.cmp);
-    }
   }
 
   find_interval(min: K, max: K): [K, V][] {
