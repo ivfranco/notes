@@ -4,23 +4,24 @@ export {
   Leaf,
   Factory,
   Tree,
+  Interval,
   left_rotation,
   right_rotation,
-  is_ordered,
-  is_connected,
   connect_left,
   connect_right,
   connect_by_key,
   find,
-  narrow_to_leaf,
   find_interval,
+  narrow_to_leaf,
+  split_leaf,
+  join_leaf,
   make_tree_bottom_up as make_tree,
   make_tree_top_down,
   depth,
   size,
 };
 
-import { Comparator, Ordering } from "./comparator";
+import { Comparator, Ordering, array_comparator } from "./comparator";
 
 type BNode<K, V> = Internal<K, V> | Leaf<K, V>;
 
@@ -73,37 +74,6 @@ class Interval<K> {
   close_close(key: K, cmp: Comparator<K>): boolean {
     return (
       (this.min == null || cmp(this.min, key) != Ordering.GT) && (this.max == null || cmp(key, this.max) != Ordering.GT)
-    );
-  }
-}
-
-function is_ordered<K, V>(node: BNode<K, V>, cmp: Comparator<K>): boolean {
-  let stack: [BNode<K, V>, Interval<K>][] = [[node, new Interval<K>(null, null)]];
-
-  while (stack.length != 0) {
-    let [node, interval] = <[BNode<K, V>, Interval<K>]>stack.pop();
-    if (!interval.close_open(node.key, cmp)) {
-      return false;
-    }
-
-    if (node.kind == "Internal") {
-      stack.push([node.left_child, new Interval(interval.min, node.key)]);
-      stack.push([node.right_child, new Interval(node.key, interval.max)]);
-    }
-  }
-
-  return true;
-}
-
-function is_connected<K, V>(node: BNode<K, V>): boolean {
-  if (node.kind == "Leaf") {
-    return true;
-  } else {
-    return (
-      node.left_child.parent == node &&
-      node.right_child.parent == node &&
-      is_connected(node.left_child) &&
-      is_connected(node.right_child)
     );
   }
 }
@@ -176,6 +146,65 @@ function narrow_to_leaf<K, V>(search_key: K, node: BNode<K, V>, cmp: Comparator<
   }
 
   return node;
+}
+
+function internal_by_key<K, V, L extends Leaf<K, V>, I extends Internal<K, V>>(
+  first_child: L | I,
+  second_child: L | I,
+  cmp: Comparator<K>,
+  factory: Factory<K, V, L, I>
+): I {
+  if (cmp(first_child.key, second_child.key) == Ordering.LT) {
+    return factory.create_internal(second_child.key, first_child, second_child);
+  } else if (cmp(second_child.key, first_child.key) == Ordering.LT) {
+    return factory.create_internal(first_child.key, second_child, first_child);
+  } else {
+    throw new Error("Duplicated key");
+  }
+}
+
+function split_leaf<K, V, L extends Leaf<K, V>, I extends Internal<K, V>>(
+  old_leaf: L,
+  new_leaf: L,
+  cmp: Comparator<K>,
+  factory: Factory<K, V, L, I>
+): I {
+  let parent = old_leaf.parent;
+  let internal = internal_by_key(old_leaf, new_leaf, cmp, factory);
+
+  if (parent) {
+    if (parent.left_child == old_leaf) {
+      connect_left(parent, internal);
+    } else {
+      connect_right(parent, internal);
+    }
+  }
+
+  return internal;
+}
+
+function join_leaf<K, V>(leaf: Leaf<K, V>): BNode<K, V> {
+  console.assert(leaf.parent != null);
+
+  let parent = <Internal<K, V>>leaf.parent;
+
+  let other_child: BNode<K, V>;
+  if (parent.left_child == leaf) {
+    other_child = parent.right_child;
+  } else {
+    other_child = parent.left_child;
+  }
+
+  let grand_parent = parent.parent;
+  if (grand_parent) {
+    if (grand_parent.left_child == parent) {
+      connect_left(grand_parent, other_child);
+    } else {
+      connect_right(grand_parent, other_child);
+    }
+  }
+
+  return other_child;
 }
 
 function find<K, V>(search_key: K, node: BNode<K, V>, cmp: Comparator<K>): V | null {
@@ -336,8 +365,8 @@ function make_tree_top_down<K, V, L extends Leaf<K | null, V | null>, I extends 
   return root;
 }
 
-abstract class Tree<K, V> {
-  abstract root: BNode<K, V> | null;
+abstract class Tree<K, V, N extends BNode<K, V>> {
+  abstract root: N | null;
   abstract cmp: Comparator<K>;
 
   abstract insert(key: K, value: V): void;
@@ -350,4 +379,47 @@ abstract class Tree<K, V> {
       return find(search_key, this.root, this.cmp);
     }
   }
+
+  find_interval(min: K, max: K): [K, V][] {
+    if (this.root == null) {
+      return [];
+    } else {
+      return find_interval(min, max, this.root, this.cmp);
+    }
+  }
+
+  to_dot(render: (node: N) => string): string {
+    if (this.root) {
+      return to_dot(this.root, render);
+    } else {
+      return "Empty tree";
+    }
+  }
+}
+
+function to_dot<K, V, N extends BNode<K, V>>(root: N, render: (node: N) => string): string {
+  let last_index = 0;
+  let stack: [N, number][] = [[root, last_index]];
+  let dot = "";
+
+  while (stack.length > 0) {
+    let [node, index] = <[N, number]>stack.pop();
+    dot += `node${index} [label = "${render(node)}"]\n`;
+
+    if (node.kind == "Internal") {
+      let left_child = (<Internal<K, V>>node).left_child;
+      let right_child = (<Internal<K, V>>node).right_child;
+
+      dot += `node${index} -> node${last_index + 1}\n`;
+      dot += `node${index} -> node${last_index + 2}\n`;
+
+      stack.push([<N>left_child, last_index + 1]);
+      stack.push([<N>right_child, last_index + 2]);
+      last_index += 2;
+    }
+  }
+
+  return `Digraph G {
+    ${dot}
+  }`;
 }
