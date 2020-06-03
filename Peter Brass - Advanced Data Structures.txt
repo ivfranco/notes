@@ -19,3 +19,14 @@ max_depthsum(n) = (n - 1)(n + 2)/2:
                     = (n^2 + n - 2)/2
                     = (n - 1)(n + 2)/2
 
+Weight balanced tree, correctness of δ ∈ [0, 1]:
+    if the last operation is a deletion:
+        the tree has w + 1 leaves before the deletion
+        the tree is balanced, both children has >= α(w + 1) leaves
+        after the deletion one subtree has w' < αw leaves, w' + 1 >= α(w + 1), w' < αw
+        w' ∈ [αw + α - 1, αw)
+    if the last operation is an insertion:
+        w' >= α(w - 1)
+        w' < αw
+        w' ∈ [αw - α, αw)
+

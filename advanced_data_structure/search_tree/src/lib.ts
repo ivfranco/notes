@@ -21,7 +21,7 @@ export {
   size,
 };
 
-import { Comparator, Ordering, array_comparator } from "./comparator";
+import { Comparator, Ordering } from "./comparator";
 
 type BNode<K, V> = Internal<K, V> | Leaf<K, V>;
 

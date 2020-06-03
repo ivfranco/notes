@@ -1,4 +1,3 @@
-import { BNode, size } from "../src/lib";
 import { AVLTree, AVLNode } from "../src/AVL_tree";
 import { native_comparator } from "../src/comparator";
 import { expect } from "chai";
