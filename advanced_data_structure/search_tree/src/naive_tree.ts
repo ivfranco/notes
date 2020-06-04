@@ -1,3 +1,6 @@
+/// naive binary search tree with absolutely no rebalancing after insertion or deletion
+/// used to test operations on binary search trees e.g. rotations
+
 export { NaiveTree, NaiveFactory };
 import {
   Internal,

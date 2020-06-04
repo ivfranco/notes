@@ -1,3 +1,5 @@
+/// height balanced binary search tree
+
 export { AVLTree, AVLNode };
 
 import {

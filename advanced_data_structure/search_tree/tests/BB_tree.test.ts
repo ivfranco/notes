@@ -1,37 +1,38 @@
-import { AVLTree, AVLNode } from "../src/AVL_tree";
+import { BBNode, BBTree, ALPHA } from "../src/BB_tree";
 import { native_comparator } from "../src/comparator";
 import { expect } from "chai";
 import { grow_random_tree, is_ordered, is_connected } from "./test_utils";
 
-function random_tree(min: number, max: number): AVLTree<number, number> {
-  let tree = new AVLTree<number, number>(native_comparator);
+function random_tree(min: number, max: number): BBTree<number, number> {
+  let tree = new BBTree<number, number>(native_comparator);
   grow_random_tree(min, max, tree);
   return tree;
 }
 
-function height_balanced<K, V>(node: AVLNode<K, V>): boolean {
+function weight_balanced<K, V>(node: BBNode<K, V>): boolean {
   if (node.kind == "Leaf") {
     return true;
   } else {
     return (
-      height_balanced(node.left_child) &&
-      height_balanced(node.right_child) &&
-      node.get_height() == node.recalc_height() &&
-      Math.abs(node.left_child.get_height() - node.right_child.get_height()) <= 1
+      weight_balanced(node.left_child) &&
+      weight_balanced(node.right_child) &&
+      node.get_weight() == node.recalc_weight() &&
+      node.left_child.get_weight() >= ALPHA * node.get_weight() &&
+      node.right_child.get_weight() >= ALPHA * node.get_weight()
     );
   }
 }
 
-describe("AVL tree set operations", function () {
+describe("BB tree set operations", function () {
   describe("insert and find", function () {
     it("should find inserted keys and nothing else", function () {
       const SIZE: number = 20;
       let tree = random_tree(0, SIZE - 1);
-      let root = <AVLNode<number, number>>tree.root;
+      let root = <BBNode<number, number>>tree.root;
 
       expect(is_ordered(root, tree.cmp), "is ordered after insertion").true;
       expect(is_connected(root), "nodes are correctly connected").true;
-      expect(height_balanced(root), "nodes should be balanced").true;
+      expect(weight_balanced(root), "nodes should be balanced").true;
 
       for (let i = 0; i < SIZE; i++) {
         expect(tree.find(i)).equal(i);
@@ -51,10 +52,10 @@ describe("AVL tree set operations", function () {
       expect(tree.delete(3)).equal(3);
       expect(tree.delete(7)).equal(7);
 
-      let root = <AVLNode<number, number>>tree.root;
+      let root = <BBNode<number, number>>tree.root;
       expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
       expect(is_connected(root), "nodes are correctly connected").true;
-      expect(height_balanced(root), "nodes should be balanced").true;
+      expect(weight_balanced(root), "nodes should be balanced").true;
 
       for (let i = 0; i < SIZE; i++) {
         if (i == 3 || i == 7) {
