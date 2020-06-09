@@ -145,7 +145,7 @@ class BBTree<K, V> extends Tree<K, V, BBNode<K, V>> {
     }
 
     // `internal` is necessarily balanced, its left and right children are leaves
-    // the first possibly imbalance node is its parent
+    // the first possibly unbalanced node is its parent
     rebalance(internal.parent);
   }
 
