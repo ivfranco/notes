@@ -1,6 +1,6 @@
 export { grow_random_tree, is_ordered, is_connected };
 
-import { Tree, BNode, Interval } from "../src/lib";
+import { TreeLike, BNode, Interval } from "../src/lib";
 import { Comparator } from "../src/comparator";
 
 // generates a random integer in the range [min, cap - 1]
@@ -8,7 +8,7 @@ function random_int(min: number, cap: number): number {
   return Math.floor(Math.random() * (cap - min)) + min;
 }
 
-function grow_random_tree<N extends BNode<number, number>>(min: number, max: number, tree: Tree<number, number, N>) {
+function grow_random_tree(min: number, max: number, tree: TreeLike<number, number>) {
   let inputs = [];
   for (let i = min; i <= max; i++) {
     inputs.push(i);

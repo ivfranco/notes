@@ -158,6 +158,7 @@ class RBTree<K, V> extends Tree<K, V, RBNode<K, V>> {
   }
 
   delete(key: K): V | null {
+    // the description of this part is well beyond my grasp
     throw new Error("Not implemented");
   }
 }

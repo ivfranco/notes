@@ -3,6 +3,7 @@ export {
   Internal,
   Leaf,
   Factory,
+  TreeLike,
   Tree,
   Interval,
   left_rotation,
@@ -365,7 +366,13 @@ function make_tree_top_down<K, V, L extends Leaf<K | null, V | null>, I extends 
   return root;
 }
 
-abstract class Tree<K, V, N extends BNode<K, V>> {
+interface TreeLike<K, V> {
+  insert(key: K, value: V): void;
+  delete(key: K): V | null;
+  find(key: K): V | null;
+}
+
+abstract class Tree<K, V, N extends BNode<K, V>> implements TreeLike<K, V> {
   abstract root: N | null;
   abstract cmp: Comparator<K>;
 

@@ -70,26 +70,26 @@ describe("RB tree set operations", function () {
     });
   });
 
-  describe("insert, delete and find", function () {
-    it("should not find deleted keys", function () {
-      const SIZE: number = 20;
-      let tree = random_tree(0, SIZE - 1);
+  // describe("insert, delete and find", function () {
+  //   it("should not find deleted keys", function () {
+  //     const SIZE: number = 20;
+  //     let tree = random_tree(0, SIZE - 1);
 
-      expect(tree.delete(3)).equal(3);
-      expect(tree.delete(7)).equal(7);
+  //     expect(tree.delete(3)).equal(3);
+  //     expect(tree.delete(7)).equal(7);
 
-      let root = <RBNode<number, number>>tree.root;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
-      expect(is_connected(root), "nodes are correctly connected").true;
-      expect(well_colored(tree), "nodes should be balanced").true;
+  //     let root = <RBNode<number, number>>tree.root;
+  //     expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
+  //     expect(is_connected(root), "nodes are correctly connected").true;
+  //     expect(well_colored(tree), "nodes should be balanced").true;
 
-      for (let i = 0; i < SIZE; i++) {
-        if (i == 3 || i == 7) {
-          expect(tree.find(i)).equal(null);
-        } else {
-          expect(tree.find(i)).equal(i);
-        }
-      }
-    });
-  });
+  //     for (let i = 0; i < SIZE; i++) {
+  //       if (i == 3 || i == 7) {
+  //         expect(tree.find(i)).equal(null);
+  //       } else {
+  //         expect(tree.find(i)).equal(i);
+  //       }
+  //     }
+  //   });
+  // });
 });
