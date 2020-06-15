@@ -1,4 +1,4 @@
-export { SplayTree };
+export { SplayTree, SplayNode };
 
 import { TreeLike } from "./lib";
 import { Comparator, Ordering } from "./comparator";
@@ -217,4 +217,41 @@ class SplayTree<K, V> implements TreeLike<K, V> {
       connect_right(old_child.parent, new_child);
     }
   }
+
+  to_dot(): string {
+    if (this.root) {
+      return to_dot(this.root);
+    } else {
+      return "Empty tree";
+    }
+  }
+}
+
+function to_dot<K, V>(root: SplayNode<K, V>): string {
+  let last_index = 0;
+  let stack: [SplayNode<K, V>, number][] = [[root, last_index]];
+  let dot = "";
+
+  while (stack.length > 0) {
+    let [node, index] = stack.pop()!;
+    dot += `node${index} [label = "${node.key}, ${node.value}"]\n`;
+
+    if (node.left_child) {
+      let left_child = node.left_child;
+      dot += `node${index} -> node${last_index + 1}\n`;
+      stack.push([left_child, last_index + 1]);
+      last_index += 1;
+    }
+
+    if (node.right_child) {
+      let right_child = node.right_child;
+      dot += `node${index} -> node${last_index + 1}\n`;
+      stack.push([right_child, last_index + 1]);
+      last_index += 1;
+    }
+  }
+
+  return `Digraph G {
+    ${dot}
+  }`;
 }

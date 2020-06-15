@@ -77,6 +77,12 @@ class Interval<K> {
       (this.min == null || cmp(this.min, key) != Ordering.GT) && (this.max == null || cmp(key, this.max) != Ordering.GT)
     );
   }
+
+  open_open(key: K, cmp: Comparator<K>): boolean {
+    return (
+      (this.min == null || cmp(this.min, key) == Ordering.LT) && (this.max == null || cmp(key, this.max) == Ordering.LT)
+    );
+  }
 }
 
 function connect_left<K, V>(parent: Internal<K, V>, child: BNode<K, V>) {
