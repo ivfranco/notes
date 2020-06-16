@@ -1,4 +1,4 @@
-export { Ordering, Comparator, native_comparator, array_comparator, min, max };
+export { Ordering, Comparator, WithBottom, cmp_with_bottom, native_comparator, array_comparator, min, max, sorted };
 
 enum Ordering {
   EQ,
@@ -16,6 +16,16 @@ function native_comparator<T>(lhs: T, rhs: T): Ordering {
   } else {
     return Ordering.GT;
   }
+}
+
+function sorted<T>(arr: Array<T>, cmp: Comparator<T>): boolean {
+  for (let i = 0; i < arr.length - 1; i += 1) {
+    if (cmp(arr[i], arr[i + 1]) == Ordering.GT) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 // an alphabetical comparator for arrays
@@ -48,4 +58,22 @@ function max<T>(lhs: T, rhs: T, cmp: Comparator<T>): T {
   } else {
     return lhs;
   }
+}
+
+const Bottom = Symbol("Bottom");
+
+type WithBottom<T> = T | typeof Bottom;
+
+function cmp_with_bottom<T>(cmp: Comparator<T>): Comparator<WithBottom<T>> {
+  return function (lhs, rhs) {
+    if (lhs == Bottom && rhs == Bottom) {
+      return Ordering.EQ;
+    } else if (lhs == Bottom) {
+      return Ordering.LT;
+    } else if (rhs == Bottom) {
+      return Ordering.GT;
+    } else {
+      return cmp(lhs, rhs);
+    }
+  };
 }

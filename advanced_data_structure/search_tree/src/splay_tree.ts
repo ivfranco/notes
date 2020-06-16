@@ -103,8 +103,10 @@ class SplayTree<K, V> implements TreeLike<K, V> {
 
       if (upper.parent == null) {
         if (node == upper.left_child) {
+          // case 2.1
           right_rotation(upper);
         } else {
+          // case 2.2
           left_rotation(upper);
         }
         node = upper;
@@ -112,15 +114,19 @@ class SplayTree<K, V> implements TreeLike<K, V> {
         let top = upper.parent;
 
         if (node == upper.left_child && upper == top.left_child) {
+          // case 3.1
           right_rotation(top);
           right_rotation(top);
         } else if (node == upper.left_child && upper == top.right_child) {
+          // case 3.2
           right_rotation(upper);
           left_rotation(top);
         } else if (node == upper.right_child && upper == top.left_child) {
+          // case 3.3
           left_rotation(upper);
           right_rotation(top);
         } else {
+          // case 3.4
           left_rotation(top);
           left_rotation(top);
         }
