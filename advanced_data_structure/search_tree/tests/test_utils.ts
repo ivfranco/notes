@@ -1,6 +1,6 @@
-export { grow_random_tree, is_ordered, is_connected };
+export { random_int, grow_random_tree, is_ordered, is_connected };
 
-import { TreeLike, BNode, Interval } from "../src/lib";
+import { TreeLike, Tree, BNode, Interval } from "../src/lib";
 import { Comparator } from "../src/comparator";
 
 // generates a random integer in the range [min, cap - 1]
@@ -33,12 +33,16 @@ function shuffle<T>(array: T[]) {
   }
 }
 
-function is_ordered<K, V>(node: BNode<K, V>, cmp: Comparator<K>): boolean {
-  let stack: [BNode<K, V>, Interval<K>][] = [[node, new Interval<K>(null, null)]];
+function is_ordered<K, V, N extends BNode<K, V>>(tree: Tree<K, V, N>): boolean {
+  if (tree.root == null) {
+    return true;
+  }
+
+  let stack: [BNode<K, V>, Interval<K>][] = [[tree.root, new Interval<K>(null, null)]];
 
   while (stack.length != 0) {
     let [node, interval] = <[BNode<K, V>, Interval<K>]>stack.pop();
-    if (!interval.close_open(node.key, cmp)) {
+    if (!interval.close_open(node.key, tree.cmp)) {
       return false;
     }
 
@@ -51,7 +55,11 @@ function is_ordered<K, V>(node: BNode<K, V>, cmp: Comparator<K>): boolean {
   return true;
 }
 
-function is_connected<K, V>(node: BNode<K, V>): boolean {
+function is_connected<K, V>(node: BNode<K, V> | null): boolean {
+  if (node == null) {
+    return true;
+  }
+
   if (node.kind == "Leaf") {
     return true;
   } else {

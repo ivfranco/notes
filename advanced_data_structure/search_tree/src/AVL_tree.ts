@@ -1,6 +1,6 @@
 /// height balanced binary search tree
 
-export { AVLTree, AVLNode };
+export { AVLTree, AVLNode, join, split };
 
 import {
   Leaf,
@@ -15,7 +15,7 @@ import {
   split_leaf,
   join_leaf,
 } from "./lib";
-import { Comparator, Ordering } from "./comparator";
+import { Comparator, Ordering, native_comparator } from "./comparator";
 
 type AVLNode<K, V> = AVLLeaf<K, V> | AVLInternal<K, V>;
 
@@ -132,6 +132,10 @@ class AVLTree<K, V> extends Tree<K, V, AVLNode<K, V>> {
     this.cmp = cmp;
   }
 
+  is_empty(): boolean {
+    return this.root == null;
+  }
+
   insert(key: K, value: V) {
     let new_leaf = new AVLLeaf(key, value);
     if (this.root == null) {
@@ -183,4 +187,110 @@ class AVLFactory<K, V> implements Factory<K, V, AVLLeaf<K, V>, AVLInternal<K, V>
   create_internal(key: K, left_child: AVLNode<K, V>, right_child: AVLNode<K, V>): AVLInternal<K, V> {
     return new AVLInternal(key, left_child, right_child);
   }
+}
+
+function join<K, V>(key: K, left_tree: AVLTree<K, V>, right_tree: AVLTree<K, V>): AVLTree<K, V> {
+  // `key` >= all keys in `left_tree`, <= all keys in `right_tree`
+  if (left_tree.root == null) {
+    return right_tree;
+  }
+
+  if (right_tree.root == null) {
+    return left_tree;
+  }
+
+  let left_root = left_tree.root;
+  let right_root = right_tree.root;
+
+  let root = join_nodes(key, left_root, right_root);
+  let tree = new AVLTree<K, V>(left_tree.cmp);
+  tree.root = root;
+
+  return tree;
+}
+
+function join_nodes<K, V>(key: K, left_node: AVLNode<K, V>, right_node: AVLNode<K, V>): AVLNode<K, V> {
+  if (Math.abs(left_node.get_height() - right_node.get_height()) <= 1) {
+    return new AVLInternal(key, left_node, right_node);
+  } else if (left_node.get_height() < right_node.get_height()) {
+    // right_node.get_height() >= left_node.get_height() + 2
+    let node = right_node;
+    let h = left_node.get_height();
+    while (node.kind == "Internal" && node.get_height() > h) {
+      node = node.left_child;
+    }
+
+    // node cannot be root, root has height >= h + 2
+    let parent = node.parent!;
+    // the three cases can be handled similarly given the current implementation of rebalancing and node constructor
+    let internal = new AVLInternal(key, left_node, node);
+    connect_left(parent, internal);
+    rebalance(parent);
+
+    return right_node;
+  } else {
+    // left_node.get_height() >= right_node.get_height() + 2
+    let node = left_node;
+    let h = right_node.get_height();
+    while (node.kind == "Internal" && node.get_height() > h) {
+      node = node.right_child;
+    }
+
+    let parent = node.parent!;
+    let internal = new AVLInternal(key, node, right_node);
+    connect_right(parent, internal);
+    rebalance(parent);
+
+    return left_node;
+  }
+}
+
+// split a tree into two subtrees, first contains all keys < split_key, second contains all keys >= split_key
+function split<K, V>(split_key: K, tree: AVLTree<K, V>): [AVLTree<K, V>, AVLTree<K, V>] {
+  let left_tree = new AVLTree<K, V>(tree.cmp);
+  let right_tree = new AVLTree<K, V>(tree.cmp);
+
+  if (tree.root) {
+    let left_list: Array<[K, AVLNode<K, V>]> = [];
+    let right_list: Array<[K, AVLNode<K, V>]> = [];
+    let node = tree.root;
+    let cmp = tree.cmp;
+
+    while (node.kind == "Internal") {
+      if (cmp(split_key, node.key) == Ordering.LT) {
+        right_list.push([node.key, node.right_child]);
+        node = node.left_child;
+      } else {
+        left_list.push([node.key, node.left_child]);
+        node = node.right_child;
+      }
+    }
+
+    if (cmp(split_key, node.key) != Ordering.GT) {
+      // the key here is not used
+      right_list.push([node.key, node]);
+    } else {
+      left_list.push([node.key, node]);
+    }
+
+    if (left_list.length > 0) {
+      let [_, root] = left_list.reduceRight(([_, prev_node], [next_key, next_node]) => [
+        next_key,
+        // `next_node` is in left subtree of `prev_node.parent`
+        join_nodes(next_key, next_node, prev_node),
+      ]);
+      left_tree.root = root;
+    }
+
+    if (right_list.length > 0) {
+      let [_, root] = right_list.reduceRight(([_, prev_node], [next_key, next_node]) => [
+        next_key,
+        // `next_node` is in right subtree of `prev_node.parent`
+        join_nodes(next_key, prev_node, next_node),
+      ]);
+      right_tree.root = root;
+    }
+  }
+
+  return [left_tree, right_tree];
 }

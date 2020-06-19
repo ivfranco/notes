@@ -8,7 +8,7 @@ enum Ordering {
 
 type Comparator<T> = (lhs: T, rhs: T) => Ordering;
 
-function native_comparator<T>(lhs: T, rhs: T): Ordering {
+function native_comparator<T extends number | string>(lhs: T, rhs: T): Ordering {
   if (lhs === rhs) {
     return Ordering.EQ;
   } else if (lhs < rhs) {

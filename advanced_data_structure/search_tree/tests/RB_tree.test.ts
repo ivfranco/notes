@@ -56,7 +56,7 @@ describe("RB tree set operations", function () {
       //   })
       // );
 
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion").true;
+      expect(is_ordered(tree), "is ordered after insertion").true;
       expect(is_connected(root), "nodes are correctly connected").true;
       expect(well_colored(tree), "nodes should be balanced").true;
 

@@ -15,8 +15,8 @@ describe("naive tree set operations", function () {
     it("should find inserted keys and nothing else", function () {
       let tree = random_tree(0, 9);
 
-      expect(is_ordered(<BNode<number, number>>tree.root, tree.cmp), "is ordered after insertion").true;
-      expect(is_connected(<BNode<number, number>>tree.root), "nodes are correctly connected").true;
+      expect(is_ordered(tree), "is ordered after insertion").true;
+      expect(is_connected(tree.root), "nodes are correctly connected").true;
 
       for (let i = 0; i < 10; i++) {
         expect(tree.find(i)).equal(i);
@@ -35,8 +35,8 @@ describe("naive tree set operations", function () {
       expect(tree.delete(3)).equal(3);
       expect(tree.delete(7)).equal(7);
 
-      expect(is_ordered(<BNode<number, number>>tree.root, tree.cmp), "is ordered after insertion and deletion").true;
-      expect(is_connected(<BNode<number, number>>tree.root), "nodes are correctly connected").true;
+      expect(is_ordered(tree), "is ordered after insertion and deletion").true;
+      expect(is_connected(tree.root), "nodes are correctly connected").true;
 
       for (let i = 0; i < 10; i++) {
         if (i == 3 || i == 7) {
@@ -74,13 +74,12 @@ describe("make tree", function () {
 
       let factory = new NaiveFactory();
       let node = <BNode<number, number>>make_tree(pairs, factory);
+      let tree = new NaiveTree<number, number>(native_comparator);
+      tree.root = node;
 
       expect(size(node), "expected size").equal(SIZE);
-      expect(is_ordered(node, native_comparator)).true;
+      expect(is_ordered(tree)).true;
       expect(is_connected(node)).true;
-
-      let tree = new NaiveTree(native_comparator);
-      tree.root = node;
 
       for (let i = 0; i < SIZE; i++) {
         expect(tree.find(i), "expected value").equal(i);
@@ -98,13 +97,12 @@ describe("make tree", function () {
 
       let factory = new NaiveFactory();
       let node = <BNode<number, number>>make_tree_top_down(pairs, factory);
+      let tree = new NaiveTree<number, number>(native_comparator);
+      tree.root = node;
 
       expect(size(node), "expected size").equal(SIZE);
-      expect(is_ordered(node, native_comparator)).true;
+      expect(is_ordered(tree)).true;
       expect(is_connected(node)).true;
-
-      let tree = new NaiveTree(native_comparator);
-      tree.root = node;
 
       for (let i = 0; i < SIZE; i++) {
         expect(tree.find(i), "expected value").equal(i);
@@ -124,14 +122,13 @@ describe("rotations", function () {
 
       let factory = new NaiveFactory();
       let node = <BNode<number, number>>make_tree_top_down(pairs, factory);
+      let tree = new NaiveTree<number, number>(native_comparator);
+      tree.root = node;
 
       left_rotation(node);
       expect(size(node), "expected size").equal(SIZE);
-      expect(is_ordered(node, native_comparator)).true;
+      expect(is_ordered(tree)).true;
       expect(is_connected(node)).true;
-
-      let tree = new NaiveTree(native_comparator);
-      tree.root = node;
 
       for (let i = 0; i < SIZE; i++) {
         expect(tree.find(i), "expected value").equal(i);
@@ -149,14 +146,13 @@ describe("rotations", function () {
 
       let factory = new NaiveFactory();
       let node = <BNode<number, number>>make_tree_top_down(pairs, factory);
+      let tree = new NaiveTree<number, number>(native_comparator);
+      tree.root = node;
 
       right_rotation(node);
       expect(size(node), "expected size").equal(SIZE);
-      expect(is_ordered(node, native_comparator)).true;
+      expect(is_ordered(tree)).true;
       expect(is_connected(node)).true;
-
-      let tree = new NaiveTree(native_comparator);
-      tree.root = node;
 
       for (let i = 0; i < SIZE; i++) {
         expect(tree.find(i), "expected value").equal(i);

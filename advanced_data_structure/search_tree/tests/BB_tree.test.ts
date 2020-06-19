@@ -30,7 +30,7 @@ describe("BB tree set operations", function () {
       let tree = random_tree(0, SIZE - 1);
       let root = <BBNode<number, number>>tree.root;
 
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion").true;
+      expect(is_ordered(tree), "is ordered after insertion").true;
       expect(is_connected(root), "nodes are correctly connected").true;
       expect(weight_balanced(root), "nodes should be balanced").true;
 
@@ -53,7 +53,7 @@ describe("BB tree set operations", function () {
       expect(tree.delete(7)).equal(7);
 
       let root = <BBNode<number, number>>tree.root;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
+      expect(is_ordered(tree), "is ordered after insertion and deletion").true;
       expect(is_connected(root), "nodes are correctly connected").true;
       expect(weight_balanced(root), "nodes should be balanced").true;
 
