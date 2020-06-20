@@ -29,21 +29,24 @@ function height_balanced<K, V>(node: AVLNode<K, V> | null): boolean {
 describe("AVL tree set operations", function () {
   describe("insert and find", function () {
     it("should find inserted keys and nothing else", function () {
-      const SIZE: number = 20;
+      for (let i = 0; i < 10; i++) {
+        const SIZE: number = random_int(0, 20);
 
-      let tree = random_tree(0, SIZE - 1);
-      let root = <AVLNode<number, number>>tree.root;
+        let tree = random_tree(0, SIZE - 1);
+        let root = <AVLNode<number, number>>tree.root;
 
-      expect(is_ordered(tree), "is ordered after insertion").true;
-      expect(is_connected(root), "nodes are correctly connected").true;
-      expect(height_balanced(root), "nodes should be balanced").true;
+        expect(is_ordered(tree), "is ordered after insertion").true;
+        expect(is_connected(root), "nodes are correctly connected").true;
+        expect(height_balanced(root), "nodes should be balanced").true;
+        expect(tree.size(), "should has the expected size").equals(SIZE);
 
-      for (let i = 0; i < SIZE; i++) {
-        expect(tree.find(i)).equal(i);
-      }
+        for (let i = 0; i < SIZE; i++) {
+          expect(tree.find(i)).equal(i);
+        }
 
-      for (let i = SIZE; i < SIZE + 10; i++) {
-        expect(tree.find(i)).equal(null);
+        for (let i = SIZE; i < SIZE + 10; i++) {
+          expect(tree.find(i)).equal(null);
+        }
       }
     });
   });
@@ -88,6 +91,7 @@ describe("AVL tree join and split", function () {
       expect(is_ordered(tree), "join tree should be ordered").true;
       expect(is_connected(tree.root!), "join tree should be connected").true;
       expect(height_balanced(tree.root!), "join tree should be height balanced").true;
+      expect(tree.size(), "join tree should has the expected size").equals(LEFT_SIZE + RIGHT_SIZE);
 
       for (let i = 0; i < LEFT_SIZE + RIGHT_SIZE; i++) {
         expect(tree.find(i)).equals(i);
@@ -96,22 +100,32 @@ describe("AVL tree join and split", function () {
   });
 
   it("should split tree into two valid AVL trees", function () {
-    for (let i = 0; i < 10; i++) {
-      const SIZE = random_int(0, 20);
+    for (let i = 0; i < 1000; i++) {
+      const SIZE = 6;
       let split_key = random_int(0, SIZE);
 
       let tree = new AVLTree<number, number>(native_comparator);
       grow_random_tree(0, SIZE - 1, tree);
+      // let dot = tree.to_dot((n) => `${n.key}`);
 
       let [left_tree, right_tree] = split(split_key, tree);
+
+      // let snapshot = `
+      //   split_key: ${split_key}\n
+      //   tree: ${dot}\n
+      //   left_tree: ${left_tree.to_dot((n) => `${n.key}`)}\n
+      //   right_tree: ${right_tree.to_dot((n) => `${n.key}`)}\n
+      // `;
 
       expect(is_ordered(left_tree), "left tree should be ordered").true;
       expect(is_connected(left_tree.root), "left tree should be connected").true;
       expect(height_balanced(left_tree.root), "left tree should be height balanced").true;
+      expect(left_tree.size(), "left tree should has the expected size").equals(split_key);
 
       expect(is_ordered(right_tree), "right tree should be ordered").true;
       expect(is_connected(right_tree.root), "right tree should be connected").true;
       expect(height_balanced(right_tree.root), "right tree should be height balanced").true;
+      expect(right_tree.size(), "right tree should has the expected size").equals(SIZE - split_key);
 
       for (let i = 0; i < split_key; i++) {
         expect(left_tree.find(i)).equals(i);

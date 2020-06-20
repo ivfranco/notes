@@ -385,6 +385,14 @@ abstract class Tree<K, V, N extends BNode<K, V>> implements TreeLike<K, V> {
   abstract insert(key: K, value: V): void;
   abstract delete(key: K): V | null;
 
+  size(): number {
+    if (this.root == null) {
+      return 0;
+    } else {
+      return size(this.root);
+    }
+  }
+
   find(search_key: K): V | null {
     if (this.root == null) {
       return null;

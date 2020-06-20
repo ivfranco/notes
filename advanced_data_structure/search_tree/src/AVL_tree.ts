@@ -257,6 +257,10 @@ function split<K, V>(split_key: K, tree: AVLTree<K, V>): [AVLTree<K, V>, AVLTree
     let cmp = tree.cmp;
 
     while (node.kind == "Internal") {
+      // 2 hours of debugging
+      // otherwise rebalance in join operations will change the structure of the whole tree
+      node.right_child.parent = null;
+      node.left_child.parent = null;
       if (cmp(split_key, node.key) == Ordering.LT) {
         right_list.push([node.key, node.right_child]);
         node = node.left_child;

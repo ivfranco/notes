@@ -1,9 +1,31 @@
-export { Ordering, Comparator, WithBottom, cmp_with_bottom, native_comparator, array_comparator, min, max, sorted };
+export {
+  Ordering,
+  Comparator,
+  WithBottom,
+  cmp_with_bottom,
+  native_comparator,
+  array_comparator,
+  min,
+  max,
+  sorted,
+  ord_to_int,
+};
 
 enum Ordering {
   EQ,
   LT,
   GT,
+}
+
+function ord_to_int(ord: Ordering): number {
+  switch (ord) {
+    case Ordering.LT:
+      return -1;
+    case Ordering.EQ:
+      return 0;
+    case Ordering.GT:
+      return 1;
+  }
 }
 
 type Comparator<T> = (lhs: T, rhs: T) => Ordering;
