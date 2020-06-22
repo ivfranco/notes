@@ -100,8 +100,8 @@ describe("AVL tree join and split", function () {
   });
 
   it("should split tree into two valid AVL trees", function () {
-    for (let i = 0; i < 1000; i++) {
-      const SIZE = 6;
+    for (let i = 0; i < 10; i++) {
+      const SIZE = random_int(0, 20);
       let split_key = random_int(0, SIZE);
 
       let tree = new AVLTree<number, number>(native_comparator);

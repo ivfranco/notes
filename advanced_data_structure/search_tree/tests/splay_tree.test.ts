@@ -2,7 +2,7 @@ import { Interval } from "../src/lib";
 import { SplayTree, SplayNode } from "../src/splay_tree";
 import { native_comparator, Comparator } from "../src/comparator";
 import { expect } from "chai";
-import { grow_random_tree } from "./test_utils";
+import { grow_random_tree, random_int } from "./test_utils";
 
 function random_tree(min: number, max: number): SplayTree<number, number> {
   let tree = new SplayTree<number, number>(native_comparator);
@@ -41,49 +41,50 @@ function is_connected<K, V>(node: SplayNode<K, V>): boolean {
 describe("Splay tree set operations", function () {
   describe("insert and find", function () {
     it("should find inserted keys and nothing else", function () {
-      const SIZE: number = 20;
-      let tree = random_tree(0, SIZE - 1);
-      let root = tree.root!;
+      for (let i = 0; i < 100; i++) {
+        const SIZE: number = random_int(1, 20);
+        let tree = random_tree(0, SIZE - 1);
+        let root = tree.root!;
 
-      expect(is_connected(root), "nodes are correctly connected").true;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion").true;
+        expect(is_connected(root), "nodes are correctly connected").true;
+        expect(is_ordered(root, tree.cmp), "is ordered after insertion").true;
 
-      for (let i = 0; i < SIZE; i++) {
-        expect(tree.find(i)).equal(i);
+        for (let i = 0; i < SIZE; i++) {
+          expect(tree.find(i)).equal(i);
+          // find operation changes the structure of splay tree
+          expect(is_connected(root), "nodes are correctly connected after find").true;
+          expect(is_ordered(root, tree.cmp), "is ordered after insertion after find").true;
+        }
+
+        for (let i = SIZE; i < SIZE + 10; i++) {
+          expect(tree.find(i)).equal(null);
+        }
       }
-
-      for (let i = SIZE; i < SIZE + 10; i++) {
-        expect(tree.find(i)).equal(null);
-      }
-
-      // find operation changes the structure of splay tree
-      expect(is_connected(root), "nodes are correctly connected after find").true;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion after find").true;
     });
   });
 
   describe("insert, delete and find", function () {
     it("should not find deleted keys", function () {
-      const SIZE: number = 20;
-      let tree = random_tree(0, SIZE - 1);
+      for (let i = 0; i < 10; i++) {
+        const SIZE: number = 20;
+        let tree = random_tree(0, SIZE - 1);
 
-      expect(tree.delete(3)).equal(3);
-      expect(tree.delete(7)).equal(7);
+        expect(tree.delete(2)).equal(2);
 
-      let root = tree.root!;
-      expect(is_connected(root), "nodes are correctly connected").true;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
+        let root = tree.root!;
+        expect(is_connected(root), "nodes are correctly connected").true;
+        expect(is_ordered(root, tree.cmp), "is ordered after insertion and deletion").true;
 
-      for (let i = 0; i < SIZE; i++) {
-        if (i == 3 || i == 7) {
-          expect(tree.find(i)).equal(null);
-        } else {
-          expect(tree.find(i)).equal(i);
+        for (let j = 0; j < SIZE; j++) {
+          if (j == 2) {
+            expect(tree.find(j)).equal(null);
+          } else {
+            expect(tree.find(j)).equal(j);
+            expect(is_connected(root), "nodes are correctly connected after find").true;
+            expect(is_ordered(root, tree.cmp), "is ordered after find").true;
+          }
         }
       }
-
-      expect(is_connected(root), "nodes are correctly connected after find and delete").true;
-      expect(is_ordered(root, tree.cmp), "is ordered after insertion after find and delete").true;
     });
   });
 });

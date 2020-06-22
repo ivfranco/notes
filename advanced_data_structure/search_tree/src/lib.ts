@@ -61,6 +61,10 @@ class Interval<K> {
   min: K | null;
   max: K | null;
 
+  static R<K>(): Interval<K> {
+    return new Interval<K>(null, null);
+  }
+
   constructor(min: K | null, max: K | null) {
     this.min = min;
     this.max = max;
@@ -82,6 +86,23 @@ class Interval<K> {
     return (
       (this.min == null || cmp(this.min, key) == Ordering.LT) && (this.max == null || cmp(key, this.max) == Ordering.LT)
     );
+  }
+
+  contain(other: Interval<K>, cmp: Comparator<K>): boolean {
+    (this.min == null || (other.min != null && cmp(this.min, other.min) != Ordering.GT)) &&
+      (this.max == null || (other.max != null && cmp(this.max, other.max) != Ordering.LT));
+  }
+
+  disjoint(other: Interval<K>, cmp: Comparator<K>): boolean {
+    return (
+      (this.max != null && other.min != null && cmp(this.max, other.min) == Ordering.LT) ||
+      (this.min != null && other.max != null && cmp(other.max, this.min) != Ordering.LT)
+    );
+  }
+
+  // overlap of half-open intervals [a, b)
+  overlap(other: Interval<K>, cmp: Comparator<K>): boolean {
+    return !this.disjoint(other, cmp);
   }
 }
 

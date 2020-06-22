@@ -1,6 +1,7 @@
 export {
   Ordering,
   Comparator,
+  Bottom,
   WithBottom,
   cmp_with_bottom,
   native_comparator,

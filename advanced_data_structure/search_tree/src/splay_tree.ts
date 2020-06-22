@@ -217,6 +217,9 @@ class SplayTree<K, V> implements TreeLike<K, V> {
     if (old_child.parent == null) {
       // `old_child` is root
       this.root = new_child;
+      if (new_child) {
+        new_child.parent = null;
+      }
     } else if (old_child == old_child.parent.left_child) {
       connect_left(old_child.parent, new_child);
     } else {

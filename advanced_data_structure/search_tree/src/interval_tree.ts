@@ -1,6 +1,6 @@
-export { IntervalTree, ClosedInterval, INode };
+export { IntervalTree, ClosedInterval, INode, make_tree };
 
-import { Comparator, Ordering, ord_to_int } from "./comparator";
+import { Comparator, Ordering, ord_to_int, sorted } from "./comparator";
 import { Interval } from "./lib";
 
 class ClosedInterval<K> extends Interval<K> {
@@ -40,28 +40,40 @@ class IInternal<K> {
   }
 }
 
-function make_tree<K>(sorted_keys: K[]): INode<K> | null {
+function make_tree<K, N>(
+  sorted_keys: K[],
+  create_leaf: (key: K) => N,
+  create_internal: (key: K, left: N, right: N) => N
+): N | null {
   if (sorted_keys.length == 0) {
     return null;
   }
 
   // nodes with the smallest key under them
-  let nodes: Array<[K, INode<K>]> = sorted_keys.map((k) => [k, new ILeaf(k)]);
+  let nodes: Array<[K, N]> = sorted_keys.map((k) => [k, create_leaf(k)]);
   while (nodes.length > 1) {
-    let new_nodes: Array<[K, INode<K>]> = [];
+    let new_nodes: Array<[K, N]> = [];
     for (let i = 0; i < nodes.length; i += 2) {
       if (i + 1 >= nodes.length) {
         new_nodes.push(nodes[i]);
       } else {
         let [left_min, left_child] = nodes[i];
         let [right_min, right_child] = nodes[i + 1];
-        new_nodes.push([left_min, new IInternal(right_min, left_child, right_child)]);
+        new_nodes.push([left_min, create_internal(right_min, left_child, right_child)]);
       }
     }
     nodes = new_nodes;
   }
 
   return nodes[0][1];
+}
+
+function make_interval_tree<K>(sorted_keys: K[]): INode<K> | null {
+  return make_tree<K, INode<K>>(
+    sorted_keys,
+    (k) => new ILeaf(k),
+    (k, left, right) => new IInternal(k, left, right)
+  );
 }
 
 function narrow_to_node<K>(cmp: Comparator<K>, interval: ClosedInterval<K>, node: INode<K>): INode<K> {
@@ -101,7 +113,7 @@ class IntervalTree<K> {
 
     sorted_keys = sorted_keys.sort((a, b) => ord_to_int(cmp(a, b)));
 
-    let root = make_tree(sorted_keys);
+    let root = make_interval_tree(sorted_keys);
 
     if (root) {
       intervals = intervals.sort((a, b) => ord_to_int(cmp(b.min, a.min)));
