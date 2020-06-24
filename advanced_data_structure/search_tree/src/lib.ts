@@ -89,14 +89,16 @@ class Interval<K> {
   }
 
   contain(other: Interval<K>, cmp: Comparator<K>): boolean {
-    (this.min == null || (other.min != null && cmp(this.min, other.min) != Ordering.GT)) &&
-      (this.max == null || (other.max != null && cmp(this.max, other.max) != Ordering.LT));
+    return (
+      (this.min == null || (other.min != null && cmp(this.min, other.min) != Ordering.GT)) &&
+      (this.max == null || (other.max != null && cmp(this.max, other.max) != Ordering.LT))
+    );
   }
 
   disjoint(other: Interval<K>, cmp: Comparator<K>): boolean {
     return (
-      (this.max != null && other.min != null && cmp(this.max, other.min) == Ordering.LT) ||
-      (this.min != null && other.max != null && cmp(other.max, this.min) != Ordering.LT)
+      (this.max != null && other.min != null && cmp(this.max, other.min) != Ordering.GT) ||
+      (this.min != null && other.max != null && cmp(other.max, this.min) != Ordering.GT)
     );
   }
 

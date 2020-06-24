@@ -1,6 +1,6 @@
 export { IntervalTree, ClosedInterval, INode, make_tree };
 
-import { Comparator, Ordering, ord_to_int, sorted } from "./comparator";
+import { Comparator, Ordering, ord_to_int, dedup_sorted } from "./comparator";
 import { Interval } from "./lib";
 
 class ClosedInterval<K> extends Interval<K> {
@@ -112,6 +112,7 @@ class IntervalTree<K> {
       .filter((n) => n != null) as K[];
 
     sorted_keys = sorted_keys.sort((a, b) => ord_to_int(cmp(a, b)));
+    dedup_sorted(cmp, sorted_keys);
 
     let root = make_interval_tree(sorted_keys);
 

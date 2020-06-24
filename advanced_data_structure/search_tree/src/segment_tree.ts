@@ -1,4 +1,6 @@
-import { Comparator, Ordering, WithBottom, Bottom, ord_to_int, cmp_with_bottom } from "./comparator";
+export { SegmentTree };
+
+import { Comparator, Ordering, WithBottom, Bottom, ord_to_int, cmp_with_bottom, dedup_sorted } from "./comparator";
 import { Interval } from "./lib";
 import { make_tree } from "./interval_tree";
 
@@ -61,7 +63,9 @@ class SegmentTree<K> {
       .filter((e) => e != null) as WithBottom<K>[];
 
     end_points.push(Bottom);
+
     end_points = end_points.sort((a, b) => ord_to_int(this.cmp(a, b)));
+    dedup_sorted(this.cmp, end_points);
 
     let root = make_segment_tree(end_points) as SNode<K> | null;
 
@@ -74,7 +78,7 @@ class SegmentTree<K> {
     this.root = root;
   }
 
-  find(search_key: K): Interval<K>[] {
+  find_intervals(search_key: K): Interval<K>[] {
     let found: Interval<K>[] = [];
     let node = this.root;
 

@@ -10,6 +10,7 @@ export {
   max,
   sorted,
   ord_to_int,
+  dedup_sorted,
 };
 
 enum Ordering {
@@ -83,7 +84,7 @@ function max<T>(lhs: T, rhs: T, cmp: Comparator<T>): T {
   }
 }
 
-const Bottom = Symbol("Bottom");
+const Bottom: unique symbol = Symbol("Bottom");
 
 type WithBottom<T> = T | typeof Bottom;
 
@@ -99,4 +100,17 @@ function cmp_with_bottom<T>(cmp: Comparator<T>): Comparator<WithBottom<T>> {
       return cmp(lhs, rhs);
     }
   };
+}
+
+function dedup_sorted<T>(cmp: Comparator<T>, arr: T[]) {
+  let i = 0;
+
+  for (let j = 1; i < arr.length && j < arr.length; j++) {
+    if (cmp(arr[i], arr[j]) != Ordering.EQ) {
+      arr[i + 1] = arr[j];
+      i += 1;
+    }
+  }
+
+  arr.length = Math.min(i + 1, arr.length);
 }
