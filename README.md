@@ -6,7 +6,7 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 
 ## Reading:
 
-- Advanced Data Structures, Peter Brass
+- A First Course in Database Systems, Ullman et al, 3rd Edition
 
 ## Read (in temporal order):
 

@@ -1,0 +1,87 @@
+Despite being about database, exercises in this book do not have unique indexes.
+To compensate chapter number is prepended to exercise indexes in notes, e.g.
+    2.3.4
+is exercise 3.4 in chapter 2.
+
+There is a heated debate whether relation names should be singular or plural.
+This book cannot decide between the two conventions.
+
+A quick method to find some keys of a relation:
+    any attribute that cannot be produced by completely non-trivial FDs must be keys
+
+2.2.1
+a - f.  Accounts(accNo: integer key, type: string, balance: integer)
+        Customers(firstName: string, lastName: string, idNo: integer key, account: integer)
+g.  any permutation will do
+
+2.2.2
+ISBN, airplane seat number, TCP cookie
+
+2.2.3
+c.  n!m!
+
+2.3.1
+//  the difference between VARCHAR and CHAR is implementation-dependent. In SQLite them are synonyms.
+//  no trailing comma allowed, all spaces insignificant
+a.  CREATE TABLE Product (
+        maker   VARCHAR(32),
+        model   VARCHAR(255),
+        type    CHAR(16),
+        PRIMARY KEY (model)
+    );
+b.  CREATE TABLE PC (
+        model   VARCHAR(255),
+        speed   DECIMAL(3, 1),
+        ram     INT,
+        hd      INT,
+        price   DECIMAL(10, 2),
+        PRIMARY KEY (model)
+    );
+c.  CREATE TABLE Laptop (
+        model   VARCHAR(255),
+        speed   DECIMAL(3, 1),
+        ram     INT,
+        hd      INT,
+        screen  DECIMAL(4, 1),
+        price   DECIMAL(10, 2),
+        PRIMARY KEY (model)
+    );
+d.  CREATE TABLE Printer (
+        model   VARCHAR(255),
+        color   BOOLEAN,
+        type    CHAR(16),
+        price   DECIMAL(10, 2),
+        PRIMARY KEY (model)
+    );
+e.  ALTER TABLE Printer DROP color;
+f.  ALTER TABLE Laptop ADD od CHAR(16) DEFAULT 'none'
+
+2.3.2
+a.  CREATE TABLE Classes (
+        class   VARCHAR(255),
+        type    CHAR(2),
+        country VARCHAR(255),
+        numGuns INT,
+        bore    FLOAT,
+        displacement    INT,
+        PRIMARY KEY (class)
+    );
+b.  CREATE TABLE Ships (
+        name    VARCHAR(255),
+        class   VARCHAR(255),
+        launched    DATE,
+        PRIMARY KEY (name, class)
+    );
+c.  CREATE TABLE Battles (
+        name    VARCHAR(255),
+        date    Date,
+        PRIMARY KEY (name)
+    );
+d.  CREATE TABLE Outcomes (
+        ship    VARCHAR(255),
+        battle  VARCHAR(255),
+        result  CHAR(16),
+        PRIMARY KEY (ship, battle)
+    );
+e.  ALTER TABLE Classes DROP bore;
+f.  ALTER TABLE Ship ADD yard VAR(255);
