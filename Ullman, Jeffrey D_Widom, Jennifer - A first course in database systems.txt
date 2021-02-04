@@ -22,15 +22,15 @@ c.  n!m!
 
 2.3.1
 //  the difference between VARCHAR and CHAR is implementation-dependent. In SQLite them are synonyms.
-//  no trailing comma allowed, all spaces insignificant
+//  no trailing comma allowed, all spaces insignificant.
 a.  CREATE TABLE Product (
         maker   VARCHAR(32),
-        model   VARCHAR(255),
+        model   INT,
         type    CHAR(16),
         PRIMARY KEY (model)
     );
 b.  CREATE TABLE PC (
-        model   VARCHAR(255),
+        model   INT,
         speed   DECIMAL(3, 1),
         ram     INT,
         hd      INT,
@@ -38,7 +38,7 @@ b.  CREATE TABLE PC (
         PRIMARY KEY (model)
     );
 c.  CREATE TABLE Laptop (
-        model   VARCHAR(255),
+        model   INT,
         speed   DECIMAL(3, 1),
         ram     INT,
         hd      INT,
@@ -47,7 +47,7 @@ c.  CREATE TABLE Laptop (
         PRIMARY KEY (model)
     );
 d.  CREATE TABLE Printer (
-        model   VARCHAR(255),
+        model   INT,
         color   BOOLEAN,
         type    CHAR(16),
         price   DECIMAL(10, 2),
@@ -85,3 +85,128 @@ d.  CREATE TABLE Outcomes (
     );
 e.  ALTER TABLE Classes DROP bore;
 f.  ALTER TABLE Ship ADD yard VAR(255);
+
+2.4.1
+// expressions only
+a.  π_{model}(σ_{speed >= 300}(PC))
+b.  A(m) := π_{model}(σ_{hd >= 100}(Laptop))
+    π_{maker}(Product ⨝ A)
+c.  A := π_{model, price}(PC)
+    B := π_{model, price}(Laptop)
+    C := π_{model, price}(Printer)
+    π_{model, price}(σ_{maker = 'B'}(Product ⨝ (A ∪ B ∪ C)))
+d.  π_{model}(σ_{color = 'color'}(Printer))
+e.  A := π_{maker}(Product ⨝ Laptop)
+    B := π_{maker}(Product ⨝ PC)
+    A - B
+f.  A := π_{model, hd}(PC)
+    B := π_{model, hd}(PC)
+    π_{hd}(A ⨝_{A.model != B.model & A.hd = B.hd} B)
+g.  A := PC
+    B := PC
+    π_{A.model, B.model}(A ⨝_{A.speed = B.speed & A.ram = B.ram & A.model < B.model} B)
+h.  A := π_{model, speed}(PC)
+    B := π_{model, speed}(Laptop)
+    C := π_{model}(σ_{speed >= 2.8}(A ∪ B))
+    D := π_{maker, model}(Product ⨝ C)
+    E := D
+    π_{maker}(D ⨝_{D.maker = E.maker & D.model != E.model} E)
+i.  let R(a) be a single column relation where a is well ordered, define operator max(R) as:
+        S := R
+        // L := (R ⨝_{R.a > S.a} S) selects all component `a` smaller than some other `a` in the same relation
+        // R - L is the component not smaller than any other components in the same relation 
+        // i.e. the maximum 
+        R - π_{S.a}(R ⨝_{R.a > S.a} S)
+    A := π_{model, speed}(PC)
+    B := π_{model, speed}(Laptop)
+    C := A ∪ B
+    M := max(π_{speed}(C))
+    π_{maker}(Product ⨝ (C ⨝ M))
+j.  A, B, C := Product ⨝ PC
+    D := σ_{A.speed != B.speed & B.speed != C.speed & A.speed != C.speed}(A x B x C)
+    π_{maker}(σ_{A.maker = B.maker, B.maker = C.maker}(D))
+k.  // remove >= 4 models maker from >= 3 models maker
+    // would be unnecessarily long, skipped
+
+2.4.2
+//  skipped
+
+2.4.3
+// expressions only
+// let year(date) be a function from date to year
+// assume date ordered
+a.  π_{class, country}(σ_{bore >= 16}(Classes))
+b.  A := π_{name}(σ_{launched < 1921}(Ships))
+    // dangling ships in Outcomes
+    B := Battles ⨝ ρ_{Outcomes(ship, name, result)}(Outcomes)
+    C := π_{ship}(σ_{year(date) < 1921}(B))
+    A ∪ ρ_{C(name)}(C)
+c.  A := Battles ⨝ ρ_{Outcomes(ship, name, result)}(Outcomes)
+    π_{ship}(σ_{battle = 'Denmark Strait' & result = 'sunk'}(A))
+d.  A := Classes ⨝ Ships
+    π_{name}(σ_{displacement > 35000 & launched >= 1921}(A))
+e.  A := Ships ⨝ ρ_{Outcomes(name, battle, result)}(Outcomes) ⨝ Classes
+    π_{name, displacement, numGuns}(σ_{battle = 'battle of Guadalcanal'}(A))
+f.  π_{name}(Ships) ∪ ρ_{A(name)}(π_{ship}(Outcomes))
+g.  A := π_{class, name}(Classes ⨝ Ships)
+    B := π{class}(A)
+    C := A
+    D := π_{class}(A ⨝_{A.class = C.class & A.name != C.name} C)
+    C - D
+h.  A := π_{country, type}(Classes)
+    B := A
+    π_{country}(A ⨝_{A.country = B.country & A.type = 'bb' & B.type = 'bc'} B)
+i.  A := π_{ship, date}(Outcomes ⨝ ρ_{Battles(battle, date)}(Battles))
+    B := A
+    π_{ship}(A ⨝_{A.ship = B.ship & A.date < B.date} B)
+
+2.4.4
+//  skipped
+
+2.4.5
+the duplicating attributes are not removed
+
+2.4.6
+union is monotone:
+    A ∪ B ⊆ A ∪ (B ∪ {a}) for any a
+intersection is monotone:
+    A ∩ B ⊆ A ∩ (B ∪ {a}) = (A ∩ B) ∪ (A ∩ {a}) by distribution rule
+difference is not monotone:
+    {a, b} - {a} = {b}
+    {a, b} - {a, b} = ∅
+Cartesian product is monotone:
+    A x (B ∪ {a})
+    = (A x B) ∪ (A x {a})
+selection is monotone (trivial)
+projection is monotone (trivial)
+natural join is monotone:
+    composition of monotone operators is monotone
+    natural join is composition of Cartesian product, selection and projection
+theta join is monotone:
+    similar to above
+renaming is monotone (trivial)
+
+2.4.7
+a.  min: max(m, n), R ⊆ S or vice versa
+    max: m + n, R and S are disjoint
+b.  min: 0, R and S have common attribute but no common components
+    max: m * n, R and S have no common attribute
+c.  min: 0, σ_C(R) is empty
+    max: m * n, σ_C(R) = R
+d.  min: 0, π_L(R) ⊆ S
+    max: m, π_L(R) and S are disjoint
+
+2.4.8
+let s and r be all attributes of S and R
+π_r(σ_{R.(s ∩ r) = S.(s ∩ r)}(R x S))
+π_r(R ⨝_{R.(s ∩ r) = S.(s ∩ r)} S)
+π_r(R ⨝ S)
+
+2.4.9
+R - π_r(R ⨝ S)
+
+2.4.10
+let A = (A1, .., An), B = (B1, .., Bm)
+P := π_A(R) x S // all necessary tuples if R / S = π_A(R)
+M := π_A(P - R) // if (t, s) ∈ P - R, (t, s) is missing from R, t ∉ R / S
+π_A(R) - M
