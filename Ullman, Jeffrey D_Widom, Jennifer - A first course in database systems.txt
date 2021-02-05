@@ -6,6 +6,11 @@ is exercise 3.4 in chapter 2.
 There is a heated debate whether relation names should be singular or plural.
 This book cannot decide between the two conventions.
 
+renaming in linear notation is implicit in notes, e.g.
+    // A(a, b, c)
+    B := A
+should be interpreted as B := ρ{B(a, b, c)}(A)
+
 A quick method to find some keys of a relation:
     any attribute that cannot be produced by completely non-trivial FDs must be keys
 
@@ -70,7 +75,8 @@ b.  CREATE TABLE Ships (
         name    VARCHAR(255),
         class   VARCHAR(255),
         launched    DATE,
-        PRIMARY KEY (name, class)
+        // if ship names are not distinct, the relation `Outcomes` makes no sense
+        PRIMARY KEY (name)
     );
 c.  CREATE TABLE Battles (
         name    VARCHAR(255),
@@ -208,5 +214,63 @@ R - π_r(R ⨝ S)
 2.4.10
 let A = (A1, .., An), B = (B1, .., Bm)
 P := π_A(R) x S // all necessary tuples if R / S = π_A(R)
-M := π_A(P - R) // if (t, s) ∈ P - R, (t, s) is missing from R, t ∉ R / S
+M := π_A(P - R) // if (t, s) ∈ P - R, (t, s) is required for t ∈ R / S but missing from R, t ∉ R / S
 π_A(R) - M
+
+2.5.1
+//  found an online relational algebra interpreter **with relations in this book pre-inputted** 
+//  thanks https://dbis-uibk.github.io/relax/calc/local/uibk/local/3
+a.  σ_{speed < 2.00 & price > 500}(PC) = ∅
+    model 1011
+b.  σ_{screen < 15.4 & hd < 100 & price > 1000}(Laptop) = ∅
+    model 2004
+c.  π_{maker}(σ_{type = 'pc'}(Product)) ∩ π_{maker}(σ_{type = 'laptop'}(Product)) = ∅
+    maker A, B, E
+d.  A := π_{model, speed}(PC) ∪ π_{model, speed}(Laptop)
+    // all product with speed 
+    B := Product ⨝ A
+    C := B
+    // models with speed slower than some other model with the same maker
+    D(maker, model, type) := π_{C.maker, C.model, C.type}(B ⨝_{B.maker = C.maker & B.speed > C.speed} C)
+    // maker whose most speedy model is a laptop 
+    E := π_maker(σ_{type = 'laptop'}(Product - C))
+    π_maker(σ_{type = 'pc'}(Product)) ⊆ E
+    maker A, B
+e.  A := π_{ram, price}(PC)
+    B := π_{ram, price}(Laptop)
+    C := A x B
+    σ_{A.ram < B.ram & A.price > B.price}(C) = ∅
+    model 2002, 2006, 2008
+
+2.5.2
+//  thanks https://dbis-uibk.github.io/relax/calc/local/uibk/local/3
+a.  σ{bore > 16}(Classes) = ∅
+    class Yamato
+b.  σ{numGuns > 9 & bore > 14}(Classes) = ∅
+    no violation
+c.  // would be easy with grouping operator
+    // σ_{ships > 2}(γ_{class; count(name) -> ships}(Classes ⨝ Ships)) = ∅
+    S1, S2, S3 := Ships
+    A := π_class(σ_{S1.class = S2.class & S2.class = S3.class}(S1 x S2 x S3))
+    A = ∅
+    class Kongo, Iowa, Revenge
+d.  //  the constraint is ambiguous in the meaning of `have both`, there's a few possibilities:
+    //  "simultaneously existing": hard, unclear if even possible to express in relational algebra
+    //  "built / launched": easier, described by the expression below
+    A1, A2 := π_{country, type}(Classes ⨝ Ships)
+    A1 ⨝_{A1.country = A2.country & A1.type = 'bb' & A2.type = 'bc'} A2 = ∅
+    country Gt. Britain, Japan
+e.  A := ρ_{A(ship, numGuns)}(π_{name, numGuns}(Classes ⨝ Ships))
+    B := π_{battle, ship, numGuns, result}(Outcomes ⨝ A)
+    C := π_battle(σ{numGuns > 9}(B))
+    D := π_battle(σ{numGuns < 9 & result = 'sunk'}(B))
+    C ∩ D = ∅
+    battle 'Denmark Strait', 'Guadalcanal', 'North Cape', 'Pearl Harbor', 'Surigao Strait', all of them
+
+2.5.3
+let A = (A1, .., An)
+let B = (B1, .., Bn)
+π_A(R) ⊆ π_B(S)
+
+2.5.4
+E1 = E2 <=> (E1 ⊆ E2 & E2 ⊆ E1) so no
