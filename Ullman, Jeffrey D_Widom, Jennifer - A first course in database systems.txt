@@ -274,3 +274,198 @@ let B = (B1, .., Bn)
 
 2.5.4
 E1 = E2 <=> (E1 ⊆ E2 & E2 ⊆ E1) so no
+
+3.1.1
+SS# -> name, street address, city, state, ZIP code, area code
+street address, city, state -> ZIP code, area code
+PRIMARY KEY (SS#, phone#)
+people can share name, street address, city, state, ZIP code, area code and phone number
+a person can have multiple phone number
+
+3.1.2
+ID -> x, y, z, vx, vy, vz
+PRIMARY KEY (ID)
+
+3.1.3
+a.  |2^{A2, .., An}| = 2^|{A2, .., An}| = 2^(n - 1)
+b.  2 * 2^(n - 1) - 2^(n - 2), every superset of {A1, A2} is counted twice
+c.  2 * 2^(n - 2) - 2^(n - 4), every superset of {A1, A2, A3, A4} is counted twice
+d.  2 * 2^(n - 2) - 2^(n - 3), every superset of {A1, A2, A3} is counted twice
+
+3.2.1
+./database/functional_dependency
+C -> A, D
+D -> A
+A, B -> C, D
+A, C -> D
+B, C -> A, D
+B, D -> A, C
+C, D -> A
+A, B, C -> D
+A, B, D -> C
+B, C, D -> A
+{ A }: Nonkey
+{ B }: Nonkey
+{ C }: Nonkey
+{ D }: Nonkey
+{ A, B }: Key
+{ A, C }: Nonkey
+{ A, D }: Nonkey
+{ B, C }: Key
+{ B, D }: Key
+{ C, D }: Nonkey
+{ A, B, C }: Superkey
+{ A, B, D }: Superkey
+{ A, C, D }: Nonkey
+{ B, C, D }: Superkey
+{ A, B, C, D }: Superkey
+
+3.2.2
+./database/functional_dependency
+i.  A -> B, C, D
+    B -> C, D
+    A, B -> C, D
+    A, C -> B, D
+    A, D -> B, C
+    B, C -> D
+    B, D -> C
+    A, B, C -> D
+    A, B, D -> C
+    A, C, D -> B
+    { A }: Key
+    { B }: Nonkey
+    { C }: Nonkey
+    { D }: Nonkey
+    { A, B }: Superkey
+    { A, C }: Superkey
+    { A, D }: Superkey
+    { B, C }: Nonkey
+    { B, D }: Nonkey
+    { C, D }: Nonkey
+    { A, B, C }: Superkey
+    { A, B, D }: Superkey
+    { A, C, D }: Superkey
+    { B, C, D }: Nonkey
+    { A, B, C, D }: Superkey
+ii. A, B -> C, D
+    A, D -> B, C
+    B, C -> A, D
+    C, D -> A, B
+    A, B, C -> D
+    A, B, D -> C
+    A, C, D -> B
+    B, C, D -> A
+    { A }: Nonkey
+    { B }: Nonkey
+    { C }: Nonkey
+    { D }: Nonkey
+    { A, B }: Key
+    { A, C }: Nonkey
+    { A, D }: Key
+    { B, C }: Key
+    { B, D }: Nonkey
+    { C, D }: Key
+    { A, B, C }: Superkey
+    { A, B, D }: Superkey
+    { A, C, D }: Superkey
+    { B, C, D }: Superkey
+    { A, B, C, D }: Superkey
+iii.A -> B, C, D
+    B -> A, C, D
+    C -> A, B, D
+    D -> A, B, C
+    A, B -> C, D
+    A, C -> B, D
+    A, D -> B, C
+    B, C -> A, D
+    B, D -> A, C
+    C, D -> A, B
+    A, B, C -> D
+    A, B, D -> C
+    A, C, D -> B
+    B, C, D -> A
+    { A }: Key
+    { B }: Key
+    { C }: Key
+    { D }: Key
+    { A, B }: Superkey
+    { A, C }: Superkey
+    { A, D }: Superkey
+    { B, C }: Superkey
+    { B, D }: Superkey
+    { C, D }: Superkey
+    { A, B, C }: Superkey
+    { A, B, D }: Superkey
+    { A, C, D }: Superkey
+    { B, C, D }: Superkey
+    { A, B, C, D }: Superkey
+
+3.2.3
+let A = (A1, .., An), similarly define B, C and E according to the context
+a.  add C to the initial value of set X, each FD considered in step 3 still applies, inductively {A}+ ⊆ {A, C}+
+    B ∈ {A, C}+, A, C -> B
+b.  B ∈ {A}+ ⊆ {A, C}+, C ∈ {A, C}+ // trivial FD 
+    => {B, C} ⊆ {A, C}+
+    => A, C -> B, C
+c.  if A -> B, {B}+ ⊆ {A}+:
+        choose A -> B as the first FD in step 3, apply argument in part a
+    A -> B
+    => {B}+ ⊆ {A}+
+    => {B, E}+ ⊆ {A, E}+ // part b
+    => {C}+ ⊆ {A, E}+ // C = B, E by definition
+    => D ∈ {A, E}+
+    => A, E -> D
+d.  A -> B
+    => A, C -> B // part a
+    => A, C -> D // part a again
+    => A, C -> B, D
+
+3.2.4
+a.  A   B
+    1   0
+    0   0
+b.  A   B   C
+    0   0   0
+    1   0   1
+c.  A   B   C
+    0   0   0
+    0   1   1
+    1   0   1
+    1   1   0
+    // XOR table
+
+3.2.5
+let A -> B be a non-trivial FD, A ∩ B = ∅, B != ∅
+let c(B) be the compliment of B,
+A ∪ c(B) -> B, A ∪ c(B) = c(B), c(B) -> B, contradiction
+
+3.2.6
+Y -> X by trivial FD, then part c of 3.2.3
+
+3.2.7
+X ⊆ (X+)+ by 3.2.6
+if there's A ∈ (X+)+ - X+, X -> X+, X+ -> A but not X -> A, contradicting transitivity
+
+3.2.8
+a.  only trivial FDs
+    otherwise for some non-trivial A -> B, c(B) -> B, c(B)+ = {A, B, C, D}, c(B) is not closed
+b.  A -> B, C, D
+    B -> A, C, D
+    C -> A, B, D
+    D -> A, B, C
+    {A}+ is closed by 3.2.7, A ∈ {A}+, {A}+ can only be {A, B, C, D}
+    for any non-empty set P, P -> {A, B, C, D}
+c.  C -> A, B, D
+    D -> A, B, C
+    as proved by part b
+    {A}+ ⊆ {A, B}+ = {A, B}, so
+    A -> B
+    B -> A
+    A, B -> A, B
+
+3.2.9
+{A -> B, B -> C, C -> A} and the reverse, 2 variants
+{A -> B, B -> A, B -> C, C -> B}, 3 variants
+{(A, B -> C), A -> B, B -> A, C -> A, C -> B}, 3 variants
+
+3.2.10

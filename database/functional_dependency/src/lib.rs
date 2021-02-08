@@ -1,6 +1,6 @@
 #![allow(clippy::many_single_char_names, non_snake_case)]
 
-use std::collections::HashSet;
+use std::{borrow::Borrow, collections::HashSet};
 use std::{
     collections::HashMap,
     fmt::{self, Display, Formatter},
@@ -16,33 +16,43 @@ use nom::{
 
 #[derive(PartialEq, Eq)]
 pub struct FD {
-    source: HashSet<u32>,
-    target: HashSet<u32>,
+    pub source: HashSet<u32>,
+    pub target: HashSet<u32>,
 }
 
 impl FD {
-    pub fn new(source: &[u32], target: &[u32]) -> Self {
-        let source: HashSet<_> = source.iter().copied().collect();
+    pub fn new<I, J, A, B>(source: I, target: J) -> Self
+    where
+        I: IntoIterator<Item = A>,
+        J: IntoIterator<Item = B>,
+        A: Borrow<u32>,
+        B: Borrow<u32>,
+    {
+        let source: HashSet<_> = source.into_iter().map(|v| *v.borrow()).collect();
         let target: HashSet<_> = target
-            .iter()
+            .into_iter()
             // construct completely non-trivial FDs only
+            .map(|v| *v.borrow())
             .filter(|v| !source.contains(v))
-            .copied()
             .collect();
         Self { source, target }
     }
 
-    pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> WithNames<'a> {
-        WithNames { fd: self, register }
+    pub fn is_deformed(&self) -> bool {
+        self.source.is_empty() || self.target.is_empty()
+    }
+
+    pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> FDWithNames<'a> {
+        FDWithNames { fd: self, register }
     }
 }
 
-pub struct WithNames<'a> {
+pub struct FDWithNames<'a> {
     fd: &'a FD,
     register: &'a NameRegister,
 }
 
-impl Display for WithNames<'_> {
+impl Display for FDWithNames<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let sep_by_comma = |list: &[u32], f: &mut Formatter| -> fmt::Result {
             let mut first = true;
@@ -63,8 +73,12 @@ impl Display for WithNames<'_> {
     }
 }
 
-pub fn closure_of(set: &[u32], dependencies: &[FD]) -> HashSet<u32> {
-    let mut closure: HashSet<_> = set.iter().copied().collect();
+pub fn closure_of<I, T>(attrs: I, dependencies: &[FD]) -> HashSet<u32>
+where
+    I: IntoIterator<Item = T>,
+    T: Borrow<u32>,
+{
+    let mut closure: HashSet<_> = attrs.into_iter().map(|v| *v.borrow()).collect();
     let mut size = closure.len();
 
     loop {
@@ -82,6 +96,19 @@ pub fn closure_of(set: &[u32], dependencies: &[FD]) -> HashSet<u32> {
     }
 
     closure
+}
+
+#[derive(Debug)]
+pub enum Category {
+    Nonkey,
+    Key,
+    Superkey,
+}
+
+impl Display for Category {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
 }
 
 #[derive(Default)]
@@ -104,6 +131,35 @@ impl NameRegister {
         self.idx_name.get(&idx).map(|s| s.as_str())
     }
 
+    pub fn attrs(&self) -> HashSet<u32> {
+        (0..self.cnt).collect()
+    }
+
+    pub fn sorted_attrs(&self) -> Vec<u32> {
+        (0..self.cnt).collect()
+    }
+
+    pub fn categorize<I, T>(&self, attrs: I, dependencies: &[FD]) -> Category
+    where
+        I: IntoIterator<Item = T> + Copy,
+        T: Borrow<u32>,
+    {
+        let closure = closure_of(attrs, dependencies);
+        if !closure.is_superset(&self.attrs()) {
+            return Category::Nonkey;
+        }
+
+        if attrs
+            .into_iter()
+            .map(|v| attrs.into_iter().filter(move |u| u.borrow() != v.borrow()))
+            .any(|i| closure_of(i, dependencies).is_superset(&self.attrs()))
+        {
+            Category::Superkey
+        } else {
+            Category::Key
+        }
+    }
+
     pub fn register(&mut self, name: &str) -> u32 {
         self.resolve(name).unwrap_or_else(|| {
             let key = self.cnt;
@@ -112,6 +168,13 @@ impl NameRegister {
             self.idx_name.insert(key, name.to_string());
             key
         })
+    }
+
+    pub fn with_names<'a>(&'a self, attrs: &'a [u32]) -> AttrWithNames<'a> {
+        AttrWithNames {
+            attrs,
+            register: self,
+        }
     }
 
     pub fn parse(&self, input: &str) -> Option<FD> {
@@ -126,6 +189,28 @@ impl NameRegister {
             .collect::<Option<_>>()?;
 
         Some(FD::new(&source, &target))
+    }
+}
+
+pub struct AttrWithNames<'a> {
+    attrs: &'a [u32],
+    register: &'a NameRegister,
+}
+
+impl<'a> Display for AttrWithNames<'a> {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        let mut is_first = true;
+        write!(f, "{{ ")?;
+        for &attr in self.attrs {
+            if !is_first {
+                write!(f, ", ")?;
+            }
+            is_first = false;
+            f.write_str(self.register.name(attr).unwrap_or("{Unnamed}"))?;
+        }
+        write!(f, " }}")?;
+
+        Ok(())
     }
 }
 

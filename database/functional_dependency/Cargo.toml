@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 nom = "^6.0"
+itertools = "^0.10"
