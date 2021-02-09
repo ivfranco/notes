@@ -469,3 +469,33 @@ c.  C -> A, B, D
 {(A, B -> C), A -> B, B -> A, C -> A, C -> B}, 3 variants
 
 3.2.10
+./database/functional_dependency
+// manually minified
+a.  C -> A
+    A, B -> C
+b.  A, C -> B
+c.  A, C -> B
+    B, C -> A
+d.  A -> B
+    B -> C 
+    C -> A
+
+3.2.11
+for any FD A -> B, B ∈ A+
+step 1, splitting of FDs, can be derived from transitivity and reflexivity:
+    A -> B, C 
+    with B, C -> B & B, C -> C // reflexivity
+    => A -> B & A -> C // transitivity
+step 2, let X = A
+step 3, at each iteration, a FD C -> D applies to Xn where C ⊆ Xn
+    construct an FD Xn -> Xn ∪ D:
+        C -> D
+        => C ∪ Xn -> Xn ∪ D // augmentation
+        => Xn -> Xn ∪ D // splitting
+    and let Xn ∪ D be the set Xn+1 in the next iteration, it will be a chain of FDs like
+    A = X0 -> X1 -> .. -> Xn = A+
+    by transitivity, 
+        A -> A+
+        => A -> B // B ⊆ A+ and splitting
+
+3.3.1

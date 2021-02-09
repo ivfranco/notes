@@ -1,11 +1,8 @@
+//! TODO: would be much cleaner if attribute list is a type that's both a set and sorted vector
 #![allow(clippy::many_single_char_names, non_snake_case)]
+mod sorted_uvec;
 
-use std::{borrow::Borrow, collections::HashSet};
-use std::{
-    collections::HashMap,
-    fmt::{self, Display, Formatter},
-};
-
+use itertools::Itertools;
 use nom::{
     bytes::complete::{tag, take_while1},
     character::complete::space0,
@@ -13,8 +10,16 @@ use nom::{
     multi::separated_list1,
     AsChar, IResult, InputTakeAtPosition, Parser,
 };
+use std::{
+    borrow::{Borrow, Cow},
+    collections::HashSet,
+};
+use std::{
+    collections::HashMap,
+    fmt::{self, Display, Formatter},
+};
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct FD {
     pub source: HashSet<u32>,
     pub target: HashSet<u32>,
@@ -215,7 +220,7 @@ impl<'a> Display for AttrWithNames<'a> {
 }
 
 fn ident(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| c.is_ascii_alphanumeric())(input)
+    take_while1(|c: char| c.is_ascii_alphanumeric() || c == '_')(input)
 }
 
 fn lexeme<P, I, O, E>(mut parser: P) -> impl FnMut(I) -> IResult<I, O, E>
@@ -246,8 +251,75 @@ fn to_sorted_vec<T: Ord + Copy>(set: &HashSet<T>) -> Vec<T> {
     vec
 }
 
+pub fn implies(FDs: &[FD], fd: &FD) -> bool {
+    closure_of(&fd.source, FDs).is_superset(&fd.target)
+}
+
+fn all_subsets_of(attrs: &[u32]) -> impl Iterator<Item = Vec<u32>> + '_ {
+    (0..=attrs.len()).flat_map(move |k| attrs.iter().copied().combinations(k))
+}
+
+fn project_to(attrs: &HashSet<u32>, FDs: &[FD]) -> Vec<FD> {
+    let FDs: Vec<FD> = all_subsets_of(&to_sorted_vec(attrs))
+        .map(|selected| {
+            let mut closure = closure_of(&selected, FDs);
+            closure.retain(|v| attrs.contains(v));
+            FD::new(selected, closure)
+        })
+        .filter(|fd| !fd.is_deformed())
+        .collect();
+
+    minify(&FDs)
+}
+
+fn minify(FDs: &[FD]) -> Vec<FD> {
+    FDs.iter()
+        .filter(|fd| {
+            !FDs.iter().any(|other| {
+                other.source.len() < fd.source.len()
+                    && other.source.is_subset(&fd.source)
+                    && other.target.is_superset(&fd.target)
+            })
+        })
+        .cloned()
+        .collect()
+}
+
+fn violate<'a>(rel: &HashSet<u32>, FDs: &'a [FD]) -> Option<&'a FD> {
+    FDs.iter()
+        .find(|fd| !closure_of(&fd.source, FDs).is_superset(rel))
+}
+
+pub fn bcnf_decomposition<I, T>(rel: I, FDs: &[FD]) -> Vec<HashSet<u32>>
+where
+    I: IntoIterator<Item = T>,
+    T: Borrow<u32>,
+{
+    let rel: HashSet<_> = rel.into_iter().map(|v| *v.borrow()).collect();
+    let mut candidates: Vec<(HashSet<u32>, Cow<[FD]>)> = vec![(rel, Cow::Borrowed(FDs))];
+    let mut bcnf: Vec<HashSet<u32>> = vec![];
+
+    while let Some((rel, FDs)) = candidates.pop() {
+        if let Some(fd) = violate(&rel, &FDs) {
+            let rel_0 = closure_of(&fd.source, &FDs);
+            let FDs_0 = project_to(&rel_0, &FDs);
+            let rel_1 = &fd.source | &(&rel - &rel_0);
+            let FDs_1 = project_to(&rel_1, &FDs);
+
+            candidates.push((rel_0, Cow::Owned(FDs_0)));
+            candidates.push((rel_1, Cow::Owned(FDs_1)));
+        } else {
+            bcnf.push(rel);
+        }
+    }
+
+    bcnf
+}
+
 #[cfg(test)]
 mod test {
+    use nom::bitvec::prelude;
+
     use super::*;
 
     #[test]
@@ -286,5 +358,82 @@ mod test {
 
         let fd = reg.parse("B, A -> D, C").unwrap();
         assert_eq!(format!("{}", fd.with_names(&reg)), "A, B -> C, D");
+    }
+
+    #[test]
+    fn project_test() {
+        let mut reg = NameRegister::new();
+        let A = reg.register("A");
+        let _B = reg.register("B");
+        let C = reg.register("C");
+        let D = reg.register("D");
+
+        let FDs: Vec<_> = ["A -> B", "B -> C", "C -> D"]
+            .iter()
+            .map(|fd| reg.parse(fd).unwrap())
+            .collect();
+
+        let projection = project_to(&[A, C, D].iter().copied().collect(), &FDs);
+
+        assert_eq!(projection.len(), 2);
+        assert!(implies(&projection, &reg.parse("A -> C, D").unwrap()));
+        assert!(implies(&projection, &reg.parse("C -> D").unwrap()));
+    }
+
+    #[test]
+    fn violation_test() {
+        let mut reg = NameRegister::new();
+        let _title = reg.register("title");
+        let _year = reg.register("year");
+        let _studio_name = reg.register("studio_name");
+        let _president = reg.register("president");
+
+        let FDs: Vec<_> = ["title, year -> studio_name", "studio_name -> president"]
+            .iter()
+            .map(|fd| reg.parse(fd).unwrap())
+            .collect();
+
+        assert_eq!(violate(&reg.attrs(), &FDs), Some(&FDs[1]));
+    }
+
+    #[test]
+    fn bcnf_test() {
+        let mut reg = NameRegister::new();
+        let title = reg.register("title");
+        let year = reg.register("year");
+        let studio_name = reg.register("studio_name");
+        let president = reg.register("president");
+        let pres_addr = reg.register("pres_addr");
+
+        let FDs: Vec<_> = [
+            "title, year -> studio_name",
+            "studio_name -> president",
+            "president -> pres_addr",
+        ]
+        .iter()
+        .map(|fd| reg.parse(fd).unwrap())
+        .collect();
+
+        let decomposition = bcnf_decomposition(reg.attrs(), &FDs);
+        assert!(decomposition.contains(
+            &[title, year, studio_name]
+                .iter()
+                .copied()
+                .collect::<HashSet<_>>()
+        ));
+
+        assert!(decomposition.contains(
+            &[studio_name, president]
+                .iter()
+                .copied()
+                .collect::<HashSet<_>>()
+        ));
+
+        assert!(decomposition.contains(
+            &[president, pres_addr]
+                .iter()
+                .copied()
+                .collect::<HashSet<_>>()
+        ));
     }
 }
