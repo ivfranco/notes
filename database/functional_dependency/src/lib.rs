@@ -1,45 +1,42 @@
-//! TODO: would be much cleaner if attribute list is a type that's both a set and sorted vector
 #![allow(clippy::many_single_char_names, non_snake_case)]
-mod sorted_uvec;
 
+mod sorted_uvec;
 use itertools::Itertools;
-use nom::{
-    bytes::complete::{tag, take_while1},
-    character::complete::space0,
-    error::ParseError,
-    multi::separated_list1,
-    AsChar, IResult, InputTakeAtPosition, Parser,
-};
-use std::{
-    borrow::{Borrow, Cow},
-    collections::HashSet,
-};
+use sorted_uvec::SortedUVec;
+use std::borrow::Borrow;
 use std::{
     collections::HashMap,
     fmt::{self, Display, Formatter},
 };
 
+pub type Attrs = SortedUVec<u32>;
+
+impl Attrs {
+    pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> AttrWithNames<'a> {
+        AttrWithNames {
+            attrs: self,
+            register,
+        }
+    }
+}
+
+pub fn attrs<I, J>(iter: I) -> Attrs
+where
+    I: IntoIterator<Item = J>,
+    J: Borrow<u32>,
+{
+    Attrs::new(iter.into_iter().map(|v| *v.borrow()))
+}
+
 #[derive(PartialEq, Eq, Clone, Debug)]
 pub struct FD {
-    pub source: HashSet<u32>,
-    pub target: HashSet<u32>,
+    pub source: Attrs,
+    pub target: Attrs,
 }
 
 impl FD {
-    pub fn new<I, J, A, B>(source: I, target: J) -> Self
-    where
-        I: IntoIterator<Item = A>,
-        J: IntoIterator<Item = B>,
-        A: Borrow<u32>,
-        B: Borrow<u32>,
-    {
-        let source: HashSet<_> = source.into_iter().map(|v| *v.borrow()).collect();
-        let target: HashSet<_> = target
-            .into_iter()
-            // construct completely non-trivial FDs only
-            .map(|v| *v.borrow())
-            .filter(|v| !source.contains(v))
-            .collect();
+    pub fn new(source: Attrs, target: Attrs) -> Self {
+        let target = &target - &source;
         Self { source, target }
     }
 
@@ -71,19 +68,15 @@ impl Display for FDWithNames<'_> {
             Ok(())
         };
 
-        sep_by_comma(&to_sorted_vec(&self.fd.source), f)?;
+        sep_by_comma(&*self.fd.source, f)?;
         write!(f, " -> ")?;
-        sep_by_comma(&to_sorted_vec(&self.fd.target), f)?;
+        sep_by_comma(&*self.fd.target, f)?;
         Ok(())
     }
 }
 
-pub fn closure_of<I, T>(attrs: I, dependencies: &[FD]) -> HashSet<u32>
-where
-    I: IntoIterator<Item = T>,
-    T: Borrow<u32>,
-{
-    let mut closure: HashSet<_> = attrs.into_iter().map(|v| *v.borrow()).collect();
+pub fn closure_of(attrs: &Attrs, dependencies: &[FD]) -> Attrs {
+    let mut closure = attrs.clone();
     let mut size = closure.len();
 
     loop {
@@ -136,29 +129,26 @@ impl NameRegister {
         self.idx_name.get(&idx).map(|s| s.as_str())
     }
 
-    pub fn attrs(&self) -> HashSet<u32> {
+    pub fn attrs(&self) -> Attrs {
         (0..self.cnt).collect()
     }
 
-    pub fn sorted_attrs(&self) -> Vec<u32> {
-        (0..self.cnt).collect()
-    }
-
-    pub fn categorize<I, T>(&self, attrs: I, dependencies: &[FD]) -> Category
-    where
-        I: IntoIterator<Item = T> + Copy,
-        T: Borrow<u32>,
-    {
+    pub fn categorize(&self, attrs: &Attrs, dependencies: &[FD]) -> Category {
         let closure = closure_of(attrs, dependencies);
         if !closure.is_superset(&self.attrs()) {
             return Category::Nonkey;
         }
 
-        if attrs
-            .into_iter()
-            .map(|v| attrs.into_iter().filter(move |u| u.borrow() != v.borrow()))
-            .any(|i| closure_of(i, dependencies).is_superset(&self.attrs()))
-        {
+        let has_subkey = attrs
+            .iter()
+            .map(|v| {
+                let mut attrs = attrs.clone();
+                attrs.remove(v);
+                attrs
+            })
+            .any(|attrs| closure_of(&attrs, dependencies).is_superset(&self.attrs()));
+
+        if has_subkey {
             Category::Superkey
         } else {
             Category::Key
@@ -175,25 +165,18 @@ impl NameRegister {
         })
     }
 
-    pub fn with_names<'a>(&'a self, attrs: &'a [u32]) -> AttrWithNames<'a> {
-        AttrWithNames {
-            attrs,
-            register: self,
-        }
-    }
-
     pub fn parse(&self, input: &str) -> Option<FD> {
-        let (_, (source, target)) = fd(input).ok()?;
-        let source: Vec<u32> = source
+        let (_, (source, target)) = parser::fd(input).ok()?;
+        let source: Attrs = source
             .iter()
             .map(|v| self.resolve(v))
             .collect::<Option<_>>()?;
-        let target: Vec<u32> = target
+        let target: Attrs = target
             .iter()
             .map(|v| self.resolve(v))
             .collect::<Option<_>>()?;
 
-        Some(FD::new(&source, &target))
+        Some(FD::new(source, target))
     }
 }
 
@@ -219,52 +202,61 @@ impl<'a> Display for AttrWithNames<'a> {
     }
 }
 
-fn ident(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| c.is_ascii_alphanumeric() || c == '_')(input)
-}
+mod parser {
+    use nom::{
+        bytes::complete::{tag, take_while1},
+        character::complete::space0,
+        error::ParseError,
+        multi::separated_list1,
+        AsChar, IResult, InputTakeAtPosition, Parser,
+    };
 
-fn lexeme<P, I, O, E>(mut parser: P) -> impl FnMut(I) -> IResult<I, O, E>
-where
-    P: Parser<I, O, E>,
-    E: ParseError<I>,
-    I: InputTakeAtPosition,
-    <I as InputTakeAtPosition>::Item: AsChar + Clone,
-{
-    move |input: I| {
-        let (input, _) = space0(input)?;
-        parser.parse(input)
+    fn ident(input: &str) -> IResult<&str, &str> {
+        take_while1(|c: char| c.is_ascii_alphanumeric() || c == '_')(input)
     }
-}
 
-// FD <- IDENT ("," IDENT)* "->" IDENT ("," IDENT)*
-fn fd(input: &str) -> IResult<&str, (Vec<&str>, Vec<&str>)> {
-    let (input, source) = separated_list1(lexeme(tag(",")), lexeme(ident))(input)?;
-    let (input, _) = lexeme(tag("->"))(input)?;
-    let (input, target) = separated_list1(lexeme(tag(",")), lexeme(ident))(input)?;
+    fn lexeme<P, I, O, E>(mut parser: P) -> impl FnMut(I) -> IResult<I, O, E>
+    where
+        P: Parser<I, O, E>,
+        E: ParseError<I>,
+        I: InputTakeAtPosition,
+        <I as InputTakeAtPosition>::Item: AsChar + Clone,
+    {
+        move |input: I| {
+            let (input, _) = space0(input)?;
+            parser.parse(input)
+        }
+    }
 
-    Ok((input, (source, target)))
-}
+    fn sep_by_comma(input: &str) -> IResult<&str, Vec<&str>> {
+        separated_list1(lexeme(tag(",")), lexeme(ident))(input)
+    }
 
-fn to_sorted_vec<T: Ord + Copy>(set: &HashSet<T>) -> Vec<T> {
-    let mut vec: Vec<_> = set.iter().copied().collect();
-    vec.sort_unstable();
-    vec
+    // FD <- IDENT ("," IDENT)* "->" IDENT ("," IDENT)*
+    pub fn fd(input: &str) -> IResult<&str, (Vec<&str>, Vec<&str>)> {
+        let (input, source) = sep_by_comma(input)?;
+        let (input, _) = lexeme(tag("->"))(input)?;
+        let (input, target) = sep_by_comma(input)?;
+
+        Ok((input, (source, target)))
+    }
 }
 
 pub fn implies(FDs: &[FD], fd: &FD) -> bool {
     closure_of(&fd.source, FDs).is_superset(&fd.target)
 }
 
-fn all_subsets_of(attrs: &[u32]) -> impl Iterator<Item = Vec<u32>> + '_ {
-    (0..=attrs.len()).flat_map(move |k| attrs.iter().copied().combinations(k))
+pub fn all_subsets_of(attrs: &[u32]) -> impl Iterator<Item = Attrs> + '_ {
+    (0..=attrs.len())
+        .flat_map(move |k| attrs.iter().copied().combinations(k))
+        .map(From::from)
 }
 
-fn project_to(attrs: &HashSet<u32>, FDs: &[FD]) -> Vec<FD> {
-    let FDs: Vec<FD> = all_subsets_of(&to_sorted_vec(attrs))
+fn project_to(attrs: &Attrs, FDs: &[FD]) -> Vec<FD> {
+    let FDs: Vec<FD> = all_subsets_of(&*attrs)
         .map(|selected| {
-            let mut closure = closure_of(&selected, FDs);
-            closure.retain(|v| attrs.contains(v));
-            FD::new(selected, closure)
+            let closure = closure_of(&selected, FDs);
+            FD::new(selected, &closure & attrs)
         })
         .filter(|fd| !fd.is_deformed())
         .collect();
@@ -272,6 +264,7 @@ fn project_to(attrs: &HashSet<u32>, FDs: &[FD]) -> Vec<FD> {
     minify(&FDs)
 }
 
+// TODO: incomplete, right side of FD's not minified
 fn minify(FDs: &[FD]) -> Vec<FD> {
     FDs.iter()
         .filter(|fd| {
@@ -285,29 +278,35 @@ fn minify(FDs: &[FD]) -> Vec<FD> {
         .collect()
 }
 
-fn violate<'a>(rel: &HashSet<u32>, FDs: &'a [FD]) -> Option<&'a FD> {
+pub fn all_violations<'a>(rel: &'a Attrs, FDs: &'a [FD]) -> impl Iterator<Item = &'a FD> + 'a {
     FDs.iter()
-        .find(|fd| !closure_of(&fd.source, FDs).is_superset(rel))
+        .filter(move |fd| !closure_of(&fd.source, FDs).is_superset(rel))
 }
 
-pub fn bcnf_decomposition<I, T>(rel: I, FDs: &[FD]) -> Vec<HashSet<u32>>
-where
-    I: IntoIterator<Item = T>,
-    T: Borrow<u32>,
-{
-    let rel: HashSet<_> = rel.into_iter().map(|v| *v.borrow()).collect();
-    let mut candidates: Vec<(HashSet<u32>, Cow<[FD]>)> = vec![(rel, Cow::Borrowed(FDs))];
-    let mut bcnf: Vec<HashSet<u32>> = vec![];
+fn violation<'a>(rel: &'a Attrs, FDs: &'a [FD]) -> Option<&'a FD> {
+    all_violations(rel, FDs).next()
+}
+
+pub fn bcnf_decomposition(rel: &Attrs, FDs: &[FD]) -> Vec<Attrs> {
+    let rel: Attrs = rel.clone();
+    let mut candidates: Vec<(Attrs, Vec<FD>)> = vec![(rel, FDs.to_vec())];
+    let mut bcnf: Vec<Attrs> = vec![];
 
     while let Some((rel, FDs)) = candidates.pop() {
-        if let Some(fd) = violate(&rel, &FDs) {
+        // every 2-attribute relation is in BCNF
+        if rel.len() <= 2 {
+            bcnf.push(rel);
+            continue;
+        }
+
+        if let Some(fd) = violation(&rel, &FDs) {
             let rel_0 = closure_of(&fd.source, &FDs);
             let FDs_0 = project_to(&rel_0, &FDs);
             let rel_1 = &fd.source | &(&rel - &rel_0);
             let FDs_1 = project_to(&rel_1, &FDs);
 
-            candidates.push((rel_0, Cow::Owned(FDs_0)));
-            candidates.push((rel_1, Cow::Owned(FDs_1)));
+            candidates.push((rel_0, FDs_0));
+            candidates.push((rel_1, FDs_1));
         } else {
             bcnf.push(rel);
         }
@@ -318,8 +317,6 @@ where
 
 #[cfg(test)]
 mod test {
-    use nom::bitvec::prelude;
-
     use super::*;
 
     #[test]
@@ -342,10 +339,10 @@ mod test {
             .collect::<Vec<_>>();
 
         assert_eq!(
-            to_sorted_vec(&closure_of(&[A, B], &dependencies)),
+            &*closure_of(&attrs(&[A, B]), &dependencies),
             &[A, B, C, D, E]
         );
-        assert_eq!(to_sorted_vec(&closure_of(&[D], &dependencies)), &[D, E]);
+        assert_eq!(&*closure_of(&attrs(&[D]), &dependencies), &[D, E]);
     }
 
     #[test]
@@ -393,7 +390,7 @@ mod test {
             .map(|fd| reg.parse(fd).unwrap())
             .collect();
 
-        assert_eq!(violate(&reg.attrs(), &FDs), Some(&FDs[1]));
+        assert_eq!(violation(&reg.attrs(), &FDs), Some(&FDs[1]));
     }
 
     #[test]
@@ -414,26 +411,10 @@ mod test {
         .map(|fd| reg.parse(fd).unwrap())
         .collect();
 
-        let decomposition = bcnf_decomposition(reg.attrs(), &FDs);
-        assert!(decomposition.contains(
-            &[title, year, studio_name]
-                .iter()
-                .copied()
-                .collect::<HashSet<_>>()
-        ));
-
-        assert!(decomposition.contains(
-            &[studio_name, president]
-                .iter()
-                .copied()
-                .collect::<HashSet<_>>()
-        ));
-
-        assert!(decomposition.contains(
-            &[president, pres_addr]
-                .iter()
-                .copied()
-                .collect::<HashSet<_>>()
-        ));
+        let decomposition = bcnf_decomposition(&reg.attrs(), &FDs);
+        assert_eq!(decomposition.len(), 3);
+        assert!(decomposition.contains(&attrs(&[title, year, studio_name])));
+        assert!(decomposition.contains(&attrs(&[studio_name, president])));
+        assert!(decomposition.contains(&attrs(&[president, pres_addr])));
     }
 }

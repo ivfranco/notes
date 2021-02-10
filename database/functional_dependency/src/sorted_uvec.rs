@@ -1,12 +1,15 @@
-use std::{iter::FromIterator, ops::Deref};
+use std::{
+    iter::FromIterator,
+    ops::{BitAnd, BitOr, Deref, Sub},
+};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub struct SortedUVec<T> {
     inner: Vec<T>,
 }
 
 impl<T: Ord> SortedUVec<T> {
-    fn new<I>(inner: I) -> Self
+    pub fn new<I>(inner: I) -> Self
     where
         I: IntoIterator<Item = T>,
     {
@@ -21,12 +24,60 @@ impl<T: Ord> SortedUVec<T> {
         self.inner.dedup();
     }
 
-    pub fn is_subset(&self, other: &Self) -> bool {
-        self.iter().all(|v| other.contains(v))
+    pub fn remove(&mut self, value: &T) {
+        self.inner.retain(|v| v != value)
     }
 
-    pub fn is_superset(&self, other: &Self) -> bool {
-        other.is_subset(self)
+    pub fn is_subset(&self, rhs: &Self) -> bool {
+        self.iter().all(|v| rhs.contains(v))
+    }
+
+    pub fn is_superset(&self, rhs: &Self) -> bool {
+        rhs.is_subset(self)
+    }
+}
+
+impl<T: Ord + Clone> SortedUVec<T> {
+    fn difference(&self, rhs: &Self) -> Self {
+        let mut inner = self.inner.clone();
+        inner.retain(|v| !rhs.contains(v));
+        inner.into()
+    }
+
+    fn union(&self, rhs: &Self) -> Self {
+        let mut this = self.clone();
+        this.extend(rhs.iter().cloned());
+        this
+    }
+
+    fn intersection(&self, rhs: &Self) -> Self {
+        let mut inner = self.inner.clone();
+        inner.retain(|v| rhs.contains(v));
+        inner.into()
+    }
+}
+
+impl<'a, T: Ord + Clone> BitOr for &'a SortedUVec<T> {
+    type Output = SortedUVec<T>;
+
+    fn bitor(self, rhs: Self) -> Self::Output {
+        self.union(rhs)
+    }
+}
+
+impl<'a, T: Ord + Clone> BitAnd for &'a SortedUVec<T> {
+    type Output = SortedUVec<T>;
+
+    fn bitand(self, rhs: Self) -> Self::Output {
+        self.intersection(rhs)
+    }
+}
+
+impl<'a, T: Ord + Clone> Sub for &'a SortedUVec<T> {
+    type Output = SortedUVec<T>;
+
+    fn sub(self, rhs: Self) -> Self::Output {
+        self.difference(rhs)
     }
 }
 
@@ -52,5 +103,15 @@ impl<T: Ord> From<Vec<T>> for SortedUVec<T> {
         let mut this = Self { inner };
         this.normalize();
         this
+    }
+}
+
+impl<T: Ord> Extend<T> for SortedUVec<T> {
+    fn extend<I>(&mut self, iter: I)
+    where
+        I: IntoIterator<Item = T>,
+    {
+        self.inner.extend(iter);
+        self.normalize();
     }
 }

@@ -499,3 +499,62 @@ step 3, at each iteration, a FD C -> D applies to Xn where C ⊆ Xn
         => A -> B // B ⊆ A+ and splitting
 
 3.3.1
+./database/functional_dependency
+a.  C -> D
+    D -> A
+    { B, C }
+    { C, D }
+    { A, D }
+b.  B -> C
+    B -> D
+    { A, B }
+    { B, C, D }
+c.  no violations
+    { A, B, C, D }
+d.  no violations
+    { A, B, C, D }
+e.  A, B -> C
+    D, E -> C
+    B -> D
+    { A, B, E }
+    { A, B, C }
+    { B, D }
+f.  C -> D
+    D -> B
+    D -> E
+    { A, C }
+    { C, D }
+    { B, D, E }
+
+3.3.2
+A -> B first:
+    { A, B }
+    { A, C }
+    { A, D }
+A -> B, C first:
+    { A, B, C }
+    { A, D }
+A is not a super key of { A, C, D }
+
+3.3.3
+A -> B first:
+    { A, B } 
+    { A, C }
+    { A, D }
+A -> B, C first 
+    { A, B, C }
+    { A, D }
+again A is not a super key of { A, C, D }
+
+3.3.4
+define R as:
+    A   B   C
+    0   0   0
+    1   0   1
+π_{A, B}(R) ⨝ π_{B, C}(R) =
+    A   B   C
+    0   0   0
+    0   0   1
+    1   0   0   
+    1   0   1
+
