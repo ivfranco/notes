@@ -19,7 +19,7 @@ fn dependencies_and_key_selected(selected: &[&str], attrs: &[&str], FDs: &[&str]
         reg.register(attr);
     }
 
-    let FDs: Vec<_> = FDs.iter().map(|fd| reg.parse(fd).unwrap()).collect();
+    let FDs = parse_dependencies(&reg, FDs);
     let selected: Attrs = selected.iter().map(|v| reg.resolve(v).unwrap()).collect();
 
     for set in all_subsets_of(&selected) {
@@ -96,7 +96,7 @@ fn violations_and_decomposition(attrs: &[&str], FDs: &[&str]) {
     for attr in attrs {
         reg.register(attr);
     }
-    let FDs: Vec<_> = FDs.iter().map(|fd| reg.parse(fd).unwrap()).collect();
+    let FDs = parse_dependencies(&reg, FDs);
 
     for fd in all_violations(&reg.attrs(), &FDs) {
         println!("{}", fd.with_names(&reg));

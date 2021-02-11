@@ -89,6 +89,15 @@ impl<T> Deref for SortedUVec<T> {
     }
 }
 
+impl<'a, T> IntoIterator for &'a SortedUVec<T> {
+    type Item = &'a T;
+    type IntoIter = std::slice::Iter<'a, T>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl<T: Ord> FromIterator<T> for SortedUVec<T> {
     fn from_iter<I>(iter: I) -> Self
     where
