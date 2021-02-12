@@ -1,12 +1,13 @@
 #![allow(non_snake_case)]
 
-use functional_dependency::*;
+use functional_dependency::{chase::*, *};
 
 fn main() {
     exercise_3_2_1();
     exercise_3_2_2();
     exercise_3_2_10();
     exercise_3_3_1();
+    exercise_3_4_1();
 }
 
 fn dependencies_and_key(attrs: &[&str], FDs: &[&str]) {
@@ -133,4 +134,40 @@ fn exercise_3_3_1() {
         &["A, B -> C", "C -> D", "D -> B", "D -> E"],
     );
     println!();
+}
+
+fn exercise_3_4_1() {
+    println!("\nexercise 3.4.1");
+
+    let mut reg = NameRegister::new();
+    let A = reg.register("A");
+    let B = reg.register("B");
+    let C = reg.register("C");
+    let D = reg.register("D");
+    let E = reg.register("E");
+
+    let decomposition = [attrs(&[A, B, C]), attrs(&[B, C, D]), attrs(&[A, C, E])];
+    let rel = Relation::from_decomposition(&decomposition, reg.cnt);
+
+    let print_fixpoint = move |FDs: &[&str]| {
+        let mut origin = rel.clone();
+        let FDs = parse_dependencies(&reg, FDs);
+        origin.fixpoint(&FDs);
+        if origin.contains_origin() {
+            println!("Lossless");
+        } else {
+            print!("{}", origin);
+        }
+
+        if let Some(fd) = not_preserved(&decomposition, &FDs) {
+            println!("{} is not preserved", fd.with_names(&reg));
+        }
+
+        println!();
+    };
+
+    print_fixpoint(&["B -> E", "C, E -> A"]);
+    print_fixpoint(&["A, C -> E", "B, C -> D"]);
+    print_fixpoint(&["A -> D", "D -> E", "B -> D"]);
+    print_fixpoint(&["A -> D", "C, D -> E", "E -> D"]);
 }

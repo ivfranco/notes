@@ -4,10 +4,10 @@ use std::{
     ops::{Deref, DerefMut},
 };
 
-use crate::{Attrs, FD};
+use crate::{implies, minify, project_to, Attrs, FD};
 use fmt::Debug;
 
-const ORIGINAL: u32 = 0;
+const ORIGIN: u32 = 0;
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct Component {
@@ -38,7 +38,7 @@ impl Component {
 impl Display for Component {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let letter: char = ('a' as u32 + self.attr).try_into().unwrap();
-        let component = if self.revision == ORIGINAL {
+        let component = if self.revision == ORIGIN {
             format!("{}", letter)
         } else {
             format!("{}{}", letter, self.revision)
@@ -64,7 +64,7 @@ impl Tuple {
         let inner = (0..cnt)
             .map(|attr| {
                 if attrs.contains(&attr) {
-                    Component::new(attr, ORIGINAL)
+                    Component::new(attr, ORIGIN)
                 } else {
                     Component::new(attr, idx)
                 }
@@ -75,7 +75,7 @@ impl Tuple {
     }
 
     fn is_original(&self) -> bool {
-        self.iter().all(|c| c.revision == ORIGINAL)
+        self.iter().all(|c| c.revision == ORIGIN)
     }
 }
 
@@ -157,7 +157,7 @@ impl Relation {
         }
     }
 
-    pub fn contains_orig(&self) -> bool {
+    pub fn contains_origin(&self) -> bool {
         self.iter().any(|t| t.is_original())
     }
 }
@@ -185,6 +185,17 @@ impl DerefMut for Relation {
     }
 }
 
+// FD not preserved after decomposition is FD that cannot be implied from the union of projected FDs
+pub fn not_preserved<'a>(decomposition: &[Attrs], FDs: &'a [FD]) -> Option<&'a FD> {
+    let recomposed: Vec<_> = decomposition
+        .iter()
+        .flat_map(|attrs| project_to(&attrs, FDs))
+        .collect();
+    let recomposed = minify(&recomposed);
+
+    FDs.iter().find(|fd| !implies(&recomposed, fd))
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -200,13 +211,26 @@ mod test {
 
         let FDs = parse_dependencies(&reg, &["B -> A, D"]);
 
-        let mut rel =
-            Relation::from_decomposition(&[attrs(&[A, B]), attrs(&[B, C]), attrs(&[C, D])], 4);
+        let decomposition = [attrs(&[A, B]), attrs(&[B, C]), attrs(&[C, D])];
+        let mut rel = Relation::from_decomposition(&decomposition, 4);
 
         rel.fixpoint(&FDs);
 
         assert_eq!(&*rel[0], [(A, 0), (B, 0), (C, 1), (D, 1)]);
         assert_eq!(&*rel[1], [(A, 0), (B, 0), (C, 0), (D, 1)]);
         assert_eq!(&*rel[2], [(A, 3), (B, 3), (C, 0), (D, 0)]);
+    }
+
+    #[test]
+    fn preservation_test() {
+        let mut reg = NameRegister::new();
+        let title = reg.register("title");
+        let city = reg.register("city");
+        let theater = reg.register("theater");
+
+        let decomposition = [attrs(&[theater, city]), attrs(&[theater, title])];
+        let FDs = parse_dependencies(&reg, &["theater -> city", "title, city -> theater"]);
+
+        assert_eq!(not_preserved(&decomposition, &FDs), Some(&FDs[1]));
     }
 }

@@ -114,7 +114,7 @@ impl Display for Category {
 
 #[derive(Default)]
 pub struct NameRegister {
-    cnt: u32,
+    pub cnt: u32,
     name_idx: HashMap<String, u32>,
     idx_name: HashMap<u32, String>,
 }
@@ -219,7 +219,7 @@ pub fn all_subsets_of(attrs: &[u32]) -> impl Iterator<Item = Attrs> + '_ {
         .map(From::from)
 }
 
-fn project_to(attrs: &Attrs, FDs: &[FD]) -> Vec<FD> {
+pub fn project_to(attrs: &Attrs, FDs: &[FD]) -> Vec<FD> {
     let FDs: Vec<FD> = all_subsets_of(&*attrs)
         .map(|selected| {
             let closure = closure_of(&selected, FDs);
@@ -232,7 +232,7 @@ fn project_to(attrs: &Attrs, FDs: &[FD]) -> Vec<FD> {
 }
 
 // TODO: incomplete, right side of FD's not minified
-fn minify(FDs: &[FD]) -> Vec<FD> {
+pub fn minify(FDs: &[FD]) -> Vec<FD> {
     FDs.iter()
         .filter(|fd| {
             !FDs.iter().any(|other| {
