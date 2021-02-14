@@ -3,7 +3,7 @@ use std::{
     ops::{BitAnd, BitOr, Deref, Sub},
 };
 
-#[derive(Clone, PartialEq, Eq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug, Default, PartialOrd, Ord)]
 pub struct SortedUVec<T> {
     inner: Vec<T>,
 }

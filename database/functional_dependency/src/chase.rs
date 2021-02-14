@@ -135,7 +135,7 @@ impl Relation {
                     for &k in &fd.target {
                         let k = k as usize;
                         // when applying FD, always overwrite the component with larger revision
-                        // eventually the component with smaller revision (e.g. the original) will dominate
+                        // eventually the component with smaller revision (e.g. the origin) will dominate
                         let c = self[i][k].min_by_revision(self[j][k]);
                         self[i][k] = c;
                         self[j][k] = c;

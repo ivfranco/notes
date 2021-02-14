@@ -6,7 +6,7 @@ mod sorted_uvec;
 
 use itertools::Itertools;
 use sorted_uvec::SortedUVec;
-use std::borrow::Borrow;
+use std::{borrow::Borrow, mem, ops::Not};
 use std::{
     collections::HashMap,
     fmt::{self, Display, Formatter},
@@ -21,6 +21,12 @@ impl Attrs {
             register,
         }
     }
+
+    pub fn keys(&self, FDs: &[FD]) -> Vec<Attrs> {
+        all_subsets_of(self)
+            .filter(|sub| categorize(sub, self, FDs) == Category::Key)
+            .collect()
+    }
 }
 
 pub fn attrs<I, J>(iter: I) -> Attrs
@@ -31,7 +37,7 @@ where
     Attrs::new(iter.into_iter().map(|v| *v.borrow()))
 }
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Default)]
 pub struct FD {
     pub source: Attrs,
     pub target: Attrs,
@@ -45,6 +51,12 @@ impl FD {
 
     pub fn is_deformed(&self) -> bool {
         self.source.is_empty() || self.target.is_empty()
+    }
+
+    pub fn split(&self) -> impl Iterator<Item = FD> + '_ {
+        self.target
+            .iter()
+            .map(move |&v| FD::new(self.source.clone(), attrs(&[v])))
     }
 
     pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> FDWithNames<'a> {
@@ -99,7 +111,7 @@ pub fn closure_of(attrs: &Attrs, dependencies: &[FD]) -> Attrs {
     closure
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Category {
     Nonkey,
     Key,
@@ -109,6 +121,28 @@ pub enum Category {
 impl Display for Category {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
+pub fn categorize(sub: &Attrs, rel: &Attrs, FDs: &[FD]) -> Category {
+    let closure = closure_of(sub, FDs);
+    if !closure.is_superset(&rel) {
+        return Category::Nonkey;
+    }
+
+    let has_subkey = sub
+        .iter()
+        .map(|v| {
+            let mut shirnked = sub.clone();
+            shirnked.remove(v);
+            shirnked
+        })
+        .any(|attrs| closure_of(&attrs, FDs).is_superset(&rel));
+
+    if has_subkey {
+        Category::Superkey
+    } else {
+        Category::Key
     }
 }
 
@@ -137,25 +171,7 @@ impl NameRegister {
     }
 
     pub fn categorize(&self, attrs: &Attrs, dependencies: &[FD]) -> Category {
-        let closure = closure_of(attrs, dependencies);
-        if !closure.is_superset(&self.attrs()) {
-            return Category::Nonkey;
-        }
-
-        let has_subkey = attrs
-            .iter()
-            .map(|v| {
-                let mut attrs = attrs.clone();
-                attrs.remove(v);
-                attrs
-            })
-            .any(|attrs| closure_of(&attrs, dependencies).is_superset(&self.attrs()));
-
-        if has_subkey {
-            Category::Superkey
-        } else {
-            Category::Key
-        }
+        categorize(attrs, &self.attrs(), dependencies)
     }
 
     pub fn register(&mut self, name: &str) -> u32 {
@@ -231,27 +247,66 @@ pub fn project_to(attrs: &Attrs, FDs: &[FD]) -> Vec<FD> {
     minify(&FDs)
 }
 
-// TODO: incomplete, right side of FD's not minified
+pub fn is_minimal_basis(FDs: &[FD]) -> bool {
+    let mut FDs: Vec<_> = FDs.iter().flat_map(|fd| fd.split()).collect();
+    !remove_implied(&mut FDs)
+}
+
 pub fn minify(FDs: &[FD]) -> Vec<FD> {
-    FDs.iter()
-        .filter(|fd| {
-            !FDs.iter().any(|other| {
-                other.source.len() < fd.source.len()
-                    && other.source.is_subset(&fd.source)
-                    && other.target.is_superset(&fd.target)
-            })
-        })
-        .cloned()
-        .collect()
+    let mut FDs: Vec<_> = FDs.iter().flat_map(|fd| fd.split()).collect();
+
+    loop {
+        let refined = remove_implied(&mut FDs);
+        let shrinked = remove_redundant(&mut FDs);
+        if !(refined || shrinked) {
+            break;
+        }
+    }
+
+    FDs.sort_by(|a, b| a.source.cmp(&b.source));
+    FDs
+}
+
+fn remove_implied(FDs: &mut Vec<FD>) -> bool {
+    for i in 0..FDs.len() {
+        let FD = mem::take(&mut FDs[i]);
+        if implies(FDs, &FD) {
+            FDs.swap_remove(i);
+            return true;
+        }
+        FDs[i] = FD;
+    }
+
+    false
+}
+
+fn remove_redundant(FDs: &mut [FD]) -> bool {
+    for i in 0..FDs.len() {
+        let FD = &FDs[i];
+        for v in &FD.source {
+            let mut shrinked = FD.clone();
+            shrinked.source.remove(v);
+            if implies(FDs, &shrinked) {
+                FDs[i] = shrinked;
+                return true;
+            }
+        }
+    }
+
+    false
 }
 
 pub fn all_violations<'a>(rel: &'a Attrs, FDs: &'a [FD]) -> impl Iterator<Item = &'a FD> + 'a {
     FDs.iter()
-        .filter(move |fd| !closure_of(&fd.source, FDs).is_superset(rel))
+        .filter(move |fd| closure_of(&fd.source, FDs).is_superset(rel).not())
 }
 
 fn violation<'a>(rel: &'a Attrs, FDs: &'a [FD]) -> Option<&'a FD> {
     all_violations(rel, FDs).next()
+}
+
+pub fn is_bcnf_violation(rel: &Attrs, FDs: &[FD]) -> bool {
+    violation(rel, FDs).is_some()
 }
 
 pub fn bcnf_decomposition(rel: &Attrs, FDs: &[FD]) -> Vec<Attrs> {
@@ -337,6 +392,7 @@ mod test {
         let projection = project_to(&[A, C, D].iter().copied().collect(), &FDs);
 
         assert_eq!(projection.len(), 2);
+        assert!(projection.iter().all(|fd| fd.target.len() == 1));
         assert!(implies(&projection, &reg.parse("A -> C, D").unwrap()));
         assert!(implies(&projection, &reg.parse("C -> D").unwrap()));
     }
