@@ -12,7 +12,7 @@ renaming in linear notation is implicit in notes, e.g.
 should be interpreted as B := ρ{B(a, b, c)}(A)
 
 A quick method to find some keys of a relation:
-    any attribute that cannot be produced by completely non-trivial FDs must be keys
+    any attribute that cannot be produced by completely non-trivial FDs must be prime
 
 2.2.1
 a - f.  Accounts(accNo: integer key, type: string, balance: integer)
@@ -640,3 +640,81 @@ the only key is { A, B }, both FDs are violating 3NF
 a possible decomposition is {{ A, C }, { A, B }}
 the FD B -> C is not preserved
 
+description of MVD A ->> B in relational algebra, where C = c(A ∪ B):
+    R1 := R
+    R2 := R
+    π_{A, R1.B, R2.C}(R1 ⨝_{R1.A = R2.A} R2) = R
+
+3.6.1
+(a, b1, c2)
+(a, b1, c3)
+(a, b2, c1)
+(a, b2, c3)
+(a, b3, c1)
+(a, b3, c2)
+
+3.6.2
+a.  s -> n, b
+    cs -> cn, cb
+    as -> am
+    n, s, b ->> cn, cs, cb
+b.  { s, n, b }
+    { cs, cn, cb }
+    { as, am }
+    { s, as }
+    { s, cs }
+
+3.6.3
+a.  if A ->> B in R(A, B, C, D), then A ->> B in π_{A, B, C}(R):
+        ∀t,u ∈ π_{A, B, C}(R), π_A(t) = π_A(u)
+        => ∃v,w π_{A, B, C}(v) = t, π_{A, B, C}(w) = u // definition of projection
+        => (π_A(v), π_B(v), π_{C, D}(w)) ∈ R // A ->> B in R
+        => π_{A, B, C}(π_A(v), π_B(v), π_{C, D}(w)) ∈ π_{A, B, C}(R) // definition of projection
+        => (π_A(v), π_B(v), π_{C}(w)) ∈ π_{A, B, C}(R) // distribution of projection 
+        => (π_A(t), π_B(t), π_{C}(u)) ∈ π_{A, B, C}(R) // as how v, w are defined
+    keys: 
+        { A, B, C, D }
+    violations:
+        A ->> B
+        A ->> C
+    decomposition:
+        { A, B }
+        { A, C }
+        { A, D }
+b.  keys:
+        { A, B, C, D }
+    violations:
+        A ->> B 
+        B ->> C, D
+    decomposition:
+        { A, B }
+        // A ->> C, D is trivial
+        { A, C, D }
+c.  keys:
+        { A, B, C }
+    violations:
+        A, B ->> C
+        B -> D
+    decomposition:
+        { B, D }
+        { A, B, C }
+d.  keys:
+        { A, B, C }
+    violations:
+        A ->> B
+        A, B ->> C
+        A -> D 
+        A, B -> E
+    decomposition:
+        // apply A, B -> E on R
+        { A, B, E }
+        // apply A -> D on { A, C, D }
+        { A, D }
+        { A, C }
+
+3.6.4
+name:   there may be multiple people living on the same street & city and starred the same movie
+street: the same star may have different addresses throughout their career
+city:   same as above
+title:  the same star may appear in multiple movies in the same year
+year:   the same star may appear in both the original and the remake of a movie several years after
