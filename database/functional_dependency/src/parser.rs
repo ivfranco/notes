@@ -27,11 +27,20 @@ fn sep_by_comma(input: &str) -> IResult<&str, Vec<&str>> {
     separated_list1(lexeme(tag(",")), lexeme(ident))(input)
 }
 
-// FD <- IDENT ("," IDENT)* "->" IDENT ("," IDENT)*
-pub fn fd(input: &str) -> IResult<&str, (Vec<&str>, Vec<&str>)> {
+fn dependency<'a>(arrow: &str, input: &'a str) -> IResult<&'a str, (Vec<&'a str>, Vec<&'a str>)> {
     let (input, source) = sep_by_comma(input)?;
-    let (input, _) = lexeme(tag("->"))(input)?;
+    let (input, _) = lexeme(tag(arrow))(input)?;
     let (input, target) = sep_by_comma(input)?;
 
     Ok((input, (source, target)))
+}
+
+// FD <- IDENT ("," IDENT)* "->" IDENT ("," IDENT)*
+pub fn fd(input: &str) -> IResult<&str, (Vec<&str>, Vec<&str>)> {
+    dependency("->", input)
+}
+
+// MVD <- IDENT ("," IDENT)* "->> IDENT ("," IDENT)*
+pub fn mvd(input: &str) -> IResult<&str, (Vec<&str>, Vec<&str>)> {
+    dependency("->>", input)
 }

@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
-use functional_dependency::{chase::*, *};
-use rand::{thread_rng, Rng};
+use functional_dependency::{chase::*, mvd::MVD, *};
+use rand::{prelude::Distribution, thread_rng};
 use std::{convert::TryInto, iter::from_fn, ops::Not};
 
 fn main() {
@@ -15,6 +15,7 @@ fn main() {
     exercise_3_5_3();
     exercise_3_5_4();
     exercise_3_5_5();
+    exercise_3_7_1_to_3_7_2();
 }
 
 fn dependencies_and_key(attrs: &[&str], FDs: &[&str]) {
@@ -27,7 +28,7 @@ fn dependencies_and_key_selected(selected: &[&str], attrs: &[&str], FDs: &[&str]
         reg.register(attr);
     }
 
-    let FDs = parse_dependencies(&reg, FDs);
+    let FDs = parse_FDs(&reg, FDs);
     let selected: Attrs = selected.iter().map(|v| reg.resolve(v).unwrap()).collect();
 
     for set in all_subsets_of(&selected) {
@@ -104,7 +105,7 @@ fn violations_and_decomposition(attrs: &[&str], FDs: &[&str]) {
     for attr in attrs {
         reg.register(attr);
     }
-    let FDs = parse_dependencies(&reg, FDs);
+    let FDs = parse_FDs(&reg, FDs);
 
     for fd in all_violations(&reg.attrs(), &FDs) {
         println!("{}", fd.with_names(&reg));
@@ -154,11 +155,11 @@ fn exercise_3_4_1() {
     let E = reg.register("E");
 
     let decomposition = [attrs(&[A, B, C]), attrs(&[B, C, D]), attrs(&[A, C, E])];
-    let rel = Relation::from_decomposition(&decomposition, reg.cnt);
+    let rel = Tableau::from_decomposition(&decomposition, reg.cnt());
 
     let print_fixpoint = move |FDs: &[&str]| {
         let mut origin = rel.clone();
-        let FDs = parse_dependencies(&reg, FDs);
+        let FDs = parse_FDs(&reg, FDs);
         origin.fixpoint(&FDs);
         if origin.contains_origin() {
             println!("Lossless");
@@ -185,7 +186,7 @@ fn keys(attrs: &[&str], FDs: &[&str]) {
         reg.register(attr);
     }
 
-    let FDs = parse_dependencies(&reg, FDs);
+    let FDs = parse_FDs(&reg, FDs);
 
     assert!(is_minimal_basis(&FDs));
 
@@ -229,7 +230,7 @@ fn key_3nf_violations(attrs: &[&str], FDs: &[&str]) {
     for attr in attrs {
         reg.register(attr);
     }
-    let FDs = parse_dependencies(&reg, FDs);
+    let FDs = parse_FDs(&reg, FDs);
 
     let keys = reg.attrs().keys(&FDs);
     for key in &keys {
@@ -271,7 +272,7 @@ fn key_3nf_violations(attrs: &[&str], FDs: &[&str]) {
         println!("{}: {}", rel.with_names(&reg), label);
     }
 
-    let mut chase = Relation::from_decomposition(&decomposition, reg.cnt);
+    let mut chase = Tableau::from_decomposition(&decomposition, reg.cnt());
     chase.fixpoint(&FDs);
     // 3NF decomposition has lossless join and dependency preservation
     assert!(chase.contains_origin());
@@ -303,11 +304,11 @@ fn exercise_3_5_4() {
     let D = reg.register("D");
     let E = reg.register("E");
 
-    let FDs = parse_dependencies(&reg, &["A, B -> C", "C -> B", "A -> D"]);
+    let FDs = parse_FDs(&reg, &["A, B -> C", "C -> B", "A -> D"]);
 
-    let mut chase = Relation::from_decomposition(
+    let mut chase = Tableau::from_decomposition(
         &[attrs(&[A, B, C]), attrs(&[A, D]), attrs(&[A, B, E])],
-        reg.cnt,
+        reg.cnt(),
     );
 
     chase.fixpoint(&FDs);
@@ -348,27 +349,10 @@ fn mock_3nf_decomposition(rel: &Attrs, FDs: &[FD]) -> Vec<Attrs> {
 }
 
 fn exercise_3_5_5() {
+    println!("\nexercise 3.5.5");
     // generate a random case then test for dependency preservation
     const ATTRS: u32 = 3;
-
-    fn random_FD<R: Rng>(rng: &mut R) -> FD {
-        let mut source = vec![];
-        let mut target = vec![];
-        for i in 0..ATTRS {
-            if rng.gen_bool(0.5) {
-                source.push(i);
-            }
-            if rng.gen_bool(0.5) {
-                target.push(i);
-            }
-        }
-
-        if source.is_empty() {
-            source.push(rng.gen_range(0..ATTRS));
-        }
-
-        FD::new(source.into(), target.into())
-    }
+    let dist = NumberOfAttrs::new(ATTRS);
 
     let mut reg = NameRegister::new();
     (0..ATTRS)
@@ -381,7 +365,7 @@ fn exercise_3_5_5() {
 
     loop {
         let FDs: Vec<_> = minify(
-            &from_fn(|| Some(random_FD(&mut rng)))
+            &from_fn(|| Some(dist.sample(&mut rng)))
                 .take(4) // maybe enough, maybe not
                 .collect::<Vec<_>>(),
         );
@@ -396,4 +380,42 @@ fn exercise_3_5_5() {
             break;
         }
     }
+}
+
+fn exercise_3_7_1_to_3_7_2() {
+    println!("\nexercise 3.7.1");
+
+    let mut reg = NameRegister::new();
+    let A = reg.register("A");
+    let _B = reg.register("B");
+    let C = reg.register("C");
+    let _D = reg.register("D");
+    let E = reg.register("E");
+
+    let deps = Dependencies::parse(&reg, &["B -> D"], &["A ->> B, C", "C ->> E"]);
+    let fd = reg.parse_fd("A -> D").unwrap();
+    println!("{}: {}", fd.with_names(&reg), deps.imply_fd(&fd));
+    let mvd = reg.parse_mvd("A ->> D").unwrap();
+    println!("{}: {}", mvd.with_names(&reg), deps.imply_mvd(&mvd));
+    let fd = reg.parse_fd("A -> E").unwrap();
+    println!("{}: {}", fd.with_names(&reg), deps.imply_fd(&fd));
+    let mvd = reg.parse_mvd("A ->> E").unwrap();
+    println!("{}: {}", mvd.with_names(&reg), deps.imply_mvd(&mvd));
+
+    println!("\nexercise 3.7.2");
+
+    let selected = attrs(&[A, C, E]);
+
+    all_subsets_of(&*selected)
+        .flat_map(|source| all_subsets_of(&*selected).map(move |target| (source.clone(), target)))
+        .for_each(|(source, target)| {
+            let fd = FD::new(source.clone(), target.clone());
+            if !fd.is_deformed() && deps.imply_fd(&fd) {
+                println!("{}", fd.with_names(&reg));
+            }
+            let mvd = MVD::new(source, target);
+            if !mvd.is_deformed() && deps.imply_mvd(&mvd) {
+                println!("{}", mvd.with_names(&reg));
+            }
+        })
 }

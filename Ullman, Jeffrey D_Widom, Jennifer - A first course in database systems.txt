@@ -718,3 +718,65 @@ street: the same star may have different addresses throughout their career
 city:   same as above
 title:  the same star may appear in multiple movies in the same year
 year:   the same star may appear in both the original and the remake of a movie several years after
+
+3.7.1
+a.  A -> D: true
+b.  A ->> D: true
+c.  A -> E: false
+d.  A ->> E: true
+
+3.7.2
+A ->> E
+C ->> E
+A, C ->> E
+
+3.7.3
+1.  if X ->> Y, Z ⊆ X, then X ->> Y ∪ Z:
+        ∀u,t π_X(u) = π_X(t)
+        // X ->> Y
+        => ∃v π_X(v) = π_X(u) & π_Y(v) = π_Y(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
+        // Z ⊆ X
+        => ∃v π_X(v) = π_X(u) & π_{Y ∪ Z}(v) = π_{Y ∪ Z}(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
+2.  if X ->> Y, then X ->> Y - X:
+        ∀u,t π_X(u) = π_X(t)
+        // X ->> Y
+        => ∃v π_X(v) = π_X(u) & π_Y(v) = π_Y(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
+        // Y - X ⊆ Y, X ∪ (Y - X) = X ∪ Y
+        => ∃v π_X(v) = π_X(u) & π_{Y - X}(v) = π_{Y - X}(u) & π_{~(X ∪ (Y - X))}(v) = π_{~(X ∪ (Y - X))}(t)
+3.  transitive law of projection:
+        Z(w) = Z(v), Y(v) = Y(u) => (Y ∩ Z)(w) = (Y ∩ Z)(u)
+a.  assume X ∩ Y = ∅, X ∩ Z = ∅
+    X ->> Y & X ->> Z
+    // complement rule
+    => X ->> ~(X ∪ Y) & X ->> ~(X ∪ Z)
+    // part b
+    => X ->> ~(X ∪ Y) ∩ ~(X ∪ Z)
+    => X ->> (~X ∩ ~Y) ∩ (~X ∩ ~Z)
+    => X ->> ~X ∩ (~Y ∩ ~Z)
+    => X ->> ~X ∩ ~(Y ∪ Z)
+    => X ->> ~(X ∪ Y ∪ Z)
+    // complement rule
+    => X ->> X ∪ Y ∪ Z
+    // rule 1
+    => X ->> Y ∪ Z
+    similarly can be generated to Y, Z not disjoint to X
+b.  assume X ∩ Y = ∅, X ∩ Z = ∅
+    ∀u,t X(u) = X(t)
+    // apply X ->> Y on u, t
+    => ∃v X(v) = X(u) & Y(v) = Y(u) & ~(X ∪ Y)(v) = ~(X ∪ Y)(t)
+    // apply X ->> Z on v, t
+    => ∃w X(w) = X(v) & Z(w) = Z(v) & ~(X ∪ Z)(w) = ~(X ∪ Z)(t)
+        ~(X ∪ Z) ∩ Y
+        = (~X ∩ ~Z) ∩ Y
+        = ~X ∩ (~Z ∩ Y)
+        = ~X ∩ (Y - Z)
+        // X and Y disjoint
+        = Y - Z, and (Y - Z) ∪ (Y ∩ Z) = Y, ~Y(w) = ~Y(t), hence
+    => ∃w X(w) = X(u) & (Y ∩ Z)(w) = (Y ∩ Z)(u) & ~(X ∪ (Y ∩ Z))(w) = ~(X ∪ (Y ∩ Z))(t)
+    for X ∩ Y, X ∩ Z != ∅,
+        X ->> Y & X ->> Z
+        // rule 1
+        => X ->> Y - X & x ->> Z - X
+        => X ->> (Y ∪ Z) - X
+        // rule 2
+        => X ->> Y ∪ Z

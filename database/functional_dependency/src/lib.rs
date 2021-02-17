@@ -1,10 +1,13 @@
 #![allow(clippy::many_single_char_names, non_snake_case)]
 
 pub mod chase;
+pub mod mvd;
 mod parser;
 mod sorted_uvec;
 
 use itertools::Itertools;
+use mvd::MVD;
+use rand::prelude::Distribution;
 use sorted_uvec::SortedUVec;
 use std::{borrow::Borrow, mem, ops::Not};
 use std::{
@@ -59,17 +62,24 @@ impl FD {
             .map(move |&v| FD::new(self.source.clone(), attrs(&[v])))
     }
 
-    pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> FDWithNames<'a> {
-        FDWithNames { fd: self, register }
+    pub fn with_names<'a>(&'a self, register: &'a NameRegister) -> DepWithNames<'a> {
+        DepWithNames {
+            arrow: "->",
+            source: &self.source,
+            target: &self.target,
+            register,
+        }
     }
 }
 
-pub struct FDWithNames<'a> {
-    fd: &'a FD,
+pub struct DepWithNames<'a> {
+    arrow: &'a str,
+    source: &'a Attrs,
+    target: &'a Attrs,
     register: &'a NameRegister,
 }
 
-impl Display for FDWithNames<'_> {
+impl Display for DepWithNames<'_> {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         let sep_by_comma = |list: &[u32], f: &mut Formatter| -> fmt::Result {
             let mut first = true;
@@ -83,9 +93,9 @@ impl Display for FDWithNames<'_> {
             Ok(())
         };
 
-        sep_by_comma(&*self.fd.source, f)?;
-        write!(f, " -> ")?;
-        sep_by_comma(&*self.fd.target, f)?;
+        sep_by_comma(&*self.source, f)?;
+        write!(f, " {} ", self.arrow)?;
+        sep_by_comma(&*self.target, f)?;
         Ok(())
     }
 }
@@ -148,7 +158,7 @@ pub fn categorize(sub: &Attrs, rel: &Attrs, FDs: &[FD]) -> Category {
 
 #[derive(Default)]
 pub struct NameRegister {
-    pub cnt: u32,
+    cnt: u32,
     name_idx: HashMap<String, u32>,
     idx_name: HashMap<u32, String>,
 }
@@ -184,7 +194,7 @@ impl NameRegister {
         })
     }
 
-    pub fn parse(&self, input: &str) -> Option<FD> {
+    pub fn parse_fd(&self, input: &str) -> Option<FD> {
         let (_, (source, target)) = parser::fd(input).ok()?;
         let source: Attrs = source
             .iter()
@@ -196,6 +206,24 @@ impl NameRegister {
             .collect::<Option<_>>()?;
 
         Some(FD::new(source, target))
+    }
+
+    pub fn parse_mvd(&self, input: &str) -> Option<MVD> {
+        let (_, (source, target)) = parser::mvd(input).ok()?;
+        let source: Attrs = source
+            .iter()
+            .map(|v| self.resolve(v))
+            .collect::<Option<_>>()?;
+        let target: Attrs = target
+            .iter()
+            .map(|v| self.resolve(v))
+            .collect::<Option<_>>()?;
+
+        Some(MVD::new(source, target))
+    }
+
+    pub fn cnt(&self) -> u32 {
+        self.cnt
     }
 }
 
@@ -221,8 +249,16 @@ impl<'a> Display for AttrWithNames<'a> {
     }
 }
 
-pub fn parse_dependencies(register: &NameRegister, FDs: &[&str]) -> Vec<FD> {
-    FDs.iter().map(|fd| register.parse(fd).unwrap()).collect()
+pub fn parse_FDs(register: &NameRegister, FDs: &[&str]) -> Vec<FD> {
+    FDs.iter()
+        .map(|fd| register.parse_fd(fd).unwrap())
+        .collect()
+}
+
+pub fn parse_MVDs(register: &NameRegister, MVDs: &[&str]) -> Vec<MVD> {
+    MVDs.iter()
+        .map(|mvd| register.parse_mvd(mvd).unwrap())
+        .collect()
 }
 
 pub fn implies(FDs: &[FD], fd: &FD) -> bool {
@@ -337,6 +373,39 @@ pub fn bcnf_decomposition(rel: &Attrs, FDs: &[FD]) -> Vec<Attrs> {
     bcnf
 }
 
+pub struct NumberOfAttrs(u32);
+
+impl NumberOfAttrs {
+    pub fn new(n: u32) -> Self {
+        Self(n)
+    }
+}
+
+impl Distribution<FD> for NumberOfAttrs {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> FD {
+        let n = self.0;
+        let mut source = vec![];
+        let mut target = vec![];
+        for i in 0..n {
+            if rng.gen_bool(0.5) {
+                source.push(i);
+            }
+            if rng.gen_bool(0.5) {
+                target.push(i);
+            }
+        }
+
+        if source.is_empty() {
+            source.push(rng.gen_range(0..n));
+        }
+        if target.is_empty() {
+            target.push(rng.gen_range(0..n));
+        }
+
+        FD::new(source.into(), target.into())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -352,13 +421,7 @@ mod test {
         let E = reg.register("E");
         let _F = reg.register("F");
 
-        let dependencies = ["A, B -> C", "B, C -> A, D", "D -> E", "C, F -> B"]
-            .iter()
-            .map(|fd| {
-                reg.parse(fd)
-                    .expect("unregistered attributes or FD syntax error")
-            })
-            .collect::<Vec<_>>();
+        let dependencies = parse_FDs(&reg, &["A, B -> C", "B, C -> A, D", "D -> E", "C, F -> B"]);
 
         assert_eq!(
             &*closure_of(&attrs(&[A, B]), &dependencies),
@@ -375,7 +438,7 @@ mod test {
         reg.register("C");
         reg.register("D");
 
-        let fd = reg.parse("B, A -> D, C").unwrap();
+        let fd = reg.parse_fd("B, A -> D, C").unwrap();
         assert_eq!(format!("{}", fd.with_names(&reg)), "A, B -> C, D");
     }
 
@@ -387,14 +450,14 @@ mod test {
         let C = reg.register("C");
         let D = reg.register("D");
 
-        let FDs = parse_dependencies(&reg, &["A -> B", "B -> C", "C -> D"]);
+        let FDs = parse_FDs(&reg, &["A -> B", "B -> C", "C -> D"]);
 
         let projection = project_to(&[A, C, D].iter().copied().collect(), &FDs);
 
         assert_eq!(projection.len(), 2);
         assert!(projection.iter().all(|fd| fd.target.len() == 1));
-        assert!(implies(&projection, &reg.parse("A -> C, D").unwrap()));
-        assert!(implies(&projection, &reg.parse("C -> D").unwrap()));
+        assert!(implies(&projection, &reg.parse_fd("A -> C, D").unwrap()));
+        assert!(implies(&projection, &reg.parse_fd("C -> D").unwrap()));
     }
 
     #[test]
@@ -405,7 +468,7 @@ mod test {
         let _studio_name = reg.register("studio_name");
         let _president = reg.register("president");
 
-        let FDs = parse_dependencies(
+        let FDs = parse_FDs(
             &reg,
             &["title, year -> studio_name", "studio_name -> president"],
         );
@@ -422,7 +485,7 @@ mod test {
         let president = reg.register("president");
         let pres_addr = reg.register("pres_addr");
 
-        let FDs = parse_dependencies(
+        let FDs = parse_FDs(
             &reg,
             &[
                 "title, year -> studio_name",
