@@ -730,20 +730,16 @@ A ->> E
 C ->> E
 A, C ->> E
 
+
 3.7.3
+for a relation R(X), t ∈ R, Y ⊆ X, define Y(t) as a function, Y(t) = π_{Y}(t)
 1.  if X ->> Y, Z ⊆ X, then X ->> Y ∪ Z:
         ∀u,t π_X(u) = π_X(t)
         // X ->> Y
         => ∃v π_X(v) = π_X(u) & π_Y(v) = π_Y(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
         // Z ⊆ X
         => ∃v π_X(v) = π_X(u) & π_{Y ∪ Z}(v) = π_{Y ∪ Z}(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
-2.  if X ->> Y, then X ->> Y - X:
-        ∀u,t π_X(u) = π_X(t)
-        // X ->> Y
-        => ∃v π_X(v) = π_X(u) & π_Y(v) = π_Y(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
-        // Y - X ⊆ Y, X ∪ (Y - X) = X ∪ Y
-        => ∃v π_X(v) = π_X(u) & π_{Y - X}(v) = π_{Y - X}(u) & π_{~(X ∪ (Y - X))}(v) = π_{~(X ∪ (Y - X))}(t)
-3.  transitive law of projection:
+2.  transitive law of projection:
         Z(w) = Z(v), Y(v) = Y(u) => (Y ∩ Z)(w) = (Y ∩ Z)(u)
 a.  assume X ∩ Y = ∅, X ∩ Z = ∅
     X ->> Y & X ->> Z
@@ -756,10 +752,8 @@ a.  assume X ∩ Y = ∅, X ∩ Z = ∅
     => X ->> ~X ∩ ~(Y ∪ Z)
     => X ->> ~(X ∪ Y ∪ Z)
     // complement rule
-    => X ->> X ∪ Y ∪ Z
-    // rule 1
     => X ->> Y ∪ Z
-    similarly can be generated to Y, Z not disjoint to X
+    can be similarly generated to Y, Z not disjoint to X
 b.  assume X ∩ Y = ∅, X ∩ Z = ∅
     ∀u,t X(u) = X(t)
     // apply X ->> Y on u, t
@@ -772,11 +766,38 @@ b.  assume X ∩ Y = ∅, X ∩ Z = ∅
         = ~X ∩ (Y - Z)
         // X and Y disjoint
         = Y - Z, and (Y - Z) ∪ (Y ∩ Z) = Y, ~Y(w) = ~Y(t), hence
+    // rule 2
     => ∃w X(w) = X(u) & (Y ∩ Z)(w) = (Y ∩ Z)(u) & ~(X ∪ (Y ∩ Z))(w) = ~(X ∪ (Y ∩ Z))(t)
     for X ∩ Y, X ∩ Z != ∅,
         X ->> Y & X ->> Z
-        // rule 1
+        // part d
         => X ->> Y - X & x ->> Z - X
-        => X ->> (Y ∪ Z) - X
-        // rule 2
+        => X ->> (Y - X) ∩ (Z - X)
+        => X ->> (Y ∩ Z) - X
+        // rule 1
         => X ->> Y ∪ Z
+c.  X ->> Y & X ->> Z
+    // complement rule
+    => X ->> Y & X ->> ~(X ∪ Z)
+    // part a
+    => X ->> Y ∩ ~(X ∪ Z)
+    => X ->> Y ∩ ~X ∩ ~Z
+    => X ->> (Y - Z) - X
+    // rule 1
+    => X ->> Y - Z
+d.  ∀u,t π_X(u) = π_X(t)
+    // X ->> Y
+    => ∃v π_X(v) = π_X(u) & π_Y(v) = π_Y(u) & π_{~(X ∪ Y)}(v) = π_{~(X ∪ Y)}(t)
+    // Y - X ⊆ Y, X ∪ (Y - X) = X ∪ Y
+    => ∃v π_X(v) = π_X(u) & π_{Y - X}(v) = π_{Y - X}(u) & π_{~(X ∪ (Y - X))}(v) = π_{~(X ∪ (Y - X))}(t)
+
+3.7.5
+a.  R(A, B, C), A ->> B, C trivial, A ->> B may not be true
+    A   B   C
+    0   0   1
+    0   1   0
+b.  exercise 3.7.1, part c and d
+c.  R(A, B, C), A, B ->> C trivial, A ->> C may not be true
+    A   B   C
+    0   0   1
+    0   1   0
