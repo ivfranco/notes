@@ -801,3 +801,11 @@ c.  R(A, B, C), A, B ->> C trivial, A ->> C may not be true
     A   B   C
     0   0   1
     0   1   0
+
+4.1.1
+./database/model
+
+4.1.2
+./database/model
+
+4.1.3
