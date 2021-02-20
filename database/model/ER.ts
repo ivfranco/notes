@@ -1,11 +1,13 @@
 import graphviz from 'graphviz';
 
 export {
-  Arrow, Entity, Relation, ERModel, RelationKind, binary_relation,
+  Arrow, Entity, Relation, ERModel, RelationKind, binary_relation, isa
 };
 
 interface Entity {
+  // entities in the same model must have distinct names
   label: string;
+  // entities may have identical attributes
   attrs?: Array<string>;
 }
 
@@ -14,19 +16,27 @@ enum Arrow {
   One,
 }
 
-function arrow_style(arrow: Arrow): graphviz.Options {
+function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
+  const style = {};
+
   switch (arrow) {
     case Arrow.Many:
-      return { arrowhead: 'none' };
+      Object.assign(style, { arrowhead: 'none' });
+      break;
     case Arrow.One:
-      return { dir: "forward", arrowhead: 'normal' };
-    default:
-      throw Error('unreachable');
+      Object.assign(style, { dir: 'forward', arrowhead: 'normal' });
+      break;
   }
+
+  if (text) {
+    Object.assign(style, { label: text });
+  }
+
+  return style;
 }
 
 interface Relation extends Entity {
-  arrows: Array<[Entity, Arrow]>;
+  arrows: Array<[Entity, Arrow, string?]>;
 }
 
 interface ISA {
@@ -41,9 +51,13 @@ enum RelationKind {
   OneOne,
 }
 
-function binary_relation(label: string, from: Entity, to: Entity, kind?: RelationKind): Relation {
-  kind = kind ?? RelationKind.ManyMany;
-  const from_arrow = kind === RelationKind.ManyMany || kind == RelationKind.ManyOne ? Arrow.Many : Arrow.One;
+function binary_relation(
+  label: string,
+  from: Entity,
+  to: Entity,
+  kind: RelationKind = RelationKind.ManyMany
+): Relation {
+  const from_arrow = kind === RelationKind.ManyMany || kind === RelationKind.ManyOne ? Arrow.Many : Arrow.One;
   const to_arrow = kind === RelationKind.ManyMany || kind == RelationKind.OneMany ? Arrow.Many : Arrow.One;
   return {
     label,
@@ -54,11 +68,28 @@ function binary_relation(label: string, from: Entity, to: Entity, kind?: Relatio
   };
 }
 
+function isa(base: Entity, child: Entity): ISA {
+  return {
+    base,
+    child
+  };
+}
+
+// http://www.graphviz.org/Gallery/undirected/ER.html
 class ERModel {
   inner: graphviz.Graph;
 
   constructor(label: string) {
+    const GRAPH_STYLE = {
+      dpi: 240,
+      layout: 'neato',
+      overlap: 'scale',
+    };
+
     this.inner = graphviz.graph(label);
+    for (const [key, value] of Object.entries(GRAPH_STYLE)) {
+      this.inner.set(key, value);
+    }
   }
 
   private add_cluster(entity: Entity, shape: string): graphviz.Node {
@@ -73,7 +104,7 @@ class ERModel {
 
     for (const attr_name of entity.attrs ?? []) {
       const attr = cluster.addNode(`${entity.label}.${attr_name}`, { label: attr_name });
-      cluster.addEdge(entry, attr);
+      cluster.addEdge(entry, attr, { len: 0.5 });
     }
 
     return entry;
@@ -93,8 +124,8 @@ class ERModel {
       entry = g.addNode(relation.label, { shape: 'diamond' });
     }
 
-    for (const [target, arrow] of relation.arrows) {
-      g.addEdge(entry, target.label, arrow_style(arrow));
+    for (const [target, arrow, text] of relation.arrows) {
+      g.addEdge(entry, target.label, arrow_style(arrow, text));
     }
 
     return entry;
@@ -104,13 +135,13 @@ class ERModel {
     const g = this.inner;
     const { base, child } = isa;
 
-    const entry = g.addNode(`${base.label}-${child.label}-ISA`, { label: 'isa', shape: 'triangle' });
-    g.addEdge(entry, base.label, { arrowhead: 'normal' });
+    const entry = g.addNode(`${base.label}-${child.label}-ISA`, { label: 'isa', shape: 'triangle', margin: 0 });
+    g.addEdge(entry, base.label, { dir: 'forward', arrowhead: 'normal' });
     g.addEdge(entry, child.label, { arrowhead: 'none' });
   }
 
   output(path: string): void {
     this.inner.render;
-    this.inner.output({ type: 'png', use: 'dot' }, path, console.error);
+    this.inner.output('png', path, console.error);
   }
 }

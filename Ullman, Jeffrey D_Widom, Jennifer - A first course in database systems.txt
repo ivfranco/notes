@@ -807,8 +807,29 @@ c.  R(A, B, C), A, B ->> C trivial, A ->> C may not be true
 
 4.1.2
 ./database/model
+d.  assume FD address -> phone
 
 4.1.3
 ./database/model
 
 4.1.4
+./database/model
+b.  pseudo FDs:
+        Captainship -> Team
+        Captainship -> Player
+c.  no
+
+4.1.5
+./database/model
+a relation with attributes
+
+4.1.6
+./database/model
+
+4.1.7
+./database/model
+ISA is a many-one relationship in tree model
+
+4.1.8
+./database/model
+
