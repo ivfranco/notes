@@ -833,3 +833,45 @@ ISA is a many-one relationship in tree model
 4.1.8
 ./database/model
 
+4.1.9
+./database/model
+
+4.1.10
+./database/model
+
+4.2.1
+./database/model
+redundancy
+AcctSets and its attribute owner-address entity does not capture any new information
+there can be a many-many relation between Customers and Accounts
+owner-addresses can be derived from the new relation between Customers and Accounts and Lives-at
+
+4.2.2
+1.  there's no other relationship into President
+2.  there's no *-many relationship out from President
+3.  there's no FDs between attributes of Presidents
+
+4.2.3
+./database/model
+studio_name becomes an attribute of Contracts
+
+4.2.4
+a.  name, birth date, gender, career length
+b.  name, length, genre, is_sequel
+c.  relation (Contracts, Studios) is many-many
+    Studios cannot be replaced by an attribute without introducing abnormality
+
+4.2.5
+./database/model
+the event / relation Birth is absorbed by the entity Babies
+b.  implied by a
+c.  from part a there's an FD from Babies to Mothers
+    a binary many-one relation (Babies, Doctors) would suffice
+
+4.2.6
+./database/model
+
+4.2.7
+4.2.5:  unchanged
+4.2.6:  now (Births, Babies) is a one-many relation
+        the unique mother can be inferred from the FD chain Babies -> Births -> Mothers 

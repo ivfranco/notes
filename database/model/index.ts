@@ -238,7 +238,7 @@ const CHILD_OF: Relation = {
     [PEOPLE, Arrow.Many, 'parent'],
     [PEOPLE, Arrow.Many, 'child'],
   ]
-}
+};
 
 function exercise_4_1_6() {
   const g = new ERModel('People');
@@ -251,7 +251,7 @@ function exercise_4_1_6() {
       [PEOPLE, Arrow.One, 'mother'],
       [PEOPLE, Arrow.Many, 'child'],
     ]
-  }
+  };
 
   const father_of: Relation = {
     label: 'Father-of',
@@ -259,7 +259,7 @@ function exercise_4_1_6() {
       [PEOPLE, Arrow.One, 'father'],
       [PEOPLE, Arrow.Many, 'child'],
     ]
-  }
+  };
 
   const child_of: Relation = {
     label: 'Child-of',
@@ -267,7 +267,7 @@ function exercise_4_1_6() {
       [PEOPLE, Arrow.Many, 'parent'],
       [PEOPLE, Arrow.Many, 'child'],
     ]
-  }
+  };
 
   g.add_relation(mother_of);
   g.add_relation(father_of);
@@ -349,6 +349,252 @@ function exercise_4_1_8() {
   }
 }
 
+function exercise_4_1_9() {
+  const student = {
+    label: 'Student',
+    attrs: ['name', 'enrolled_year'],
+  };
+
+  const TA = {
+    label: 'TA',
+  };
+
+  const department = {
+    label: 'Department',
+    attrs: ['name'],
+  };
+
+  const professor = {
+    label: 'Professor',
+    attrs: ['name'],
+  };
+
+  const course = {
+    label: 'Course',
+    attrs: ['name', 'year', 'is_remote'],
+  };
+
+  const enrolled_in: Relation = {
+    label: 'Enrolled-in',
+    attrs: ['score'],
+    arrows: [
+      [student, Arrow.Many],
+      [course, Arrow.Many],
+    ]
+  };
+
+  const g = new ERModel('University Registrar');
+
+  g.add_entity(student);
+  g.add_entity(department);
+  g.add_entity(professor);
+  g.add_entity(course);
+  g.add_entity(TA);
+
+  g.add_isa(isa(student, TA));
+
+  g.add_relation(enrolled_in);
+  // reasonable assumptions?
+  g.add_relation(binary_relation('Teaching', professor, course, RelationKind.OneMany));
+  g.add_relation(binary_relation('Member-of', professor, department, RelationKind.ManyOne));
+  // some course may be jointly offered by multiple departments
+  g.add_relation(binary_relation('Offer', department, course));
+  g.add_relation(binary_relation('Assist', TA, course));
+  // based on personal experience
+  g.add_relation(binary_relation('Tutor-of', professor, student, RelationKind.OneMany));
+
+  g.output([OUTPUT_DIR, '4_1_9.png'].join('/'));
+}
+
+const STARS = {
+  label: 'Stars',
+};
+
+const MOVIES = {
+  label: 'Movies',
+};
+
+const STUDIOS = {
+  label: 'Studios',
+};
+
+function exercise_4_1_10() {
+  {
+    const contract: Relation = {
+      label: 'Contracts',
+      arrows: [
+        [STARS, Arrow.Many],
+        [MOVIES, Arrow.Many],
+        [STUDIOS, Arrow.One, 'Studio of Star'],
+        [STARS, Arrow.Many, 'Producing Studio'],
+      ]
+    };
+
+    const g = new ERModel('Movies');
+
+    g.add_entity(STARS);
+    g.add_entity(MOVIES);
+    g.add_entity(STUDIOS);
+
+    g.add_relation(contract);
+
+    g.output([OUTPUT_DIR, '4_1_10_a.png'].join('/'));
+  }
+
+  {
+    const contract: Relation = {
+      label: 'Contracts',
+      arrows: [
+        [STARS, Arrow.Many],
+        [MOVIES, Arrow.Many],
+        [STUDIOS, Arrow.One],
+      ]
+    };
+
+    const g = new ERModel('Movies');
+
+    g.add_entity(STARS);
+    g.add_entity(MOVIES);
+    g.add_entity(STUDIOS);
+
+    g.add_relation(contract);
+    g.add_relation(binary_relation('Producing', STUDIOS, MOVIES, RelationKind.OneMany));
+
+    g.output([OUTPUT_DIR, '4_1_10_b.png'].join('/'));
+  }
+}
+
+function exercise_4_2_1() {
+  const customers = {
+    label: 'Customers',
+    attrs: ['name'],
+  };
+
+  const accounts = {
+    label: 'Accounts',
+    attrs: ['number', 'balance'],
+  };
+
+  const addresses = {
+    label: 'Addresses',
+    attrs: ['address'],
+  };
+
+  const g = new ERModel('Bank');
+
+  g.add_entity(customers);
+  g.add_entity(accounts);
+  g.add_entity(addresses);
+
+  g.add_relation(binary_relation('Lives-at', customers, addresses, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Owns', customers, accounts));
+
+  g.output([OUTPUT_DIR, '4_2_1.png'].join('/'));
+}
+
+function exercise_4_2_3() {
+  const contracts: Relation = {
+    label: 'Contracts',
+    attrs: ['salary', 'studio_name'],
+    arrows: [
+      [MOVIES, Arrow.Many],
+      [STARS, Arrow.Many],
+    ]
+  };
+
+  const g = new ERModel('Movies');
+
+  g.add_entity(MOVIES);
+  g.add_entity(STARS);
+
+  g.add_relation(contracts);
+
+  g.output([OUTPUT_DIR, '4_2_3.png'].join('/'));
+}
+
+const MOTHERS = {
+  label: 'Mothers',
+};
+
+const BABIES = {
+  label: 'Babies',
+};
+
+const DOCTORS = {
+  label: 'Doctors',
+};
+
+const NURSES = {
+  label: 'Nurses',
+};
+
+function exercise_4_2_5() {
+  const births: Relation = {
+    label: 'Births',
+    arrows: [
+      [MOTHERS, Arrow.One],
+      [BABIES, Arrow.Many],
+      [DOCTORS, Arrow.One],
+      [NURSES, Arrow.Many],
+    ]
+  };
+
+  const g = new ERModel('Birth');
+
+  g.add_entity(MOTHERS);
+  g.add_entity(BABIES);
+  g.add_entity(DOCTORS);
+  g.add_entity(NURSES);
+
+  g.add_relation(births);
+  g.add_relation(binary_relation('Mother-of', MOTHERS, BABIES, RelationKind.OneMany));
+  g.add_relation(binary_relation('Midwifed', DOCTORS, BABIES, RelationKind.OneMany));
+
+  g.output([OUTPUT_DIR, '4_2_5.png'].join('/'));
+}
+
+function exercise_4_2_6() {
+  const births = {
+    label: 'Births',
+  };
+
+  const g = new ERModel('Birth');
+
+  g.add_entity(MOTHERS);
+  g.add_entity(BABIES);
+  g.add_entity(DOCTORS);
+  g.add_entity(NURSES);
+  g.add_entity(births);
+
+  g.add_relation(binary_relation('Birth-of', births, BABIES, RelationKind.OneOne));
+  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Assisted-by', births, NURSES));
+
+  g.output([OUTPUT_DIR, '4_2_6.png'].join('/'));
+}
+
+function exercise_4_2_7() {
+  const births = {
+    label: 'Births',
+  };
+
+  const g = new ERModel('Birth');
+
+  g.add_entity(MOTHERS);
+  g.add_entity(BABIES);
+  g.add_entity(DOCTORS);
+  g.add_entity(NURSES);
+  g.add_entity(births);
+
+  g.add_relation(binary_relation('Birth-of', births, BABIES, RelationKind.OneMany));
+  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Assisted-by', births, NURSES));
+
+  g.output([OUTPUT_DIR, '4_2_7.png'].join('/'));
+}
+
 function main() {
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
@@ -362,6 +608,13 @@ function main() {
   exercise_4_1_6();
   exercise_4_1_7();
   exercise_4_1_8();
+  exercise_4_1_9();
+  exercise_4_1_10();
+  exercise_4_2_1();
+  exercise_4_2_3();
+  exercise_4_2_5();
+  exercise_4_2_6();
+  exercise_4_2_7();
 }
 
 main();

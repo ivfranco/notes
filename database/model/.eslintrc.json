@@ -19,6 +19,10 @@
             "error",
             "single"
         ],
-        "@typescript-eslint/no-unused-vars": "error"
+        "@typescript-eslint/semi": [
+            "error",
+            "always"
+        ],
+        "@typescript-eslint/no-unused-vars": "warn"
     }
 }

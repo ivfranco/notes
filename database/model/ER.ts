@@ -4,6 +4,8 @@ export {
   Arrow, Entity, Relation, ERModel, RelationKind, binary_relation, isa
 };
 
+const DEFAULT_EDGE_LENGTH = 1.0;
+
 interface Entity {
   // entities in the same model must have distinct names
   label: string;
@@ -16,15 +18,24 @@ enum Arrow {
   One,
 }
 
+const UNDIRECTIONAL: graphviz.Options = {
+  arrowhead: 'none'
+};
+
+const DIRECTIONAL: graphviz.Options = {
+  dir: 'forward',
+  arrowhead: 'normal',
+};
+
 function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
   const style = {};
 
   switch (arrow) {
     case Arrow.Many:
-      Object.assign(style, { arrowhead: 'none' });
+      Object.assign(style, UNDIRECTIONAL);
       break;
     case Arrow.One:
-      Object.assign(style, { dir: 'forward', arrowhead: 'normal' });
+      Object.assign(style, DIRECTIONAL);
       break;
   }
 
@@ -44,11 +55,12 @@ interface ISA {
   child: Entity;
 }
 
+
 enum RelationKind {
-  ManyMany,
-  ManyOne,
-  OneMany,
-  OneOne,
+  ManyMany = 0b00,
+  ManyOne = 0b01,
+  OneMany = 0b10,
+  OneOne = 0b11,
 }
 
 function binary_relation(
@@ -57,8 +69,8 @@ function binary_relation(
   to: Entity,
   kind: RelationKind = RelationKind.ManyMany
 ): Relation {
-  const from_arrow = kind === RelationKind.ManyMany || kind === RelationKind.ManyOne ? Arrow.Many : Arrow.One;
-  const to_arrow = kind === RelationKind.ManyMany || kind == RelationKind.OneMany ? Arrow.Many : Arrow.One;
+  const from_arrow = kind & 0b10 ? Arrow.One : Arrow.Many;
+  const to_arrow = kind & 0b01 ? Arrow.One : Arrow.Many;
   return {
     label,
     arrows: [
@@ -77,17 +89,18 @@ function isa(base: Entity, child: Entity): ISA {
 
 // http://www.graphviz.org/Gallery/undirected/ER.html
 class ERModel {
-  inner: graphviz.Graph;
+  private inner: graphviz.Graph;
 
   constructor(label: string) {
-    const GRAPH_STYLE = {
+    const GRAPH_OPTIONS: graphviz.Options = {
       dpi: 240,
       layout: 'neato',
       overlap: 'scale',
     };
 
-    this.inner = graphviz.graph(label);
-    for (const [key, value] of Object.entries(GRAPH_STYLE)) {
+    // id of a graph may not contain `-`, '.' or space.
+    this.inner = graphviz.graph(label.replace(/[-.\s]/, '_'));
+    for (const [key, value] of Object.entries(GRAPH_OPTIONS)) {
       this.inner.set(key, value);
     }
   }
@@ -95,17 +108,18 @@ class ERModel {
   private add_cluster(entity: Entity, shape: string): graphviz.Node {
     const g = this.inner;
 
-    // name of a subgraph cannot contain `-` or `.`
-    const cluster = g.addCluster(`Cluster_${entity.label.replace('-', '_')}`);
+    // id of a graph may not contain `-`, '.' or space.
+    const cluster = g.addCluster(`Cluster_${entity.label.replace(/[-.\s]/, '_')}`);
+    // remove subgraph borders in dot mode, ignored by neato
     cluster.set('style', 'filled');
     cluster.set('color', 'none');
 
     const entry = cluster.addNode(entity.label, { shape: shape });
 
-    for (const attr_name of entity.attrs ?? []) {
+    entity.attrs?.forEach(attr_name => {
       const attr = cluster.addNode(`${entity.label}.${attr_name}`, { label: attr_name });
-      cluster.addEdge(entry, attr, { len: 0.5 });
-    }
+      cluster.addEdge(entry, attr, { len: DEFAULT_EDGE_LENGTH / 2 });
+    });
 
     return entry;
   }
@@ -132,12 +146,18 @@ class ERModel {
   }
 
   add_isa(isa: ISA): void {
+    const ISA_OPTIONS: graphviz.Options = {
+      label: 'isa',
+      shape: 'triangle',
+      margin: 0,
+    };
+
     const g = this.inner;
     const { base, child } = isa;
 
-    const entry = g.addNode(`${base.label}-${child.label}-ISA`, { label: 'isa', shape: 'triangle', margin: 0 });
-    g.addEdge(entry, base.label, { dir: 'forward', arrowhead: 'normal' });
-    g.addEdge(entry, child.label, { arrowhead: 'none' });
+    const entry = g.addNode(`${base.label}-${child.label}-ISA`, ISA_OPTIONS);
+    g.addEdge(entry, base.label, Object.assign(DIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
+    g.addEdge(entry, child.label, Object.assign(UNDIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
   }
 
   output(path: string): void {
