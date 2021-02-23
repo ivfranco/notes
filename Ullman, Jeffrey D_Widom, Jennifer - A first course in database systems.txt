@@ -872,6 +872,37 @@ c.  from part a there's an FD from Babies to Mothers
 ./database/model
 
 4.2.7
+./database/model
 4.2.5:  unchanged
 4.2.6:  now (Births, Babies) is a one-many relation
         the unique mother can be inferred from the FD chain Babies -> Births -> Mothers 
+
+4.3.1
+./database/model
+a.  Own is RI (Account -> Customer)
+b.  no RI
+    a fan may have no favorite color, player or team   
+    a team may not have a captain
+    a player can have no team
+c.  key of People should be their entire family tree?
+    Mother-of is RI
+    Father-of is RI
+
+4.3.2
+assume K1, K2 are distinct, by nature or properly prefixed by the entity name
+a.  K1 ∪ K2
+b.  K1, for two tuples (e1, e2) and (f1, f2), e1 = f1 implies e2 = f2 by many-one relation
+    hence (e1, e2) != (f1, f2) implies e1 != f1
+c.  K2
+d.  min{K1, K2}
+
+4.3.3
+let F be the set of entity sets where for all E ∈ F, R -- E has no arrow
+F uniquely determines (E1, .., En), ∪ {Ki | Ei ∈ F} is a smallest possible key
+if F is empty, any Ei determines (E1, .., En), min{K1, .., Kn} is a smallest possible key
+
+4.4.1
+./database/model
+score is not a key, (Student.id, Course.id) uniquely identifies an enrollment entity
+
+4.4.2

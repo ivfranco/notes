@@ -595,6 +595,160 @@ function exercise_4_2_7() {
   g.output([OUTPUT_DIR, '4_2_7.png'].join('/'));
 }
 
+function exercise_4_3_1() {
+  {
+    const customer = {
+      keys: ['ssn'],
+      ...CUSTOMER
+    };
+    const account = {
+      keys: ['number'],
+      ...ACCOUNT
+    };
+
+    const own: Relation = {
+      label: 'Own',
+      arrows: [
+        [customer, Arrow.RI],
+        [account, Arrow.Many],
+      ]
+    };
+
+    const g = new ERModel('Bank');
+
+    g.add_entity(customer);
+    g.add_entity(account);
+    g.add_relation(own);
+
+    g.output([OUTPUT_DIR, '4_3_1_a.png'].join('/'));
+  }
+
+  {
+    const team = {
+      keys: ['name'],
+      ...TEAM
+    };
+    const player = {
+      keys: ['name'],
+      ...PLAYER
+    };
+    const fan = {
+      keys: ['name'],
+      ...FAN
+    };
+    const color = {
+      keys: ['name'],
+      ...COLOR
+    };
+
+    const g = new ERModel('Sport');
+
+    g.add_entity(team);
+    g.add_entity(player);
+    g.add_entity(fan);
+    g.add_entity(color);
+
+    g.add_relation(binary_relation('Team-Players', team, player, RelationKind.OneMany));
+    g.add_relation(binary_relation('Team-Captain', team, player, RelationKind.OneOne));
+    g.add_relation(binary_relation('Uniform-Colors', team, color));
+    g.add_relation(binary_relation('Fav-Team', fan, TEAM, RelationKind.ManyOne));
+    g.add_relation(binary_relation('Fav-Player', fan, player, RelationKind.ManyOne));
+    g.add_relation(binary_relation('Fav-Color', fan, color, RelationKind.ManyOne));
+
+    g.output([OUTPUT_DIR, '4_3_1_b.png'].join('/'));
+  }
+
+  {
+    const people = {
+      keys: ['name'],
+      ...PEOPLE
+    };
+
+    const g = new ERModel('People');
+
+    g.add_entity(people);
+
+    const mother_of: Relation = {
+      label: 'Mother-of',
+      arrows: [
+        [people, Arrow.RI, 'mother'],
+        [people, Arrow.Many, 'child'],
+      ]
+    };
+
+    const father_of: Relation = {
+      label: 'Father-of',
+      arrows: [
+        [people, Arrow.RI, 'father'],
+        [people, Arrow.Many, 'child'],
+      ]
+    };
+
+    const child_of: Relation = {
+      label: 'Child-of',
+      arrows: [
+        [people, Arrow.Many, 'parent'],
+        [people, Arrow.Many, 'child'],
+      ]
+    };
+
+    g.add_relation(mother_of);
+    g.add_relation(father_of);
+    g.add_relation(child_of);
+
+    g.output([OUTPUT_DIR, '4_3_1_c.png'].join('/'));
+  }
+}
+
+const STUDENT = {
+  label: 'Student',
+  attrs: ['id'],
+  keys: ['id'],
+};
+
+const COURSE = {
+  label: 'Course',
+  attrs: ['id'],
+  keys: ['id'],
+};
+
+function exercise_4_4_1() {
+  const enrollment = {
+    label: 'Enrollment',
+    attrs: ['score'],
+    is_weak: true,
+  };
+
+  const student_of: Relation = {
+    label: 'Student-of',
+    arrows: [
+      [STUDENT, Arrow.RI],
+      [enrollment, Arrow.Many],
+    ],
+    is_support: true,
+  };
+
+  const course_of: Relation = {
+    label: 'Course-of',
+    arrows: [
+      [COURSE, Arrow.RI],
+      [enrollment, Arrow.Many],
+    ],
+    is_support: true,
+  };
+
+  const g = new ERModel('Enrollment');
+
+  g.add_entity(STUDENT);
+  g.add_entity(COURSE);
+  g.add_entity(enrollment);
+
+  g.add_relation(student_of);
+  g.add_relation(course_of);
+
+  g.output([OUTPUT_DIR, '4_4_1.png'].join('/'));
+}
+
 function main() {
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
@@ -615,6 +769,8 @@ function main() {
   exercise_4_2_5();
   exercise_4_2_6();
   exercise_4_2_7();
+  exercise_4_3_1();
+  exercise_4_4_1();
 }
 
 main();

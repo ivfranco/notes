@@ -11,11 +11,14 @@ interface Entity {
   label: string;
   // entities may have identical attributes
   attrs?: Array<string>;
+  keys?: Array<string>;
+  is_weak?: boolean;
 }
 
 enum Arrow {
   Many,
   One,
+  RI,
 }
 
 const UNDIRECTIONAL: graphviz.Options = {
@@ -25,6 +28,12 @@ const UNDIRECTIONAL: graphviz.Options = {
 const DIRECTIONAL: graphviz.Options = {
   dir: 'forward',
   arrowhead: 'normal',
+};
+
+const RI: graphviz.Options = {
+  dir: 'forward',
+  arrowhead: 'curve',
+  arrowsize: 1.5,
 };
 
 function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
@@ -37,6 +46,8 @@ function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
     case Arrow.One:
       Object.assign(style, DIRECTIONAL);
       break;
+    case Arrow.RI:
+      Object.assign(style, RI);
   }
 
   if (text) {
@@ -46,8 +57,11 @@ function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
   return style;
 }
 
-interface Relation extends Entity {
+interface Relation {
+  label: string,
+  attrs?: Array<string>,
   arrows: Array<[Entity, Arrow, string?]>;
+  is_support?: boolean;
 }
 
 interface ISA {
@@ -117,7 +131,10 @@ class ERModel {
     const entry = cluster.addNode(entity.label, { shape: shape });
 
     entity.attrs?.forEach(attr_name => {
-      const attr = cluster.addNode(`${entity.label}.${attr_name}`, { label: attr_name });
+      // node.js graphviz has special undocumented syntax for html-like labels
+      // https://github.com/glejeune/node-graphviz/blob/f552e1fd2c363c95efd518b1eae1167020b01d2d/lib/deps/attributs.js#L195
+      const label = entity.keys?.includes(attr_name) ? `!<U>${attr_name}</U>` : attr_name;
+      const attr = cluster.addNode(`${entity.label}.${attr_name}`, { label });
       cluster.addEdge(entry, attr, { len: DEFAULT_EDGE_LENGTH / 2 });
     });
 
@@ -125,24 +142,32 @@ class ERModel {
   }
 
   add_entity(entity: Entity): graphviz.Node {
-    return this.add_cluster(entity, 'box');
+    const entry = this.add_cluster(entity, 'box');
+    if (entity.is_weak) {
+      entry.set('peripheries', 2);
+    }
+    return entry;
   }
 
   add_relation(relation: Relation): graphviz.Node {
     const g = this.inner;
 
-    let entry;
+    let node;
     if (relation.attrs) {
-      entry = this.add_cluster(relation, 'diamond');
+      node = this.add_cluster(relation, 'diamond');
     } else {
-      entry = g.addNode(relation.label, { shape: 'diamond' });
+      node = g.addNode(relation.label, { shape: 'diamond' });
+    }
+
+    if (relation.is_support) {
+      node.set('peripheries', 2);
     }
 
     for (const [target, arrow, text] of relation.arrows) {
-      g.addEdge(entry, target.label, arrow_style(arrow, text));
+      g.addEdge(node, target.label, arrow_style(arrow, text));
     }
 
-    return entry;
+    return node;
   }
 
   add_isa(isa: ISA): void {
@@ -155,9 +180,9 @@ class ERModel {
     const g = this.inner;
     const { base, child } = isa;
 
-    const entry = g.addNode(`${base.label}-${child.label}-ISA`, ISA_OPTIONS);
-    g.addEdge(entry, base.label, Object.assign(DIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
-    g.addEdge(entry, child.label, Object.assign(UNDIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
+    const node = g.addNode(`${base.label}-ISA-${child.label}`, ISA_OPTIONS);
+    g.addEdge(node, base.label, Object.assign(DIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
+    g.addEdge(node, child.label, Object.assign(UNDIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
   }
 
   output(path: string): void {
