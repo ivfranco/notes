@@ -906,3 +906,85 @@ if F is empty, any Ei determines (E1, .., En), min{K1, .., Kn} is a smallest pos
 score is not a key, (Student.id, Course.id) uniquely identifies an enrollment entity
 
 4.4.2
+assignment has attributes { id, score } where id is unique among a single enrollment
+key of assignment is { id, Student.id, Course.id }
+
+4.4.3
+./database/model
+Births -> Babies is RI, two possible cases
+1.  Babies is not weak entity set, key of Births is key of Babies
+2.  Babies is weak entity set, key of Births and Babies contains keys from Mothers or Doctors
+the graph in ./database/model is of case 1
+
+4.4.4
+./database/model
+
+// the first tuple inside attributes list is the primary key
+4.5.1
+Customers((SSNo, name), addr, phone)
+Flights((number, day), aircraft)
+Bookings((customer_SSNo, flight_number, flight_day), row, seat)
+
+4.5.2
+a.  ./database/model
+b.  a.  Customers((SSNo, name), addr, phone)
+        Flights((number, day), aircraft)
+        Bookings((flight_number, flight_day, row, seat))
+        toCust((flight_number, flight_day, row, seat, customer_SSNo))
+    b.  toCust is a superset of Bookings, if combined the two database schemas are the same 
+
+4.5.3
+Ships((name), yearLaunched)
+Sister-of((the_ship_name, the_sister_name))
+
+4.5.4
+a.  Student((id))
+    Course((id))
+    Enrollment((student_id, course_id), score)
+b.  Department((name))
+    Course((number, department_name))
+c.  Leagues((name))
+    Teams((team_name, league_name))
+    Players((player_number, team_name, league_name))
+
+4.6.1
+a.  Depts((name), chair)
+    Courses((course_number, dept_name), room)
+    LabCourses((course_number, dept_name), computer_allocation)
+b.  Depts((name), chair)
+    Courses((course_number, dept_name), room)
+    LabCourses((course_number, dept_name), room, computer_allocation)
+c.  Depts((name), chair)
+    Courses((course_number, dept_name), room, computer_allocation)
+
+4.6.2
+a.  Person((name, address))
+    Child((name, address))
+    Father((name, address))
+    Mother((name, address))
+    MotherOf((mother_name, mother_address, child_name, child_address))
+    FatherOf((father_name, father_address, child_name, child_address))
+    ChildOf((child_name, child_address, parent_name, parent_address))
+    Married((spouse_1_name, spouse_1_address, spouse_2_name, spouse_2_address))
+b.  // the same as part a, subclasses has no additional attributes 
+c.  Person((name, address)) 
+    MotherOf((mother_name, mother_address, child_name, child_address))
+    FatherOf((father_name, father_address, child_name, child_address))
+    ChildOf((child_name, child_address, parent_name, parent_address))
+    Married((spouse_1_name, spouse_1_address, spouse_2_name, spouse_2_address))
+
+4.6.3
+// skipped, basically the same to 4.6.2
+
+4.6.4
+
+a.  i.  both min and max = e
+    ii. min: a, a base component
+        max: ea, a component in every subclass
+b.  i.  min: e, the hierarchy is a linked list 
+        max: 2^e, all subclasses are directly a child of base class
+    ii. min: a, a base component
+        max: ea, a component in every subclass
+c.  i.  both min and max = 1
+    ii. both min and max = ea
+

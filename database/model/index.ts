@@ -1,6 +1,6 @@
 import fs from 'fs';
 import {
-  Relation, ERModel, binary_relation, RelationKind, Arrow, isa,
+  Relation, ERModel, binary_relation, RelationKind, Arrow, isa, support_relation,
 } from './ER';
 
 const OUTPUT_DIR = 'output';
@@ -295,6 +295,7 @@ function exercise_4_1_7() {
 
   const g = new ERModel('People');
 
+  g.add_entity(PEOPLE);
   g.add_entity(female);
   g.add_entity(male);
   g.add_entity(father);
@@ -618,6 +619,7 @@ function exercise_4_3_1() {
 
     g.add_entity(customer);
     g.add_entity(account);
+
     g.add_relation(own);
 
     g.output([OUTPUT_DIR, '4_3_1_a.png'].join('/'));
@@ -651,7 +653,7 @@ function exercise_4_3_1() {
     g.add_relation(binary_relation('Team-Players', team, player, RelationKind.OneMany));
     g.add_relation(binary_relation('Team-Captain', team, player, RelationKind.OneOne));
     g.add_relation(binary_relation('Uniform-Colors', team, color));
-    g.add_relation(binary_relation('Fav-Team', fan, TEAM, RelationKind.ManyOne));
+    g.add_relation(binary_relation('Fav-Team', fan, team, RelationKind.ManyOne));
     g.add_relation(binary_relation('Fav-Player', fan, player, RelationKind.ManyOne));
     g.add_relation(binary_relation('Fav-Color', fan, color, RelationKind.ManyOne));
 
@@ -719,22 +721,29 @@ function exercise_4_4_1() {
     is_weak: true,
   };
 
-  const student_of: Relation = {
-    label: 'Student-of',
-    arrows: [
-      [STUDENT, Arrow.RI],
-      [enrollment, Arrow.Many],
-    ],
-    is_support: true,
+  const g = new ERModel('Enrollment');
+
+  g.add_entity(STUDENT);
+  g.add_entity(COURSE);
+  g.add_entity(enrollment);
+
+  g.add_relation(support_relation('Student-of', enrollment, STUDENT));
+  g.add_relation(support_relation('Course-of', enrollment, COURSE));
+
+  g.output([OUTPUT_DIR, '4_4_1.png'].join('/'));
+}
+
+function exercise_4_4_2() {
+  const enrollment = {
+    label: 'Enrollment',
+    is_weak: true,
   };
 
-  const course_of: Relation = {
-    label: 'Course-of',
-    arrows: [
-      [COURSE, Arrow.RI],
-      [enrollment, Arrow.Many],
-    ],
-    is_support: true,
+  const assignment = {
+    label: 'Assignment',
+    attrs: ['score', 'id'],
+    keys: ['id'],
+    is_weak: true,
   };
 
   const g = new ERModel('Enrollment');
@@ -742,11 +751,143 @@ function exercise_4_4_1() {
   g.add_entity(STUDENT);
   g.add_entity(COURSE);
   g.add_entity(enrollment);
+  g.add_entity(assignment);
 
-  g.add_relation(student_of);
-  g.add_relation(course_of);
+  g.add_relation(support_relation('Student-of', enrollment, STUDENT));
+  g.add_relation(support_relation('Course-of', enrollment, COURSE));
+  g.add_relation(support_relation('Enrollment-of', assignment, enrollment));
 
-  g.output([OUTPUT_DIR, '4_4_1.png'].join('/'));
+  g.output([OUTPUT_DIR, '4_4_2.png'].join('/'));
+}
+
+function exercise_4_4_3() {
+  const births = {
+    label: 'Births',
+    is_weak: true,
+  };
+
+  const birth_of: Relation = {
+    label: 'Birth-of',
+    arrows: [
+      [births, Arrow.One],
+      [BABIES, Arrow.RI],
+    ],
+    is_support: true,
+  };
+
+  const g = new ERModel('Birth');
+
+  g.add_entity(MOTHERS);
+  g.add_entity(BABIES);
+  g.add_entity(DOCTORS);
+  g.add_entity(NURSES);
+  g.add_entity(births);
+
+  g.add_relation(birth_of);
+  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(binary_relation('Assisted-by', births, NURSES));
+
+  g.output([OUTPUT_DIR, '4_4_3.png'].join('/'));
+}
+
+function exercise_4_4_4() {
+  {
+    const course = {
+      label: 'Course',
+      attrs: ['number'],
+      keys: ['number'],
+      is_weak: true,
+    };
+
+    const department = {
+      label: 'Department',
+      attrs: ['name'],
+      keys: ['name'],
+    };
+
+    const g = new ERModel('University');
+
+    g.add_entity(course);
+    g.add_entity(department);
+
+    g.add_relation(support_relation('Offered-by', course, department));
+    g.output([OUTPUT_DIR, '4_4_4_a.png'].join('/'));
+  }
+
+  {
+    const leagues = {
+      label: 'Leagues',
+      attrs: ['names'],
+      keys: ['names'],
+    };
+
+    const teams = {
+      label: 'Teams',
+      attrs: ['names'],
+      keys: ['names'],
+      is_weak: true,
+    };
+
+    const players = {
+      label: 'Players',
+      attrs: ['number'],
+      keys: ['number'],
+      is_weak: true,
+    };
+
+    const g = new ERModel('Leagues');
+
+    g.add_entity(leagues);
+    g.add_entity(teams);
+    g.add_entity(players);
+
+    g.add_relation(support_relation('In-League', teams, leagues));
+    g.add_relation(support_relation('In-Team', players, teams));
+
+    g.output([OUTPUT_DIR, '4_4_4_b.png'].join('/'));
+  }
+}
+
+function exercise_4_5_2() {
+  const customers = {
+    label: 'Customers',
+    attrs: ['SSNo', 'name', 'addr', 'phone'],
+    keys: ['SSNo'],
+  };
+
+  const flights = {
+    label: 'Flights',
+    attrs: ['number', 'day', 'aircraft'],
+    keys: ['number', 'day'],
+  };
+
+  const bookings = {
+    label: 'Bookings',
+    attrs: ['row', 'seat'],
+    keys: ['row', 'seat'],
+    is_weak: true,
+  };
+
+  const to_cust: Relation = {
+    label: 'toCust',
+    arrows: [
+      [bookings, Arrow.Many],
+      [customers, Arrow.RI],
+    ]
+  };
+
+
+  const g = new ERModel('Airlines');
+
+  g.add_entity(customers);
+  g.add_entity(flights);
+  g.add_entity(bookings);
+
+  g.add_relation(support_relation('toFlt', bookings, flights));
+  g.add_relation(to_cust);
+
+  g.output([OUTPUT_DIR, '4_5_2.png'].join('/'));
 }
 
 function main() {
@@ -771,6 +912,10 @@ function main() {
   exercise_4_2_7();
   exercise_4_3_1();
   exercise_4_4_1();
+  exercise_4_4_2();
+  exercise_4_4_3();
+  exercise_4_4_4();
+  exercise_4_5_2();
 }
 
 main();

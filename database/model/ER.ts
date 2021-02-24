@@ -1,7 +1,8 @@
+import { strict as assert } from 'assert';
 import graphviz from 'graphviz';
 
 export {
-  Arrow, Entity, Relation, ERModel, RelationKind, binary_relation, isa
+  Arrow, Entity, Relation, ERModel, RelationKind, binary_relation, isa, support_relation
 };
 
 const DEFAULT_EDGE_LENGTH = 1.0;
@@ -94,6 +95,19 @@ function binary_relation(
   };
 }
 
+function support_relation(label: string, from: Entity, to: Entity): Relation {
+  assert(from.is_weak === true);
+
+  return {
+    label,
+    arrows: [
+      [from, Arrow.Many],
+      [to, Arrow.RI],
+    ],
+    is_support: true,
+  };
+}
+
 function isa(base: Entity, child: Entity): ISA {
   return {
     base,
@@ -104,6 +118,8 @@ function isa(base: Entity, child: Entity): ISA {
 // http://www.graphviz.org/Gallery/undirected/ER.html
 class ERModel {
   private inner: graphviz.Graph;
+  // for sanity checks
+  private entities: WeakSet<Entity>;
 
   constructor(label: string) {
     const GRAPH_OPTIONS: graphviz.Options = {
@@ -117,6 +133,8 @@ class ERModel {
     for (const [key, value] of Object.entries(GRAPH_OPTIONS)) {
       this.inner.set(key, value);
     }
+
+    this.entities = new WeakSet();
   }
 
   private add_cluster(entity: Entity, shape: string): graphviz.Node {
@@ -146,11 +164,20 @@ class ERModel {
     if (entity.is_weak) {
       entry.set('peripheries', 2);
     }
+    this.entities.add(entity);
     return entry;
   }
 
   add_relation(relation: Relation): graphviz.Node {
     const g = this.inner;
+
+    // sanity check
+    for (const [entity] of relation.arrows) {
+      assert(
+        this.entities.has(entity),
+        `Relation ${relation.label} referred an unknown entity set ${entity.label}`
+      );
+    }
 
     let node;
     if (relation.attrs) {
@@ -159,7 +186,7 @@ class ERModel {
       node = g.addNode(relation.label, { shape: 'diamond' });
     }
 
-    if (relation.is_support) {
+    if (relation.is_support === true) {
       node.set('peripheries', 2);
     }
 
@@ -171,6 +198,14 @@ class ERModel {
   }
 
   add_isa(isa: ISA): void {
+    // sanity check
+    for (const entity of [isa.base, isa.child]) {
+      assert(
+        this.entities.has(entity),
+        `ISA referred an unknown entity set ${entity.label}`
+      );
+    }
+
     const ISA_OPTIONS: graphviz.Options = {
       label: 'isa',
       shape: 'triangle',
