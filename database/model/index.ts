@@ -1,7 +1,14 @@
 import fs from 'fs';
 import {
-  Relation, ERModel, binary_relation, RelationKind, Arrow, isa, support_relation,
+  Relation,
+  ERModel,
+  binary_relation,
+  RelationKind,
+  Arrow,
+  isa,
+  support_relation,
 } from './ER';
+import { association, mul, UML } from './UML';
 
 const OUTPUT_DIR = 'output';
 
@@ -30,7 +37,9 @@ function exercise_4_1_2() {
     const g = new ERModel('Bank');
     g.add_entity(CUSTOMER);
     g.add_entity(ACCOUNT);
-    g.add_relation(binary_relation('Own', CUSTOMER, ACCOUNT, RelationKind.OneMany));
+    g.add_relation(
+      binary_relation('Own', CUSTOMER, ACCOUNT, RelationKind.OneMany)
+    );
 
     g.output([OUTPUT_DIR, '4_1_2_a.png'].join('/'));
   }
@@ -39,7 +48,9 @@ function exercise_4_1_2() {
     const g = new ERModel('Bank');
     g.add_entity(CUSTOMER);
     g.add_entity(ACCOUNT);
-    g.add_relation(binary_relation('Own', CUSTOMER, ACCOUNT, RelationKind.OneOne));
+    g.add_relation(
+      binary_relation('Own', CUSTOMER, ACCOUNT, RelationKind.OneOne)
+    );
 
     g.output([OUTPUT_DIR, '4_1_2_b.png'].join('/'));
   }
@@ -68,7 +79,9 @@ function exercise_4_1_2() {
 
     g.add_relation(binary_relation('Own-Account', customer, ACCOUNT));
     g.add_relation(binary_relation('Own-Phone', customer, phone));
-    g.add_relation(binary_relation('Live-in', customer, address, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Live-in', customer, address, RelationKind.ManyOne)
+    );
 
     g.output([OUTPUT_DIR, '4_1_2_c.png'].join('/'));
   }
@@ -96,8 +109,12 @@ function exercise_4_1_2() {
     g.add_entity(ACCOUNT);
 
     g.add_relation(binary_relation('Own-Account', customer, ACCOUNT));
-    g.add_relation(binary_relation('Have-Phone', address, phone, RelationKind.OneMany));
-    g.add_relation(binary_relation('Live-in', customer, address, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Have-Phone', address, phone, RelationKind.OneMany)
+    );
+    g.add_relation(
+      binary_relation('Live-in', customer, address, RelationKind.ManyOne)
+    );
 
     g.output([OUTPUT_DIR, '4_1_2_d.png'].join('/'));
   }
@@ -124,7 +141,6 @@ const COLOR = {
 };
 
 function exercise_4_1_3() {
-
   const g = new ERModel('Sport');
 
   g.add_entity(TEAM);
@@ -132,12 +148,20 @@ function exercise_4_1_3() {
   g.add_entity(FAN);
   g.add_entity(COLOR);
 
-  g.add_relation(binary_relation('Team-Players', TEAM, PLAYER, RelationKind.OneMany));
-  g.add_relation(binary_relation('Team-Captain', TEAM, PLAYER, RelationKind.OneOne));
+  g.add_relation(
+    binary_relation('Team-Players', TEAM, PLAYER, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Team-Captain', TEAM, PLAYER, RelationKind.OneOne)
+  );
   g.add_relation(binary_relation('Uniform-Colors', TEAM, COLOR));
   g.add_relation(binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne)
+  );
+  g.add_relation(
+    binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne)
+  );
 
   g.output([OUTPUT_DIR, '4_1_3.png'].join('/'));
 }
@@ -150,7 +174,7 @@ function exercise_4_1_4() {
         [PLAYER, Arrow.Many, 'leader'],
         [PLAYER, Arrow.Many, 'player'],
         [TEAM, Arrow.Many],
-      ]
+      ],
     };
 
     const g = new ERModel('Sport');
@@ -163,16 +187,21 @@ function exercise_4_1_4() {
     g.add_relation(binary_relation('Team-Players', TEAM, PLAYER));
     g.add_relation(binary_relation('Team-Captain', TEAM, PLAYER));
     g.add_relation(binary_relation('Uniform-Colors', TEAM, COLOR));
-    g.add_relation(binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne)
+    );
     g.add_relation(led_by);
 
     g.output([OUTPUT_DIR, '4_1_4_a.png'].join('/'));
   }
 
   {
-
     const captainship = {
       label: 'Captainship',
       attrs: ['team', 'start', 'end'],
@@ -186,14 +215,24 @@ function exercise_4_1_4() {
     g.add_entity(COLOR);
     g.add_entity(captainship);
 
-    g.add_relation(binary_relation('Is', captainship, PLAYER, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Is', captainship, PLAYER, RelationKind.ManyOne)
+    );
     g.add_relation(binary_relation('Team-Players', TEAM, PLAYER));
     g.add_relation(binary_relation('Uniform-Colors', TEAM, COLOR));
-    g.add_relation(binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne)
+    );
     g.add_relation(binary_relation('Led-By', PLAYER, captainship));
-    g.add_relation(binary_relation('Team-Captain', TEAM, captainship, RelationKind.OneMany));
+    g.add_relation(
+      binary_relation('Team-Captain', TEAM, captainship, RelationKind.OneMany)
+    );
 
     g.output([OUTPUT_DIR, '4_1_4_b.png'].join('/'));
   }
@@ -206,7 +245,7 @@ function exercise_4_1_5() {
     arrows: [
       [PLAYER, Arrow.Many],
       [TEAM, Arrow.Many],
-    ]
+    ],
   };
 
   const g = new ERModel('Sport');
@@ -216,12 +255,20 @@ function exercise_4_1_5() {
   g.add_entity(FAN);
   g.add_entity(COLOR);
 
-  g.add_relation(binary_relation('Team-Players', TEAM, PLAYER, RelationKind.OneMany));
-  g.add_relation(binary_relation('Team-Captain', TEAM, PLAYER, RelationKind.OneOne));
+  g.add_relation(
+    binary_relation('Team-Players', TEAM, PLAYER, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Team-Captain', TEAM, PLAYER, RelationKind.OneOne)
+  );
   g.add_relation(binary_relation('Uniform-Colors', TEAM, COLOR));
   g.add_relation(binary_relation('Fav-Team', FAN, TEAM, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Fav-Player', FAN, PLAYER, RelationKind.ManyOne)
+  );
+  g.add_relation(
+    binary_relation('Fav-Color', FAN, COLOR, RelationKind.ManyOne)
+  );
   g.add_relation(contract);
 
   g.output([OUTPUT_DIR, '4_1_5.png'].join('/'));
@@ -237,7 +284,7 @@ const CHILD_OF: Relation = {
   arrows: [
     [PEOPLE, Arrow.Many, 'parent'],
     [PEOPLE, Arrow.Many, 'child'],
-  ]
+  ],
 };
 
 function exercise_4_1_6() {
@@ -250,7 +297,7 @@ function exercise_4_1_6() {
     arrows: [
       [PEOPLE, Arrow.One, 'mother'],
       [PEOPLE, Arrow.Many, 'child'],
-    ]
+    ],
   };
 
   const father_of: Relation = {
@@ -258,7 +305,7 @@ function exercise_4_1_6() {
     arrows: [
       [PEOPLE, Arrow.One, 'father'],
       [PEOPLE, Arrow.Many, 'child'],
-    ]
+    ],
   };
 
   const child_of: Relation = {
@@ -266,7 +313,7 @@ function exercise_4_1_6() {
     arrows: [
       [PEOPLE, Arrow.Many, 'parent'],
       [PEOPLE, Arrow.Many, 'child'],
-    ]
+    ],
   };
 
   g.add_relation(mother_of);
@@ -306,8 +353,12 @@ function exercise_4_1_7() {
   g.add_isa(isa(female, mother));
   g.add_isa(isa(male, father));
 
-  g.add_relation(binary_relation('Mother-of', mother, PEOPLE, RelationKind.OneMany));
-  g.add_relation(binary_relation('Father-of', father, PEOPLE, RelationKind.OneMany));
+  g.add_relation(
+    binary_relation('Mother-of', mother, PEOPLE, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Father-of', father, PEOPLE, RelationKind.OneMany)
+  );
   g.add_relation(CHILD_OF);
 
   g.output([OUTPUT_DIR, '4_1_7.png'].join('/'));
@@ -321,7 +372,7 @@ function exercise_4_1_8() {
         [PEOPLE, Arrow.One, 'mother'],
         [PEOPLE, Arrow.One, 'father'],
         [PEOPLE, Arrow.Many, 'child'],
-      ]
+      ],
     };
 
     const g = new ERModel('People');
@@ -342,9 +393,15 @@ function exercise_4_1_8() {
     g.add_entity(PEOPLE);
     g.add_entity(couple);
 
-    g.add_relation(binary_relation('Female-is', couple, PEOPLE, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Male-is', couple, PEOPLE, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Child-of', PEOPLE, couple, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Female-is', couple, PEOPLE, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Male-is', couple, PEOPLE, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Child-of', PEOPLE, couple, RelationKind.ManyOne)
+    );
 
     g.output([OUTPUT_DIR, '4_1_8_b.png'].join('/'));
   }
@@ -381,7 +438,7 @@ function exercise_4_1_9() {
     arrows: [
       [student, Arrow.Many],
       [course, Arrow.Many],
-    ]
+    ],
   };
 
   const g = new ERModel('University Registrar');
@@ -396,13 +453,19 @@ function exercise_4_1_9() {
 
   g.add_relation(enrolled_in);
   // reasonable assumptions?
-  g.add_relation(binary_relation('Teaching', professor, course, RelationKind.OneMany));
-  g.add_relation(binary_relation('Member-of', professor, department, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Teaching', professor, course, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Member-of', professor, department, RelationKind.ManyOne)
+  );
   // some course may be jointly offered by multiple departments
   g.add_relation(binary_relation('Offer', department, course));
   g.add_relation(binary_relation('Assist', TA, course));
   // based on personal experience
-  g.add_relation(binary_relation('Tutor-of', professor, student, RelationKind.OneMany));
+  g.add_relation(
+    binary_relation('Tutor-of', professor, student, RelationKind.OneMany)
+  );
 
   g.output([OUTPUT_DIR, '4_1_9.png'].join('/'));
 }
@@ -428,7 +491,7 @@ function exercise_4_1_10() {
         [MOVIES, Arrow.Many],
         [STUDIOS, Arrow.One, 'Studio of Star'],
         [STARS, Arrow.Many, 'Producing Studio'],
-      ]
+      ],
     };
 
     const g = new ERModel('Movies');
@@ -449,7 +512,7 @@ function exercise_4_1_10() {
         [STARS, Arrow.Many],
         [MOVIES, Arrow.Many],
         [STUDIOS, Arrow.One],
-      ]
+      ],
     };
 
     const g = new ERModel('Movies');
@@ -459,7 +522,9 @@ function exercise_4_1_10() {
     g.add_entity(STUDIOS);
 
     g.add_relation(contract);
-    g.add_relation(binary_relation('Producing', STUDIOS, MOVIES, RelationKind.OneMany));
+    g.add_relation(
+      binary_relation('Producing', STUDIOS, MOVIES, RelationKind.OneMany)
+    );
 
     g.output([OUTPUT_DIR, '4_1_10_b.png'].join('/'));
   }
@@ -487,7 +552,9 @@ function exercise_4_2_1() {
   g.add_entity(accounts);
   g.add_entity(addresses);
 
-  g.add_relation(binary_relation('Lives-at', customers, addresses, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Lives-at', customers, addresses, RelationKind.ManyOne)
+  );
   g.add_relation(binary_relation('Owns', customers, accounts));
 
   g.output([OUTPUT_DIR, '4_2_1.png'].join('/'));
@@ -500,7 +567,7 @@ function exercise_4_2_3() {
     arrows: [
       [MOVIES, Arrow.Many],
       [STARS, Arrow.Many],
-    ]
+    ],
   };
 
   const g = new ERModel('Movies');
@@ -537,7 +604,7 @@ function exercise_4_2_5() {
       [BABIES, Arrow.Many],
       [DOCTORS, Arrow.One],
       [NURSES, Arrow.Many],
-    ]
+    ],
   };
 
   const g = new ERModel('Birth');
@@ -548,8 +615,12 @@ function exercise_4_2_5() {
   g.add_entity(NURSES);
 
   g.add_relation(births);
-  g.add_relation(binary_relation('Mother-of', MOTHERS, BABIES, RelationKind.OneMany));
-  g.add_relation(binary_relation('Midwifed', DOCTORS, BABIES, RelationKind.OneMany));
+  g.add_relation(
+    binary_relation('Mother-of', MOTHERS, BABIES, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Midwifed', DOCTORS, BABIES, RelationKind.OneMany)
+  );
 
   g.output([OUTPUT_DIR, '4_2_5.png'].join('/'));
 }
@@ -567,9 +638,15 @@ function exercise_4_2_6() {
   g.add_entity(NURSES);
   g.add_entity(births);
 
-  g.add_relation(binary_relation('Birth-of', births, BABIES, RelationKind.OneOne));
-  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Birth-of', births, BABIES, RelationKind.OneOne)
+  );
+  g.add_relation(
+    binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne)
+  );
+  g.add_relation(
+    binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne)
+  );
   g.add_relation(binary_relation('Assisted-by', births, NURSES));
 
   g.output([OUTPUT_DIR, '4_2_6.png'].join('/'));
@@ -588,9 +665,15 @@ function exercise_4_2_7() {
   g.add_entity(NURSES);
   g.add_entity(births);
 
-  g.add_relation(binary_relation('Birth-of', births, BABIES, RelationKind.OneMany));
-  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Birth-of', births, BABIES, RelationKind.OneMany)
+  );
+  g.add_relation(
+    binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne)
+  );
+  g.add_relation(
+    binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne)
+  );
   g.add_relation(binary_relation('Assisted-by', births, NURSES));
 
   g.output([OUTPUT_DIR, '4_2_7.png'].join('/'));
@@ -600,11 +683,11 @@ function exercise_4_3_1() {
   {
     const customer = {
       keys: ['ssn'],
-      ...CUSTOMER
+      ...CUSTOMER,
     };
     const account = {
       keys: ['number'],
-      ...ACCOUNT
+      ...ACCOUNT,
     };
 
     const own: Relation = {
@@ -612,7 +695,7 @@ function exercise_4_3_1() {
       arrows: [
         [customer, Arrow.RI],
         [account, Arrow.Many],
-      ]
+      ],
     };
 
     const g = new ERModel('Bank');
@@ -628,19 +711,19 @@ function exercise_4_3_1() {
   {
     const team = {
       keys: ['name'],
-      ...TEAM
+      ...TEAM,
     };
     const player = {
       keys: ['name'],
-      ...PLAYER
+      ...PLAYER,
     };
     const fan = {
       keys: ['name'],
-      ...FAN
+      ...FAN,
     };
     const color = {
       keys: ['name'],
-      ...COLOR
+      ...COLOR,
     };
 
     const g = new ERModel('Sport');
@@ -650,12 +733,22 @@ function exercise_4_3_1() {
     g.add_entity(fan);
     g.add_entity(color);
 
-    g.add_relation(binary_relation('Team-Players', team, player, RelationKind.OneMany));
-    g.add_relation(binary_relation('Team-Captain', team, player, RelationKind.OneOne));
+    g.add_relation(
+      binary_relation('Team-Players', team, player, RelationKind.OneMany)
+    );
+    g.add_relation(
+      binary_relation('Team-Captain', team, player, RelationKind.OneOne)
+    );
     g.add_relation(binary_relation('Uniform-Colors', team, color));
-    g.add_relation(binary_relation('Fav-Team', fan, team, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Player', fan, player, RelationKind.ManyOne));
-    g.add_relation(binary_relation('Fav-Color', fan, color, RelationKind.ManyOne));
+    g.add_relation(
+      binary_relation('Fav-Team', fan, team, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Player', fan, player, RelationKind.ManyOne)
+    );
+    g.add_relation(
+      binary_relation('Fav-Color', fan, color, RelationKind.ManyOne)
+    );
 
     g.output([OUTPUT_DIR, '4_3_1_b.png'].join('/'));
   }
@@ -663,7 +756,7 @@ function exercise_4_3_1() {
   {
     const people = {
       keys: ['name'],
-      ...PEOPLE
+      ...PEOPLE,
     };
 
     const g = new ERModel('People');
@@ -675,7 +768,7 @@ function exercise_4_3_1() {
       arrows: [
         [people, Arrow.RI, 'mother'],
         [people, Arrow.Many, 'child'],
-      ]
+      ],
     };
 
     const father_of: Relation = {
@@ -683,7 +776,7 @@ function exercise_4_3_1() {
       arrows: [
         [people, Arrow.RI, 'father'],
         [people, Arrow.Many, 'child'],
-      ]
+      ],
     };
 
     const child_of: Relation = {
@@ -691,7 +784,7 @@ function exercise_4_3_1() {
       arrows: [
         [people, Arrow.Many, 'parent'],
         [people, Arrow.Many, 'child'],
-      ]
+      ],
     };
 
     g.add_relation(mother_of);
@@ -784,8 +877,12 @@ function exercise_4_4_3() {
   g.add_entity(births);
 
   g.add_relation(birth_of);
-  g.add_relation(binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne));
-  g.add_relation(binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne));
+  g.add_relation(
+    binary_relation('Given-by', births, MOTHERS, RelationKind.ManyOne)
+  );
+  g.add_relation(
+    binary_relation('Midwifed-by', births, DOCTORS, RelationKind.ManyOne)
+  );
   g.add_relation(binary_relation('Assisted-by', births, NURSES));
 
   g.output([OUTPUT_DIR, '4_4_3.png'].join('/'));
@@ -874,9 +971,8 @@ function exercise_4_5_2() {
     arrows: [
       [bookings, Arrow.Many],
       [customers, Arrow.RI],
-    ]
+    ],
   };
-
 
   const g = new ERModel('Airlines');
 
@@ -890,11 +986,107 @@ function exercise_4_5_2() {
   g.output([OUTPUT_DIR, '4_5_2.png'].join('/'));
 }
 
-function main() {
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR);
+function exercise_4_7_1() {
+  const g = new UML('Bank');
+
+  g.add_class(CUSTOMER);
+  g.add_class(ACCOUNT);
+  g.add_association(association('Own', CUSTOMER, mul(0), ACCOUNT, mul(0)));
+
+  g.output([OUTPUT_DIR, '4_7_1.png'].join('/'));
+}
+
+function exercise_4_7_2() {
+  {
+    const g = new UML('Bank');
+    g.add_class(CUSTOMER);
+    g.add_class(ACCOUNT);
+    g.add_association(association('Own', CUSTOMER, mul(0), ACCOUNT, mul(0, 1)));
+
+    g.output([OUTPUT_DIR, '4_7_2_a.png'].join('/'));
   }
 
+  {
+    const g = new UML('Bank');
+    g.add_class(CUSTOMER);
+    g.add_class(ACCOUNT);
+    g.add_association(
+      association('Own', CUSTOMER, mul(0, 1), ACCOUNT, mul(0, 1))
+    );
+
+    g.output([OUTPUT_DIR, '4_7_2_b.png'].join('/'));
+  }
+
+  {
+    const customer = {
+      label: 'Customer',
+      attrs: ['name', 'ssn'],
+    };
+
+    const phone = {
+      label: 'Phone',
+      attrs: ['number'],
+    };
+
+    const address = {
+      label: 'Address',
+      attrs: ['street', 'city', 'state'],
+    };
+
+    const g = new UML('Bank');
+
+    g.add_class(customer);
+    g.add_class(phone);
+    g.add_class(address);
+    g.add_class(ACCOUNT);
+
+    g.add_association(
+      association('OwnAccount', customer, mul(0), ACCOUNT, mul(0))
+    );
+    g.add_association(association('OwnPhone', customer, mul(0), phone, mul(0)));
+    g.add_association(
+      association('LiveIn', customer, mul(0), address, mul(0, 1))
+    );
+
+    g.output([OUTPUT_DIR, '4_7_2_c.png'].join('/'));
+  }
+
+  {
+    const customer = {
+      label: 'Customer',
+      attrs: ['name', 'ssn'],
+    };
+
+    const phone = {
+      label: 'Phone',
+      attrs: ['number'],
+    };
+
+    const address = {
+      label: 'Address',
+      attrs: ['street', 'city', 'state'],
+    };
+
+    const g = new UML('Bank');
+
+    g.add_class(customer);
+    g.add_class(phone);
+    g.add_class(address);
+    g.add_class(ACCOUNT);
+
+    g.add_association(
+      association('OwnAccount', customer, mul(0), ACCOUNT, mul(0))
+    );
+    g.add_association(association('HasPhone', address, mul(0), phone, mul(0)));
+    g.add_association(
+      association('LiveIn', customer, mul(0), address, mul(0, 1))
+    );
+
+    g.output([OUTPUT_DIR, '4_7_2_d.png'].join('/'));
+  }
+}
+
+function ER_exercises() {
   exercise_4_1_1();
   exercise_4_1_2();
   exercise_4_1_3();
@@ -916,6 +1108,29 @@ function main() {
   exercise_4_4_3();
   exercise_4_4_4();
   exercise_4_5_2();
+}
+
+function UML_exercises() {
+  exercise_4_7_1();
+  exercise_4_7_2();
+}
+
+function main() {
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR);
+  }
+
+  switch (process.argv[2]?.toUpperCase()) {
+    case 'ER':
+      ER_exercises();
+      break;
+    case 'UML':
+      UML_exercises();
+      break;
+    default:
+      ER_exercises();
+      UML_exercises();
+  }
 }
 
 main();

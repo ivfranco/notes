@@ -2,7 +2,14 @@ import { strict as assert } from 'assert';
 import graphviz from 'graphviz';
 
 export {
-  Arrow, Entity, Relation, ERModel, RelationKind, binary_relation, isa, support_relation
+  Arrow,
+  Entity,
+  Relation,
+  ERModel,
+  RelationKind,
+  binary_relation,
+  isa,
+  support_relation,
 };
 
 const DEFAULT_EDGE_LENGTH = 1.0;
@@ -23,7 +30,7 @@ enum Arrow {
 }
 
 const UNDIRECTIONAL: graphviz.Options = {
-  arrowhead: 'none'
+  arrowhead: 'none',
 };
 
 const DIRECTIONAL: graphviz.Options = {
@@ -59,8 +66,8 @@ function arrow_style(arrow: Arrow, text?: string): graphviz.Options {
 }
 
 interface Relation {
-  label: string,
-  attrs?: Array<string>,
+  label: string;
+  attrs?: Array<string>;
   arrows: Array<[Entity, Arrow, string?]>;
   is_support?: boolean;
 }
@@ -69,7 +76,6 @@ interface ISA {
   base: Entity;
   child: Entity;
 }
-
 
 enum RelationKind {
   ManyMany = 0b00,
@@ -111,7 +117,7 @@ function support_relation(label: string, from: Entity, to: Entity): Relation {
 function isa(base: Entity, child: Entity): ISA {
   return {
     base,
-    child
+    child,
   };
 }
 
@@ -126,6 +132,7 @@ class ERModel {
       dpi: 240,
       layout: 'neato',
       overlap: 'scale',
+      splines: 'curved',
     };
 
     // id of a graph may not contain `-`, '.' or space.
@@ -141,17 +148,21 @@ class ERModel {
     const g = this.inner;
 
     // id of a graph may not contain `-`, '.' or space.
-    const cluster = g.addCluster(`Cluster_${entity.label.replace(/[-.\s]/, '_')}`);
+    const cluster = g.addCluster(
+      `Cluster_${entity.label.replace(/[-.\s]/, '_')}`
+    );
     // remove subgraph borders in dot mode, ignored by neato
     cluster.set('style', 'filled');
     cluster.set('color', 'none');
 
     const entry = cluster.addNode(entity.label, { shape: shape });
 
-    entity.attrs?.forEach(attr_name => {
+    entity.attrs?.forEach((attr_name) => {
       // node.js graphviz has special undocumented syntax for html-like labels
       // https://github.com/glejeune/node-graphviz/blob/f552e1fd2c363c95efd518b1eae1167020b01d2d/lib/deps/attributs.js#L195
-      const label = entity.keys?.includes(attr_name) ? `!<U>${attr_name}</U>` : attr_name;
+      const label = entity.keys?.includes(attr_name)
+        ? `!<U>${attr_name}</U>`
+        : attr_name;
       const attr = cluster.addNode(`${entity.label}.${attr_name}`, { label });
       cluster.addEdge(entry, attr, { len: DEFAULT_EDGE_LENGTH / 2 });
     });
@@ -216,12 +227,19 @@ class ERModel {
     const { base, child } = isa;
 
     const node = g.addNode(`${base.label}-ISA-${child.label}`, ISA_OPTIONS);
-    g.addEdge(node, base.label, Object.assign(DIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
-    g.addEdge(node, child.label, Object.assign(UNDIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 }));
+    g.addEdge(
+      node,
+      base.label,
+      Object.assign(DIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 })
+    );
+    g.addEdge(
+      node,
+      child.label,
+      Object.assign(UNDIRECTIONAL, { len: DEFAULT_EDGE_LENGTH / 2 })
+    );
   }
 
   output(path: string): void {
-    this.inner.render;
     this.inner.output('png', path, console.error);
   }
 }
