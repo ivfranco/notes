@@ -1,4 +1,4 @@
-Execution: npm run render
+Execution: npm run (all|ER|UML)
 
 Output is generated under ./output
 

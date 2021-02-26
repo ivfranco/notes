@@ -988,3 +988,148 @@ b.  i.  min: e, the hierarchy is a linked list
 c.  i.  both min and max = 1
     ii. both min and max = ea
 
+4.7.1
+./database/model
+
+4.7.2
+./database/model
+
+4.7.3
+./database/model
+
+4.7.4
+./database/model
+
+4.7.5
+./database/model
+{ male, female } is not complete nor disjoint
+{ father } { mother } is not complete among their base classes
+
+4.7.6
+./database/model
+
+4.7.7
+./database/model
+
+4.7.8
+a new class Contract, with
+    (0..*, 1..1) multiplicity to Stars
+    (0..*, 1..1) multiplicity to Movies
+    (0..*, 1..1) multiplicity to Studios
+
+4.7.9
+./database/model
+
+4.7.10
+person -> biological parents, always 2..2 before clone technology
+chess tornament -> players, 2..* 
+audio output -> stereo speakers, 2..*
+
+4.8.1
+Customers((SSNo), name, addr, phone)
+Flights((number, day), aircraft)
+Bookings((customer_SSNo, flight_number), row, seat)
+
+4.8.2
+a.  Movies((title, year), length, genre)
+    Studios((name), address)
+    Presidents((cert#), name, address)
+    Owns((title, studio_name))
+    Runs((cert#, studio_name))
+b.  Movies((title, year), length, genre)
+    MoviesM((title, year), length, genre, weapon)
+    MoviesC((title, year), length, genre)
+    MoviesCM((title, year), length, genre, weapon)
+c.  // same to ER model
+d.  // same to ER model
+e.  // same to ER model
+f.  // same to ER model
+
+4.8.3
+a.  3^2 = 9
+b.  3^0 + 3^1 + 3^2 = 13
+c.  (2^3)^3 = 512
+    // state at tree root = Π state at each subtree
+
+4.9.1
+class Customer (key (ssn)) {
+    attribute integer ssn;
+    attribute string name;
+    attribute string address;
+    attribute integer phone;
+    relationship Set<Account> owns inverse Account::ownedBy;
+}
+class Account (key (number)) {
+    attribute integer number;
+    // in cents
+    attribute integer balance; 
+    // what is a type exactly?
+    attribute integer enum Type { .. } type;
+    relationship Set<Customer> ownedBy inverse Customer::owns;
+}
+
+4.9.2
+a.  in class Account:
+        - relationship Set<Customer> ownedBy inverse Customer::owns;
+        + relationship Customer ownedBy inverse Customer::owns;
+b.  in class Customer:
+        - relationship Set<Account> owns inverse Account::ownedBy;
+        + relationship Account owns inverse Account::ownedBy;
+c.  in class Customer: 
+        - attribute string address;
+        + attribute Set<string> addresses;
+        - attribute integer phone;
+        + attribute Set<integer> phones;
+d.  class Address (key (address)) {
+        attribute string address; 
+        attribute Set<integer> phones;
+    }
+    in class Customer:
+        - relationship Set<string> addresses;
+        + relationship Set<Address> addresses;
+        - attribute Set<integer> phones;
+
+4.9.3
+class Team (key (name)) {
+    attribute string name;
+    // attributes in ODL can be sets of primitive types
+    // colors can be an attribute instead of a class
+    attribute Set<string> uniformColors;
+    relationship Set<Player> players inverse Player::team;
+    relationship Player captain inverse Player::captainOf;
+}
+class Player (key (name)) {
+    attribute string name;
+    relationship Team team inverse Team::players; 
+    relationship Team captionOf inverse Team::captain;
+}
+class Fan (key (name)) {
+    // these relations are not mutual: they hold no significance on the other end
+    attribute Team favTeam;
+    attribute Player favPlayer;
+    attribute string favColor;
+}
+
+4.9.4
+class Person {
+    attribute string name;
+    relationship Set<Person> parents inverse Person::children;
+    relationship Set<Person> children inverse Person::parents;
+    // inverse of these two are subsets of children, but not exactly children
+    relationship Person mother;
+    relationship Person father;
+}
+
+4.9.5
+class Degree {
+    attribute string name;
+    attribute string school;
+    attribute string date;
+}
+Set:    order lost
+Bag:    order lost, uniqueness lost
+List:   uniqueness lost
+Array:  not sensible, people have variable length of education
+order of education is significant, uniqueness is less so
+
+4.9.6

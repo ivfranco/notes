@@ -10,6 +10,7 @@ export {
   binary_relation,
   isa,
   support_relation,
+  kind_to_arrows,
 };
 
 const DEFAULT_EDGE_LENGTH = 1.0;
@@ -84,14 +85,19 @@ enum RelationKind {
   OneOne = 0b11,
 }
 
+function kind_to_arrows(kind: RelationKind): [Arrow, Arrow] {
+  const from_arrow = kind & 0b10 ? Arrow.One : Arrow.Many;
+  const to_arrow = kind & 0b01 ? Arrow.One : Arrow.Many;
+  return [from_arrow, to_arrow];
+}
+
 function binary_relation(
   label: string,
   from: Entity,
   to: Entity,
   kind: RelationKind = RelationKind.ManyMany
 ): Relation {
-  const from_arrow = kind & 0b10 ? Arrow.One : Arrow.Many;
-  const to_arrow = kind & 0b01 ? Arrow.One : Arrow.Many;
+  const [from_arrow, to_arrow] = kind_to_arrows(kind);
   return {
     label,
     arrows: [

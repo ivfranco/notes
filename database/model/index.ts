@@ -8,7 +8,13 @@ import {
   isa,
   support_relation,
 } from './ER';
-import { association, mul, UML } from './UML';
+import {
+  Association,
+  association,
+  association_from_self_relation,
+  mul,
+  UML,
+} from './UML';
 
 const OUTPUT_DIR = 'output';
 
@@ -989,9 +995,19 @@ function exercise_4_5_2() {
 function exercise_4_7_1() {
   const g = new UML('Bank');
 
-  g.add_class(CUSTOMER);
-  g.add_class(ACCOUNT);
-  g.add_association(association('Own', CUSTOMER, mul(0), ACCOUNT, mul(0)));
+  const customer = {
+    ...CUSTOMER,
+    keys: ['ssn'],
+  };
+
+  const account = {
+    ...ACCOUNT,
+    keys: ['number'],
+  };
+
+  g.add_class(customer);
+  g.add_class(account);
+  g.add_association(association('Own', customer, account));
 
   g.output([OUTPUT_DIR, '4_7_1.png'].join('/'));
 }
@@ -1001,7 +1017,9 @@ function exercise_4_7_2() {
     const g = new UML('Bank');
     g.add_class(CUSTOMER);
     g.add_class(ACCOUNT);
-    g.add_association(association('Own', CUSTOMER, mul(0), ACCOUNT, mul(0, 1)));
+    g.add_association(
+      association('Own', CUSTOMER, ACCOUNT, RelationKind.ManyOne)
+    );
 
     g.output([OUTPUT_DIR, '4_7_2_a.png'].join('/'));
   }
@@ -1011,7 +1029,7 @@ function exercise_4_7_2() {
     g.add_class(CUSTOMER);
     g.add_class(ACCOUNT);
     g.add_association(
-      association('Own', CUSTOMER, mul(0, 1), ACCOUNT, mul(0, 1))
+      association('Own', CUSTOMER, ACCOUNT, RelationKind.OneOne)
     );
 
     g.output([OUTPUT_DIR, '4_7_2_b.png'].join('/'));
@@ -1040,12 +1058,10 @@ function exercise_4_7_2() {
     g.add_class(address);
     g.add_class(ACCOUNT);
 
+    g.add_association(association('Own-Account', customer, ACCOUNT));
+    g.add_association(association('Own-Phone', customer, phone));
     g.add_association(
-      association('OwnAccount', customer, mul(0), ACCOUNT, mul(0))
-    );
-    g.add_association(association('OwnPhone', customer, mul(0), phone, mul(0)));
-    g.add_association(
-      association('LiveIn', customer, mul(0), address, mul(0, 1))
+      association('Live-in', customer, address, RelationKind.ManyOne)
     );
 
     g.output([OUTPUT_DIR, '4_7_2_c.png'].join('/'));
@@ -1074,16 +1090,226 @@ function exercise_4_7_2() {
     g.add_class(address);
     g.add_class(ACCOUNT);
 
+    g.add_association(association('Own-Account', customer, ACCOUNT));
+    g.add_association(association('Has-Phone', address, phone));
     g.add_association(
-      association('OwnAccount', customer, mul(0), ACCOUNT, mul(0))
-    );
-    g.add_association(association('HasPhone', address, mul(0), phone, mul(0)));
-    g.add_association(
-      association('LiveIn', customer, mul(0), address, mul(0, 1))
+      association('Live-In', customer, address, RelationKind.ManyOne)
     );
 
     g.output([OUTPUT_DIR, '4_7_2_d.png'].join('/'));
   }
+}
+
+function exercise_4_7_3() {
+  const g = new UML('Sport');
+
+  g.add_class(TEAM);
+  g.add_class(PLAYER);
+  g.add_class(FAN);
+  g.add_class(COLOR);
+
+  g.add_association(association('TeamPlayers', TEAM, PLAYER));
+  g.add_association(
+    association('Team-Captain', TEAM, PLAYER, RelationKind.OneOne)
+  );
+  g.add_association(association('Uniform-Colors', TEAM, COLOR));
+  g.add_association(association('Fav-Team', FAN, TEAM, RelationKind.ManyOne));
+  g.add_association(
+    association('Fav-Player', FAN, PLAYER, RelationKind.ManyOne)
+  );
+  g.add_association(association('Fav-Color', FAN, COLOR, RelationKind.ManyOne));
+
+  g.output([OUTPUT_DIR, '4_7_3.png'].join('/'));
+}
+
+function exercise_4_7_4() {
+  const g = new UML('People');
+
+  g.add_class(PEOPLE);
+
+  const mother_of: Association = {
+    label: 'Mother-of',
+    from: [PEOPLE, mul(0, 1), 'mother'],
+    to: [PEOPLE, mul(), 'child'],
+  };
+
+  const father_of: Association = {
+    label: 'Father-of',
+    from: [PEOPLE, mul(0, 1), 'father'],
+    to: [PEOPLE, mul(), 'child'],
+  };
+
+  const child_of: Association = {
+    label: 'Child-of',
+    from: [PEOPLE, mul(), 'parent'],
+    to: [PEOPLE, mul(), 'child'],
+  };
+
+  g.add_association(mother_of);
+  g.add_association(father_of);
+  g.add_association(child_of);
+
+  g.output([OUTPUT_DIR, '4_7_4.png'].join('/'));
+}
+
+function exercise_4_7_5() {
+  const female = {
+    label: 'Female',
+  };
+
+  const male = {
+    label: 'Male',
+  };
+
+  const mother = {
+    label: 'Mother',
+  };
+
+  const father = {
+    label: 'Father',
+  };
+
+  const g = new UML('People');
+
+  g.add_entity(PEOPLE);
+  g.add_entity(female);
+  g.add_entity(male);
+  g.add_entity(father);
+  g.add_entity(mother);
+
+  g.add_isa(isa(PEOPLE, female));
+  g.add_isa(isa(PEOPLE, male));
+  g.add_isa(isa(female, mother));
+  g.add_isa(isa(male, father));
+
+  g.add_relation(
+    association('Mother-of', mother, PEOPLE, RelationKind.OneMany)
+  );
+  g.add_relation(
+    association('Father-of', father, PEOPLE, RelationKind.OneMany)
+  );
+  g.add_relation(association_from_self_relation(CHILD_OF));
+
+  g.output([OUTPUT_DIR, '4_7_5.png'].join('/'));
+}
+
+function exercise_4_7_6() {
+  const student = {
+    label: 'Student',
+    attrs: ['name', 'enrolled_year'],
+  };
+
+  const TA = {
+    label: 'TA',
+  };
+
+  const department = {
+    label: 'Department',
+    attrs: ['name'],
+  };
+
+  const professor = {
+    label: 'Professor',
+    attrs: ['name'],
+  };
+
+  const course = {
+    label: 'Course',
+    attrs: ['name', 'year', 'is_remote'],
+  };
+
+  const enrolled_in: Association = {
+    ...association('Enrolled-In', student, course),
+    class: {
+      label: 'Enrollment',
+      attrs: ['score'],
+    },
+  };
+
+  const g = new UML('University Registrar');
+
+  g.add_entity(student);
+  g.add_entity(department);
+  g.add_entity(professor);
+  g.add_entity(course);
+  g.add_entity(TA);
+
+  g.add_isa(isa(student, TA));
+
+  g.add_relation(enrolled_in);
+  // reasonable assumptions?
+  g.add_relation(
+    association('Teaching', professor, course, RelationKind.OneMany)
+  );
+  g.add_relation(
+    association('Member-of', professor, department, RelationKind.ManyOne)
+  );
+  // some course may be jointly offered by multiple departments
+  g.add_relation(association('Offer', department, course));
+  g.add_relation(association('Assist', TA, course));
+  // based on personal experience
+  g.add_relation(
+    association('Tutor-of', professor, student, RelationKind.OneMany)
+  );
+
+  g.output([OUTPUT_DIR, '4_7_6.png'].join('/'));
+}
+
+function exercise_4_7_7() {
+  const ships = {
+    label: 'Ships',
+    keys: ['name'],
+    attrs: ['name', 'yearLaunched'],
+  };
+
+  const sister_of: Association = {
+    label: 'Sister-of',
+    from: [ships, mul(), 'TheSister'],
+    to: [ships, mul(), 'TheShip'],
+  };
+
+  const g = new UML('Ships');
+
+  g.add_class(ships);
+  g.add_relation(sister_of);
+
+  g.output([OUTPUT_DIR, '4_7_7.png'].join('/'));
+}
+
+function exercise_4_7_9() {
+  const births = {
+    label: 'Births',
+  };
+
+  const g = new UML('Birth');
+
+  g.add_entity(MOTHERS);
+  g.add_entity(BABIES);
+  g.add_entity(DOCTORS);
+  g.add_entity(NURSES);
+  g.add_class(births);
+
+  g.add_association({
+    label: 'BirthOf',
+    from: [births, mul(1, 1)],
+    to: [BABIES, mul(1, 1)],
+  });
+
+  g.add_association({
+    label: 'MotherOf',
+    from: [MOTHERS, mul(1, 1)],
+    to: [BABIES, mul()],
+  });
+
+  g.add_association({
+    label: 'Midwifed',
+    from: [births, mul()],
+    to: [DOCTORS, mul(1, 1)],
+  });
+
+  g.add_association(association('Assisted', NURSES, births));
+
+  g.output([OUTPUT_DIR, '4_7_9.png'].join('/'));
 }
 
 function ER_exercises() {
@@ -1110,9 +1336,17 @@ function ER_exercises() {
   exercise_4_5_2();
 }
 
+// low effort, low quality
 function UML_exercises() {
   exercise_4_7_1();
   exercise_4_7_2();
+  exercise_4_7_3();
+  // when there's too much self associations the output looks horrible
+  exercise_4_7_4();
+  exercise_4_7_5();
+  exercise_4_7_6();
+  exercise_4_7_7();
+  exercise_4_7_9();
 }
 
 function main() {
