@@ -8,6 +8,7 @@ import {
   isa,
   support_relation,
 } from './ER';
+import { validate } from './ODL';
 import {
   Association,
   association,
@@ -1349,6 +1350,130 @@ function UML_exercises() {
   exercise_4_7_9();
 }
 
+function ODL_exercises() {
+  validate(`
+class Customer (key (ssn)) {
+    attribute integer ssn;
+    attribute string name;
+    attribute string address;
+    attribute integer phone;
+    relationship Set<Account> owns inverse Account::ownedBy;
+};
+class Account (key (number)) {
+    attribute integer number;
+    // in cents
+    attribute integer balance; 
+    // what is a type exactly?
+    attribute enum Type { type } type;
+    relationship Set<Customer> ownedBy inverse Customer::owns;
+};
+  `);
+
+  validate(`
+class Team (key (name)) {
+    attribute string name;
+    // attributes in ODL can be sets of primitive types
+    // colors can be an attribute instead of a class
+    attribute Set<string> uniformColors;
+    relationship Set<Player> players inverse Player::team;
+    relationship Player captain inverse Player::captainOf;
+};
+class Player (key (name)) {
+    attribute string name;
+    relationship Team team inverse Team::players; 
+    relationship Team captionOf inverse Team::captain;
+};
+class Fan (key (name)) {
+    // these relations are not mutual: they hold no significance on the other end
+    attribute Team favTeam;
+    attribute Player favPlayer;
+    attribute string favColor;
+};
+  `);
+
+  validate(`
+class Person {
+    attribute string name;
+    relationship Set<Person> parents inverse Person::children;
+    relationship Set<Person> children inverse Person::parents;
+    // inverse of these two are subsets of children, but not exactly children
+    relationship Person mother;
+    relationship Person father;
+};
+  `);
+
+  validate(`
+class Degree {
+    attribute string name;
+    attribute string school;
+    attribute string date;
+};
+  `);
+
+  validate(`
+    class Department (key (name)) {
+        attribute string name;
+        relationship Set<Course> courses inverse Course::department;
+    };
+    class Course (key (number, department)) {
+        attribute integer number;
+        relationship Department department inverse Department::courses;
+    };
+  `);
+
+  validate(`
+    class League (key (name)) {
+        attribute string name;
+        relationship Set<Team> teams inverse Team::league;
+        relationship Set<Player> players inverse Player::league;
+    };
+    class Team (key (name, league)) {
+        attribute string name;
+        relationship League league inverse League::teams;
+        relationship Set<Player> players inverse Player::team;
+    };
+    class Player (key (name, team, league)) {
+        attribute string name;
+        relationship League league inverse League::players;
+        relationship Team team inverse Team::players;
+    };
+  `);
+
+  validate(`
+class Department (key (name)) {
+    attribute string name;
+    relationship Set<Course> courses inverse Course::offedBy;
+    relationship Set<Professor> members inverse Professor::memberOf;
+};
+class Professor (key (name)) {
+    attribute string name;
+    relationship Department memberOf inverse Department::members;
+    relationship Set<Course> teaches inverse Course::taughtBy;
+    relationship Set<Student> tutorOf inverse Student::tutor;
+};
+class Course (key (name, year)) {
+    attribute string name;
+    attribute integer year;
+    attribute boolean is_remote;
+    relationship Department offedBy inverse Department::courses;
+    relationship Professor taughtBy inverse Professor::teaches;
+    // integer here is the score
+    relationship Dictionary<Student, integer> students inverse Student::enrolledIn;
+    relationship Set<TA> ta inverse TA::assists;
+};
+class Student (key (name, enrolledYear)) {
+    attribute string name; 
+    attribute integer enrolledYear;
+    relationship Professor tutor inverse Professor::tutorOf;
+    // integer here is the score
+    relationship Dictionary<Course, integer> enrolledIn inverse Course::students;
+};
+class TA extends Student {
+    relationship Set<Course> assists inverse Course::ta;
+};
+  `);
+}
+
 function main() {
   if (!fs.existsSync(OUTPUT_DIR)) {
     fs.mkdirSync(OUTPUT_DIR);
@@ -1361,9 +1486,13 @@ function main() {
     case 'UML':
       UML_exercises();
       break;
+    case 'ODL':
+      ODL_exercises();
+      break;
     default:
       ER_exercises();
       UML_exercises();
+      ODL_exercises();
   }
 }
 

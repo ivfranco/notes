@@ -1058,15 +1058,15 @@ class Customer (key (ssn)) {
     attribute string address;
     attribute integer phone;
     relationship Set<Account> owns inverse Account::ownedBy;
-}
+};
 class Account (key (number)) {
     attribute integer number;
     // in cents
     attribute integer balance; 
     // what is a type exactly?
-    attribute integer enum Type { .. } type;
+    attribute enum Type { type } type;
     relationship Set<Customer> ownedBy inverse Customer::owns;
-}
+};
 
 4.9.2
 a.  in class Account:
@@ -1085,7 +1085,7 @@ d.  class Address (key (address)) {
         attribute Set<integer> phones;
     }
     in class Customer:
-        - relationship Set<string> addresses;
+        - attribute Set<string> addresses;
         + relationship Set<Address> addresses;
         - attribute Set<integer> phones;
 
@@ -1097,18 +1097,18 @@ class Team (key (name)) {
     attribute Set<string> uniformColors;
     relationship Set<Player> players inverse Player::team;
     relationship Player captain inverse Player::captainOf;
-}
+};
 class Player (key (name)) {
     attribute string name;
     relationship Team team inverse Team::players; 
     relationship Team captionOf inverse Team::captain;
-}
+};
 class Fan (key (name)) {
     // these relations are not mutual: they hold no significance on the other end
     attribute Team favTeam;
     attribute Player favPlayer;
     attribute string favColor;
-}
+};
 
 4.9.4
 class Person {
@@ -1118,18 +1118,142 @@ class Person {
     // inverse of these two are subsets of children, but not exactly children
     relationship Person mother;
     relationship Person father;
-}
+};
 
 4.9.5
 class Degree {
     attribute string name;
     attribute string school;
     attribute string date;
-}
+};
 Set:    order lost
-Bag:    order lost, uniqueness lost
-List:   uniqueness lost
-Array:  not sensible, people have variable length of education
+        cannot express dual degree
+Bag:    order lost
+List:   
+Array:  not sensible, people have variable lengths of education
 order of education is significant, uniqueness is less so
 
 4.9.6
+a.  // there's no way to translate RI to ODL?
+    class Department (key (name)) {
+        attribute string name;
+        relationship Set<Course> courses inverse Course::department;
+    };
+    class Course (key (number, department)) {
+        attribute integer number;
+        relationship Department department inverse Department::courses;
+    };
+b.  // recursion leads to O(n^2) relationships
+    class League (key (name)) {
+        attribute string name;
+        relationship Set<Team> teams inverse Team::league;
+        relationship Set<Player> players inverse Player::league;
+    };
+    class Team (key (name, league)) {
+        attribute string name;
+        relationship League league inverse League::teams;
+        relationship Set<Player> players inverse Player::team;
+    };
+    class Player (key (name, team, league)) {
+        attribute string name;
+        relationship League league inverse League::players;
+        relationship Team team inverse Team::players;
+    };
+
+4.9.7
+class Department (key (name)) {
+    attribute string name;
+    relationship Set<Course> courses inverse Course::offedBy;
+    relationship Set<Professor> members inverse Professor::memberOf;
+};
+class Professor (key (name)) {
+    attribute string name;
+    relationship Department memberOf inverse Department::members;
+    relationship Set<Course> teaches inverse Course::taughtBy;
+    relationship Set<Student> tutorOf inverse Student::tutor;
+};
+class Course (key (name, year)) {
+    attribute string name;
+    attribute integer year;
+    attribute boolean is_remote;
+    relationship Department offedBy inverse Department::courses;
+    relationship Professor taughtBy inverse Professor::teaches;
+    // integer here is the score
+    relationship Dictionary<Student, integer> students inverse Student::enrolledIn;
+    relationship Set<TA> ta inverse TA::assists;
+};
+class Student (key (name, enrolledYear)) {
+    attribute string name; 
+    attribute integer enrolledYear;
+    relationship Professor tutor inverse Professor::tutorOf;
+    // integer here is the score
+    relationship Dictionary<Course, integer> enrolledIn inverse Course::students;
+};
+class TA extends Student {
+    relationship Set<Course> assists inverse Course::ta;
+};
+
+4.9.8
+OneOne symmetric self relation, e.g. spouse between people
+
+4.10.1
+a.  // same to ER model
+b.  // same to ER model
+c.  // same to ER model
+d.  // same to ER model, People may contain an artificial key people# 
+e.  Set:    Education((name, school, date))
+    Bag:    Education((name, school, date), count)
+    List:   Education((name, school, date, index))
+    Array:  Education((name0, school0, date0 ... nameN, schoolN, dateN))
+    Education-of((name, ...key of Degree))
+
+4.10.2
+for an attribute Dictionary<K, V> dict in a ODL class with (key (A))
+    create a relation for the dictionary
+        Dict((K), V)
+    create another relation to connect the dictionary with the class
+        Contains((A, K))
+
+4.10.3
+a.  Struct Card { rank enum Rank { 2, .., Ace }, suit enum Suit { Clubs, .., Spades }};
+b.  class Hand {
+        attribute Bag<Card> theHand;
+    };
+c.  Hand((hand#), rank, suit, count)
+    // queried by selecting all Hand with the same hand# then aggregate
+d.  class PokerHand {
+        attribute Array<Card, 5> theHand;
+    }
+    PokerHand((hand#), rank0, suit0, .., rank4, suit4)
+    // queried by a single selection
+e.  Struct NamedHand {
+        name string,
+        hand Hand
+    } 
+    Struct Pair {
+        first NamedHand,
+        second NamedHand
+    }
+    class Deal {
+        attribute Set<Pair> theDeal;
+    }
+f.  Struct NamedHand {
+        name string,
+        hand PokerHand
+    }.  
+g.  attribute Dictionary<string, Hand> theDeal;
+h.  // include relations from part c
+    deal((deal#), first_name, first_hand#, second_name, second_hand#)
+i.  1.  A deal may contain identical hands
+    2.  A hand may contain identical cards 
+    a possible fix is to define theDeal as Bag<Bag<Card>>:
+        Deal((deal#), hand#)
+        Hand((hand#), card, count)
+
+4.10.4
+a.  C((a), f, g)
+b.  C((a), f, g, count)
+c.  C((a), f, g, index)
+d.  // C((a), f, g, i, j) has BNF violation f, g -> i, j
+    C((a), f, g)
+    D((f, g), i, j)

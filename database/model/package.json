@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "all": "tsc && node index.js",
-    "ER": "tsc && node index.js ER",
-    "UML": "tsc && node index.js UML",
+    "all": "ts-node index.ts all",
+    "ER": "ts-node index.ts ER",
+    "UML": "ts-node index.ts UML",
+    "ODL": "ts-node index.ts ODL",
     "test": "mocha -r ts-node/register tests/**/*.test.ts"
   },
   "author": "",
@@ -28,7 +29,7 @@
   },
   "dependencies": {
     "graphviz": "=0.0.9",
-    "node-plantuml": "^0.9.0",
+    "node-plantuml": "=0.9.0",
     "parsimmon": "^1.16.0"
   }
 }
