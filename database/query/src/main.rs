@@ -8,6 +8,7 @@ use rust_decimal::{
 fn main() {
     exercise_5_1_1();
     exercise_5_1_2();
+    exercise_5_1_3();
 }
 
 fn avg(bag: &Bag) -> Decimal {
@@ -40,4 +41,14 @@ fn exercise_5_1_2() {
     println!("set:\n{}", set);
     println!("avg of bag: {:.2}", avg(&bag));
     println!("avg of set: {:.2}", avg(&set));
+}
+
+fn exercise_5_1_3() {
+    println!("\nexercise 5.1.3");
+
+    let bag = relations::CLASSES.project(["bore"]);
+    let set = bag.dedup();
+
+    println!("bag:\n{}", bag);
+    println!("set:\n{}", set);
 }

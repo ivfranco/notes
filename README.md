@@ -6,7 +6,7 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 
 ## Reading:
 
-- A First Course in Database Systems, Ullman et al, 3rd Edition, in Rust & Typescript
+- A First Course in Database Systems, Jeffrey D. Ullman et al, 3rd Edition, in Rust & Typescript
 
 ## Read (in temporal order):
 

@@ -10,7 +10,7 @@ use std::{
     collections::{btree_map::Entry, BTreeMap},
     error::Error,
     fmt::{self, Debug, Display, Formatter},
-    io::Read,
+    io::{Cursor, Read},
     iter::{repeat, FromIterator},
 };
 
@@ -114,23 +114,84 @@ impl<T: Ord> FromIterator<Tuple<T>> for Tuples<T> {
     }
 }
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct Header {
+    prefix: Option<String>,
+    column: String,
+}
+
+impl Header {
+    fn new(column: &str) -> Self {
+        Self {
+            prefix: None,
+            column: column.to_string(),
+        }
+    }
+
+    fn with_prefix(&self, prefix: &str) -> Self {
+        Self {
+            prefix: Some(prefix.to_string()),
+            column: self.column.clone(),
+        }
+    }
+
+    fn width(&self) -> usize {
+        if let Some(prefix) = self.prefix.as_ref() {
+            prefix.len() + self.column.len() + 1
+        } else {
+            self.column.len()
+        }
+    }
+}
+
+impl From<&str> for Header {
+    fn from(str: &str) -> Header {
+        if let Some(dot) = str.find('.') {
+            let (prefix, column) = str.split_at(dot);
+            Self {
+                prefix: Some(prefix.to_string()),
+                column: column.to_string(),
+            }
+        } else {
+            Self::new(str)
+        }
+    }
+}
+
+impl Display for Header {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        if let Some(prefix) = self.prefix.as_ref() {
+            write!(f, "{}.{}", prefix, self.column)
+        } else {
+            write!(f, "{}", self.column)
+        }
+    }
+}
+
+impl Debug for Header {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        <Self as Display>::fmt(self, f)
+    }
+}
+
 /// A.k.a multisets.
+#[derive(PartialEq)]
 pub struct Bag<T = Atom> {
     /// headers of tuples.
-    headers: Vec<String>,
+    headers: Vec<Header>,
     /// tuples of a Bag with occurrence counts.
     tuples: BTreeMap<Tuple<T>, usize>,
 }
 
 impl Bag<Atom> {
-    /// Read a space seperated csv file with headers into a Bag.
+    /// Read a space seperated csv file with headers from a reader into a Bag.
     /// No error handling for now, the only expected input are relations from the textbook.
     pub fn from_reader<R: Read>(reader: R) -> Result<Self, Box<dyn Error>> {
         let mut csv = csv::ReaderBuilder::new()
             .delimiter(b' ')
             .from_reader(reader);
 
-        let headers = csv.headers()?.iter().map(|s| s.to_string()).collect();
+        let headers = csv.headers()?.iter().map(Header::new).collect();
 
         let tuples = csv
             .into_records()
@@ -141,17 +202,10 @@ impl Bag<Atom> {
         Ok(Self { headers, tuples })
     }
 
-    /// A higher order function similar to fold.
-    /// Panics when the bag has more than one column.
-    pub fn aggregate<F, R>(&self, init: R, mut f: F) -> R
-    where
-        F: FnMut(R, &Atom, usize) -> R,
-    {
-        assert_eq!(self.headers.len(), 1);
-
-        self.tuples
-            .iter()
-            .fold(init, |state, (t, c)| f(state, &t.inner[0], *c))
+    /// Read a space seperated csv file with headers from a string into a Bag.
+    /// No error handling for now, the only expected input are relations from the textbook.
+    pub fn from_csv(str: &str) -> Result<Self, Box<dyn Error>> {
+        Self::from_reader(Cursor::new(str))
     }
 }
 
@@ -164,13 +218,27 @@ where
         self.tuples.values().sum()
     }
 
+    /// Query the occurrence counter of a tuple.
+    pub fn get(&self, tuple: &Tuple<T>) -> usize {
+        self.tuples.get(tuple).copied().unwrap_or(0)
+    }
+
     /// The number of tuples in the bag.
     /// The internal HashMap may not be empty but all occurrence counts are 0.
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
-    /// set all occurrence count to 1, pretends it's a set
+    /// Return a new bag with headers prefixed.
+    pub fn prefix(&self, prefix: &str) -> Self {
+        let headers = self.headers.iter().map(|h| h.with_prefix(prefix)).collect();
+        Self {
+            headers,
+            tuples: self.tuples.clone(),
+        }
+    }
+
+    /// set all occurrence count to 1, pretends the bag is a set
     pub fn dedup(&self) -> Self {
         let tuples = self.tuples().map(|(t, _)| (t, 1)).collect();
         Self {
@@ -189,7 +257,7 @@ where
     where
         A: AsRef<[&'a str]>,
     {
-        let headers: Vec<_> = headers.as_ref().iter().map(|s| s.to_string()).collect();
+        let headers: Vec<_> = headers.as_ref().iter().map(|&s| s.into()).collect();
         let indices: Vec<_> = headers
             .iter()
             .map(|h| self.headers.iter().position(|s| s == h).unwrap())
@@ -238,6 +306,43 @@ where
             tuples,
         }
     }
+
+    /// difference of bags.
+    /// Panics if the headers of the two bags do not match.
+    pub fn difference(&self, rhs: &Self) -> Self {
+        assert_eq!(self.headers, rhs.headers);
+
+        let tuples = self
+            .tuples()
+            .filter_map(|(t, c0)| {
+                let c1 = rhs.get(&t);
+                if c0 > c1 {
+                    Some((t, c0 - c1))
+                } else {
+                    None
+                }
+            })
+            .collect::<Tuples<T>>()
+            .inner;
+
+        Self {
+            headers: self.headers.clone(),
+            tuples,
+        }
+    }
+
+    /// A higher order function similar to fold.
+    /// Panics when the bag has more than one column.
+    pub fn aggregate<F, R>(&self, init: R, mut f: F) -> R
+    where
+        F: FnMut(R, &T, usize) -> R,
+    {
+        assert_eq!(self.headers.len(), 1);
+
+        self.tuples
+            .iter()
+            .fold(init, |state, (t, c)| f(state, &t.inner[0], *c))
+    }
 }
 
 fn sep_by_vert_bar<I>(iter: I, widths: &[usize], f: &mut Formatter) -> fmt::Result
@@ -259,9 +364,9 @@ where
 }
 
 impl Display for Bag {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         // maximum lengths of atomic values in each column
-        let mut widths: Vec<_> = self.headers.iter().map(|h| h.len()).collect();
+        let mut widths: Vec<_> = self.headers.iter().map(|h| h.width()).collect();
 
         for tuple in self.tuples.keys() {
             for (i, atom) in tuple.inner.iter().enumerate() {
@@ -301,10 +406,96 @@ mod tests {
 
     #[test]
     fn from_reader_test() -> Result<(), Box<dyn Error>> {
-        const PC_PATH: &str = "relations/PC.txt";
-        let bag = Bag::from_reader(File::open(PC_PATH)?)?;
-        assert_eq!(bag.headers, &["model", "speed", "ram", "hd", "price"]);
+        let bag = Bag::from_reader(File::open(relations::RELATIONS.join("PC.csv"))?)?;
+        let headers = ["model", "speed", "ram", "hd", "price"]
+            .iter()
+            .map(|&s| s.into())
+            .collect::<Vec<_>>();
+        assert_eq!(bag.headers, headers);
         assert_eq!(bag.len(), 13);
         Ok(())
+    }
+
+    #[test]
+    fn project_test() {
+        const MODEL_AND_SPEED: &str = "model speed
+1001 2.66
+1002 2.10
+1003 1.42
+1004 2.80
+1005 3.20
+1006 3.20
+1007 2.20
+1008 2.20
+1009 2.00
+1010 2.80
+1011 1.86
+1012 2.80
+1013 3.06";
+
+        assert_eq!(
+            Bag::from_csv(MODEL_AND_SPEED).unwrap(),
+            relations::PC.project(["model", "speed"]),
+        )
+    }
+
+    #[test]
+    fn aggregation_test() {
+        fn max(bag: &Bag) -> Option<Decimal> {
+            bag.aggregate(None, |m, a, _cnt| {
+                if let Atom::Number(d) = a {
+                    Some(m.unwrap_or(*d).max(*d))
+                } else {
+                    m
+                }
+            })
+        }
+
+        assert_eq!(
+            max(&relations::PC.project(["ram"])),
+            Some(Decimal::new(2048, 0))
+        );
+    }
+
+    #[test]
+    fn set_operations() {
+        const LHS: &str = "A B
+1 2
+1 2
+1 2
+3 4";
+
+        const RHS: &str = "A B
+1 2
+3 4
+3 4
+5 6";
+
+        let lhs = Bag::from_csv(LHS).unwrap();
+        let rhs = Bag::from_csv(RHS).unwrap();
+
+        const UNION: &str = "A B
+1 2
+1 2
+1 2
+1 2
+3 4
+3 4
+3 4
+5 6";
+
+        assert_eq!(lhs.union(&rhs), Bag::from_csv(UNION).unwrap());
+
+        const INTERSECTION: &str = "A B
+1 2
+3 4";
+
+        assert_eq!(lhs.intersection(&rhs), Bag::from_csv(INTERSECTION).unwrap());
+
+        const DIFFERENCE: &str = "A B
+1 2
+1 2";
+
+        assert_eq!(lhs.difference(&rhs), Bag::from_csv(DIFFERENCE).unwrap());
     }
 }

@@ -1259,3 +1259,140 @@ d.  // C((a), f, g, i, j) has BNF violation f, g -> i, j
     D((f, g), i, j)
 
 5.1.1
+bag:
+speed
+-----
+1.42
+1.86
+2.00
+2.10
+2.20
+2.20
+2.66
+2.80
+2.80
+2.80
+3.06
+3.20
+3.20
+avg of bag: 2.48
+set:
+speed
+-----
+1.42
+1.86
+2.00
+2.10
+2.20
+2.66
+2.80
+3.06
+3.20
+avg of set: 2.36
+
+5.1.2
+bag:
+hd
+---
+80
+80
+160
+160
+200
+250
+250
+250
+250
+250
+250
+300
+320
+avg of bag: 215.38
+set:
+hd
+---
+80
+160
+200
+250
+300
+320
+avg of set: 218.33
+
+5.1.3
+a.  bag:
+    bore
+    ----
+    14
+    14
+    15
+    15
+    15
+    16
+    16
+    18
+    set:
+    bore
+    ----
+    14
+    15
+    16
+    18
+b.  π_bore(Classes ⨝ Ships)
+
+5.1.4
+a.  assume tuple p appears r, s, t times in R, S and T
+    p appears (r + s) + t times in (R ∪ S) ∪ T
+    p appears r + (s + t) times in R ∪ (S ∪ T)
+a.  assume tuple p appears r, s, t times in R, S and T
+    p appears min(min(r, s), t) times in (R ∪ S) ∪ T
+    p appears min(r, min(s, t)) times in R ∪ (S ∪ T)
+c.  product is associative:
+        assume r, s, t appear (rn, sn, tn) times in R, S, T
+        (r, s, t) appears (rn * sn) * tn times in (R x S) x T
+        (r, s, t) appears rn * (sn * tn) times in R x (S x T)
+    and natural join is select and projection applied after product
+d.  + is commutative
+e.  min is commutative
+f.  product is commutative:
+        let s, r appear (sn, tn) times in R, S
+        (s, r) appears sn * rn times in R x S
+        (r, s) appears rn * sn times in S x R
+        (s, r) = (r, s), columns are unordered
+    and natural join is select and projection applied after product
+g.  assume l appears rn, sn times in π_L(R) and π_L(S)
+    l appears rn + sn times in π_L(R) ∪ π_L(S)
+    there are rn, sn tuples in R, S, where L(r) = L(s) = l
+    there are rn + sn tuples in R ∪ S where L(t) = l
+    l appears rn + sn times in π_L(R ∪ S)
+h.  assume p appears (rn, sn, tn) times in R, S, T
+    p appears rn + min(sn, tn) times in R ∪ (S ∩ T)
+    p appears min(rn + sn, rn + tn) times in (R ∪ S) ∩ (R ∪ T)
+    min(rn + sn, rn + tn) = rn + min(sn, tn)
+i.  assume a tuple p satisfying C and D appears r times in R
+        p appears min(r, r) = r times in σ_C(R) ∩ σ_D(R)
+        p appears r times in σ_{C & D}(R)
+    if some p doesn't satisfy C or D,
+        p doesn't appear in σ_C(R) or σ_C(R), min(r, 0) = 0
+        p doesn't appear in σ_{C & D}(R)
+    
+5.1.5
+define a - b as a & ~b:
+    a   b   a - b
+    0   0   0
+    0   1   0
+    1   0   1
+    1   1   0
+a.  (r & s) - t = r & (s - t) is tautology
+    assume p appears 1, 2, 1 times in R, S, T
+    p appears min(1, 2) - 1 = 0 times in (R ∩ S) - T
+    p appears min(1, 2 - 1) = 1 times in R ∩ (S - T)
+b.  r & (s | t) = (r & s) | (r & t) is tautology
+    assume p appears 1, 1, 1 times in R, S, T
+    p appears min(1, 1 + 1) = 1 times in R ∩ (S ∪ T)
+    p appears min(1, 1) + min(1, 1) = 2 times in (R ∩ S) ∪ (R ∩ T)
+c.  if p ∈ σ_{C | D}(R), C(p) | D(p), C ∈ σ_C(R) | C ∈ σ_D(R), C ∈ σ_C(R) ∪ σ_D(R)
+    assume p satisfies C and D, p appears once in R
+    p appears once in σ_{C | D}(R)
+    p appears 1 + 1 = 2 times in σ_C(R) ∪ σ_D(R)
+
