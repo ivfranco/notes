@@ -1259,6 +1259,7 @@ d.  // C((a), f, g, i, j) has BNF violation f, g -> i, j
     D((f, g), i, j)
 
 5.1.1
+./database/query
 bag:
 speed
 -----
@@ -1291,6 +1292,7 @@ speed
 avg of set: 2.36
 
 5.1.2
+./database/query
 bag:
 hd
 ---
@@ -1320,6 +1322,7 @@ hd
 avg of set: 218.33
 
 5.1.3
+./database/query
 a.  bag:
     bore
     ----
@@ -1395,4 +1398,117 @@ c.  if p ∈ σ_{C | D}(R), C(p) | D(p), C ∈ σ_C(R) | C ∈ σ_D(R), C ∈ σ
     assume p satisfies C and D, p appears once in R
     p appears once in σ_{C | D}(R)
     p appears 1 + 1 = 2 times in σ_C(R) ∪ σ_D(R)
+
+5.2.1
+./database/query_sqlite
+a.  SELECT A + B, A * A, B * B FROM R;
+    [1, 0, 1]
+    [5, 4, 9]
+    [1, 0, 1]
+    [6, 4, 16]
+    [7, 9, 16]
+b.  SELECT B + 1, C - 1 FROM S;
+    [1, 0]
+    [3, 3]
+    [3, 4]
+    [4, 3]
+    [1, 1]
+    [4, 3]
+c.  SELECT * FROM R ORDER BY B, A;
+    [0, 1]
+    [0, 1]
+    [2, 3]
+    [2, 4]
+    [3, 4]
+d.  SELECT * FROM S ORDER BY B, C;
+    [0, 1]
+    [0, 2]
+    [2, 4]
+    [2, 5]
+    [3, 4]
+    [3, 4]
+e.  SELECT DISTINCT * FROM R;
+    [0, 1]
+    [2, 3]
+    [2, 4]
+    [3, 4]
+f.  SELECT DISTINCT * FROM S;
+    [0, 1]
+    [2, 4]
+    [2, 5]
+    [3, 4]
+    [0, 2]
+g.  SELECT A, SUM(B) FROM R GROUP BY A;
+    [0, 2]
+    [2, 7]
+    [3, 4]
+    [0, 1.5]
+    [2, 4.5]
+    [3, 4]
+h.  SELECT A FROM R GROUP BY A
+    [0]
+    [2]
+    [3]
+i.  SELECT A, MAX(C) FROM (R INNER JOIN S ON R.B = S.B) GROUP BY A;
+    [2, 4]
+j.  SELECT A, R.B, C FROM (R LEFT OUTER JOIN S ON R.B = S.B);
+    [0, 1, Null]
+    [2, 3, 4]
+    [2, 3, 4]
+    [0, 1, Null]
+    [2, 4, Null]
+    [3, 4, Null]
+k.  SELECT A, S.B, C FROM (S LEFT OUTER JOIN R ON R.B = S.B);
+    [Null, 0, 1]
+    [Null, 2, 4]
+    [Null, 2, 5]
+    [2, 3, 4]
+    [Null, 0, 2]
+    [2, 3, 4]
+l.  SELECT A, R.B, C FROM (R LEFT OUTER JOIN S ON R.B = S.B)
+    UNION ALL
+    SELECT A, S.B, C FROM (S LEFT OUTER JOIN R ON R.B = S.B) WHERE A IS NULL;
+    [0, 1, Null]
+    [2, 3, 4]
+    [2, 3, 4]
+    [0, 1, Null]
+    [2, 4, Null]
+    [3, 4, Null]
+    [Null, 0, 1]
+    [Null, 2, 4]
+    [Null, 2, 5]
+    [Null, 0, 2]
+m.  SELECT A, R.B, C FROM (R LEFT OUTER JOIN S ON R.B < S.B)
+    UNION ALL
+    SELECT A, S.B, C FROM (S LEFT OUTER JOIN R ON R.B < S.B) WHERE A IS NULL;
+    [0, 1, 4]
+    [0, 1, 5]
+    [0, 1, 4]
+    [0, 1, 4]
+    [2, 3, Null]
+    [0, 1, 4]
+    [0, 1, 5]
+    [0, 1, 4]
+    [0, 1, 4]
+    [2, 4, Null]
+    [3, 4, Null]
+    [Null, 0, 1]
+    [Null, 0, 2]
+
+5.2.2
+a.  idempotent, set is set
+b.  idempotent, no more columns are removed after the first application
+c.  idempotent, after the first application all tuples satisfies C
+d.  not idempotent
+    let R(A, B) = { (1, 2) }
+    γ_{A, -SUM(B) -> B}(R) = { (1, -2) } = S
+    γ_{A, -SUM(B) -> B}(S) = { (1, 2) } = R
+e.  idempotent, sorted list is sorted
+
+5.2.3
+set semantic:
+    S := R
+    π_A(R) ⨝_{R.A = S.A} π_A(S)
+bag semantic:
+    not sure
 
