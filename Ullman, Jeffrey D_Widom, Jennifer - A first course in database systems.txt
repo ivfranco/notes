@@ -1478,23 +1478,23 @@ l.  SELECT A, R.B, C FROM (R LEFT OUTER JOIN S ON R.B = S.B)
     [Null, 2, 4]
     [Null, 2, 5]
     [Null, 0, 2]
-m.  SELECT A, R.B, C FROM (R LEFT OUTER JOIN S ON R.B < S.B)
+m.  SELECT A, R.B, S.B, C FROM (R LEFT OUTER JOIN S ON R.B < S.B)
     UNION ALL
-    SELECT A, S.B, C FROM (S LEFT OUTER JOIN R ON R.B < S.B) WHERE A IS NULL;
-    [0, 1, 4]
-    [0, 1, 5]
-    [0, 1, 4]
-    [0, 1, 4]
-    [2, 3, Null]
-    [0, 1, 4]
-    [0, 1, 5]
-    [0, 1, 4]
-    [0, 1, 4]
-    [2, 4, Null]
-    [3, 4, Null]
-    [Null, 0, 1]
-    [Null, 0, 2]
-
+    SELECT A, R.B, S.B, C FROM (S LEFT OUTER JOIN R ON R.B < S.B) WHERE A IS NULL;
+    [0, 1, 2, 4]
+    [0, 1, 2, 5]
+    [0, 1, 3, 4]
+    [0, 1, 3, 4]
+    [2, 3, Null, Null]
+    [0, 1, 2, 4]
+    [0, 1, 2, 5]
+    [0, 1, 3, 4]
+    [0, 1, 3, 4]
+    [2, 4, Null, Null]
+    [3, 4, Null, Null]
+    [Null, Null, 0, 1]
+    [Null, Null, 0, 2]
+    
 5.2.2
 a.  idempotent, set is set
 b.  idempotent, no more columns are removed after the first application
@@ -1512,3 +1512,43 @@ set semantic:
 bag semantic:
     not sure
 
+5.3.1
+S(y) <- R(x) & ~R(x) & x < y
+S will always be empty even though it's not mentioned in any non-negate relation predicate
+
+5.4.1
+a.  A(a, b, c) <- R(a, b, c) 
+    A(a, b, c) <- S(a, b, c)
+b.  A(a, b, c) <- R(a, b, c) & S(a, b, c)
+c.  A(a, b, c) <- R(a, b, c) & ~S(a, b, c)
+d.  A(a, b, c) <- R(a, b, c) & ~T(a, b, c)
+    A(a, b, c) <- S(a, b, c) & ~T(a, b, c)
+e.  A(a, b, c) <- R(a, b, c) & ~S(a, b, c) & ~T(a, b, c)
+f.  A(a, b) <- R(a, b, _)
+g.  A(a, b) <- R(a, b, _) & S(_, a, b)
+
+5.4.2
+a.  A(x, x, z) <- R(x, x, z)
+b.  A(x, y, z) <- R(x, y, z) & x < y & y < z
+c.  A(x, y, z) <- R(x, y, z) & x < y
+    A(x, y, z) <- R(x, y, z) & y < z
+d.  same to part a
+e.  A(x, y, z) <- R(x, y, z) & y >= z
+    A(x, y, z) <- R(x, y, z) & x = y
+f.  A(x, y, z) <- R(x, y, z) & y >= z
+    A(x, y, z) <- R(x, y, z) & x >= y & x >= z
+
+5.4.3
+a.  A(a, b, c, d) <- R(a, b, c) & S(b, c, d)
+b.  A(b, c, d, e) <- S(b, c, d) & T(d, e)
+c.  A(a, b, c, d, e) <- R(a, b, c) & S(b, c, d) & T(d, e)
+
+5.4.4
+a.  A(a, b, c, x, y, z) <- R(a, b, c) & S(x, y, z) & a = y
+// skipped, nothing new 
+
+5.4.5
+a.  π_{x, y}(Q ⨝ R)
+b.  R(z, y) := Q(x, z)
+    π_{x, y}(Q ⨝ R)
+c.  σ_{x < y}(π_{x, y}(Q ⨝ R))
