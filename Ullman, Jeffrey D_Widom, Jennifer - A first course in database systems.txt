@@ -1552,3 +1552,138 @@ a.  π_{x, y}(Q ⨝ R)
 b.  R(z, y) := Q(x, z)
     π_{x, y}(Q ⨝ R)
 c.  σ_{x < y}(π_{x, y}(Q ⨝ R))
+
+6.1.1
+B is an alias, A and B are not delimited by a comma
+
+6.1.2
+a.  SELECT address
+    FROM Studio
+    WHERE name = 'MGM';
+b.  SELECT birthdate
+    FROM MovieStar
+    WHERE name = 'Sandra Bullock';
+c.  SELECT starName
+    FROM StarsIn
+    WHERE movieYear = 1980 OR movieTitle LIKE '%love%';
+d.  SELECT name
+    FROM MovieExec
+    WHERE netWorth >= 10_000_000;
+e.  SELECT name
+    FROM MovieStar
+    WHERE gender = 'Male' OR address LIKE '%Malibu%';
+
+6.1.3
+a.  (10, 20), (10, NULL), (NULL, 20)
+b.  (10, 20)
+c.  { (a, b)| (a, b) ∈ R, NOT a IS NULL }
+d.  { (a, b)| (a, b) ∈ R, NOT a IS NULL & NOT b IS NULL & a = b }
+d.  { (a, b)| (a, b) ∈ R, NOT a IS NULL & NOT b IS NULL & a <= b }
+
+6.1.4
+SELECT * 
+FROM Movies 
+WHERE NOT (length IS NULL)
+
+6.2.1
+a.  SELECT name
+    FROM StarsIn, StarsIn
+    WHERE gender = 'Male' AND movieTitle = 'movieTitle' AND starName = name
+b.  SELECT name
+    FROM Movies, StarsIn
+    WHERE title = movieTitle AND studioName = 'MGM' AND year = 1995
+c.  SELECT MovieExec.name
+    FROM Studio, MovieExec
+    WHERE cert# = presC# AND Studio.name = 'MGM'
+d.  SELECT M1.name
+    FROM Movies AS M0, Movies AS M1
+    WHERE M0.name = 'Gone With the Wind' AND M0.lengh < M1.length
+e.  SELECT E1.name
+    FROM MovieExec AS E0, MovieExec AS E1
+    WHERE M0.name = 'Merv Griffin' AND M0.netWorth < M1.netWorth
+
+6.2.2
+SELECT L
+FROM R1, R2, .., Rn 
+WHERE C
+
+6.2.3
+WHERE:
+    C AND overlapping attributes must equal 
+SELECT:
+    any ambiguous attribute in L can be chosen from any possible relation
+
+6.3.1
+SELECT Old.title
+FROM Movie AS Old, Movie AS New
+WHERE Old.title = New.title AND Old.year < New.year
+
+6.3.2
+SELECT R1
+FROM (R1 NATRUAL JOIN R2 .. NATURAL JOIN Rn)
+
+6.3.3
+a.  SELECT name, address
+    FROM MovieStar
+    WHERE gender = 'F' AND (name, address) IN 
+        (
+            SELECT name, address
+            FROM MovieExec
+            WHERE netWorth > 10_000_000
+        )
+b.  SELECT name address
+    FROM MovieStar
+    WHERE (name, address) NOT IN
+        (
+            SELECT name, address
+            FROM MovieExec
+        )
+
+6.3.4
+0 IN (SELECT 0 FROM R)
+
+6.3.5
+a.  Cartesian product of Studio and MovieExec
+b.  // no overlapping attributes
+    ρ_{A(movieTitle, movieStar, starName, NULL, NULL, NULL)}(StarsIn) ∪
+    ρ_{A(NULL, NULL, NULL, name, address, birthdate)}(StarsIn)
+c.  theta outer join of StarsIn and MovieStar on name = starName
+
+6.3.6
+// assume product types are disjoint: no PC can be Laptop etc.
+// assume model is distinct
+(Product NATURAL RIGHT OUTER JOIN PC) // PC with type and makers if available
+FULL NATRUAL OUTER JOIN
+(Product NATURAL RIGHT OUTER JOIN Laptop)
+FULL NATURAL OUTER JOIN
+(Product NATURAL RIGHT OUTER JOIN Printer)
+FULL NATURAL OUTER JOIN 
+Product // in case any product is neither PC, Laptop nor Printer
+
+6.3.7
+CLASS NATURAL RIGHT OUTER JOIN Ships
+
+6.3.8
+(CLASS NATURAL RIGHT OUTER JOIN Ships)
+UNION
+(
+    SELECT (class, type country, numGuns, bore, displacement, class AS name, NULL)
+    FROM Classes
+    WHERE class NOT IN
+        (
+            SELECT class
+            FROM Ships
+        )
+)
+
+6.3.9
+let r, s be all attributes of R and S
+a.  SELECT r, s
+    FROM R, S
+b.  SELECT r ∪ s
+    FROM R, S
+    WHERE R.a = S.a for all a ∈ r ∩ s
+c.  SELECT r, s
+    FROM R, S
+    WHERE C
+
