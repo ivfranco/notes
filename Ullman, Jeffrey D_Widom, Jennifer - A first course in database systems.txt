@@ -1687,3 +1687,276 @@ c.  SELECT r, s
     FROM R, S
     WHERE C
 
+6.4.1
+the subquery
+(
+    SELECT producerC#
+    FROM Movies, StarsIn
+    WHERE title = movieTitle AND
+        year = movieYear AND
+        starName = 'Harrison Ford'
+) AS Prod
+produces duplication if Harrison Ford starred in multiple movies by the same producer
+
+6.4.2
+for a query
+    SELECT S
+    FROM R
+    HAVING H
+    GROUP BY G
+π_S(σ_{H = true}(γ_{G, S, H}(R)))
+
+BEGIN_TRANSACTION:
+    "begin transaction"
+
+SET_TRANSACTION_LEVEL:
+    "set transaction" ("read" "write"?)? ("isolation level" ISOLATION_LEVEL)?
+
+ISOLATION_LEVEL:
+    "read uncommitted"
+    | "read committed"
+    | "repeatable read"
+    | "serializable"
+
+6.6.1
+// SQLite doesn't have a variety of isolation levels, all transactions are SERIALIZABLE
+// READ and WRITE mode in SQLite is auto deducted from the queries
+a.  BEGIN TRANSACTION
+    SET TRANSACTION READ ONLY 
+        ISOLATION LEVEL READ COMMITTED
+    ---
+    SELECT model, price
+    FROM PC
+    WHERE speed = $speed AND ram = $ram
+    ---
+    COMMIT
+b.  BEGIN TRANSACTION
+    SET TRANSACTION READ WRITE
+        ISOLATION LEVEL SERIALIZABLE
+    ---
+    DELETE FROM PC
+    WHERE model = $model;
+    ---
+    DELETE FROM Product 
+    WHERE model = $model;
+    ---
+    COMMIT
+c.  // a single operation is always atomic
+    UPDATE PC
+    SET price = price - 100
+    WHERE model = $model
+d.  BEGIN TRANSACTION
+    SET TRANSACTION READ WRITE
+        ISOLATION LEVEL SERIALIZABLE 
+    ---
+    SELECT * 
+    FROM Product
+    WHERE model = $model
+    --- if model exists
+    ROLLBACK
+    // print some error message in host language
+    --- if model doesn't exist
+    INSERT INTO Product(maker, model, type)
+        VALUES($maker, $model, 'PC');
+    ---
+    INSERT INTO PC(model, speed, ram, hd, price)
+        VALUES($model, $speed, $ram, $hd, $price)
+    ---
+    COMMIT
+
+6.6.2
+a.  read only, no unconsistency
+b.  dangling tuples in PC or Product
+c.  already atomic
+d.  dangling tuples in PC or Product 
+
+6.6.3
+a.  the query may return uncommitted tuples
+b.  intervenes with d, dangling tuples in Product or PC
+c.  already atomic
+d.  intervenes with b
+    dangling tuples in Product or PC 
+    or the insertion will not happen even deletion rolled back
+
+6.6.4
+a.  read only, no effect
+b.  SERIALIZABLE:
+        atomic
+    REPEATABLE READ:
+        the deletion will never be visible from T
+    READ COMMITTED:
+        atomic
+    READ UNCOMMITTED:
+        the deletion will be visible before COMMIT or ROLLBACK, inconsistency
+c.  update is atomic
+    the updated tuple may be included in the query result if the price is now below 1000
+d.  SERIALIZABLE:
+        atomic  
+    REPEATABLE READ:
+        insertion visible as phantom tuples after COMMIT
+    READ COMMITTED:
+        insertion visible as phantom tuples after COMMIT
+    READ UNCOMMITTED:
+        insertion visible before COMMIT or ROLLBACK, inconsistency
+
+FOREIGN_KEY:
+    "foreign key" "(" COLUMN ("," COLUMN)* ")" REFERENCES
+
+REFERENCES:
+    "references" TABLE "(" COLUMN ("," COLUMN)* ")" 
+        ("on delete" MAINTAIN_POLICY)?
+        ("on update" MAINTAIN_POLICY)?
+        ("deferrable" DEFERRABLE_OPTION)?
+    
+MAINTAIN_POLICY:
+    "default" 
+    | "set null"
+    | "cascade"
+
+DEFERRABLE_OPTION:
+    "initially deferred"
+    "initially immediate"
+
+COLUMN_DECLARATION:
+    COLUMN TYPE "primary key"? REFERENCES?
+
+7.1.1
+a.  FOREIGN_KEY (producerC#) REFERENCES MovieExec(cert#)
+b.  FOREIGN_KEY (producerC#) REFERENCES MovieExec(cert#)
+        ON DELETE SET NULL
+        ON UPDATE SET NULL
+c.  FOREIGN_KEY (producerC#) REFERENCES MovieExec(cert#)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+d.  FOREIGN_KEY (movieTitle, movieYear) REFERENCES Movies(title, year)
+e.  FOREIGN_KEY (starName) REFERENCES MovieStar(name)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE
+
+7.1.2
+impossible
+(movieTitle, movieYear) is not a key of the relation StarsIn
+
+COLUMN_DECLARATION:
+    COLUMN TYPE "primary key"? REFERENCES? CONSTRAINTS?
+
+CONSTRAINTS:
+    "non null"
+    | CHECK
+
+CHECK:
+    "check" "(" CONDITION ")"
+
+7.2.1
+a.  CHECK (year >= 1915)
+b.  CHECK (length >= 60 AND length <= 250)
+c.  CHECK (studio IN ('Disney', 'Fox', "MGM', 'Paramount'))
+
+7.2.2
+a.  CHECK (speed >= 2.0)
+b.  CHECK (type IN ('laser', 'ink-jet', 'bubble-jet')) 
+c.  CHECK (type IN ('PC', 'laptop', 'printer'))
+d.  CHECK (model IN 
+        (SELECT model from PC)
+        UNION
+        (SELECT model from Laptop)
+        UNION 
+        (SELECT model from printer)
+    )
+
+7.2.3
+// CHECK constraint may not involve subquery in SQLite
+a.  // in StarsIn
+    CHECK (
+        (SELECT year(birthdate) from MovieStar WHERE name = starName)
+        <= (SELECT year from Movies WHERE title = movieTitle)
+    )
+    // in Movies
+    CHECK (NOT EXIST (
+        SELECT *
+        FROM StarIn, MovieStar
+        WHERE starName = name, movieTitle = title, year(birthdate) > year
+    ))
+    // in movieStar
+    CHECK (year(birthdate) < ALL (
+        SELECT year
+        FROM Movies, StarsIn
+        WHERE title = movieTitle, starName = name
+    ))
+b.  // in Studio
+    CHECK (NOT EXIST (
+        SELECT *
+        FROM Studio AS Other,
+        WHRERE address = Other.address, name = Other.name
+    ))
+c.  // in MovieStar
+    CHECK (name NOT IN (
+        SELECT name
+        FROM MovieExec
+    ))
+    // in MovieExec
+    CHECK (name NOT IN (
+        SELECT name
+        FROM MovieStar
+    ))
+d.  // in Studio
+    CHECK (name IN (
+        SELECT studioName
+        FROM Movies
+    ))
+    // in Movies
+    // refers no attributes in the current relation
+    CHECK (NOT EXIST (
+        SELECT *
+        FROM Studio
+        WHERE name NOT IN (SELECT studioName from Movies)
+    ))
+e.  // in Movies
+    CHECK (producerC# = (
+        SELECT presC#
+        FROM Studio
+        WHERE name = studioName
+    ))
+    // in Studio
+    CHECK (presC# = ALL (
+        SELECT producerC#
+        FROM Movies
+        WHERE studioName = name
+    ))
+
+7.2.4
+a.  CHECK (NOT (speed < 2.0 AND price > 600))
+b.  CHECK ((NOT screen < 15) OR (hd >= 40 OR price < 1000))
+
+7.2.5
+a.  // in Classes
+    CHECK (bore <= 16)
+b.  // in Classes
+    CHECK ((NOT numGuns > 9) OR bore <= 14)
+c.  // in Ships
+    CHECK (launched <= ALL (
+        SELECT date 
+        FROM Battles, Outcomes
+        WHRER Battles.name = Outcomes.battle, ship = Ships.name
+    ))
+    // in Battles 
+    CHECK (date >= ALL (
+        SELECT launched
+        FROM Ships, Outcomes
+        WHRER Battles.name = Outcomes.battle, ship = Ships.name
+    ))
+    // in Outcomes
+    CHECK (ship IN (
+        SELECT Ships.name
+        FROM Ships, Battles
+        WHERE Outcomes.battle = Battles.name, Ships.name = ship, date >= launched
+    ))
+
+7.2.6
+// there's no UNKNOWN or boolean value in SQLite
+// UNKNOWN is replaced by NULL, boolean TRUE = 1, boolean FALSE = 0
+gender CHAR(1) CHECK (gender IN (’F’, ’M’))
+    if gender is NULL, gender IN ('F', 'M') evaluates to UNKNOWN, the check fails
+CHECK (gender = ’F’ OR name NOT LIKE ’Ms.%’)
+    if gender is NULL, gender = 'F' evaluates to UNKNOWN
+    the constraint is violated when name starts with 'Ms.'
