@@ -1799,11 +1799,14 @@ d.  SERIALIZABLE:
     READ UNCOMMITTED:
         insertion visible before COMMIT or ROLLBACK, inconsistency
 
+COLUMNS:
+    COLUMN ("," COLUMN)*
+
 FOREIGN_KEY:
-    "foreign key" "(" COLUMN ("," COLUMN)* ")" REFERENCES
+    "foreign key" "(" COLUMNS ")" REFERENCES
 
 REFERENCES:
-    "references" TABLE "(" COLUMN ("," COLUMN)* ")" 
+    "references" TABLE "(" COLUMNS ")"
         ("on delete" MAINTAIN_POLICY)?
         ("on update" MAINTAIN_POLICY)?
         ("deferrable" DEFERRABLE_OPTION)?
@@ -1838,11 +1841,7 @@ impossible
 (movieTitle, movieYear) is not a key of the relation StarsIn
 
 COLUMN_DECLARATION:
-    COLUMN TYPE "primary key"? REFERENCES? CONSTRAINTS?
-
-CONSTRAINTS:
-    "non null"
-    | CHECK
+    COLUMN TYPE "primary key"? REFERENCES? ('non null' | CHECK)?
 
 CHECK:
     "check" "(" CONDITION ")"
@@ -1872,7 +1871,7 @@ a.  // in StarsIn
         <= (SELECT year from Movies WHERE title = movieTitle)
     )
     // in Movies
-    CHECK (NOT EXIST (
+    CHECK (NOT EXISTS (
         SELECT *
         FROM StarIn, MovieStar
         WHERE starName = name, movieTitle = title, year(birthdate) > year
@@ -1884,7 +1883,7 @@ a.  // in StarsIn
         WHERE title = movieTitle, starName = name
     ))
 b.  // in Studio
-    CHECK (NOT EXIST (
+    CHECK (NOT EXISTS (
         SELECT *
         FROM Studio AS Other,
         WHRERE address = Other.address, name = Other.name
@@ -1906,7 +1905,7 @@ d.  // in Studio
     ))
     // in Movies
     // refers no attributes in the current relation
-    CHECK (NOT EXIST (
+    CHECK (NOT EXISTS (
         SELECT *
         FROM Studio
         WHERE name NOT IN (SELECT studioName from Movies)
@@ -1960,3 +1959,449 @@ gender CHAR(1) CHECK (gender IN (’F’, ’M’))
 CHECK (gender = ’F’ OR name NOT LIKE ’Ms.%’)
     if gender is NULL, gender = 'F' evaluates to UNKNOWN
     the constraint is violated when name starts with 'Ms.'
+
+CONSTRAINTS:
+    UNIQUE
+    | PRIMARY_KEY
+    | TUPLE_CONSTRAINT
+    | FOREIGN_KEY
+
+UNIQUE:
+    "unique" "(" COLUMNS ")"
+
+PRIMARY_KEY:
+    "primary key" "(" COLUMNS ")"
+
+TUPLE_CONSTRAINT:
+    ("constraint" IDENT)? CHECK
+
+ALTER_TABLE:
+    "alter table" TABLE ADD_CONSTRAINT
+
+ADD_CONSTRAINT:
+    "add" ("constraint" IDENT)? CONSTRAINTS
+
+DROP_CONSTRAINT:
+    "drop" "constraint" IDENT
+
+// in SQLite, preexisting tuples are not checked when adding a new tuple constraint
+// this may change in future versions
+7.3.1
+a.  ALTER TABLE Movie
+        ADD PRIMARY KEY (title, year)
+b.  ALTER TABLE Movie
+        ADD FOREIGN KEY (producerC#) REFERENCES MovieExec(cert#)
+c.  ALTER TABLE Movie
+        ADD CONSTRAINT MIN_MAX_LEN CHECK (length >= 60 AND length <= 250)
+d.  ALTER TABLE MovieStar
+        ADD CONSTRAINT NOT_EXEC CHECK (name NOT IN (
+            SELECT name
+            FROM MovieExec
+        ))
+    ALTER STABLE MovieExec
+        ADD CONSTRAINT NOT_STAR CHECK (name NOT IN (
+            SELECT name
+            FROM MovieStar
+        ))
+e.  ALTER TABLE Studio
+        ADD UNIQUE (address)
+
+7.3.2
+a.  ALTER TABLE Classes
+        ADD PRIMARY KEY (class, country)
+b.  // there's no ship in Battles?
+c.  ALTER TABLE Outcomes
+        // (name) is not a key of Ships
+        ADD CHECK (ship IN (
+            SELECT name
+            FROM Ships
+        ))
+d.  ALTER TABLE Classes
+        ADD CHECK (numGuns <= 14)
+e.  // same to 7.2.5
+
+CREATE_ASSERTION:
+    "create assertion" IDENT CHECK ("deferrable" DEFERRABLE_OPTION)?
+
+7.4.1
+a.  CREATE ASSERTION PC_and_laptop_maker_disjoint
+        CHECK (NOT EXISTS (
+            (SELECT maker FROM Product WHERE type = 'PC')
+            INTERSECTION
+            (SELECT maker FROM Product WHERE type = 'laptop')
+        ))
+b.  CREATE ASSERTION mobile_focus
+        CHECK (NOT EXISTS (
+            SELECT *
+            FROM ((
+                    SELECT maker, MAX(speed) AS pc_speed
+                    FROM Product, PC
+                    WHERE Product.model = PC.model
+                    GROUP BY maker
+                ) 
+                NATURAL JOIN
+                (
+                    SELECT maker, MAX(speed) AS laptop_speed
+                    FROM Product, Laptop
+                    WHERE Product.model = Laptop.model
+                    GROUP BY maker
+                ))
+            WHERE pc_speed > laptop_speed
+        ))
+c.  CREATE ASSERTION mobile_expansive
+        CHECK (NOT EXISTS (
+            SELECT *
+            FROM PC, Laptop
+            WHERE PC.ram = Laptop.ram AND PC.price <= Laptop.price
+        ))
+d.  CREATE ASSERTION integrity
+        CHECK (NOT EXISTS (
+            SELECT *
+            FROM Product
+            WHERE (
+                (type = 'PC' AND model NOT IN SELECT model FROM PC) OR
+                (type = 'laptop' AND model NOT IN SELECT model FROM Laptop) OR
+                (type = 'printer' AND model NOT IN SELECT model FROM Printer)
+            )
+        ))
+
+7.4.2
+a.  CREATE ASSERTION disarmament
+        CHECK (2 >= ALL (
+            SELECT COUNT(*)
+            FROM Classes, Ships
+            WHERE Classes.class = Ships.class
+        ))
+b.  CREATE ASSERTION type_loyalty
+        CHECK (NOT EXISTS (
+            (SELECT country FROM Classes WHERE type = 'bb')
+            INTERSECTION
+            (SELECT country FROM Classes WHERE type = 'bc')
+        ))
+c.  CREATE ASSERTION no_weaponized_bully
+        CHECK (9 >= ALL (
+            SELECT MAX(numGuns)
+            FROM Outcomes, Classes, Ships
+            WHERE (
+                Outcomes.ship = Ships.name AND 
+                Ships.class = Classes.class AND
+                battle IN (
+                    SELECT battle
+                    FROM Outcomes, Ships, Classes
+                    WHERE (
+                        Outcomes.ship = Ships.name AND
+                        Classes.class = Ships.class AND
+                        numGuns < 9 AND
+                        result = 'sunk'
+                    )
+                )
+            )
+        ))
+d.  CREATE ASSERTION navy_naming_custom
+        CHECK (NOT EXISTS (
+            SELECT *
+            FROM Ships AS Later, Ships AS First
+            WHERE 
+                Later.name = First.class AND 
+                Later.launched < First.launched
+        ))
+e.  CREATE ASSERTION navy_naming_custom_part_2
+        CHECK (NOT EXISTS (
+            SELECT *
+            FROM Classes
+            WHERE Classes.class NOT IN (SELECT name FROM Ships)
+        ))
+
+7.4.3
+// not enforced on tuple deletion
+// in MovieExec
+CHECK (NOT EXISTS (
+    (
+        SELECT Studio.name
+        FROM Studio, MovieExec
+        WHERE presC# = cert# AND netWorth < 10000000
+    )
+))
+
+CREATE_TRIGGER:
+    "create trigger" IDENT
+    TIMING EVENT
+    // SQLite has no REFERENCING clause, OLD and NEW are still defined
+    // in context of trigger actions, references the inserted / deleted / updated tuples
+    "referencing"
+        // insert: only new
+        // delete: only old
+        // update: both
+        REFERRED ("," REFERRED)*
+    // default is statement
+    ("for each" ("row" | "statement"))? 
+    ("when" "(" CONDITION ")")?
+        (STMT | STMTS)
+
+TIMING:
+    "before" 
+    | "after"
+
+EVENT:
+    "update" ("of" COLUMNS)? "on" TABLE 
+    | "insert" "on" TABLE
+    | "delete" "on" TABLE
+
+REFERRED:
+    ("old" | "new") ("row" | "table") ("of" COLUMN) "on" TABLE
+
+STMTS:
+    "begin"
+    (STMT ";")*
+    "end"
+
+// hypothetic macros (not confirming to C preprocessor syntax):
+#define REVERSE_UPDATE(table, key, old, new) ( \
+BEGIN \
+    DELETE FROM table \
+    WHERE key IN (SELECT key FROM new); \
+    INSERT INTO table old; \
+END \
+)
+
+#define REVERSE_INSERT(table, key, new) ( \
+    DELETE FROM table \
+    WHERE (key) in (SELECT key FROM new) \
+)
+
+#define REVERSE_DELETE(table, old) ( \
+    INSERT INTO table old \
+)
+
+#define REVERT_TABLE_ON_INSERTION(name, table, key, cond) \
+CREATE TRIGGER name \
+AFTER INSERT ON table \
+REFERENCING \
+    NEW TABLE AS New \
+FOR EACH STATEMENT \
+WHEN (cond) \
+    REVERSE_INSERT(table, key, New);
+
+#define REVERT_TABLE_ON_DELETION(name, table, cond) \
+CREATE TRIGGER name \
+AFTER INSERT ON table \
+REFERENCING \
+    OLD TABLE AS Old \
+FOR EACH STATEMENT \
+WHEN (cond) \
+    REVERSE_DELETE(table, Old);
+
+#define REVERT_TABLE_ON_UPDATE(name, table, columns, key, cond) \
+CREATE TRIGGER name \
+AFTER UPDATE Of column ON table \
+REFERENCING \
+    OLD TABLE AS Old \
+    NEW TABLE AS New \
+FOR EACH STATEMENT \
+WHEN (cond) \
+    REVERSE_UPDATE(table, key, Old, New);
+
+#define REVERT_TABLE_ON(name, table, columns, key, cond)  \
+REVERT_TABLE_ON_INSERTION(name ## _on_insertion, table, key, cond)
+REVERT_TABLE_ON_DELETION(name ## _on_deletion, table, cond)
+REVERT_TABLE_ON_UPDATE(name ## _on_update, table, columns, key, cond)
+
+7.5.1
+REVERT_TABLE_ON_INSERTION(on_insert, MovieExec, cert#, 500000 > (SELECT AVG(netWorth) FROM MovieExec))
+REVERT_TABLE_ON_DELETION(on_delete, MovieExec, 500000 > (SELECT AVG(netWorth) FROM MovieExec))
+
+7.5.2
+a.  CREATE TRIGGER pc_unattractive_offer
+    AFTER UPDATE OF price ON PC
+    REFERENCING
+        OLD ROW AS Old,
+        NEW ROW AS New
+    FOR EACH ROW 
+    WHEN (EXISTS (SELECT * FROM PC WHERE PC.price < New.price AND PC.speed = NEW.speed))
+        UPDATE PC
+        SET price = Old.price
+        WHERE model = New.model
+b.  CREATE TRIGGER printer_integrity
+    AFTER INSERT ON Printer
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+    WHEN (New.model NOT IN (SELECT model FROM Product))
+        DELETE FROM Printer
+        WHERE model = New.model
+c.  REVERT_TABLE_ON(laptop, Laptop, (price, model), model, 1500 > ANY (
+        SELECT AVG(price)
+        FROM Laptop, Product
+        WHERE Laptop.model = Product.model
+        GROUP BY maker
+    ))
+d.  CREATE TRIGGER enough_hd
+    AFTER UPDATE OF ram, hd ON PC
+    REFERENCING
+        OLD ROW AS Old
+        NEW ROW AS New
+    FOR EACH ROW
+    WHEN (New.hd < New.ram * 100)
+        UPDATE PC
+        SET hd = Old.hd, ram = Old.ram
+        WHERE model = New.model
+e.  #define UNSEEN(name, table) \
+    CREATE TRIGGER name \
+    AFTER INSERT ON table \
+    REFERENCING \
+        NEW ROW AS New \
+    FOR EACH ROW \
+    WHEN (New.model IN ( \
+        (SELCT model FROM PC) \
+        UNION \
+        (SELECT model FROM Laptop) \
+        UNION \
+        (SELECT model FROM Printer) \
+    )) \
+        DELETE FROM table \
+        WHERE model = New.model;
+    UNSEEN(unseen_pc, PC)
+    UNSEEN(unseen_laptop, Laptop)
+    UNSEEN(unseen_printer, Printer)
+
+7.5.3
+a.  CREATE TRIGGER first_ship
+    AFTER INSERT ON Classes
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+        INSERT INTO Ships(name, class, launched)
+        VALUES (New.class, New.class, NULL)
+b.  CREATE TRIGGER min_displacement
+    AFTER INSERT ON Classes
+    REFERENCING
+        NEW ROW AS NewRow
+        NEW TABLE AS NewTable
+    FOR EACH ROW
+    WHEN (35000 > NewRow.displacement)
+        UPDATE NewTable
+        SET displacement = 35000
+        WHERE class = NewRow.class
+c.  CREATE TRIGGER outcomes_ships_integrity
+    AFTER INSERT ON Outcomes
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+    WHEN (New.ship NOT IN (SELECT name FROM Ships))
+        INSERT INTO Ships(name, class, launched)
+        VALUES (New.ship, NULL, NULL)
+    CREATE TRIGGER outcomes_battles_integrity
+    AFTER INSERT ON Outcomes
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+    WHEN (New.battle NOT IN (SELECT name FROM Battles))
+        INSERT INTO Battles (name, date)
+        VALUES (New.battle, NULL)
+d.  REVERT_TABLE_ON_INSERTION(on_insertion, Ships, (name, class), 20 >= ALL (
+        SELECT COUNT(*)
+        FROM Classes, Ships
+        WHERE Classes.name = Ships.class
+        GROUP BY country
+    ))
+    REVERT_TABLE_ON_UPDATE(on_update, Ships, class, (name, class), 20 >= ALL (
+        SELECT COUNT(*)
+        FROM Classes, Ships
+        WHERE Classes.name = Ships.class
+        GROUP BY country
+    ))
+e.  #define BATTLE_AFTER_SUNK \
+    NOT EXISTS ( \
+        SELECT * \
+        FROM (( \
+                SELECT name, date as sunk_date \
+                FROM Ships, Outcomes \
+                WHERE Ships.name = Outcomes.ship AND result = 'sunk' \
+            ) \
+            NATURAL JOIN \
+            ( \
+                SELECT name, MAX(date) \
+                FROM Ships, Outcomes \
+                WHERE Ships.name = Outcomes.ship \
+                GROUP BY Ships.name \
+            )) \
+        WHERE date > sunk_date \
+    )
+    REVERT_TABLE_ON(outcomes, Outcomes, (ship, battle, result), (ship, battle), BATTLE_AFTER_SUNK)
+    REVERT_TABLE_ON(battles, Battles, (name, date), name, BATTLE_AFTER_SUNK)
+    REVERT_TABLE_ON(ships, Ships, (name, launched), (name, class), BATTLE_AFTER_SUNK)
+
+7.5.4
+a.  #define STARSIN_INTEGRITY \
+    NOT EXISTS ( \
+        SELECT * \
+        FROM StarsIn \
+        WHERE starName NOT IN ( \
+            SELECT name \
+            FROM MovieStar \
+        ) \
+    )  
+    REVERT_TABLE_ON_UPDATE(a, StarsIn, starName, (movieTitle, movieYear, starName), STARSIN_INTEGRITY)
+    REVERT_TABLE_ON_INSERTION(b, StarsIn, (movieTitle, movieYear, starName), STARSIN_INTEGRITY)
+    REVERT_TABLE_ON_DELETION(c, MovieStar, STARSIN_INTEGRITY)
+    REVERT_TABLE_ON_UPDATE(d, MovieStar, name, name, STARSIN_INTEGRITY)
+b.  #define EXEC_INTEGRITY \
+    NOT EXISTS ( \
+        SELECT * \
+        FROM MovieExec \
+        WHERE cert# NOT IN ( \
+            (SELECT producerC# FROM Movies) \
+            UNION \
+            (SELECT presC# FROM Studio) \
+        ) \
+    )
+    REVERT_TABLE_ON_INSERTION(exec_on_insertion, MovieExec, cert#, EXEC_INTEGRITY)
+    REVERT_TABLE_ON_UPDATE(exec_on_update, MovieExec, cert#, cert#, EXEC_INTEGRITY)
+    REVERT_TABLE_ON_DELETION(movies_on_deletion, Movies, EXEC_INTEGRITY)
+    REVERT_TABLE_ON_DELETION(studio_on_deletion, Studio, EXEC_INTEGRITY)
+    REVERT_TABLE_ON_UPDATE(movies_on_update, Movies, producerC#, (title, year), EXEC_INTEGRITY)
+    REVERT_TABLE_ON_UPDATE(studio_on_update, Studio, presC#, name, EXEC_INTEGRITY)
+c.  #define ONE_MALE_FEMALE \
+    1 >= ALL ( \
+        SELECT COUNT(*) \
+        FROM Movies, StarsIn, MovieStar \
+        WHERE title = movieTitle, year = movieYear, movieStar = name, gender = 'M' \
+        GROUP BY title, year \
+    ) AND 1 >= ALL ( \
+        SELECT COUNT(*) \
+        FROM Movies, StarsIn, MovieStar \
+        WHERE title = movieTitle, year = movieYear, movieStar = name, gender = 'F' \
+        GROUP BY title, year \
+    )
+    REVERT_TABLE_ON_UPDATE(
+        starsin_on_deletion, 
+        StarsIn, 
+        ONE_MALE_FEMALE
+    )
+    REVERT_TABLE_ON_UPDATE(
+        starsin_on_deletion, 
+        StarsIn, 
+        (movieTitle, movieYear),
+        (movieTitle, movieYear, starName),
+        ONE_MALE_FEMALE
+    )
+    REVERT_TABLE_ON_INSERTION(movie_on_insertion, Movies, (title, year), ONE_MALE_FEMALE)
+    REVERT_TABLE_ON_UPDATE(movie_on_update, Movies, (title, year), (title, year), ONE_MALE_FEMALE)
+    REVERT_TABLE_ON_DELETION(star_on_deletion, MovieStar, ONE_MALE_FEMALE)
+    REVERT_TABLE_ON_UPDATE(star_on_deletion, (name, gender), name, ONE_MALE_FEMALE)
+d.  #define MAX_PRODUCTION \
+    100 >= ALL ( \
+        SELECT COUNT(*) \
+        FROM Movies \
+        GROUP BY year, studioName \
+    )
+    REVERT_TABLE_ON_INSERT(movie_on_insert, Movies, (title, year), MAX_PRODUCTION)
+    REVERT_TABLE_ON_UPDATE(movie_on_update, Movies, (year, studioName), (title, year), MAX_PRODUCTION)
+e.  #define AVG_LENGTH \
+    120 >= ALL ( \
+        SELECT AVG(length) \
+        FROM Movies \
+        GROUP BY year \
+    )
+    REVERT_TABLE_ON(movies, Movies, (year, length), (title, year), AVG_LENGTH)
+

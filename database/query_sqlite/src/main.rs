@@ -2,8 +2,24 @@ use query_sqlite::Value;
 use rusqlite::{params, Connection, Result, Row};
 
 fn main() -> Result<()> {
-    exercise_5_2_1()?;
+    exercise_5_2_1()
+}
 
+fn collect(row: &Row) -> Result<Vec<Value>> {
+    let mut vec = vec![];
+    for i in 0..row.column_count() {
+        vec.push(row.get(i)?);
+    }
+    Ok(vec)
+}
+
+fn exec(conn: &Connection, stmt: &str) -> Result<()> {
+    println!("{}", stmt);
+    let mut stmt = conn.prepare(stmt)?;
+    let rows = stmt.query_map(params!(), collect)?;
+    for row in rows {
+        println!("{:?}", row?);
+    }
     Ok(())
 }
 
@@ -35,23 +51,7 @@ fn exercise_5_2_1() -> Result<()> {
         conn.execute("INSERT INTO S (B, C) VALUES (?1, ?2)", &[b, c])?;
     }
 
-    fn collect(row: &Row) -> Result<Vec<Value>> {
-        let mut vec = vec![];
-        for i in 0..row.column_count() {
-            vec.push(row.get(i)?);
-        }
-        Ok(vec)
-    }
-
-    let exec = |stmt: &str| -> Result<()> {
-        println!("{}", stmt);
-        let mut stmt = conn.prepare(stmt)?;
-        let rows = stmt.query_map(params!(), collect)?;
-        for row in rows {
-            println!("{:?}", row?);
-        }
-        Ok(())
-    };
+    let exec = |stmt: &str| exec(&conn, stmt);
 
     exec("SELECT A + B, A * A, B * B FROM R;")?;
     exec("SELECT B + 1, C - 1 FROM S;")?;
