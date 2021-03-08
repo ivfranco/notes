@@ -2206,6 +2206,10 @@ REVERT_TABLE_ON_INSERTION(name ## _on_insertion, table, key, cond)
 REVERT_TABLE_ON_DELETION(name ## _on_deletion, table, cond)
 REVERT_TABLE_ON_UPDATE(name ## _on_update, table, columns, key, cond)
 
+// Answers below are overwhelmingly messy because standard SQL 2003 doesn't support exceptions,
+// without which most operations cannot be stopped beforehand, hence operations of different 
+// consequences must be treated accordingly. A blanket solution BEFORE (INSERT / DELETE / UPDATE) 
+// and abort on unsatisfied condition would suffice for most the exercises listed below.
 7.5.1
 REVERT_TABLE_ON_INSERTION(on_insert, MovieExec, cert#, 500000 > (SELECT AVG(netWorth) FROM MovieExec))
 REVERT_TABLE_ON_DELETION(on_delete, MovieExec, 500000 > (SELECT AVG(netWorth) FROM MovieExec))
@@ -2405,3 +2409,154 @@ e.  #define AVG_LENGTH \
     )
     REVERT_TABLE_ON(movies, Movies, (year, length), (title, year), AVG_LENGTH)
 
+CREATE_VIEW:
+    "create view" TABLE ( "(" COLUMNS ")" )? "as"
+        SELECT_STMT
+
+8.1.1
+a.  CREATE VIEW RichExec AS
+        SELECT *
+        FROM MovieExec
+        WHERE netWorth >= 10_000_000
+b.  CREATE VIEW StudioPres AS
+        SELECT MovieExec.name, MovieExec.address, cert#
+        FROM MovieExec, Studio
+        WHERE cert# = presC#
+c.  CREATE VIEW ExecutiveStar AS
+        SELECT MovieExec.name, MovieExec.address, gender, birthdate, cert#, netWorth
+        FROM MovieStar, MovieExec
+        // one may be registered with different addresses as star and exec
+        WHERE MovieStar.name = MovieExec.name
+
+8.1.2
+a.  SELECT name
+    FROM ExecutiveStar
+    WHERE gender = 'F'
+b.  SELECT name
+    FROM (StudioPres NATURAL JOIN RichExec)
+c.  SELECT name 
+    FROM (StudioPres NATURAL JOIN ExecutiveStar)
+    WHERE netWorth >= 50_000_000
+
+8.2.1
+RichExec, the other two select from multiple relations
+
+8.2.2
+a.  it's updatable, selects from a single relation, no subquery, no non-null columns omitted
+b.  CREATE TRIGGER DisneyComediesInsert
+    INSTEAD OF INSERT ON DisneyComedies
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+        INSERT INTO Movies(title, year, length, studioName, genre)
+        VALUES (New.title, New.year, New.length, 'Disney', 'comedy')
+c.  CREATE TRIGGER DisneyComediesUpdate
+    INSTEAD OF UPDATE OF length ON DisneyComedies
+    REFERENCING
+        OLD ROW AS Old
+        NEW ROW AS New
+    FOR EACH ROW
+        UPDATE Movies
+        SET length = New.length
+        WHERE title = Old.title, year = Old.year
+
+8.2.3
+a.  it should be, but it's not according to the conditions listed at the start of the section 
+b.  CREATE TRIGGER NewPCInsert
+    INSTEAD OF INSERT ON NewPC
+    REFERENCING
+        NEW ROW AS New
+    FOR EACH ROW
+    BEGIN
+        INSERT INTO Product(maker, model, type)
+        VALUES (New.maker, New.model, 'pc');
+        INSERT INTO PC(model, speed, ram, hd, price)
+        VALUES (New.model, New.speed, New.ram, New.hd, New.price);
+    END
+c.  CREATE TRIGGER NewPCUpdate
+    INSTEAD OF UPDATE OF price ON NewPC
+    REFERENCING
+        OLD ROW AS Old
+        NEW ROW AS New
+    FOR EACH ROW
+        UPDATE PC
+        SET price = New.price
+        WHERE model = Old.model
+d.  CREATE TRIGGER NewPCDelete
+    INSTEAD OF DELETE ON NewPC
+    REFERENCING
+        OLD ROW AS Old
+    FOR EACH ROW
+    BEGIN
+        DELETE FROM Product
+        WHERE model = Old.model;
+        DELETE FROM PC
+        WHERE model = Old.model;
+    END
+
+CREATE_INDEX:
+    "create index" INDEX "on" TABLE "(" COLUMNS ")"
+
+8.3.1
+// indices share the namespace with tables and views, it must be unique across the entire schema
+// (at least in PostgreSQL https://www.postgresql.org/docs/current/catalog-pg-class.html)
+a.  CREATE INDEX MoviesStudioNameIndex ON Movies(studioName)
+b.  CREATE INDEX MovieExecAddressIndex ON MovieExec(address)
+c.  CREATE INDEX MoviesGenreLengthIndex ON Movies(genre, length)
+
+8.4.1
+no indices:
+    2 + 98p1 + 98p2
+Star index:
+    4 + 96p2
+Movie index:
+    4 + 96p1
+both indices:
+    6 - 2p1 - 2p2
+
+8.4.2
+cost of SELECT * FROM Ships WHERE name = n, index on name:
+    no index: 25 on avg, name is key, the database can stop once the answer is found
+    w/ index: 1 (index) + 1 (name is unique) = 2
+cost of SELECT * FROM Ships WHERE class = c, index on class:
+    no index: 50
+    w/ index: 1 (index) + 1 (ship is clustered on class) = 2
+cost of SELECT * FROM Ships WHERE launched = y, index on launched:
+    no index: 50
+    // when the distribution is uniform, the probability a page won't be accessed 
+    // is (49/50)^25 ~ 0.6, on avg. 50 * 0.6 = 30 pages won't be accessed
+    w/ index: 1 (index) + 20 = 21
+const of INSERT INTO Ships:
+    no index: 1 (read) + 1 (write) = 2
+    w/ index: 2 + 2 * indices
+// combination and function skipped
+
+8.5.1
+// update of name in MovieExec
+UPDATE MovieProd
+SET name = New.name
+WHERE cert# = Old.cert#
+// update of cert# in MovieExec
+// the new cert# must be distinct to any existing ones, cert# is key of MovieExec
+UPDATE MovieProd
+SET cert# = New.cert#
+WHERE cert# = Old.cert#
+// update of title or year in Movies
+// new (title, year) must be distinct
+UPDATE MovieProd
+SET name = New.name, year = New.year
+WHERE name = Old.name, year = Old.year
+
+8.5.2
+insertion, deletion and updates to Product and PC
+// insertion into Product
+INSERT INTO NewPC (
+    SELECT maker, model, speed, ram, hd, price
+    FROM (NewTable NATURAL JOIN PC)
+)
+// insertion into PC
+INSERT INTO NewPC (Product RIGHT OUTER JOIN NewTable)
+// deletion from Product
+UPDATE NewPC
+SET maker = NULL
+WHERE model IN (SELECT model FROM Old)
