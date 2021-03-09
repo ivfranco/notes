@@ -2549,14 +2549,113 @@ WHERE name = Old.name, year = Old.year
 
 8.5.2
 insertion, deletion and updates to Product and PC
-// insertion into Product
+// insertion into Product or PC
 INSERT INTO NewPC (
     SELECT maker, model, speed, ram, hd, price
     FROM (NewTable NATURAL JOIN PC)
 )
-// insertion into PC
-INSERT INTO NewPC (Product RIGHT OUTER JOIN NewTable)
-// deletion from Product
-UPDATE NewPC
-SET maker = NULL
-WHERE model IN (SELECT model FROM Old)
+// deletion from Product or PC
+DELETE FROM NewPC
+WHERE model IN (SELECT model from Old)
+// update similar to 8.5.1, skipped
+
+8.5.3
+insertion to / deletion from Ships or Classes
+update of name, country, displacement on Classes
+// insertion into Classes, new country
+INSERT INTO ShipStats (
+    SELECT New.country, New.displacement, COUNT(*)
+    FROM Ships
+    WHERE Ships.class = New.class
+)
+// insertion into Classes, existing country
+UPDATE ShipStats
+SET 
+    // recalculated, otherwise vulnerable to rounding error
+    avg = (
+        SELECT AVG(displacement),
+        FROM Classes, Ships
+        WHERE Classes.name = class
+        GROUP BY country
+    ),
+    count = count + (
+        SELECT COUNT(*)
+        FROM Ships
+        WHERE class = New.name
+    )
+WHERE country = New.country
+// insertion into Ships
+UPDATE ShipStats
+SET
+    avg = (
+        SELECT AVG(displacement),
+        FROM Classes, Ships
+        WHERE Classes.name = class
+        GROUP BY country
+    ),
+    count = count + 1
+WHERE country = (
+    SELECT country 
+    FROM Classes 
+    WHERE name = New.class
+)
+// deletion from Classes, not last class of a country
+UPDATE ShipStats
+SET
+    avg = (
+        SELECT AVG(displacement),
+        FROM Classes, Ships
+        WHERE Classes.name = class
+        GROUP BY country
+    ),
+    count = count - (
+        SELECT COUNT(*) 
+        FROM Ships
+        WHERE class = Old.name
+    )
+WHERE country = Old.country
+// deletion from Classes, last class of country
+DELETE FROM ShipStats
+WHERE country = Old.country
+// deletion from Ships
+UPDATE ShipStats
+SET
+    avg = (
+        SELECT AVG(displacement),
+        FROM Classes, Ships
+        WHERE Classes.name = class
+        GROUP BY country
+    ),
+    count = count - 1
+WHERE country = (
+    SELECT country 
+    FROM Classes 
+    WHERE name = Old.class
+)
+// update of displacement on Classes
+UPDATE ShipStats
+SET
+    avg = (
+        SELECT AVG(displacement),
+        FROM Classes, Ships
+        WHERE Classes.name = class
+        GROUP BY country
+    )
+WHERE country = Old.country
+// other update = deletion + insertion
+
+5.5.4
+query form:
+    SELECT LQ
+    FROM RQ
+    WHERE CQ
+LQ ∩ Movies ⊆ { title, year }
+LQ ∩ MovieExec ⊆ { name }
+{ Movies, MovieExec } ⊆ RQ
+∃C, CQ = producerC# = cert# AND C
+any columns of Movies or MovieExec mentioned in C is in { title, year, name }
+
+// SQL is almost never directly embedded into the host language now, preprocessor
+// has always been a bad idea and nearly impossible in any language more complicated
+// than C, most SQL vendors expose either a dynamic SQL server-client interface
+// or a C interface 
