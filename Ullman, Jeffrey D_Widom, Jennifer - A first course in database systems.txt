@@ -2658,4 +2658,387 @@ any columns of Movies or MovieExec mentioned in C is in { title, year, name }
 // SQL is almost never directly embedded into the host language now, preprocessor
 // has always been a bad idea and nearly impossible in any language more complicated
 // than C, most SQL vendors expose either a dynamic SQL server-client interface
-// or a C interface 
+// or a C CLI interface
+8.3.1
+./database/query_sqlite/
+
+8.3.2
+./database/query_sqlite/
+format of Battles.date is not in the same format as Ships.launched 
+Battles.date is not a date but a time span (e.g. 5/24-27/41)
+
+CREATE_PROCEDURE:
+    "create procedure" PROCEDURE_NAME "("
+        (PARAM ("," PARAM)*)?
+    ")"
+    (DECLARATION ";")*
+    PROCEDURE_STMT
+
+PARAM:
+    ("in" | "out" | "inout") COLUMN TYPE
+
+DECLARATION:
+    "declare" VARIABLE_NAME TYPE
+
+PROCEDURE_STMT:
+    (LABEL ":")?
+    ( RETURN // only in function
+    | CALL_PROCEDURE
+    | ASSIGNMENT
+    | PROCEDURE_STMT_GROUP
+    | IF_STMT
+    | LOOP_STMT
+    | LEAVE_STMT
+    | FOR_STMT
+    | WHILE_STMT
+    | REPEAT_STMT )
+
+RETURN:
+    "return" EXPRESSION
+
+CALL_PROCEDURE:
+    "call" PROCEDURE_NAME "(" EXPRESSION ("," EXPRESSION)* ")"
+
+ASSIGNMENT:
+    "set" VARIABLE_NAME "=" EXPRESSION
+
+PROCEDURE_STMT_GROUP:
+    "begin" (PROCEDURE_STMT ";")* "end"
+
+PROCEDURE_STMT_LIST:
+    (PROCEDURE_STMT ";")*
+
+IF_STMT:
+    "if" CONDITION "then"
+        PROCEDURE_STMT_LIST
+    ("elseif" CONDITION "then" 
+        PROCEDURE_STMT_LIST)*
+    ("else" 
+        PROCEDURE_STMT_LIST)?
+    "end if"
+
+LOOP_STMT:
+    "loop"
+        PROCEDURE_STMT_LIST
+    "end loop"
+
+LEAVE_STMT:
+    "leave" LABEL
+
+// columns are automatically declared as local variables
+FOR_STMT:
+    "for" LABEL "as" CURSOR_NAME "cursor for"
+        SELECT_STMT
+    "do"
+        PROCEDURE_STMT_LIST
+    "end for"
+
+WHILE_STMT:
+    "while" CONDITION "do"
+        PROCEDURE_STMT_LIST
+    "end while"
+
+REPEAT_STMT:
+    "repeat"
+        PROCEDURE_STMT_LIST
+    "until" CONDITION
+    "end repeat"
+
+CREATE_FUNCTION:
+    "create function" PROCEDURE_NAME "("
+        PARAM ("," PARAM)*
+    ")" "returns" TYPE
+    PROCEDURE_STMT
+
+// block local exception handler
+DECLARE_HANDLER:
+    "declare" ON_LEAVING "handler for" EXCEPTION_CONDITION_LIST
+        PROCEDURE_STMT
+
+ON_LEAVING:
+    "continue" | "exit" | "undo"
+
+EXCEPTION_CONDITION_LIST:
+    EXCEPTION_CONDITION ("," EXCEPTION_CONDITION)
+
+EXCEPTION_CONDITION:
+    NAMED_SQLSTATE
+    | SQLSTATE
+
+DECLARE_NAMED_SQLSTATE:
+    "declare" NAMED_SQLSTATE "condition" "for" SQLSTATE
+
+SQLSTATE:
+    "sqlstate" "'" [0-9A-Z]{5} "'"
+
+8.4.1
+a.  CREATE FUNCTION WorthOfPres (
+        studioName  VARCHAR(255)
+    ) RETURNS INTEGER
+    // set to NULL on declaration
+    DECLARE presNewWorth INTEGER;
+    BEGIN
+        SELECT netWorth
+        INTO presNewWorth
+        FROM Studio, MovieExec
+        WHERE name = studioName AND presC# = cert#;
+        RETURN presNewWorth;
+    END
+b.  CREATE FUNCTION CategorizeExec (
+        name        VARCHAR(255),
+        address     VARCHAR(255),
+    )
+    DECLARE category INTEGER;
+    BEGIN
+        IF 
+            (name, address) IN (SELECT name, address FROM MovieExec)
+        THEN 
+            SET category = category + 1;
+        ENDIF;
+        IF
+            (name, address) IN (SELECT name, address FROM MovieStar)
+        THEN
+            SET category = category + 2;
+        ENDIF;
+        IF
+            category = 0
+        THEN
+            SET category = 4;
+        ENDIF;
+        RETURN category;
+    END
+c.  CREATE PROCEDURE TwoLongestMovies (
+        IN  studio      VARCHAR(255)
+        OUT fstLongest  VARCHAR(255)
+        OUT sndLongest  VARCHAR(255)
+    )
+    DECLARE index INTEGER; 
+    BEGIN
+        SET index = 0;
+        FOR movieLoop AS movieCursor CURSOR FOR
+            SELECT title
+            FROM Movies
+            WHERE studioName = studio 
+            ORDER BY length DESC
+        DO
+            IF index = 1
+            THEN SET fstLongest = title;
+            ELSEIF index = 2
+            THEN SET sndLongest = title;
+            END IF;
+            SET index = index + 1;
+            IF index >= 2
+            THEN LEAVE movieLoop;
+            END IF;
+        END FOR;
+    END
+d.  CREATE FUNCTION EarlistMovie (
+        name    VARCHAR(255)
+    ) RETURNS VARCHAR(255)
+    DECLARE earlistMovie VARCHAR(255);
+    DECLARE index INTEGER;
+    BEGIN
+        set earlistMovie = 0;
+        set index = 0;
+        FOR movieLoop AS movieCursor CURSOR FOR
+            SELECT title
+            FROM Movies, StarsIn
+            WHERE
+                length >= 120 AND
+                starName = name AND
+                movieTitle = title
+            ORDER BY year ASC
+        DO
+            IF index = 0
+            THEN SET earlistMovie = title;  
+            ELSE LEAVE movieLoop;
+            ENDIF;
+            SET index = index + 1;
+        END FOR;
+    END
+e.  CREATE FUNCTION NameByAddress (
+        starAddress     VARCHAR(255)
+    ) RETURNS VARCHAR(255)
+    DECLARE starName VARCHAR(255);
+    BEGIN
+        SELECT name
+        INTO starName
+        FROM MovieStar
+        WHERE address = starAddress;
+        RETURN starName;
+    END
+f.  CREATE PROCEDURE DeleteStar (
+        deleteName  VARCHAR(255) 
+    )
+    BEGIN
+        DELETE FROM MovieStar
+        WHERE name = deleteName;
+        DELETE FROM Movies
+        WHERE (title, year) IN (
+            SELECT movieTitle, movieYear
+            FROM StarsIn
+            WHERE starName = deleteName
+        );
+        DELETE FROM StarsIn
+        WHERE starName = deleteName;
+    END
+
+8.4.2
+a.  CREATE FUNCTION ClosestPrice (
+        targetPrice     INTEGER
+    ) RETURNS INTEGER
+    DECLARE closestModel INTEGER;
+    DECLARE index INTEGER;
+    BEGIN
+        SET index = 0;
+        FOR PCLoop AS PCCursor CURSOR FOR
+            SELECT model 
+            FROM PC
+            ORDER BY ABS(price - targetPrice)
+        DO
+            IF index = 0
+            THEN closestModel = model;
+            ELSE LEAVE PCLoop;
+            END IF;
+            SET index = index + 1;
+        END FOR;
+        RETURN closestModel;
+    END
+b.  CREATE FUNCTION GetPrice (
+        inMaker CHAR(1),
+        inModel INTEGER
+    ) RETURNS CHAR(10)
+    DECLARE outType CHAR(10);
+    BEGIN
+        SELECT type
+        INTO outType
+        FROM Product
+        WHERE maker = inMaker AND model = inModel;
+        RETURN outType;
+    END
+c.  CREATE PROCEDURE InsertPC (
+        inModel INTEGER,
+        inSpeed REAL,
+        inRam   INTEGER,
+        inHd    INTEGER,
+        inPrice INTEGER
+    ) 
+    DECLARE tModel INTEGER;
+    DECLARE Exist CONDITION FOR SQLSTATE '23000';
+    BEGIN 
+        SET tModel = inModel;
+        REPEAT
+            INSERT INTO PC
+            VALUES (tModel, inSpeed, inRam, inHd, inPrice);
+            SET tModel = tModel + 1;
+        UNTIL NOT Exist
+        END REPEAT;
+    END
+d.  DECLARE PROCEDURE GetNumbers (
+        IN  inPrice     INTEGER,
+        OUT outPCNumber INTEGER,
+        OUT outLaptopNumber     INTEGER,
+        OUT outPrinterNumber    INTEGER
+    )
+    BEGIN
+        SET outPCNumber = 0;
+        SET outLaptopNumber = 0;
+        SET outPinterNumber = 0;
+        SELECT COUNT(*)
+        INTO outPCNumber
+        FROM PC 
+        WHERE price > inPrice;
+        SELECT COUNT(*)
+        INTO outLaptopNumber
+        FROM Laptop
+        WHERE price > inPrice;
+        SELECT COUNT(*)
+        INTO outPrinterNumber
+        FROM Printer
+        WHERE price > inPrice;
+    END
+
+8.4.3
+a.  CREATE FUNCTION Filepower (
+        inClass     VARCHAR(255)
+    ) RETURNS INTEGER
+    RETURN (
+        SELECT numGuns * bore * bore * bore
+        FROM Classes
+        WHERE class = inClass
+    )
+b.  CREATE PROCEDURE Involved (
+        IN  inBattle    VARCHAR(255),
+        OUT fstCountry  VARCHAR(255),
+        OUT sndCountry  VARCHAR(255)
+    )
+    DECLARE nInvolved INTEGER;
+    BEGIN
+        SET nInvolved = 0;
+        FOR battleLoop AS battleCursor CURSOR FOR
+            SELECT country
+            FROM Classes, Ships, Battles, Outcomes
+        WHERE 
+            Classes.class = Ships.class AND 
+            Ships.name = Outcomes.ship AND
+            Battles.name = Outcomes.battle AND
+            Battles.name = inBattle
+        DO
+            IF nInvolved = 0
+            THEN SET fstCountry = country;
+            ELSE IF nInvolved = 1
+            THEN SET sndCountry = country;
+            ELSE LEAVE battleLoop;
+            END IF;
+            nInvolved = nInvolved + 1;
+        END FOR;
+        IF nInvolved <> 2
+        THEN
+            SET fstCountry = NULL;
+            SET sndCountry = NULL;
+        END IF;
+    END
+c.  CREATE PROCEDURE InsertClass (
+        IN  inClass     VARCHAR(255),
+        IN  inType      CHAR(2),
+        IN  inCountry   VARCHAR(255),
+        IN  inNumGuns   INTEGER,
+        IN  inBore      INTEGER,
+        IN  inDisplacement  INTEGER
+    )
+    BEGIN
+        INSERT INTO Classes
+        VALUES (inClass, inType, inCountry, inNumGuns, inBore, inDisplacement);
+        INSERT INTO Ships (name, class)
+        VALUES (inClass, inClass);
+    END
+d.  CREATE PROCEDURE FixDate (
+        IN  inShip  VARCHAR(255),
+    )
+    FOR fixLoop AS fixCursor CURSOR FOR 
+        SELECT Battles.name AS battle
+        FROM Ships, Outcomes, Battles
+        WHERE
+            Ships.name = inShip AND
+            Ships.name = Outcomes.ship AND
+            Battles.name = Outcomes.battle AND 
+            Battles.date < Ships.launched
+    DO
+        UPDATE Ships
+        SET launched = 0
+        WHERE name = inShip;
+        UPDATE Battles
+        SET date = 0
+        WHERE name = battle;
+    END FOR
+
+8.4.4
+Var(X)  = E[(X - E[X]^2]
+        = E[X^2 - 2XE[X]^2 + E[X]^2]
+        = E[X^2] - 2E[X]^2 + E[X]^2 // linearity of expectation
+        = E[X^2] - E[X]^2
+
+8.5.1 - 8.5.2
+// skipped
+
+
