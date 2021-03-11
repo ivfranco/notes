@@ -614,3 +614,17 @@ fn exercise_8_3_2() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+#[test]
+fn with_stmt_syntax() -> Result<(), Box<dyn Error>> {
+    let conn = pc_database()?;
+    conn.prepare(
+        "WITH P(model) AS
+                (SELECT model FROM PC)    
+            EXCEPT
+                (SELECT model FROM Laptop)
+        SELECT * FROM P
+        ",
+    )?;
+    Ok(())
+}

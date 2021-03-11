@@ -2655,7 +2655,7 @@ LQ ∩ MovieExec ⊆ { name }
 ∃C, CQ = producerC# = cert# AND C
 any columns of Movies or MovieExec mentioned in C is in { title, year, name }
 
-// SQL is almost never directly embedded into the host language now, preprocessor
+// SQL is almost never directly embedded into the host language now, SQL preprocessor
 // has always been a bad idea and nearly impossible in any language more complicated
 // than C, most SQL vendors expose either a dynamic SQL server-client interface
 // or a C CLI interface
@@ -2675,7 +2675,7 @@ CREATE_PROCEDURE:
     PROCEDURE_STMT
 
 PARAM:
-    ("in" | "out" | "inout") COLUMN TYPE
+    ("in" | "out" | "inout") IDENT TYPE
 
 DECLARATION:
     "declare" VARIABLE_NAME TYPE
@@ -3041,4 +3041,383 @@ Var(X)  = E[(X - E[X]^2]
 8.5.1 - 8.5.2
 // skipped
 
+8.6.1 - 8.6.2
+// skipped
 
+8.7.1 - 8.7.2
+// skipped
+
+8.7.3
+MessageFormat class
+
+GRANT_STMT:
+    "grant" PRIVILEGE ("," PRIVILEGE)*
+    "on" DATABASE_ELEMENT
+    "to" USER ("," USER)*
+    ("with grant option")?
+
+REVOKE_STMT:
+    "revoke" "grant option for"? PRIVILEGE ("," PRIVILEGE)*
+    "on" DATABASE_ELEMENT
+    "from" USER ("," USER)*
+    ("cascade" | "restrict")
+    // there's no way to revoke a privilege from only the
+    // immediate grantee
+
+9.1.1
+A/p** -> B/p*
+
+9.1.2
+A/p** -> B/p
+A/p** -> E/p*
+E/p* -> C/p
+E/p* -> D/p*
+
+9.1.3
+A/p**
+
+SEP_BY_COMMA(EXPR) = EXPR ("," EXPR)
+
+WITH_STMT:
+    "with"
+        SEP_BY_COMMA("recursive"? TABLE "(" COLUMNS ")" "as" QUERY_STMT)
+    SQL_STMT
+
+set operations (UNION, EXCEPT, ..) in FROM or WITH statements is invalid in multiple flavor of DB
+
+9.2.1
+a.  Reachable(frm, to, departs, arrives) <- Flights(_, frm, to, departs, arrives)
+    Reachable(frm, to, departs, arrives) <- Flights(_, frm, mid, arrives, to_transfer) &
+                                            Reachable(mid, to, from_transfer, departs) &
+                                            hour(to_transfer) + 1 <= hour(from_transfer)
+b.  WITH RECURSIVE Reaches(frm, to, departs, arrives)
+        (SELECT frm, to, departs, arrives FROM Flights)
+        UNION
+        (
+            SELECT Flights.frm, Reaches.to, Flights.departs, Reaches.arrives
+            FROM Flights, Reaches
+            WHERE 
+                Flights.to = Reaches.frm AND 
+                HOUR(Flights.arrives) + 1 <= HOUR(Reaches.departs)
+        )
+    SELECT frm, to FROM Reaches
+
+9.2.2
+it's a keyword of SQL, like most languages a keyword cannot be used as an identifer
+
+9.2.3
+a.  // the same to Reachable, skipped
+b.  // the same to Reachable, skipped
+c.  WITH FollowOn(x, y) AS
+        // ..
+    SELECT * FROM (FollowOn EXCEPT SequelOf)
+d.  WITH FollowOn(x, y, n) AS
+        (SELECT x, y, 1 FROM SequelOf)
+        UNION
+        (
+            // if SequelOf is recursive (i.e. (x, x) IN SequelOf for some x)
+            // this query won't terminate
+            SELECT SequelOf.x, FollowOn.y, FollowOn.n + 1
+            FROM SequelOf, FollowOn
+            WHERE SequelOf.y = FollowOn.x
+        )
+    SELECT x, y FROM FollowOn WHERE n >= 2
+e.  WITH FollowOn AS
+        // ..
+    SELECT x 
+        FROM FollowOn 
+        GROUP BY FollowOn.x
+        HAVING COUNT(*) >= 2
+f.  WITH FollowOn AS
+        // ..
+    SELECT x, y
+        FROM FollowOn AS Outer
+        WHERE 1 >= (SELECT COUNT(*) FROM FollowOn WHERE x = Outer.y)
+
+9.2.4
+a.  WITH R(class, rclass) AS
+        (SELECT class, rclass FROM Rel)
+        UNION
+        (
+            SELECT Rel.class, R.rclass
+            FROM Rel, R
+            WHERE Rel.rclass = R.class
+        )
+    SELECT * FROM R
+b.  WITH R(class, rclass, mult) AS
+        (SELECT * FROM Rel WHERE mult = 'single')
+        UNION
+        (
+            SELECT Rel.class, R.rclass, 'single'
+            FROM Rel, R
+            WHERE 
+                Rel.rclass = R.class AND
+                Rel.mult = 'single' AND
+                R.mult = 'single'
+        )
+    SELECT class, rclass FROM R
+c.  WITH R(class, rclass) AS
+        (SELECT class, rclass FROM Rel WHERE mult = 'multi')
+        // bidirectional growth from a multi-only base set
+        UNION
+        (
+            SELECT Rel.class, R.rclass
+            FROM Rel, R
+            WHERE Rel.rclass = R.class
+        )
+        UNION
+        (
+            SELECT Rel.class, R.rclass
+            FROM Rel, R
+            WHERE Rel.rclass = R.class
+        )
+    SELECT class, rclass FROM R
+d.  part a EXCEPT part b
+e.  WITH R(class, rclass, mult) AS
+        Rel
+        UNION
+        (
+            SELECT Rel.class, R.rclass, Rel.mult
+            FROM Rel, R
+            WHERE 
+                Rel.rclass = R.class AND
+                Rel.mult = 'single' AND
+                R.mult <> Rel.mult
+        )
+    SELECT class, rclass FROM R
+f.  WITH R(class, rclass, multi) AS 
+        // same to part b
+    SELECT *
+    FROM R INTERSECTION (SELECT rclass, class FROM R)
+
+9.3.5
+a.  Movies(title, year, length, genre, studioName, stars({*Stars}))
+    // Stars unchanged
+b.  Studio(name, address, presC#, movies({*Movies}))
+    // Movies from part a
+c.  Movies(title, year, length, genre, studio(*Studio), stars({*Stars}))
+
+CREATE_TYPE:
+    "create type" TYPE "as" "(" SEP_BY_COMMA(IDENT TYPE) ")"
+
+9.4.7
+CREATE TABLE Movies (
+    title   MovieTitle,
+    year    Year,
+    length  Minute, 
+    genre   Genre,
+    studioName  StudioName
+);
+CREATE Table Studio (
+    name    StudioName,
+    address Address,
+    presC#  Cert
+);
+CREATE Table MovieStar (
+    name    ExecName,
+    address Address,
+    birthdate   Date
+);
+CREATE Table MovieExec (
+    name    ExecName,
+    address Address,
+    cert#   Cert,
+    netWorth    Worth
+);
+CREATE Table StarsIn (
+    movieTitle  MovieTitle,
+    movieYear   Year,
+    starName    ExecName
+);
+
+9.4.8
+a.  CREATE TYPE NameType AS (
+        first   VARCHAR(255),
+        middle  VARCHAR(255),
+        last    VARCHAR(255),
+        title   VARCHAR(255)
+    );
+b.  CREATE TYPE PersonType AS (
+        name    NameType,
+        mother  REF(PersonType),
+        father  REF(PersonType)
+    );
+c.  CREATE TYPE MarriageType AS (
+        date    Date, 
+        spouse1 REF(PersonType),
+        spouse2 REF(PersonType)
+    )
+
+// introducing OO concepts to relational database seems to be violating OOP itself
+// leaking object definitions and references to DB is by no means seperation of concern
+// references and relations are two implementation of the same concept
+
+CREATE_ORDERING:
+    "create ordering for" TYPE
+        ("equals only | "ordering full")
+        "by" ("state" | "relative with" FUNCTION)
+
+9.5.5
+a.  SELECT star->name
+    FROM StarsIn
+    WHERE movie->title = 'Dogma'
+b.  SELECT DISTINCT movie->title, movie->year
+    FROM StarsIn
+    WHERE star->address.city = 'Malibu'
+c.  SELECT DISTINCT DEREF(movie)
+    FROM StarsIn 
+    WHERE star->name = 'Melanie Griffith'
+d.  SELECT DISTINCT movie->title, movie->year
+    FROM StarsIn
+    GROUP BY movie
+    HAVING COUNT(star) >= 5
+
+9.5.2
+CREATE FUNCTION ThenCmp (
+    a   INTEGER,
+    b   INTEGER
+) RETURNS INTEGER
+IF a = 0 THEN RETURN b;
+ELSE RETURN a;
+END IF;
+
+CREATE FUNCTION StarLEG (
+    lhs     StarType
+    rhs     StarType
+) RETURNS INTEGER
+// compare name then address
+// by the FD (name, address) -> birthyear, birthyear can be ignored in comparison
+DECLARE name_cmp INTEGER;
+DECLARE addr_cmp INTEGER;
+BEGIN
+    IF lhs.name < rhs.name THEN SET name_cmp = -1;
+    ELSE IF lhs.name > rhs.name THEN SET name_cmp = 1;
+    ELSE SET name_cmp = 0;
+    END IF;
+    SET addr_cmp = AddrLEG(lhs.address, rhs.address);
+    RETURN ThenCmp(name_cmp, addr_cmp);
+END
+
+9.5.3
+CREATE PROCEDURE DeleteStar (
+    IN inName   CHAR(30) 
+)
+BEGIN
+    BEGIN TRANSCATION;
+    // otherwise another session may insert dangling pointers into StarsIn
+    // after deletion of StarsIn and before deletion of MovieStar
+    SET TRANSACTION READ WRITE ISOLATION LEVEL SERIALIZABLE;
+    DELETE FROM StarsIn
+    WHERE star IN (
+        SELECT starID
+        FROM MovieStar
+        WHERE name = inName
+    );
+    DELTE FROM MovieStar
+    WHERE name = inName;
+    COMMIT;
+END
+
+9.6.1
+a.  dimension attributes: cust, date, proc, hd, od, memory
+    dependent attributes: quant, price
+b.  Customer(id)
+    Date(day, week, month, year)
+    Processor(id, brand, speed, cores, ..)
+    Harddisk(id, brand, space, ..)
+    Optical(id, brand, type, speed, writable, ..)
+
+9.6.2
+SELECT week, type, SUM(*) 
+FROM (Order NATURAL JOIN Optical ON od = id)
+WHERE year = $current_year
+GROUP BY week, type
+
+9.7.1
+a.  F: 10^10
+    CUBE(F): Σ_{i=0}^10 (10^i * C(10, i)) = 25937424601
+    25937424601 / 10^10 = 2.5937424601
+b.  F: 2^10
+    CUBE(F): Σ_{i=0}^10 (2^i * C(10, i)) = 59049
+    59049 / 2^10 = 57.665
+
+9.7.2
+a.  SELECT dealer, SUM(val)
+    FROM SalesCube
+    WHERE 
+        model = NULL AND
+        color = 'blue' AND
+        date = NULL
+    GROUP BY dealer
+b.  SELECT SUM(cnt)
+    FROM SalesCube
+    WHERE
+        model = 'Gobis' AND
+        color = 'green' AND
+        date = NULL AND
+        dealer = 'Smilin\' Sally'
+c.  SELECT dealer, AVG(SUM(cnt))
+    FROM SalesCube
+    WHERE 
+        model = 'Gobis' AND
+        color = NULL AND
+        Year(date) = 2007 AND
+        Month(date) = 3
+    GROUP BY date, dealer
+
+9.7.3
+none of them has NULL tail
+
+9.7.4
+CREATE MATERIALIZED VIEW OrderCube AS 
+    SELECT cust, date, proc, hd, od, memory, SUM(sale), SUM(quant)
+    FROM Order
+    GROUP BY cust, date, proc, hd, od, memory WITH CUBE
+
+9.7.5
+a.  SELECT speed, Month(date), SUM(SUM(quant))
+    FROM OrderCube, Processor, Date
+    WHERE
+        cust = NULL AND
+        Year(date) = 2007 AND 
+        proc = Processor.id AND
+        hd = NULL AND
+        od = NULL AND
+        memory = NULL
+    GROUP BY speed, Month(date)
+b.  SELECT Harddisk.type, Processor.type, SUM(SUM(quant))
+    FROM OrderCube, Processor, Harddisk
+    WHERE
+        cust = NULL AND
+        date = NULL AND
+        proc = Processor.id AND
+        hd = Harddisk.id AND
+        od = NULL AND
+        memory = NULL
+    GROUP BY Harddisk.type, Processor.type
+c.  SELECT Month(date), AVG(SUM(sale) / SUM(quant))
+    FROM OrderCube, Processor
+    WHERE
+        cust = NULL AND
+        Year(date) >= 2005 AND
+        proc = Processor.id AND
+        Processor.speed = 3.0 AND
+        hd = NULL AND
+        od = NULL AND
+        memory = NULL
+    GROUP BY Month(date)
+
+9.7.6
+GROUP BY model, date, dealer, color WITH ROLLUP
+
+9.7.7
+assume there are n dimension attributes in F, each with ki possible value, the size of CUBE is
+    let N = {1, .., n},
+    Σ_{A ∈ 2^N} (Π_A kj) C(n, |A|)
+the fact table may be empty, the ratio is not well defined
+
+//  1.  XML is more dead than ever
+//  2.  most use cases of its replacement, JSON, assumes a schema automatically generated from a type 
+//      or explicitly descripted in the host language, hence this chapter doesn't apply
+//  3.  the last two sections are details of DTD and XML schema, while JSON schema is a whole other beast
+//  the next chapter is skipped
