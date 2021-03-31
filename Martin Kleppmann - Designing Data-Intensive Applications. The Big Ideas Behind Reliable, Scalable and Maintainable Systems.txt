@@ -1,2 +1,27 @@
 p45, imperative vs. declarative javascript:
-the culprit here is "no abstraction" instead of being imperative
+The culprit here is "no abstraction" instead of being imperative. 
+
+p74, "n order to find the value for a key, we first check the most recent segment’s hash map; if
+the key is not present we check the second-most-recent segment, and so on."
+... or store the epoch number as part of the index.
+
+Branching factor of a B-tree is variable in a range, in Rust BTreeMap the range is [5, 11].
+
+p87, multi-column indexes
+One possible solution to multi-dimensional queries in relational databases is data cube, which is
+standardized in ISO SQL 2018.
+
+p113, "if an attacker can get your application to decode an arbitrary byte
+sequence, they can instantiate arbitrary classes, which in turn often allows them
+to do terrible things such as remotely executing arbitrary code [6, 7]"
+- [6]: CVE-2015-7501, Java, serializing / deserializing certain objects invokes methods through
+    runtime reflection which can be exploited to run arbitrary code with forged payload
+- [7]: CVE-2013-0156, Ruby, YAML.load occasionally evaluates serialized string which may include
+    arbitrary code wrapped in `eval` function call
+Both cases the vulnerability originated in lack of distinction between data and program in the
+language and badly written serialization library, hence
+> "For these reasons it’s generally a bad idea to use your language’s built-in encoding for
+> anything other than very transient purposes"
+doesn't necessarily apply to something like Bincode. In the Ruby case it's not even built-in
+encoding, YAML is developed independently and had seen wide adoption since its early days.
+
