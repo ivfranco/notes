@@ -1,2 +1,6 @@
 p45, imperative vs. declarative javascript:
 the culprit here is "no abstraction" instead of being imperative
+
+p95, Column-Oriented Storage
+curiously akin to Entity Component System, in which components of objects rather than objects
+themselves are stored together
