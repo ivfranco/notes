@@ -58,6 +58,11 @@ operating on a single replica.
 The code (in Erlang) is barely documented, the company operating Riak went out of business in
 2017, Amazon doesn't seem to be using version vectors any more since 2015
 
+p208, Partitioning Secondary Indexes by Term
+A discussion on this topic in Berkeley CS186 : https://www.youtube.com/watch?v=FNhJXpcc3I4,
+partitioning indexes by terms can be a very bad idea since most human behaviors follow the Zipf
+distribution: naturally 80% accesses will be on 20% terms
+
 Common implementation of isolation levels
 Read committed: modification is performed on a different version of the store, only applied to
     the main store when commited
