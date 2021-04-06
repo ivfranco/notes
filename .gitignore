@@ -3,4 +3,5 @@ node_modules/
 **/*.js
 **/*.js.map
 output/
+target/
 package-lock.json

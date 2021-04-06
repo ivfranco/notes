@@ -40,3 +40,25 @@ A reproduction conducted in 2019 (http://vaastavanand.com/blog/2019/Reproduction
 that the single-threaded algorithm outperformed distributed algorithms even more due to improved
 memory handling in Linux and better hardware
 
+[23] Douglas B. Terry: “Replicated Data Consistency Explained Through Baseball”
+Given 6 consistency model in partial order:
+    Strong Consistency: See all previous writes.
+    Bounded Staleness: See all “old” writes.
+    Consistent Prefix: See initial sequence of writes.
+    Monotonic Reads: See increasing subset of writes.
+    Read My Writes: See all writes performed by reader.
+    Eventual Consistency: See subset of previous writes.
+where Strong Consistency is the absolute strongest,  Eventual Consistency is implied by all other
+models, Bounded Staleness after a delay converges to Strong Consistency hence implies all others
+
+The algorithm presented in the text is a variant of the dotted version vectors set (DVVSet)
+operating on a single replica.
+- https://gsd.di.uminho.pt/members/vff/dotted-version-vectors-2012.pdf
+- https://github.com/ricardobcl/Dotted-Version-Vectors
+The code (in Erlang) is barely documented, the company operating Riak went out of business in
+2017, Amazon doesn't seem to be using version vectors any more since 2015
+
+p208, Partitioning Secondary Indexes by Term
+A discussion on this topic in Berkeley CS186 : https://www.youtube.com/watch?v=FNhJXpcc3I4,
+partitioning indexes by terms can be a very bad idea since most human behaviors follow the Zipf
+distribution: naturally 80% accesses will be on 20% terms
