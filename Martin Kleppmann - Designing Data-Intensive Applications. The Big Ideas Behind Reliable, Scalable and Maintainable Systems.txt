@@ -95,3 +95,11 @@ p242, "they also use B-trees (see “B-Trees” on page 79), they use an append-
 variant that does not overwrite pages of the tree when they are updated, but instead creates a
 new copy of each modified page"
 One such persistent binary search tree is introduced in Introduction to algorithms, problems 13-1
+
+[21] Salvatore Sanfilippo: “A Few Arguments About Redis Sentinel Properties and
+Fail Scenarios”
+A Redis leader, configured not to persist data on disk, crashed and restarted with an empty
+store, yet managed to restart so fast that the watcher instance (Redis Sentinel) hadn't detected
+the failure, as a result all replica synchronized with the leader and wiped their database. The
+Redis developer (author of the blog) talked about how to prevent future accidents by a version
+tag ("runid"), which is now implemented.
