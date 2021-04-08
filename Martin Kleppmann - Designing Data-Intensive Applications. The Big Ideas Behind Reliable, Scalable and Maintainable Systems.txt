@@ -105,6 +105,25 @@ the failure, as a result all replica synchronized with the leader and wiped thei
 Redis developer (author of the blog) talked about how to prevent future accidents by a version
 tag ("runid"), which is now implemented.
 
+[90] Bowen Alpern and Fred B. Schneider: “Defining Liveness”
+let 
+    S be the set of program states
+    S^ω be the set of infinite sequences of program states
+    σ ∈ S^w be executions of program
+    S^* be the set of finite sequences of program states
+    σ_i ∈ S^*, the length i prefix of σ, be partial executions
+    σ |= P when an execution σ of a program is in property P
+safety property is defined as
+    ∀σ∈S, ~(σ |= P) => ∃i>=0, ∀β∈S^ω, ~(σ_i β |= P)
+that is, when an execution doesn't satisfy a safety property, there must be a point in the execution
+that, after which the safety property is irredeemable: no further actions may make the execution
+satisfy P ever again
+liveness property is defined as
+    ∀α∈S^*, ∃β∈S^ω, αβ |= P
+that is, for any execution of the program, there's always a (maybe infinite) sequence of actions
+that, after which the execution satisfies the liveness property P, or the liveness property
+will "eventually happen"
+
 [46] Nelson Minar: “Leap Second Crashes Half the Internet”
 a bug in adjtimex(2) set some timer in the kernel one second ahead of others, as a consequence
 clock_nanosleep shorter than 1 second will return immediately, turning certain loops into spin
