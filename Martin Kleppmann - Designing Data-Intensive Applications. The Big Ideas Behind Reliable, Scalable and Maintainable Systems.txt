@@ -63,6 +63,47 @@ A discussion on this topic in Berkeley CS186 : https://www.youtube.com/watch?v=F
 partitioning indexes by terms can be a very bad idea since most human behaviors follow the Zipf
 distribution: naturally 80% accesses will be on 20% terms
 
+Common implementation of isolation levels
+Read committed: 
+    modification is performed on a different version of the store, only applied to the main store when commited
+Snapshot isolation: 
+    each transaction works on a snapshot version of the store identified by an always
+    incrementing transaction id, modification is invisible to a transaction if
+        1.  the modifying transaction is not committed yet when the current one started
+        2.  modifying transaction has a later id
+        3.  the modifying transaction aborted
+    A background garbage collector periodically remove old values no longer visible to any
+    ongoing and future transactions.
+Serializable:
+    1.  actual serial execution, one transaction at a time (became feasible recently)
+    2.  locally shard the store then 1. may be executed concurrently
+    3.  2PL: each object is protected by a read / write lock, in phase one the transaction tries to
+        acquire all the locks of objects it may use, in phase two the transaction is executed and
+        then locks released. To handle phantoms in addition to existing objects there must be lock
+        on not yet existing objects (predicate locks) or ranges of them (index-range locks). 
+    4.  Serializable snapshot isolation: the basic idea sketched by the text is superficially
+        similar to that of software transactional memory (STM): on top of snapshot isolation,
+        optimistically execute the transaction on a snapshot, commit only when the result is not
+        invalidated by other current transactions; but STM is mentioned nowhere in the original
+        paper [51], guess the description in the text must be over-simplified
+    
+[27] Michael Melanson: “Transactions: The Limits of Isolation”
+As there's no commonly agreed interpretation to isolation levels provided by DBMS vendors, author
+of this book wrote a tool to test them.
+
+p242, "they also use B-trees (see “B-Trees” on page 79), they use an append-only/copy-on-write
+variant that does not overwrite pages of the tree when they are updated, but instead creates a
+new copy of each modified page"
+One such persistent binary search tree is introduced in Introduction to algorithms, problems 13-1
+
+[21] Salvatore Sanfilippo: “A Few Arguments About Redis Sentinel Properties and
+Fail Scenarios”
+A Redis leader, configured not to persist data on disk, crashed and restarted with an empty
+store, yet managed to restart so fast that the watcher instance (Redis Sentinel) hadn't detected
+the failure, as a result all replica synchronized with the leader and wiped their database. The
+Redis developer (author of the blog) talked about how to prevent future accidents by a version
+tag ("runid"), which is now implemented.
+
 [90] Bowen Alpern and Fred B. Schneider: “Defining Liveness”
 let 
     S be the set of program states
