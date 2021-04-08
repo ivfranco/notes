@@ -65,7 +65,8 @@ distribution: naturally 80% accesses will be on 20% terms
 
 Common implementation of isolation levels
 Read committed: 
-    modification is performed on a different version of the store, only applied to the main store when commited
+    modification is performed on a different version of the store, only applied to the main store
+    when commited
 Snapshot isolation: 
     each transaction works on a snapshot version of the store identified by an always
     incrementing transaction id, modification is invisible to a transaction if
@@ -103,3 +104,64 @@ store, yet managed to restart so fast that the watcher instance (Redis Sentinel)
 the failure, as a result all replica synchronized with the leader and wiped their database. The
 Redis developer (author of the blog) talked about how to prevent future accidents by a version
 tag ("runid"), which is now implemented.
+
+[46] Nelson Minar: “Leap Second Crashes Half the Internet”
+a bug in adjtimex(2) set some timer in the kernel one second ahead of others, as a consequence
+clock_nanosleep shorter than 1 second will return immediately, turning certain loops into spin
+locks which saturated CPU
+
+[6] Maurice P. Herlihy and Jeannette M. Wing: “Linearizability: A Correctness Condition for
+Concurrent Objects”
+An operation invocation is a four tuple:
+    (x, op, args, A), or by the notation of the paper,
+    <x op(args*) A>
+where
+    x:      the object name
+    op:     an operation name
+    args:   a sequence of argument values
+    A:      a process name
+A response is a four tuple:
+    <x term(res*) A>
+where
+    x:      the object name
+    term:   a termination condition
+    res:    a sequence of results
+    A:      a process name
+A response matches an invocation if their object names agree and their process names agree.
+An event is either an invocation or a response
+A history H is a sequence of events
+complete(H) is the maximum subsequence of H that all invocations has matching responses
+A history H is sequential if 
+    1.  H starts with an invocation
+    2.  except for the final invocation, each invocation is followed immediately by a matching
+        response each response is followed immediately by a matching invocation
+A process sub-history H|P is the subsequence of all events in H whose process names are P
+An object sub-history H|x is similarly defined
+A history is well-formed if for all P, H|P is sequential
+Two histories H and H' are equivalent if
+    ∀P, H|P = H'|P
+A sequential specification for an object is a prefix-closed set of single-object sequential
+histories for that object
+A history H is legal if:
+    1.  H is sequential
+    2.  H|x for all x belongs to the sequential specification for x
+An operation 
+    [q inv/res A]
+is a pair of matching invocation and the next matching response
+An operation e0 lies within another operation e1 if inv(e1) precedes inv(e0) and res(e0) precedes
+res(e1)
+A history H induces an partial order <_H on operations:
+    e0 <_H e1 if res(e0) precedes inv(e1) in H
+if H is sequential, <_H is a total order
+A history H is linearizable if it can be extended (by appending zero or more response events) to
+some history H’ such that:
+    1.  complete(H') is equivalent to some legal sequential history S
+    2.  <_H ⊆ <_S
+in other words, the completed operations in the history may be seen as sequentially executed while
+preserving all the orderings and logical correctness.
+Linearizability is local:
+    H is linearizable iff H|x is linearizable for all object x
+Linearizability is non-blocking:
+    Let inv be an invocation of a total operation. If <x inv P> is a pending invocation in a
+    linearizable history H, then there exists a response <x res P> such that H . <x res P> is
+    linearizable.
