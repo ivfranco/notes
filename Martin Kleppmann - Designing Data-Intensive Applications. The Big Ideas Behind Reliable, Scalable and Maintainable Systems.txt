@@ -184,3 +184,31 @@ Linearizability is non-blocking:
     Let inv be an invocation of a total operation. If <x inv P> is a pending invocation in a
     linearizable history H, then there exists a response <x res P> such that H . <x res P> is
     linearizable.
+
+[56] Leslie Lamport: “Time, Clocks, and the Ordering of Events in a Distributed System”
+Define "happens before" relation -> as the transitive closure of:
+    1.  a -> b if event a happens before b on the same process
+    2.  a -> b if a sends a message and b is the receipt 
+(in this paper events are instant, not a period of time)
+naturally -> is a superset of causal dependencies
+A clock C is a function that maps events to numbers, the correctness of a clock is defined as:
+    a -> b implies C(a) < C(b)
+An intuitive way to satisfy the correctness condition is, set a counter in each process that:
+    1.  increment the counter between each two successive events in that process
+    2.  tag each message with the current counter, upon receiving the message advance the counter to
+        a number greater than the received number in the message
+Assign an arbitrary total order to processes, define a total order => over tuples of events and
+processes that:
+    (C(a), Pi) => (C(b), Pj) iff C(a) < C(b) | (C(a) = C(b) & Pi < Pj
+a simple proof of concept:
+./distributed_system/lamport_timestamp
+Without errors, any program that can be described as a (possibly infinite) state machine
+    F: C x S -> S
+where
+    C: set of commands 
+    S: set of states
+    F: a function computes the next state from a command and the current state 
+may be correctly implemented as a distributed system with Lamport timestamp and message
+broadcasting: the order of comments is ensured by the total order =>.
+Later half of the paper is dedicated on replacing the counter in Lamport timestamp by physical
+times
