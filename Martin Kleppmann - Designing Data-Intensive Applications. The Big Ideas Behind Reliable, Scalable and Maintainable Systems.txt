@@ -212,3 +212,126 @@ may be correctly implemented as a distributed system with Lamport timestamp and 
 broadcasting: the order of comments is ensured by the total order =>.
 Later half of the paper is dedicated on replacing the counter in Lamport timestamp by physical
 times
+
+[68] Michael J. Fischer, Nancy Lynch, and Michael S. Paterson: “Impossibility of Distributed
+Consensus with One Faulty Process”
+helpful contents:
+    https://www.the-paper-trail.org/post/2008-08-13-a-brief-tour-of-flp-impossibility/
+    https://www.youtube.com/watch?v=Vmlj-67aymw
+
+Let a consensus protocol P be an asynchronous system of N processes (N >= 2)
+
+Let xp, yp be input and output register with value in {0, 1, b}, initially yp = b, if yp ∈ {0, 1}
+the process is in decision states
+
+P acts deterministically according to a transition function 
+
+A message is a tuple (p, m) where
+    p:  a process id
+    m:  a message from a fixed universe M
+
+A message system supports two operations:
+    send(p, m): places (p, m) in the message buffer
+    receive(p): deletes _some_ message (p, m) from message buffer and return m, or delete none
+                and return null
+
+The message system is nondeterministic, the only guarantee is if there's a message (p, m) in message
+buffer, calling receive(p) will eventually return m (after a finite yet unbounded number of null)
+
+A configuration C of the system consists of the initial states of processes and the content of the
+message buffer
+
+A event (p, m) deterministically changes the internal state of a process
+
+A step C -> C' consists of a primitive step by a single process p:
+    1.  let m = receive(p) // m may be null
+    2.  apply the event (p, m) to C
+
+A schedule σ of C is a finite or infinite sequence of events that can be applied in turn, starting
+from C, let σ(C) be the resulting configuration
+
+A configuration reachable from the initial state is called accessible
+
+Lemma 1: schedules are communicative
+    from some configuration C, let schedules σ1, σ2 lead to configurations C1 and C2, if the sets of
+    processes taking steps in σ1 and σ2 are disjoint, then σ2(C1) = σ1(C2)
+
+A configuration C has decision value v if some process p is in a decision state v
+
+A consensus protocol is partially correct if it satisfies two conditions:
+    1.  no accessible configuration has more than one decision value
+    2.  for each v ∈ {0, 1} there is a accessible configuration with decision value v
+
+A run is admissible if there's at most one faulty (non-responding for some period) process at a time
+
+A run is deciding provided that some (protocol specific) process reaches a decision state
+
+A consensus protocol is totally correct in spite of one fault if
+    1.  it is partially correct
+    2.  every admissible run is (finitely) deciding 
+
+Theorem 1: No consensus protocol is totally correct in spite of one fault
+
+Let V be the set of decision values of reachable configurations from C, C is bivalent if |V| = 2,
+bivalent configuration by definition is not deciding
+
+Two configurations are adjacent if they differ in only the initial value xp of a process p 
+
+Lemma 2: totally correct protocol P has a bivalent initial configuration
+    Assume not, by partial correctness there must be initial configurations with decision value 0
+    or 1. Any configuration can be reached from adjacent configurations from another, configuration,
+    hence there must be two adjacent initial configurations C0 and C1 with decision values 0 and 1.
+    Consider a admissible deciding run σ on C0 in which process p takes no steps (that is, p is the
+    faulty process), σ can be applied on C1, σ(C0) = σ(C1), either C0 or C1 is bivalent.
+
+Lemma 3: let C be a bivalent configuration of P, let e = (p, m) be an event applicable to C. let S
+be the set of reachable configurations from C without applying e, let 
+    S' = e(S) = {e(E) | E ∈ S, e applicable to E}
+then S' also contains a bivalent configuration.
+    For all E ∈ S, e is applicable to E (the paper assumes that if an event is applicable to a
+    process, it's applicable regardless the internal state).
+
+    Assume S' contains no bivalent configurations. let E0, E1 be configurations reachable from C
+    with decision value 0 and 1 (exist by bivalent-ness of C). If Ei ∈ S, let Fi = e(Ei) ∈ S',
+    otherwise e was applied in reaching Ei, there's Fi ∈ S' from which Ei is reachable. Either case,
+    Fi is i-valent (all reachable configuration from Fi has decision value i). S' must have both
+    1-valent and 0-valent configurations.
+
+    C and D are neighbors iff 
+        ∃e, C = e(D) or D = e(C)
+    there must be C0, C1 where Di = e(Ci) ∈ S' are i-valent:
+        without loss of generality let e(C) be 0-valent, by the argument above there must be some σ
+        that e ∉ σ and e(σ(C)) 1-valent, one step e' in σ has e'(C0) = C1
+
+    let e' = (p', m'), C1 = e'(C0),
+        If p != p', by Lemma 1, D1 = e(e'(C0)) = e'(e(C0)) = e'(D0), but D0 is 0-valent, all
+        configurations reachable from D0 must be 0-valent too
+
+        If p = p', let σ be a finite deciding run from C0 in which p takes no steps (must exist
+        by total correctness). Let A = σ(C0), by Lemma 1 σ is applicable on D0 and D1, by
+        valent-ness Ei = σ(Di) has the same valent-ness to Di, again by Lemma 1 e(A) = E0 and
+        e(e'(A)) = E1. A is bivalent (not deciding).
+    
+Any deciding run must be univalent, in a totally correct protocol there must be a step that changes
+the initial bivalent configuration (partial correctness 2) to a univalent configuration, but there's
+always possible to avoid such a step in an admissible run.
+
+Put processes in an imaginary queue (cause the execution order in asynchronous model can be
+arbitrary), message buffer in the configuration is ordered according to the time the messages
+were sent (again unspecified in asynchronous model). In each stage:
+    Each process may take steps, the stage ends when the first process in the queue takes a step 
+    in which its earliest message (if any at the start of the stage) is received.
+
+    At the end of a stage, the first process in the queue is moved to the back of the queue.
+
+The run is admissible since each process may receive infinite messages given infinite stages, when
+starting from a bivalent initial configuration (must exist by Lemma 2):
+    let C be the bivalent configuration at the start of the stage, let 
+        m be the earliest message to p in C's message buffer or null otherwise
+        e = (p, m)
+
+    By Lemma 3, there's a bivalent configuration C' reachable from C by a schedule σ in which e is
+    the last event, σ matches the definition of a stage and C' = σ(C) is bivalent.
+
+The run is admissible but not finitely deciding, therefore no protocol is totally correct in spite
+of one fault.
