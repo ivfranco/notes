@@ -220,10 +220,8 @@ helpful contents:
     https://www.youtube.com/watch?v=Vmlj-67aymw
 
 Let a consensus protocol P be an asynchronous system of N processes (N >= 2)
-
 Let xp, yp be input and output register with value in {0, 1, b}, initially yp = b, if yp ∈ {0, 1}
 the process is in decision states
-
 P acts deterministically according to a transition function 
 
 A message is a tuple (p, m) where
@@ -242,14 +240,12 @@ A configuration C of the system consists of the initial states of processes and 
 message buffer
 
 A event (p, m) deterministically changes the internal state of a process
-
 A step C -> C' consists of a primitive step by a single process p:
     1.  let m = receive(p) // m may be null
     2.  apply the event (p, m) to C
 
 A schedule σ of C is a finite or infinite sequence of events that can be applied in turn, starting
 from C, let σ(C) be the resulting configuration
-
 A configuration reachable from the initial state is called accessible
 
 Lemma 1: schedules are communicative
@@ -257,15 +253,12 @@ Lemma 1: schedules are communicative
     processes taking steps in σ1 and σ2 are disjoint, then σ2(C1) = σ1(C2)
 
 A configuration C has decision value v if some process p is in a decision state v
-
 A consensus protocol is partially correct if it satisfies two conditions:
     1.  no accessible configuration has more than one decision value
     2.  for each v ∈ {0, 1} there is a accessible configuration with decision value v
 
 A run is admissible if there's at most one faulty (non-responding for some period) process at a time
-
 A run is deciding provided that some (protocol specific) process reaches a decision state
-
 A consensus protocol is totally correct in spite of one fault if
     1.  it is partially correct
     2.  every admissible run is (finitely) deciding 
