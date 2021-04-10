@@ -65,7 +65,8 @@ distribution: naturally 80% accesses will be on 20% terms
 
 Common implementation of isolation levels
 Read committed: 
-    modification is performed on a different version of the store, only applied to the main store when commited
+    modification is performed on a different version of the store, only applied to the main store
+    when commited
 Snapshot isolation: 
     each transaction works on a snapshot version of the store identified by an always
     incrementing transaction id, modification is invisible to a transaction if
@@ -122,6 +123,211 @@ liveness property is defined as
 that is, for any execution of the program, there's always a (maybe infinite) sequence of actions
 that, after which the execution satisfies the liveness property P, or the liveness property
 will "eventually happen"
+
+[46] Nelson Minar: “Leap Second Crashes Half the Internet”
+a bug in adjtimex(2) set some timer in the kernel one second ahead of others, as a consequence
+clock_nanosleep shorter than 1 second will return immediately, turning certain loops into spin
+locks which saturated CPU
+
+[6] Maurice P. Herlihy and Jeannette M. Wing: “Linearizability: A Correctness Condition for
+Concurrent Objects”
+An operation invocation is a four tuple:
+    (x, op, args, A), or by the notation of the paper,
+    <x op(args*) A>
+where
+    x:      the object name
+    op:     an operation name
+    args:   a sequence of argument values
+    A:      a process name
+A response is a four tuple:
+    <x term(res*) A>
+where
+    x:      the object name
+    term:   a termination condition
+    res:    a sequence of results
+    A:      a process name
+A response matches an invocation if their object names agree and their process names agree.
+An event is either an invocation or a response
+A history H is a sequence of events
+complete(H) is the maximum subsequence of H that all invocations has matching responses
+A history H is sequential if 
+    1.  H starts with an invocation
+    2.  except for the final invocation, each invocation is followed immediately by a matching
+        response each response is followed immediately by a matching invocation
+A process sub-history H|P is the subsequence of all events in H whose process names are P
+An object sub-history H|x is similarly defined
+A history is well-formed if for all P, H|P is sequential
+Two histories H and H' are equivalent if
+    ∀P, H|P = H'|P
+A sequential specification for an object is a prefix-closed set of single-object sequential
+histories for that object
+A history H is legal if:
+    1.  H is sequential
+    2.  H|x for all x belongs to the sequential specification for x
+An operation 
+    [q inv/res A]
+is a pair of matching invocation and the next matching response
+An operation e0 lies within another operation e1 if inv(e1) precedes inv(e0) and res(e0) precedes
+res(e1)
+A history H induces an partial order <_H on operations:
+    e0 <_H e1 if res(e0) precedes inv(e1) in H
+if H is sequential, <_H is a total order
+A history H is linearizable if it can be extended (by appending zero or more response events) to
+some history H’ such that:
+    1.  complete(H') is equivalent to some legal sequential history S
+    2.  <_H ⊆ <_S
+in other words, the completed operations in the history may be seen as sequentially executed while
+preserving all the orderings and logical correctness.
+Linearizability is local:
+    H is linearizable iff H|x is linearizable for all object x
+Linearizability is non-blocking:
+    Let inv be an invocation of a total operation. If <x inv P> is a pending invocation in a
+    linearizable history H, then there exists a response <x res P> such that H . <x res P> is
+    linearizable.
+
+[56] Leslie Lamport: “Time, Clocks, and the Ordering of Events in a Distributed System”
+Define "happens before" relation -> as the transitive closure of:
+    1.  a -> b if event a happens before b on the same process
+    2.  a -> b if a sends a message and b is the receipt 
+(in this paper events are instant, not a period of time)
+naturally -> is a superset of causal dependencies
+A clock C is a function that maps events to numbers, the correctness of a clock is defined as:
+    a -> b implies C(a) < C(b)
+An intuitive way to satisfy the correctness condition is, set a counter in each process that:
+    1.  increment the counter between each two successive events in that process
+    2.  tag each message with the current counter, upon receiving the message advance the counter to
+        a number greater than the received number in the message
+Assign an arbitrary total order to processes, define a total order => over tuples of events and
+processes that:
+    (C(a), Pi) => (C(b), Pj) iff C(a) < C(b) | (C(a) = C(b) & Pi < Pj
+a simple proof of concept:
+./distributed_system/lamport_timestamp
+Without errors, any program that can be described as a (possibly infinite) state machine
+    F: C x S -> S
+where
+    C: set of commands 
+    S: set of states
+    F: a function computes the next state from a command and the current state 
+may be correctly implemented as a distributed system with Lamport timestamp and message
+broadcasting: the order of comments is ensured by the total order =>.
+Later half of the paper is dedicated on replacing the counter in Lamport timestamp by physical
+times
+
+[68] Michael J. Fischer, Nancy Lynch, and Michael S. Paterson: “Impossibility of Distributed
+Consensus with One Faulty Process”
+helpful contents:
+    https://www.the-paper-trail.org/post/2008-08-13-a-brief-tour-of-flp-impossibility/
+    https://www.youtube.com/watch?v=Vmlj-67aymw
+
+Let a consensus protocol P be an asynchronous system of N processes (N >= 2)
+Let xp, yp be input and output register with value in {0, 1, b}, initially yp = b, if yp ∈ {0, 1}
+the process is in decision states
+P acts deterministically according to a transition function 
+
+A message is a tuple (p, m) where
+    p:  a process id
+    m:  a message from a fixed universe M
+
+A message system supports two operations:
+    send(p, m): places (p, m) in the message buffer
+    receive(p): deletes _some_ message (p, m) from message buffer and return m, or delete none
+                and return null
+
+The message system is nondeterministic, the only guarantee is if there's a message (p, m) in message
+buffer, calling receive(p) will eventually return m (after a finite yet unbounded number of null)
+
+A configuration C of the system consists of the initial states of processes and the content of the
+message buffer
+
+A event (p, m) deterministically changes the internal state of a process
+A step C -> C' consists of a primitive step by a single process p:
+    1.  let m = receive(p) // m may be null
+    2.  apply the event (p, m) to C
+
+A schedule σ of C is a finite or infinite sequence of events that can be applied in turn, starting
+from C, let σ(C) be the resulting configuration
+A configuration reachable from the initial state is called accessible
+
+Lemma 1: schedules are communicative
+    from some configuration C, let schedules σ1, σ2 lead to configurations C1 and C2, if the sets of
+    processes taking steps in σ1 and σ2 are disjoint, then σ2(C1) = σ1(C2)
+
+A configuration C has decision value v if some process p is in a decision state v
+A consensus protocol is partially correct if it satisfies two conditions:
+    1.  no accessible configuration has more than one decision value
+    2.  for each v ∈ {0, 1} there is a accessible configuration with decision value v
+
+A run is admissible if there's at most one faulty (non-responding for some period) process at a time
+A run is deciding provided that some (protocol specific) process reaches a decision state
+A consensus protocol is totally correct in spite of one fault if
+    1.  it is partially correct
+    2.  every admissible run is (finitely) deciding 
+
+Theorem 1: No consensus protocol is totally correct in spite of one fault
+
+Let V be the set of decision values of reachable configurations from C, C is bivalent if |V| = 2,
+bivalent configuration by definition is not deciding
+
+Two configurations are adjacent if they differ in only the initial value xp of a process p 
+
+Lemma 2: totally correct protocol P has a bivalent initial configuration
+    Assume not, by partial correctness there must be initial configurations with decision value 0
+    or 1. Any configuration can be reached from adjacent configurations from another, configuration,
+    hence there must be two adjacent initial configurations C0 and C1 with decision values 0 and 1.
+    Consider a admissible deciding run σ on C0 in which process p takes no steps (that is, p is the
+    faulty process), σ can be applied on C1, σ(C0) = σ(C1), either C0 or C1 is bivalent.
+
+Lemma 3: let C be a bivalent configuration of P, let e = (p, m) be an event applicable to C. let S
+be the set of reachable configurations from C without applying e, let 
+    S' = e(S) = {e(E) | E ∈ S, e applicable to E}
+then S' also contains a bivalent configuration.
+    For all E ∈ S, e is applicable to E (the paper assumes that if an event is applicable to a
+    process, it's applicable regardless the internal state).
+
+    Assume S' contains no bivalent configurations. let E0, E1 be configurations reachable from C
+    with decision value 0 and 1 (exist by bivalent-ness of C). If Ei ∈ S, let Fi = e(Ei) ∈ S',
+    otherwise e was applied in reaching Ei, there's Fi ∈ S' from which Ei is reachable. Either case,
+    Fi is i-valent (all reachable configuration from Fi has decision value i). S' must have both
+    1-valent and 0-valent configurations.
+
+    C and D are neighbors iff 
+        ∃e, C = e(D) or D = e(C)
+    there must be C0, C1 where Di = e(Ci) ∈ S' are i-valent:
+        without loss of generality let e(C) be 0-valent, by the argument above there must be some σ
+        that e ∉ σ and e(σ(C)) 1-valent, one step e' in σ has e'(C0) = C1
+
+    let e' = (p', m'), C1 = e'(C0),
+        If p != p', by Lemma 1, D1 = e(e'(C0)) = e'(e(C0)) = e'(D0), but D0 is 0-valent, all
+        configurations reachable from D0 must be 0-valent too
+
+        If p = p', let σ be a finite deciding run from C0 in which p takes no steps (must exist
+        by total correctness). Let A = σ(C0), by Lemma 1 σ is applicable on D0 and D1, by
+        valent-ness Ei = σ(Di) has the same valent-ness to Di, again by Lemma 1 e(A) = E0 and
+        e(e'(A)) = E1. A is bivalent (not deciding).
+    
+Any deciding run must be univalent, in a totally correct protocol there must be a step that changes
+the initial bivalent configuration (partial correctness 2) to a univalent configuration, but there's
+always possible to avoid such a step in an admissible run.
+
+Put processes in an imaginary queue (cause the execution order in asynchronous model can be
+arbitrary), message buffer in the configuration is ordered according to the time the messages
+were sent (again unspecified in asynchronous model). In each stage:
+    Each process may take steps, the stage ends when the first process in the queue takes a step 
+    in which its earliest message (if any at the start of the stage) is received.
+
+    At the end of a stage, the first process in the queue is moved to the back of the queue.
+
+The run is admissible since each process may receive infinite messages given infinite stages, when
+starting from a bivalent initial configuration (must exist by Lemma 2):
+    let C be the bivalent configuration at the start of the stage, let 
+        m be the earliest message to p in C's message buffer or null otherwise
+        e = (p, m)
+
+    By Lemma 3, there's a bivalent configuration C' reachable from C by a schedule σ in which e is
+    the last event, σ matches the definition of a stage and C' = σ(C) is bivalent.
+
+The run is admissible but not finitely deciding, therefore no protocol is totally correct in spite
+of one fault.
 
 p365, Consensus means:
     1.  Uniform agreement: no two nodes decide differently.
