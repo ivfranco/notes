@@ -122,3 +122,18 @@ liveness property is defined as
 that is, for any execution of the program, there's always a (maybe infinite) sequence of actions
 that, after which the execution satisfies the liveness property P, or the liveness property
 will "eventually happen"
+
+p365, Consensus means:
+    1.  Uniform agreement: no two nodes decide differently.
+        The fundamental idea behind consensus.
+    2.  Integrity: no node decides twice.
+        The fundamental idea behind consensus.
+    3.  Validity: if a node decides value v, then v was proposed by some node.
+        To rule out trivial solutions (e.g. always return null)
+    4.  Termination: every node that does not crash eventually decides some value.
+        Formalizes fault tolerance: functioning nodes must make progress even if other nodes fail
+
+p365, consensus system model usually: 
+    1.  assumes a crashed node never respond nor come back
+    2.  assumes no Byzantine faults (adversary nodes)
+    3.  decide on a sequence of values instead of a single one at a time
