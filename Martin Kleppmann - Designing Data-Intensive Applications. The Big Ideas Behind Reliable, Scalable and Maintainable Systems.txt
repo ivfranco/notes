@@ -221,7 +221,8 @@ helpful contents:
 
 Let a consensus protocol P be an asynchronous system of N processes (N >= 2)
 Let xp, yp be input and output register with value in {0, 1, b}, initially yp = b, if yp ∈ {0, 1}
-the process is in decision states
+the process is in decision states, once written output register cannot be modified (stricter than
+Integrity of consensus model)
 P acts deterministically according to a transition function 
 
 A message is a tuple (p, m) where
@@ -255,13 +256,16 @@ Lemma 1: schedules are communicative
 A configuration C has decision value v if some process p is in a decision state v
 A consensus protocol is partially correct if it satisfies two conditions:
     1.  no accessible configuration has more than one decision value
+        (Uniform agreement in consensus model)
     2.  for each v ∈ {0, 1} there is a accessible configuration with decision value v
+        (Validity in consensus model)
 
 A run is admissible if there's at most one faulty (non-responding for some period) process at a time
 A run is deciding provided that some (protocol specific) process reaches a decision state
 A consensus protocol is totally correct in spite of one fault if
     1.  it is partially correct
     2.  every admissible run is (finitely) deciding 
+        (Termination in consensus model)
 
 Theorem 1: No consensus protocol is totally correct in spite of one fault
 
@@ -343,3 +347,50 @@ p365, consensus system model usually:
     1.  assumes a crashed node never respond nor come back
     2.  assumes no Byzantine faults (adversary nodes)
     3.  decide on a sequence of values instead of a single one at a time
+
+Systems of record 
+    -   Normalized
+    -   correct by definition (source of truth in the system)
+Derived data systems 
+    -   denormalized
+    -   redundant
+
+
+[1] Jeffrey Dean and Sanjay Ghemawat: “MapReduce: Simplified Data Processing on
+Large Clusters”
+MapReduce is the combination of 4 functions:
+    1.  read :: Data -> [(RawKey, RawValue)]
+        extract the data from the database / file system. 
+        library defined or user defined
+    2.  map :: (Eq IKey) => (RawKey, RawValue) -> [(IKey, IValue)]
+        maps raw (key, value) pair to multiple intermediate (key, value) pair
+        the intermediate keys must be able to be compared for equality, (the Google implementation
+        requires them to be ordered)
+        user defined
+    3.  reduce :: (IKey, [IValue]) -> Output
+        aggregates all intermediate values under the same intermediate key
+        user defined
+    4.  output :: Output -> IO ()
+        output the result to the file system
+        library defined or user defined
+Every single type (maybe except Data) in the functions must be serializable as they are buffered in
+local storage, output to a file or passed over network.
+
+An execution flow of Google's implementation of MapReduce:
+    1.  the compiled executable is distributed to multiple worker machines, one of them waiting for
+        user inputs (the master)
+    2.  when invoked, the master partitions the input data on remote file system to pieces of ~64MB,
+        one or more pieces is assigned to remote Map workers
+    3.  the Map workers extract data from the file system / database (by some remote access
+        protocol?), apply map function to the data and buffer them in local storage
+    4.  the master notifies a Reduce worker when the intermediate data are complete, Reduce worker
+        reads the data by RPC from the Map workers, sort the data by intermediate keys and apply
+        reduce function on each collection of values grouped by key
+    5.  the output is appended to an output file in the global file system
+
+MapReduce by Google has a single-leader design: the master process periodically pings all the
+workers, reset their state and output when workers are considered failed.
+
+The model described in the paper is vulnerable to read skews, maybe it's handled by the file system
+(GFS apparently) or read skew is insignificant in their use cases.
+
