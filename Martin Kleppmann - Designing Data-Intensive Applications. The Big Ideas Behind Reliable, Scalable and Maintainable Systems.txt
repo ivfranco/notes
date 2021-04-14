@@ -394,3 +394,71 @@ workers, reset their state and output when workers are considered failed.
 The model described in the paper is vulnerable to read skews, maybe it's handled by the file system
 (GFS apparently) or read skew is insignificant in their use cases.
 
+[19] Sanjay Ghemawat, Howard Gobioff, and Shun-Tak Leung: “The Google File System”
+Optimized for
+    - large files (> 100MB, multi-GB files are common)
+    - large sequential read and write (from MapReduce instances)
+    - concurrent append (multiple reducers appending to the same output file)
+    - high sustained bandwidth instead of latency (MapReduce is a batch process)
+
+In addition to normal create, delete, open, close, read, write operations, GFS supports
+    - snapshot: create a copy of a file or a directory at low cost
+    - record append: atomic concurrent append to files
+
+Architecture:
+    - running as a user land process on top of linux file system 
+    - files are divided to fixed-size chunks, each chunk has a unique 64-bit chunk handle, chunks
+      are replicated on multiple machines
+    - a single master instance manages all the metadata, sends heartbeats to chunk servers
+      periodically (pre-designated single leader)
+    - no file cache in client or chunk servers (workloads are large sequential reads / writes), but
+      file metadata is cached in client
+    
+Workflow of a read:
+    1.  client -> GFS master: file name, chunk index (calculated from the fixed size of chunks)
+    2.  GFS master -> client: chunk handle and chunk location translated from file name and index
+    3.  client -> GFS chunk server: chunk handle, chunk location and operation
+    4.  GFS chunk server -> client: requested data
+
+Chunks are large (64MB) and lazily allocated by the linux file system. For large sequential reads /
+writes a large chunk size reduces the required number of communications between client and master,
+in the cost of lower granularity hence more hot spots (which in practices hadn't been a problem
+in deployment in Google).
+
+GFS metadata:
+    - file and chunk namespaces (persistent, replicated)
+    - mapping from file to chunks (persistent, replicated)
+    - locations of replicas (volatile, synced with chunk servers at master startup, join of a new
+      chunk server and heartbeat)
+    
+The consistency model of GFS is relaxed: concurrent appends may cause staled read, appends are
+applied in at-least-once semantics, the result file may contain padding, duplicated or interleaved
+writes. It's the client application's responsibility to write self-validating, self-identifying
+data.
+
+A total order over mutations is enforced by leases issued by the GFS master.
+
+Workflow of a write:
+    1.  client -> master: ask which chunk server holds the lease and its replica
+        master -> chunk server: grant lease to a replica if no one has it
+    2.  master -> client: identity of replicas, one of them primary
+    3.  client -> chunk server: push mutation operation in arbitrary order
+        chunk server -> client: acknowledgement
+        if mutation is record append & mutation will cause the chunk to exceed 64MB:
+            pad the chunk to 64MB
+            chunk server -> client: should retry 
+    4.  client -> primary: write request
+        primary -> other servers: assign serial number to mutations
+        primary applies mutation locally
+    5.  primary -> other servers: forward write request
+        other servers applies mutations in the same order as the primary
+    6.  other servers -> primary: operation result
+    7.  primary -> client: aggregated operation result
+ideally 1MB can be distributed to all replicas in 80ms
+
+Atomic record appends performs at-least-once file append which makes sense in MapReduce because
+output are grouped by keys, duplicated output can be simply ignored.
+
+Snapshot is implemented as copy-on-write: initially only the metadata is duplicated pointing to the
+same source chunks, which are duplicated on modifications. The new chunks are created on the same
+server as the source chunks, means snapshots cannot be used in place of backups.
