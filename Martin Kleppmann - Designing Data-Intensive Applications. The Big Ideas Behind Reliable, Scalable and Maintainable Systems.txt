@@ -462,3 +462,13 @@ output are grouped by keys, duplicated output can be simply ignored.
 Snapshot is implemented as copy-on-write: initially only the metadata is duplicated pointing to the
 same source chunks, which are duplicated on modifications. The new chunks are created on the same
 server as the source chunks, means snapshots cannot be used in place of backups.
+
+[22] Diego Ongaro and John K. Ousterhout: “In Search of an Understandable Consensus
+Algorithm (Extended Version)”
+a demonstration of the election process in raft protocol can be found in
+    ./distributed_system/raft_election
+
+[77] Alan Woodward and Martin Kleppmann: “Real-Time Full-Text Search with
+Luwak and Samza”
+By "indexing queries" the author meant to extract logical clauses from queries and match it against
+a logical clause built from the documents in the stream.
