@@ -463,6 +463,35 @@ Snapshot is implemented as copy-on-write: initially only the metadata is duplica
 same source chunks, which are duplicated on modifications. The new chunks are created on the same
 server as the source chunks, means snapshots cannot be used in place of backups.
 
+Data is forwarded from each replica to its closest neighbor instead of being distributed in a
+tree-shaped topology. Data is pipelined through TCP, is immediately forwarded on receiving.
+
+GFS doesn't support hard or symbolic links, nor does have per-directory data structure that must be
+locked on file creation. All file paths are stored in a single structure with prefix compression,
+multiple files may be created concurrently in the same directory as there's no inode: file creation
+requires only read lock of all ancestors (so the ancestors cannot be removed) and write lock of the
+file path.
+
+Location of a new chunk is based on 3 measurements:
+    - disk space utilization: prioritize less full instance
+    - recent creates: evenly distribute recent chunk create (hence the following heavy writes)
+    - spread replicas across racks
+
+Whenever a lease to a chunk is issued, its version number is bumped (much like how ZooKeeper handles
+leases). A staled replica is remove along with deleted files in background garbage collection pass.
+
+Availability is ensured by:
+    - fast recovery: client retry, states can be recovered in seconds, no distinction between normal
+      and abnormal termination
+    - chunk replication and checksum (detection only, no ECC)
+    - duplicated masters: a new master can be launched in seconds from operation log on a different
+      machine, read-only "shadow" masters
+
+p457, "Event sourcing makes it easier to evolve applications over time, helps with debugging by
+making it easier to understand after the fact why something happened"
+the basic idea behind redux and to some extent the entire React framework, the "biggest downside"
+which is inconsistency doesn't exist in frontend world as javascript is single-threaded.
+
 [22] Diego Ongaro and John K. Ousterhout: “In Search of an Understandable Consensus
 Algorithm (Extended Version)”
 a demonstration of the election process in raft protocol can be found in
