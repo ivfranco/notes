@@ -472,3 +472,12 @@ a demonstration of the election process in raft protocol can be found in
 Luwak and Samza”
 By "indexing queries" the author meant to extract logical clauses from queries and match it against
 a logical clause built from the documents in the stream.
+
+[90] Viktor Klang: “I’m coining the phrase ‘effectively-once’ for message processing with
+at-least-once + idempotent operations”
+
+p518, "For example, you could generate a unique identifier for an operation (such as a
+UUID) and include it as a hidden form field in the client application"
+Which is a bad idea: even if the user won't manually manipulate the form data, there's non
+negligible chance one of the dozen extensions the user installed on their browser will mess over the
+form data, sometimes even adversarially. No data submitted by the user should be trusted.
