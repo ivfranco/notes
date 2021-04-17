@@ -6,8 +6,6 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 
 ## Reading:
 
-- Designing Data-Intensive Applications, Martin Kleppmann
-
 ## Read (in temporal order):
 
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
@@ -25,3 +23,4 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 - Elements of Information Theory, Thomas M. Cover & Joy A. Thomas, 2nd Edition
 - (partial) Mathematical analysis, Tom A. Apostol, 2nd Edition
 - A First Course in Database Systems, Jeffrey D. Ullman et al, 3rd Edition, in Rust & Typescript
+- Designing Data-Intensive Applications, Martin Kleppmann

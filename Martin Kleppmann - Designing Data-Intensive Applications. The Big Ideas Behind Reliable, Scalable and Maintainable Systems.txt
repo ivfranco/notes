@@ -509,4 +509,6 @@ p518, "For example, you could generate a unique identifier for an operation (suc
 UUID) and include it as a hidden form field in the client application"
 Which is a bad idea: even if the user won't manually manipulate the form data, there's non
 negligible chance one of the dozen extensions the user installed on their browser will mess over the
-form data, sometimes even adversarially. No data submitted by the user should be trusted.
+form data, sometimes even adversarially. No data submitted by the user should be trusted.  The UUID
+should be generated at server side as part of the initial client state and verified on its way back
+to the server.
