@@ -6,6 +6,8 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 
 ## Reading:
 
+- (maybe) Remzi H Arpaci-Dusseau, Andrea C Arpaci-Dusseau - Operating Systems_ Three Easy Pieces
+
 ## Read (in temporal order):
 
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
