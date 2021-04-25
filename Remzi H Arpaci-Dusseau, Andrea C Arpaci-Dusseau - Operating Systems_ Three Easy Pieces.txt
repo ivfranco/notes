@@ -1,0 +1,75 @@
+4. The Abstraction: The Process
+section 4.5, starting from Oct 2008, struct context in xv6 is:
+    struct context {
+        uint edi;
+        uint esi;
+        uint ebx;
+        uint ebp;
+        uint eip;
+    };
+ecx and edx are caller saved, esp the stack pointer is encoded in the address of the context, none
+of them has to be saved explicitly
+
+Questions
+4.1
+100%, no process issues IO, unless the kernel intentionally blocks execution for no reason the cpu
+will always be assigned to a ready process 
+
+4.2
+// length of the IO operation determined by -L includes the tick in which the IO operation is
+// issued, an IO operation of length 5 issued at tick 1 is finished at the start of tick 6, the
+// entirety of tick 6 may be scheduled to some other process, but the IO operation is still only
+// considered as complete at tick 6, not tick 5
+10 cycles: 
+    PID 0 is run to completion (4 cycles), context switch to PID 1
+    PID 1 issues IO (1 cycle) 
+    PID 1 blocks on IO (4 + 1 cycles, + 1 since the process is considered complete at tick 10)
+
+4.3
+6 cycles:
+    PID 0 issues IO (1 cycle), blocks on IO, context switch
+    PID 1 is run to complete (4 cycles)
+    PID 0 blocks on IO (1 + 1 cycle)
+The scheduler is not preemptive, a process will not be descheduled unless it invoked a syscall 
+
+4.4
+9 cycles:
+    PID 0 issues IO (1 cycles)
+    PID 0 blocks on IO (4 cycles), context switch at start of tick 5
+    PID 1 runs to completion (4 cycles)
+
+4.5
+same to 4.3
+
+4.6
+27 cycles:
+    PID 0 issues IO (1 cycle), context switch to PID 1
+    PID 1 runs to completion (5 cycles), context switch to PID 2
+    PID 2 runs to completion (5 cycles), context switch to PID 3
+    PID 3 runs to completion (5 cycles), context switch to PID 0
+    PID 0 issues IO (1 cycle)
+    PID 0 blocks on IO (4 cycles)
+    PID 0 issues IO (1 cycle)
+    PID 0 blocks on IO (4 + 1 cycles)
+
+4.7
+18 cycles:
+    PID 0 issues IO (1 cycle), context switch to PID 1
+    PID 1 runs to completion (5 cycles), context switch to PID 0
+    PID 0 issues IO (1 cycle), context switch to PID 2
+    PID 2 runs to completion (5 cycles), context switch to PID 0
+    PID 0 issues IO (1 cycle), context switch to PID 3
+    PID 3 runs to completion (5 cycles)
+A process issued an IO operation is likely to issue more in near future (e.g. keyboard press in a
+document processing software, mouse click in a GUI), immediately switch back to the process after IO
+completion increases utilization of the IO device and CPU as well as responsiveness to user input.
+In modern preemptive OS an IO heavy process may be assigned higher priority, compared to computation
+bounded processes it will be scheduled more frequently but with smaller time quantum each time. 
+
+4.8
+in general, -I IO_RUN_IMMEDIATE should be roughly more efficient than -I IO_RUN_LATER, -S
+SWITCH_ON_IO should be strictly more efficient than -S SWITCH_ON_END
+
+Remaining questions: 
+- after control being yielded to user process, how could a process be preempted without invoking
+  syscalls by itself? 
