@@ -73,3 +73,15 @@ SWITCH_ON_IO should be strictly more efficient than -S SWITCH_ON_END
 Remaining questions: 
 - after control being yielded to user process, how could a process be preempted without invoking
   syscalls by itself? 
+
+5.Interlude: Process API
+wait() will return prematurely when:
+    - the argument (*stat_loc) is not a proper pointer or NULL
+    - the child process is stopped (not terminated) by a signal, in which case it can be restarted
+      later
+
+meaning of suffixes of exec:
+    - l: variadic functions accepting arbitrary number of arguments as arguments to the program
+    - p: search program in PATH environment variable
+    - v: arguments
+    - e: environment variables
