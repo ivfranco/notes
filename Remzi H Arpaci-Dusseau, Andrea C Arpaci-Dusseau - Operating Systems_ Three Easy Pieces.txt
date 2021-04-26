@@ -85,3 +85,49 @@ meaning of suffixes of exec:
     - p: search program in PATH environment variable
     - v: arguments
     - e: environment variables
+    
+Questions 
+5.1
+./ostep/chapter_5/q1.c
+Fork() copies the entire state of the parent process to the child process, x as an auto variable on
+the stack or in register is copied to the child process with the initial value 100. After that x in
+child and parent processes are two different entities hence modification to them does not interfere
+with each other.
+
+5.2
+./ostep/chapter_5/q2.c
+the file descriptor is available to both parent and child processes, write from the parent process
+always seems to happen before write from the child process, maybe fork() returns earlier to the
+parent process compared to the child?
+
+5.3
+./ostep/chapter_5/q3.c
+the parent process can sleep for a long enough duration, the two processes may communicate with some
+form of shared memory, pipe, lock or signal, above all wait() still is the most natural way to
+express this pattern.
+
+5.4
+./ostep/chapter_5/q4.c
+All variants of exec are built upon a single syscall `execve`. At the beginning the C programming
+language was an implementation detail of UNIX system, in the 80s C gained popularity among various
+vendors despite having no standard and kept evolving that way even after ANSI C. UNIX before Linux
+is a branket term for a dozen competing imcompatible operating systems. The current state of exec
+variants may be an effort to maintain backward compatbility with all of them.
+
+5.5
+./ostep/chapter_5/q5.c
+On success wait() returns process id of the terminted child. When the process calling wait() has no
+child process ECHILD is assigned to the global variable errno.
+
+5.6
+./ostep/chapter_5/q6.c
+Parent process block on the termination of a selected child process instead of any one of them.
+Behavior of the function may be modified by the additional options argument, e.g. return immediately
+when there's no terminated child process. 
+
+5.7
+./ostep/chapter_5/q7.c
+printf() sliently succeeds without actually printing anything to stdout.
+
+5.8
+./ostep/chapter_5/q8.c
