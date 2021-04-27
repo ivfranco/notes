@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
     if (Fork() == 0)
     {
         printf("Message from process %d\n", getpid());
-        exit(0);
+        return 0;
     }
 
     if (Fork() == 0)
@@ -59,8 +59,11 @@ int main(int argc, char const *argv[])
         Dup2(out, STDOUT_FILENO);
         printf("%s, received by %d\n", buf, getpid());
 
-        exit(0);
+        return 0;
     }
 
-    wait(NULL);
+    for (int i = 0; i < 2; i++)
+    {
+        wait(NULL);
+    }
 }

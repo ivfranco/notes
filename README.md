@@ -6,7 +6,8 @@ There is no warranty for any part of the notes to be correct, neither mathematic
 
 ## Reading:
 
-- (maybe) Operating Systems: Three Easy Pieces, Remzi H Arpaci-Dusseau & Andrea C Arpaci-Dusseau, Version 1.00
+- (maybe) Operating Systems: Three Easy Pieces, Remzi H Arpaci-Dusseau & Andrea C Arpaci-Dusseau,
+  Version 1.00, in C
 
 ## Read (in temporal order):
 

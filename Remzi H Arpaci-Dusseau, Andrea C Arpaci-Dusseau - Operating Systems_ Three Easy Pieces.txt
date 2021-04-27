@@ -131,3 +131,61 @@ printf() sliently succeeds without actually printing anything to stdout.
 
 5.8
 ./ostep/chapter_5/q8.c
+
+6. Mechanism: Limited Direct Execution
+Measurement (in WSL)
+syscall:
+    ./ostep/chapter_6/measure_syscall.c
+    getpid(), 48 nanoseconds
+context switch:
+    ./ostep_chapter_6/measure_switch.c
+    20 microseconds
+
+7. Scheduling: Introduction
+Proofs of the optimality of SJF and STCF can be found in problem 16-2 of introduction to algorithms
+
+Questions
+7.1
+SJF:
+    avg. turnaround: (200 + 400 + 600)/3 = 400
+    avg. response: (0 + 200 + 400)/3 = 200
+FIFO:
+    same to SJF
+
+7.2
+SJF:
+    avg. turnaround: (100 + 300 + 600)/3 = 333.33
+    avg. response: (0 + 100 + 300)/3 = 133.33
+FIFO:
+    same to SJF
+
+7.3
+RR, same length:
+    avg. turnaround: (598 + 599 + 600)/3 = 599
+    avg. response: (0 + 1 + 2)/3 = 1
+RR, different lengths:
+    avg. turnaround: (298 + 499 + 600)/3 = 465.67
+    avg. response: (0 + 1 + 2)/3 = 1
+
+7.4
+jobs ordered by ascending length, in other cases FIFO is not optimal
+
+7.5
+all except the longest job must be shorter than the quantum length:
+    if there's two jobs with lengths longer than quantum length, no matter what is scheduled first
+    the other will has a longer response time than in RR
+
+7.6
+response time in SJF is linear in job lengths
+p./scheduler.py -p SJF -j 3 -l 3,2,1 -c
+    Average -- Response: 1.33  Turnaround 3.33  Wait 1.33
+p./scheduler.py -p SJF -j 3 -l 30,20,10 -c
+    Average -- Response: 13.33  Turnaround 33.33  Wait 13.33
+p./scheduler.py -p SJF -j 3 -l 300,200,100 -c
+    Average -- Response: 133.33  Turnaround 333.33  Wait 133.33
+
+7.7
+response time with RR is linear in quantum length
+let quantum length be T_q, worst response time is:
+    (N - 1)T_q
+    
