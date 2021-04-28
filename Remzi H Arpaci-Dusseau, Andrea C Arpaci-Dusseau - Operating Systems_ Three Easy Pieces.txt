@@ -139,7 +139,8 @@ syscall:
     getpid(), 48 nanoseconds
 context switch:
     ./ostep_chapter_6/measure_switch.c
-    20 microseconds
+    20 microseconds (without sched_setaffinity)
+    1 microsecond (with sched_setaffinity)
 
 7. Scheduling: Introduction
 Proofs of the optimality of SJF and STCF can be found in problem 16-2 of introduction to algorithms

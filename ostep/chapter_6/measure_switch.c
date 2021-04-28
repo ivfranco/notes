@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sched.h>
 #include <sys/wait.h>
+#include <sched.h>
 
 #define REPEAT 100000
 
@@ -14,6 +15,19 @@ void Pipe(int pipefd[2])
     if (pipe(pipefd) < 0)
     {
         fprintf(stderr, "Pipe creation failed\n");
+        exit(1);
+    }
+}
+
+void set_current_process_affinity(int cpu)
+{
+    cpu_set_t set;
+    CPU_ZERO(&set);
+    CPU_SET(cpu, &set);
+
+    if (sched_setaffinity(getpid(), sizeof(set), &set) < 0)
+    {
+        fprintf(stderr, "Set affinity failed\n");
         exit(1);
     }
 }
@@ -48,6 +62,8 @@ int main(int argc, char const *argv[])
     else if (rc == 0)
     {
         // child process
+        set_current_process_affinity(0);
+
         for (int i = 0; i < REPEAT; i++)
         {
             char buf[1] = {0};
@@ -63,6 +79,7 @@ int main(int argc, char const *argv[])
         struct timespec before;
         struct timespec after;
 
+        set_current_process_affinity(0);
         clock_gettime(CLOCK_MONOTONIC, &before);
 
         for (int i = 0; i < REPEAT; i++)
