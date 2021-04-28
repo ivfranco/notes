@@ -72,7 +72,7 @@ SWITCH_ON_IO should be strictly more efficient than -S SWITCH_ON_END
 
 Remaining questions: 
 - after control being yielded to user process, how could a process be preempted without invoking
-  syscalls by itself? 
+  syscalls by itself? (A: with interruption tied to a physical timer)
 
 5.Interlude: Process API
 wait() will return prematurely when:
@@ -189,3 +189,46 @@ response time with RR is linear in quantum length
 let quantum length be T_q, worst response time is:
     (N - 1)T_q
     
+8. Scheduling: The Multi-Level Feedback Queue
+Questions
+8.1
+./mlfq.py -j 2 -n 2 -c -m 50 -M 0
+
+8.2
+Example 1: A Single Long-Running Job
+    ./mlfq.py -n 3 -q 10 -l 0,200,0 -c
+Example 2: Along Came A Short Job
+    ./mlfq.py -n 3 -q 10 -l 0,200,0:100,20,0 -c
+// io frequency is defined as "number of CPU ticks between two IO requests" in the simulator 
+Example 3: What About I/O?
+    ./mlfq.py -S -n 3 -q 10 -l 0,200,0:100,20,1.1 -c
+Attempt #2: The Priority Boost
+    without boost:
+    ./mlfq.py -n 3 -q 10 -S -I -i 1 -l 0,200,0:100,50,1:100,50,1 -c
+    with boost:
+    ./mlfq.py -n 3 -q 10 -S -B 100 -I -i 1 -l 0,200,0:100,50,1:100,50,1 -c
+Attempt #3: Better Accounting
+    without allotment accounting:
+    ./mlfq.py -q 10 -S -i 1 -l 0,200,0:100,100,9 -c
+    with allotment accounting:
+    ./mlfq.py -q 10 -i 1 -l 0,200,0:100,100,9 -c
+Tuning MLFQ And Other Issues
+    ./mlfq.py -Q 10,20,40 -l 0,140,0:0,140,0 -c
+
+8.3
+one queue, no allotment accounting, no IO reset
+./mlfq.py -n 1 -j 10 -c -m 20
+
+8.4
+./mlfq.py -q 100 -S -i 1 -l 0,10000,99:0,10000,0 -c
+
+8.5
+200ms, assume after each boost the job will be run at least once (i.e. the system is not croweded
+with high priority jobs)
+
+8.6
+lower response time in sacrifice of IO throughput. In CFQ (the default Linux IO scheduler between
+2.6 - 5.0) the scheduler will introduce an artifical delay after an IO request in hope to catch more
+IO requests from the same process to be performed in batch. Such a mechanism is majorly meaningless
+with an SSD. CFQ was then removed from Linux in 5.0.
+
