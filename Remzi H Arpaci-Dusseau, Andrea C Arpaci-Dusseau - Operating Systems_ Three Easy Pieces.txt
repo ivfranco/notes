@@ -233,3 +233,42 @@ lower response time in sacrifice of IO throughput. In CFQ (the default Linux IO 
 IO requests from the same process to be performed in batch. Such a mechanism is majorly meaningless
 with an SSD. CFQ was then removed from Linux in 5.0.
 
+[B+18] “The Battle of the Schedulers: FreeBSD ULE vs. Linux CFS”
+additional details of CFS: 
+    - fairness is ensured among applications instead of threads
+    - a new thread is created with maximum vruntime in the queue
+    - a thread waking up doesn't preempt the current thread if the vruntime is close enough
+    - threads are distributed to CPUs by their utilizations 
+    - load balancing happens every 4ms, cores steal threads from each other
+
+Questions
+9.1
+// too long, omitted 
+
+9.2
+Job 0 has 1% chance to be run before completion of job 1. With such imbalance in ticket distribution
+the scheduler is no longer fair or even preemptive.
+
+9.3
+Finish time T of the first job is governed by the negative binomial distribution with a constraint
+    X ~ NB(100, 0.5), X <= 200 
+    E[X] = Σ_{k = 0}^100 C(k + 100, k) * 0.5^100 * 0.5^k * (100 + k)
+By WolframAlpha the expectation is around 189.67, expected fairness is 189.67/200 = 0.95
+
+9.4
+fairness decreases as quantum increases, when -q 2 the distribution is equivalent to
+    X ~ NB(50, 0.5), X <= 100
+    E[X] = 92.96, fairness = 0.93
+when -q 5,
+    X ~ NB(20, 0.5), X <= 40
+    E[X] = 35.86, fairness = 0.90
+when -q 10,
+    X ~ NB(10, 0.5), X <= 20
+    E[X] = 17.30, fairness = 0.87
+when -q 100, the first job runs to completion before the start of the other, fairness = 0.5
+
+9.5
+The unfairness by low resolution impacts stride scheduler as well but the difference between finish
+time will be limited to one quantum. Another interesting topic would be the balance between
+resolution and scheduling efficiency, which is beyond the capacity of this simulator.
+
