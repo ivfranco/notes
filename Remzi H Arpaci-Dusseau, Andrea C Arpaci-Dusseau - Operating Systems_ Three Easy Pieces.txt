@@ -241,6 +241,16 @@ additional details of CFS:
     - threads are distributed to CPUs by their utilizations 
     - load balancing happens every 4ms, cores steal threads from each other
 
+9. Scheduling: Proportional Share
+Weighting (Niceness), logarithm of prio_to_weight is roughly linear, i.e.
+    log(Wi) - Log(Wj) ~ i - j
+    e^(log(Wi) - log(Wj)) ~ e^(i - j)
+    Wi / Wj ~ e^(i - j)
+    
+Remaining questions:
+    - how are these dynamic data structures, especially the priority queue in stride scheduling
+      implemented in the kernel where dynamic allocation is not taken as given?
+
 Questions
 9.1
 // too long, omitted 
@@ -272,3 +282,55 @@ The unfairness by low resolution impacts stride scheduler as well but the differ
 time will be limited to one quantum. Another interesting topic would be the balance between
 resolution and scheduling efficiency, which is beyond the capacity of this simulator.
 
+10. Multiprocessor Scheduling
+Questions
+10.1
+30 ticks, no other threads competing for CPUs, the cache is too small for the job to run efficiently
+
+10.2
+20 ticks, 10 cold tick and 10 warm ticks
+
+10.3
+the job runs twice as fast in warm mode, as the default value of -r.
+
+10.4
+by the trace
+    9   a [ 20] cache[w]
+the cache was warmed at the end of 10th tick, as the default value of -w.
+
+10.5
+// it's not documented but default time slice is 10
+150 ticks, the jobs are scheduled as
+    CPU 0   ACBA...
+    CPU 1   BACB...
+as A has a working set as big as the cache, it invalidates all previous content in the cache, hence
+no jobs are running in warm mode ever.
+
+10.6
+(10 + 90/2) * 2 = 110 ticks, this time a, b and c run in warm mode after the first 10 ticks, where b
+and c shares the same CPU, the current affinity is the only one where
+    1.  all CPUs are working
+    2.  all working sets fit in the cache
+therefore there's no other affinity setting that runs faster than the current one.
+
+10.7
+-M 50
+    -n 1: 300 ticks
+    -n 2: 150 ticks
+    -n 3: 100 ticks
+-M 100
+    -n 1: 300 ticks
+    -n 2: 150 ticks
+    -n 3: 55 ticks
+only with -M 100 -n 3 every job will run in warm mode, 10 + (90 / 2) = 55 ticks
+
+10.8
+100 ticks instead of 110, CPU utilization is slightly better
+// it's not documented but default peek interval is 30 ticks
+with no job stealing (-P 0) the running time is 200 ticks, with more job stealing (-P 1) the running
+time improves slightly to 95 ticks as the simulator doesn't account for context swtich and lock
+costs. Per CPU scheduler scales worse than the single queue round-robin scheduler as the simulator
+suggests, yet again because the simulator is over-simplified.
+
+10.9
+// omitted
