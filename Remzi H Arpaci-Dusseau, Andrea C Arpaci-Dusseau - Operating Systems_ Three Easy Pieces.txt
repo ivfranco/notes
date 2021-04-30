@@ -1,3 +1,5 @@
+// whenever possible, programming homeworks will be done in Rust instead of C.
+
 4. The Abstraction: The Process
 section 4.5, starting from Oct 2008, struct context in xv6 is:
     struct context {
@@ -334,3 +336,53 @@ suggests, yet again because the simulator is over-simplified.
 
 10.9
 // omitted
+
+13. The Abstraction: Address Spaces
+Questions
+13.1
+free has an option to print memory in power of 1000 instead of 1024. Unlike HDDs Memory nowadays is
+never marketed or discussed in power of 1000, maybe that's not yet an universal agreement back when
+free is created.
+
+13.2
+WSL doesn't have full access to physical memory, out of 16GB installed 4GB is invisible inside WSL.
+100MB used memory among which 2.4MB is reported by top, leaves 97.6MB occupied by the kernel.
+
+13.3
+how to use:
+    install the x86_64-unknown-linux-musl build target by:
+        rustup target add x86_64-unknown-linux-musl
+    build with musl target and rust-lld:
+        rustc --target x86_64-unknown-linux-musl -C linker=rust-lld memory-user.rs
+    run the memory user in background:
+        ./memory-user 100 &
+
+13.4
+A certain amount of memory is occupied immediately at the beginning of execution, for large
+allocations the used amount of memory gradually increases over time. Both case the used memory is
+freed the instance the program is killed. A page is only written out after the first write, in this
+case by compiler magic the zero-initialization is not treated as a write.
+
+13.5
+The behavior of pmap is controlled by a config file (~/.pmaprc by default) instead of command line
+arguments. As the format of its output varies more frequent than other UNIX tools it seems to be a
+reasonable design.
+
+13.6
+// not a question
+
+13.7
+result of zsh:
+    hundreds of segments, mostly shared libraries and memory mapped files 
+    2964K r---- locale-archive  // memory-mapped localized strings used by the system
+    2816K rw---   [ anon ]  // heap?
+    2364K r--s- Unix.zwc    // auto-completion utilities of unix tools
+    316K rw---   [ stack ]  // stack
+
+13.8
+result of memory-user:
+    10+ segments, no shared libraries, libc and std statically linked 
+    00007fde2f299000 16384004K rw---   [ anon ]
+    00007fe2172b4000    292K r-x-- memory-user
+    00007ffc31960000    136K rw---   [ stack ]
+
