@@ -386,3 +386,69 @@ result of memory-user:
     00007fe2172b4000    292K r-x-- memory-user
     00007ffc31960000    136K rw---   [ stack ]
 
+14. Interlude: Memory API
+Questions
+14.1
+segmentation fault
+
+14.2
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555555150 in main (argc=1, argv=0x7fffffffd6f8) at null.c:7
+7           printf("%u", *ptr);
+
+14.3
+==1379== Invalid read of size 4
+==1379==    at 0x109150: main (null.c:7)
+==1379==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+
+14.4
+gdb didn't find any problem. Report from valgrind:
+==1507== 40 bytes in 1 blocks are definitely lost in loss record 1 of 1
+==1507==    at 0x483577F: malloc (vg_replace_malloc.c:299)
+==1507==    by 0x10914D: main (leak.c:5)
+
+14.5
+GDB didn't find any problem. Report from valgrind:
+==1727== Invalid write of size 4
+==1727==    at 0x10916C: main (q5.c:6)
+==1727==  Address 0x4a0e1d0 is 0 bytes after a block of size 400 alloc'd
+==1727==    at 0x483577F: malloc (vg_replace_malloc.c:299)
+==1727==    by 0x10915D: main (q5.c:5)
+This is rather concerning. The allocator must have allocated a memory block larger than requested,
+probably the next power of 2 (128 bytes), and GDB as the language agnostic debugger it is didn't
+notice the original allocation size in C code.
+
+14.6
+GDB didn't find any problem. Report from valgrind:
+==1898== Invalid read of size 4
+==1898==    at 0x109182: main (q6.c:9)
+==1898==  Address 0x4a0e040 is 0 bytes inside a block of size 400 free'd
+==1898==    at 0x48369AB: free (vg_replace_malloc.c:530)
+==1898==    by 0x10917D: main (q6.c:7)
+==1898==  Block was alloc'd at
+==1898==    at 0x483577F: malloc (vg_replace_malloc.c:299)
+==1898==    by 0x10916D: main (q6.c:6)
+Even more concerning. The allocator must didn't immediately return the allocated memory to the
+system with brk, rather it reserves the memory for further allocation. GDB again was totally fine
+with this illegal access to freed memory. Valgrind, however, hijacks calls to malloc and free to run
+on its own allocator, thus had a chance to do more precise memory analysis.
+
+14.7
+GDB:
+    Starting program: /mnt/d/Software/Textbook/playground/notes/ostep/chapter_14/main
+    free(): invalid pointer
+Valgrind:
+    ==2063== Invalid free() / delete / delete[] / realloc()
+    ==2063==    at 0x48369AB: free (vg_replace_malloc.c:530)
+    ==2063==    by 0x109171: main (q7.c:6)
+    ==2063==  Address 0x4a0e068 is 40 bytes inside a block of size 400 alloc'd
+    ==2063==    at 0x483577F: malloc (vg_replace_malloc.c:299)
+    ==2063==    by 0x10915D: main (q7.c:5)
+
+14.8
+./ostep/chapter_14/q8.c
+
+14.9
+... or create a saner interface to heap allocated structures, one that automatically frees the
+memory when it's no longer needed, does bound check on each access, tracks the lifetime of the
+references so the freed memory cannot be accessed again.
