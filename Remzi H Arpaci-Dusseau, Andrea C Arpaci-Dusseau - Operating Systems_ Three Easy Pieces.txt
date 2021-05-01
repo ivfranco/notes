@@ -32,7 +32,7 @@ will always be assigned to a ready process
     PID 0 issues IO (1 cycle), blocks on IO, context switch
     PID 1 is run to complete (4 cycles)
     PID 0 blocks on IO (1 + 1 cycle)
-The scheduler is not preemptive, a process will not be descheduled unless it invoked a syscall 
+The scheduler is not preemptive, a process will not be de-scheduled unless it invoked a syscall 
 
 4.4
 9 cycles:
@@ -113,12 +113,12 @@ express this pattern.
 All variants of exec are built upon a single syscall `execve`. At the beginning the C programming
 language was an implementation detail of UNIX system, in the 80s C gained popularity among various
 vendors despite having no standard and kept evolving that way even after ANSI C. UNIX before Linux
-is a branket term for a dozen competing imcompatible operating systems. The current state of exec
-variants may be an effort to maintain backward compatbility with all of them.
+is a blanket term for a dozen competing incompatible operating systems. The current state of exec
+variants may be an effort to maintain backward compatibility with all of them.
 
 5.5
 ./ostep/chapter_5/q5.c
-On success wait() returns process id of the terminted child. When the process calling wait() has no
+On success wait() returns process id of the terminated child. When the process calling wait() has no
 child process ECHILD is assigned to the global variable errno.
 
 5.6
@@ -129,7 +129,7 @@ when there's no terminated child process.
 
 5.7
 ./ostep/chapter_5/q7.c
-printf() sliently succeeds without actually printing anything to stdout.
+printf() silently succeeds without actually printing anything to stdout.
 
 5.8
 ./ostep/chapter_5/q8.c
@@ -226,12 +226,12 @@ one queue, no allotment accounting, no IO reset
 ./mlfq.py -q 100 -S -i 1 -l 0,10000,99:0,10000,0 -c
 
 8.5
-200ms, assume after each boost the job will be run at least once (i.e. the system is not croweded
+200ms, assume after each boost the job will be run at least once (i.e. the system is not crowded
 with high priority jobs)
 
 8.6
 lower response time in sacrifice of IO throughput. In CFQ (the default Linux IO scheduler between
-2.6 - 5.0) the scheduler will introduce an artifical delay after an IO request in hope to catch more
+2.6 - 5.0) the scheduler will introduce an artificial delay after an IO request in hope to catch more
 IO requests from the same process to be performed in batch. Such a mechanism is majorly meaningless
 with an SSD. CFQ was then removed from Linux in 5.0.
 
@@ -301,7 +301,6 @@ by the trace
 the cache was warmed at the end of 10th tick, as the default value of -w.
 
 10.5
-// it's not documented but default time slice is 10
 150 ticks, the jobs are scheduled as
     CPU 0   ACBA...
     CPU 1   BACB...
@@ -328,9 +327,8 @@ only with -M 100 -n 3 every job will run in warm mode, 10 + (90 / 2) = 55 ticks
 
 10.8
 100 ticks instead of 110, CPU utilization is slightly better
-// it's not documented but default peek interval is 30 ticks
 with no job stealing (-P 0) the running time is 200 ticks, with more job stealing (-P 1) the running
-time improves slightly to 95 ticks as the simulator doesn't account for context swtich and lock
+time improves slightly to 95 ticks as the simulator doesn't account for context switch and lock
 costs. Per CPU scheduler scales worse than the single queue round-robin scheduler as the simulator
 suggests, yet again because the simulator is over-simplified.
 
@@ -452,7 +450,7 @@ Valgrind:
 ... or create a saner interface to heap allocated structures, one that automatically frees the
 memory when it's no longer needed, does bound check on each access, tracks the lifetime of the
 references so the freed memory cannot be accessed again. Or even better, create a new language in
-which these rules are enforced at compliation.
+which these rules are enforced at compilation.
 
 15. Mechanism: Address Translation
 Questions 
@@ -478,15 +476,14 @@ Questions
 
 15.2
 max(VA) + 1 = 930, +1 since limit is the length of the segment, limit must be one bigger than the
-biggest offset to accomodate all the virtual addresses.
+biggest offset to accommodate all the virtual addresses.
 
 15.3
-// default physical memory size is 16K, not documented
 16 * 1024 - (100 - 1) = 0x00003f9d
-irrelevent to virtual addresses, the size of data stored on these addresses are not specified
+irrelevant to virtual addresses, the size of data stored on these addresses are not specified
 
 15.4
-// skipped, default address space size is 1k, not documented
+// skipped
 
 15.5
 fix base register and physical memory size, the expectation of fraction of randomly generated
@@ -495,3 +492,52 @@ addresses is exactly
 
 16. Segmentation
 Questions
+16.1
+for a positively growing segment,
+    PA = offset(VA) + base if offset(VA) < limit
+for a negatively growing segment,
+    PA = base - ((1 << OFFSET_BITS) - offset(VA)) if (1 << OFFSET_BITS) - offset(VA) <= limit
+(0 ..= 63) --> Segment 0
+(64 ..= 127) --> Segment 1
+./segmentation.py -a 128 -p 512 -b 0 -l 20 -B 512 -L 20 -s 0
+    VA  0: 0x0000006c (decimal:  108) --> seg 1, 0x000001ec
+    VA  1: 0x00000061 (decimal:   97) --> seg 1, SIGSIGV
+    VA  2: 0x00000035 (decimal:   53) --> seg 0, SIGSIGV
+    VA  3: 0x00000021 (decimal:   33) --> seg 0, SIGSIGV
+    VA  4: 0x00000041 (decimal:   65) --> seg 1, SIGSIGV
+./segmentation.py -a 128 -p 512 -b 0 -l 20 -B 512 -L 20 -s 1
+    VA  0: 0x00000011 (decimal:   17) --> seg 1, 0x00000011
+    VA  1: 0x0000006c (decimal:  108) --> seg 0, 0x000001ec
+    VA  2: 0x00000061 (decimal:   97) --> seg 1, SIGSIGV
+    VA  3: 0x00000020 (decimal:   32) --> seg 0, SIGSIGV
+    VA  4: 0x0000003f (decimal:   63) --> seg 0, SIGSIGV
+./segmentation.py -a 128 -p 512 -b 0 -l 20 -B 512 -L 20 -s 2
+Virtual Address Trace
+    VA  0: 0x0000007a (decimal:  122) --> seg 1, 0x000001fa
+    VA  1: 0x00000079 (decimal:  121) --> seg 1, 0x000001f9
+    VA  2: 0x00000007 (decimal:    7) --> seg 0, 0x00000007
+    VA  3: 0x0000000a (decimal:   10) --> seg 0, 0x0000000a
+    VA  4: 0x0000006a (decimal:  106) --> seg 1, SIGSIGV
+
+16.2
+highest legal virtual address in segment 0
+    0x0000013
+lowest legal virtual address in segment 1
+    0x00001ec
+lowest illegal address
+    0x000006c
+highest illegal address
+    0x000006b
+// Modified the script to recognize hexadecimal addresses. The script is typical dynamic typed
+// madness, the variable called `vStr` may actually be an integer, when instanceof(vStr, int) is
+// false the string can be parsed with int(vStr, 0) which infers the base from the prefix.
+./segmentation.py -a 128 -p 512 -b 0 -l 20 -B 512 -L 20 -A 0x13,0x14,0x6b,0x6c -c
+
+16.3
+--b0 0 --l0 2 --b1 (anything >= 4) --l1 2
+
+16.4
+SIZE=128;LIMIT=$(($SIZE / 2 * 9 / 10));./segmentation.py -a $SIZE -p 512 -b 0 -l $LIMIT -B 512 -L
+
+16.5
+./segmentation.py -a 128 -p 512 -b 0 -l 0 -B 512 -L 0 -c
