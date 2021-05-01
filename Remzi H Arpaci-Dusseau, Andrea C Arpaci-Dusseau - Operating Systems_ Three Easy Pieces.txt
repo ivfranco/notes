@@ -451,4 +451,47 @@ Valgrind:
 14.9
 ... or create a saner interface to heap allocated structures, one that automatically frees the
 memory when it's no longer needed, does bound check on each access, tracks the lifetime of the
-references so the freed memory cannot be accessed again.
+references so the freed memory cannot be accessed again. Or even better, create a new language in
+which these rules are enforced at compliation.
+
+15. Mechanism: Address Translation
+Questions 
+15.1
+-s 0
+    0x000001ae --> 0x00003230
+    0x00000109 --> 0x0000318b
+    0x0000020b --> SIGSIGV
+    0x0000019e --> 0x00003220
+    0x00000322 --> SIGSIGV
+-s 1
+    0x0000030e --> SIGSIGV
+    0x00000105 --> 0x00003741
+    0x000001fb --> SIGSIGV
+    0x000001cc --> SIGSIGV
+    0x0000029b --> SIGSIGV
+-s 2
+    0x00000039 --> 0x00003ce2
+    0x00000056 --> 0x00003cee
+    0x00000357 --> SIGSIGV
+    0x000002f1 --> SIGSIGV
+    0x000002ad --> SIGSIGV
+
+15.2
+max(VA) + 1 = 930, +1 since limit is the length of the segment, limit must be one bigger than the
+biggest offset to accomodate all the virtual addresses.
+
+15.3
+// default physical memory size is 16K, not documented
+16 * 1024 - (100 - 1) = 0x00003f9d
+irrelevent to virtual addresses, the size of data stored on these addresses are not specified
+
+15.4
+// skipped, default address space size is 1k, not documented
+
+15.5
+fix base register and physical memory size, the expectation of fraction of randomly generated
+addresses is exactly
+    value of limit register / size of address space 
+
+16. Segmentation
+Questions

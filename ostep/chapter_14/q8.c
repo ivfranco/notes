@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-// A homogeneous variabled-size vector.
+// A homogeneous variable-sized vector.
 struct Vec
 {
     // Size of a single element in the vector.
@@ -16,7 +16,7 @@ struct Vec
     void *ptr;
 };
 
-// Create a homogeneous variable-size vector in which each element is `elem_size` in bytes.
+// Create a homogeneous variable-sized vector in which each element is `elem_size` in bytes.
 struct Vec new_vec(size_t elem_size)
 {
     struct Vec vec = {.elem_size = elem_size, .elem_cnt = 0, .capacity = 0, .ptr = NULL};
@@ -24,7 +24,7 @@ struct Vec new_vec(size_t elem_size)
 }
 
 // Read `elem_cnt` bytes from the given index into the vector, write the bytes to elem. The first
-// `elem_cnt` bytes in elem must be writable.
+// `elem_cnt` bytes in elem must be writable and do not overlap the vector.
 //
 // # Return values:
 // 0    successful get
@@ -41,7 +41,7 @@ int get(struct Vec *vec, size_t idx, void *elem)
 }
 
 // Push a new element into the vector, reallocate the vector to larger size when necessary. The
-// first `vec->elem_size` bytes of `elem` must be readable.
+// first `vec->elem_size` bytes of `elem` must be readable and do not overlap the vector.
 //
 // # Return values:
 // 0:   successful push
