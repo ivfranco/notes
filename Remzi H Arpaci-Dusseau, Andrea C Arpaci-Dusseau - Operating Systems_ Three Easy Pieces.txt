@@ -541,3 +541,90 @@ SIZE=128;LIMIT=$(($SIZE / 2 * 9 / 10));./segmentation.py -a $SIZE -p 512 -b 0 -l
 
 16.5
 ./segmentation.py -a 128 -p 512 -b 0 -l 0 -B 512 -L 0 -c
+
+17. Free-space Management
+"The solution is simple: go through the list and merge neighboring chunks; when finished, the heap
+will be whole again."
+This coalesce algorithm is O(n). A common O(1) solution to the coalesce problem is to write not only
+a header, but also a footer to the allocated chunk, hence on freeing a chunk the allocator may
+access both the chunks before and after the chunk and perform the necessary coalesce.
+
+Questions
+17.1
+./malloc.py -n 10 -H 0 -p BEST -s 0
+10 operations, no headers, best fit, no coalesce
+ptr[0] = Alloc(3)
+    return 1000
+    List [(1003, 97)]
+Free(ptr[0])
+    return 0
+    List [(1000, 3), (1003, 97)]
+ptr[1] = Alloc(5)
+    return 1003
+    List [(1000, 3), (1008, 92)]
+Free(ptr[1])
+    return 0
+    List [(1000, 3), (1003, 5), (1008, 92)]
+ptr[2] = Alloc(8)
+    return 1008
+    List [(1000, 3), (1003, 5), (1016, 84)]
+Free(ptr[2])
+    return 0
+    List [(1000, 3), (1003, 5), (1008, 8), (1016, 84)]
+ptr[3] = Alloc(8)
+    return 1008
+    List [(1000, 3), (1003, 5), (1016, 84)]
+free(ptr[3])
+    return 0
+    List [(1000, 3), (1003, 5), (1008, 8), (1016, 84)]
+ptr[4] = Alloc(2)
+    return 1000
+    List [(1002, 1), (1003, 5), (1008, 8), (1016, 84)]
+ptr[5] = Alloc(7)
+    return 1008
+    List [(1002, 1), (1003, 5), (1015, 1), (1016, 84)]
+the free space is fragmented badly, neighboring free chunks are not coalesced 
+
+17.2
+Free list at the end
+    [ addr:1000 sz:3 ] [ addr:1003 sz:5 ] [ addr:1008 sz:8 ] [ addr:1016 sz:8 ] [ addr:1033 sz:67 ]
+Free space are even more fragmented, the biggest chunk is now 76 bytes instead of 84, other small
+fragments increased in size.
+
+17.3
+Free space is fragmented much as the BEST strategy but not as bad as WORST. Allocation is still O(n)
+but should be much faster than BEST and WORST, allocator no longer has to inspect the entire free
+list.
+
+17.4
+allocation time comparison
+-l ADDRSORT
+    FIRST < BEST = WORST
+-l SIZESORT+
+    FIRST = BEST < WORST
+-l SIZESORT-
+    FIRST = WORST < BEST
+
+17.5
+With no coalesce most allocation in the long run fails, the free space is fragmented to the extreme
+that it contains 100 chunks of length 1. With coalesce most allocation still succeeds in long run,
+the free list never grows beyond 10 nodes. 
+
+17.6
+In theory FIRST fit with SIZESORT+ is equivalent to BEST fit, FIRST fit with SIZESORT- is equivalent
+to BEST fit, while ordering should not affect the performance of BEST and WORST by too much (maybe
+some minor effect when the order is used to break ties), but the simulator is written in a poor way
+that the free space will not be correctly coalesced unless the free list is ordered by ADDRSORT,
+both SIZESORT- and SIZESORT+ will cause more fragmentation.
+
+17.7
+For any fit strategy and free list order, 
+    1.  allocate a series of chunks of size (n + 1) until the free space is totally exhausted
+        (assuming the size of free space is a multiple of (n + 1))
+    2.  for each chunk allocated at step 1
+        - free a chunk of size (n + 1)
+        - allocate a chunk of size n 
+        - allocate a chunk of size 1
+    3.  free all chunks of size n
+at the end, only 1/(n + 1) of the free space is used, nevertheless there's no free node with length
+longer than n.
