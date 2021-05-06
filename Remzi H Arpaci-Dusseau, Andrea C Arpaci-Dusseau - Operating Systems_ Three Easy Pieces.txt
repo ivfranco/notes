@@ -733,3 +733,23 @@ how to use:
         ./tlb-msvc NUM_OF_PAGES PEPEAT
 
 19.3
+how to use:
+    // depends on /bin/bash
+    ./run.sh PATH_TO_EXEC
+5000 trials seems to be enough
+
+19.4
+text is clear enough in this case, there's no much data and the trend is simple.
+
+19.5
+instead of plain array access the array is modified with volatile_write:
+    let ptr = &mut vec[i] as *mut u32;
+    unsafe { write_volatile(ptr, 1); }
+volatile writes are never elided nor reordered by the Rust compiler.
+
+19.6
+not significant so far in measurements 
+
+19.7
+whatever overhead the first access incurs will be averaged to almost nothing after 5000 trials,
+adding manual volatile initialization before measuring didn't change time per access.

@@ -23,6 +23,13 @@ fn main() {
         .unwrap_or_else(|| error_exit());
 
     let mut vec = vec![0u32; num_pages * JUMP];
+    for p in vec.iter_mut() {
+        let ptr = p as *mut u32;
+        unsafe {
+            write_volatile(ptr, 0);
+        }
+    }
+
     let before = Instant::now();
     for _ in 0..repeat {
         for i in (0..num_pages).map(|n| n * JUMP) {
