@@ -667,3 +667,69 @@ For any fit strategy and free list order,
     3.  free all chunks of size n
 at the end, only 1/(n + 1) of the free space is used, nevertheless there's no free node with length
 longer than n.
+
+18. Paging: Introduction
+Questions
+18.1
+-a ASIZE
+    address space size
+-P PAGESIZE
+    page size
+page table size = ASIZE / PAGESIZE
+larger pages incur more internal fragmentation
+
+18.2
+1k page size, lowest 10 bits are page offset
+16k / 1k = 16 = 2^4, highest 4 bits are virtual page number
+-u 50
+    VA 0x00003385 (decimal:    13189) --> (VPN 12)  0x00003f85
+    VA 0x0000231d (decimal:     8989) --> (VPN 8)   INVALID
+    VA 0x000000e6 (decimal:      230) --> (VPN 0)   0x000060e6
+    VA 0x00002e0f (decimal:    11791) --> (VPN 11)  INVALID
+    VA 0x00001986 (decimal:     6534) --> (VPN 6)   0x00007586
+more virtual addresses are valid as -u increases
+
+18.3
+-P 8 -a 32 -p 1024 -v -s 1
+    page size too small, virtual address space too small compared to physical address space, most of
+    physical address space is not addressable from a single process
+-P 8k -a 32k -p 1m -v -s 2
+    nothing different, only the page size is more reasonable
+-P 1m -a 256m -p 512m -v -s 3
+    overall reasonable, page size too large for light threads
+
+18.4
+-a 32k -p 16k
+    Error: physical memory size must be GREATER than address space size (for this simulation)
+-p 2g
+    Error: must use smaller sizes (less than 1 GB) for this simulation.
+-a 5k
+    Error in argument: address space must be a power of 2
+-P 5k
+    Error in argument: page size must be a power of 2
+-a 2k -P 4k
+    // page size should not be greater than virtual address space size, didn't catch the error 
+
+19. Paging: Faster Translations (TLBs)
+Questions
+19.1 
+Instant::now() timer in Rust std, backed by clock_gettime(CLOCK_MONOTONIC) on Linux. The resolution
+reported by clock_getres() is 1ns, but after that much patches to Spectre and other vulnerabilities
+there's no way any system timer can still have sub-microsecond precision. Without any knowledge of
+the deviation of the timer nor the memory operation I'd say at least a few thousand iterations would
+be necessary.
+
+19.2
+how to use:
+    install the x86_64-unknown-linux-musl build target by:
+        rustup target add x86_64-unknown-linux-musl
+    build with musl target and rust-lld:
+        rustc --target x86_64-unknown-linux-musl -C linker=rust-lld -O -o tlb-musl tlb.rs
+    run in linux:
+        ./tlb-musl NUM_OF_PAGES PEPEAT
+    build on windows:
+        rustc --target x86_64-pc-windows-msvc -O -o tlb-msvc tlb.rs
+    run in windows:
+        ./tlb-msvc NUM_OF_PAGES PEPEAT
+
+19.3
