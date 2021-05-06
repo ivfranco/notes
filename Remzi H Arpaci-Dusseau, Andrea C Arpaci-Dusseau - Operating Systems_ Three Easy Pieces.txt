@@ -549,6 +549,45 @@ This coalesce algorithm is O(n). A common O(1) solution to the coalesce problem 
 a header, but also a footer to the allocated chunk, hence on freeing a chunk the allocator may
 access both the chunks before and after the chunk and perform the necessary coalesce.
 
+[S15] "Understanding glibc malloc" by Sploitfun
+---NOTES START---
+ptmalloc2, the allocator in glibc since 2006, maintains multiple arenas for different threads, up to
+a limit which is 8 * NUMBER_OF_CPU on 64-bit platforms, after that threads have to share arenas as
+in the older dlmalloc.
+
+The arena in the main thread is created with sbrk, all other thread arenas are created by mmap. Both
+requires more than necessary space from the operating system, also do not return space immediately
+to the operating system when it's free'd. Arenas grow whenever a malloc request cannot be fulfilled.
+
+The allocator maintains three kinds of data structures:
+    - heap_info: the heap header. There may be multiple heaps (contiguous chunk of memory in virtual
+      memory space) in a single arena, as the arena grows overtime as a result of malloc requests,
+      the memory under a single arena may not be contiguous. Main thread doesn't have multiple heaps
+      (it's memory can always be moved to a larger contiguous chunk with sbrk)
+    - malloc_state: the arena header. contains information about bins, top chunk, last remainder
+      chunk, etc. For thread arenas malloc_state is part of the heap, while malloc_state of the main
+      thread is a global variable of glibc.
+    - malloc_chunk: the chunk header. Different type of chunks has different headers.
+
+Small enough chunks (16 - 64 bytes) are kept in their own free lists, or "fast bins" in glibc term.
+They are not coalesced nor sorted on free, just goes back the bin they came from. Each bin holds
+free chunks of the same size, 8 bytes apart in size from one bin to another.
+
+Chunks of other sizes when free'd are first added to an "unsorted bin", allowing them to be reused
+quickly. Small Bins (< 512 bytes) are 8 bytes apart. Large Bins (>= 512 bytes) have exponentially
+increasing sizes and chunks in each bin do not have the same size. Both of them are coalesced when
+two free chunks are next to each other. 
+
+Chunk at the top border (the last in virtual address, the initial free chunk) is called top chunk,
+top chunk is not in any bins, large and top chunks are the only chunks that will be split on user
+request. Top chunk is split when there's no other free blocks in any of the bins.
+
+Last Remainder Chunk points to the last free chunk as the result of a split. Last Remainder Chunk is
+prioritized in the unsorted bin to serve consecutive small allocations. These requests are more
+likely to be allocated next to each other and coalesced back to a single chunk on free if Last
+Reminder Chunk is split on consecutive calls to malloc. 
+---NOTES END---
+
 Questions
 17.1
 ./malloc.py -n 10 -H 0 -p BEST -s 0
