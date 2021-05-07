@@ -753,3 +753,33 @@ not significant so far in measurements
 19.7
 whatever overhead the first access incurs will be averaged to almost nothing after 5000 trials,
 adding manual volatile initialization before measuring didn't change time per access.
+
+20. Paging: Smaller Tables
+Questions
+20.1
+Still one: the PDBR. Locations of lower levels are stored in memory not a register.
+
+20.2
+// would do 1 instead of 30 translations in a table of 4096 raw bytes
+// -s 0, the first virtual address
+PDBR = 108
+VA = 0x611c = 0b11000_01000_11100
+PDIndex = 0b11000 = 24
+PDE = 0xa1 = 0b1_0100001, VDE.Valid = True
+PDE.PFN = 0b0100001 = 33
+PTIndex = 0b01000 = 8
+PTE = 0xb5 = 0b1_0110101, PTE.Valid = True
+PTE.PFN = 0b0110101 = 53
+Offset = 0b11100 = 28
+Value = 0x08
+each lookup follows 3 memory references in total
+    one to the PDE
+    one to the PTE
+    one to the physical address in PTE
+
+20.3
+Modern CPU brings a whole page or something close to the cache on memory access, after the first
+access to a memory location the highest level PDT and the page tables down from there for the VA
+would have been bought into cache, following accesses up to a common low level VPN would have cache
+hits. If the Page table hierarchy is deep to the point that not all page directory tables used to
+translate a single VA could be fit into the cache there would be significantly more cache misses.
