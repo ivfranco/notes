@@ -783,3 +783,56 @@ access to a memory location the highest level PDT and the page tables down from 
 would have been bought into cache, following accesses up to a common low level VPN would have cache
 hits. If the Page table hierarchy is deep to the point that not all page directory tables used to
 translate a single VA could be fit into the cache there would be significantly more cache misses.
+
+21. Beyond Physical Memory: Mechanisms
+Questions
+21.1
+./mem 1024
+    free, The amount of free memory decreased by 1_000_000. the unit seems to be KB.
+    in, The number of interrupts per second increased by 3x. Mostly page memory accesses.
+    r, The number of runnable processes increased by 1
+    us, user time is 8%, a process constantly fault on memory access is impossible to saturate a
+        modern CPU
+All of the stats above are linear in the number of mem running
+
+21.2
+swpd remains 0, free increased then decreased by 1GB.
+
+21.3
+./mem $((13 * 1024))
+1.  Before the main loop, an array bigger than available memory is allocated, pages that doesn't fit
+    in the main memory is swapped out to the disk, for a brief second so skyrocketed to 1.5GB/s. This
+    number is significantly over the capacity of the disk, which indicates the swap files are merely
+    created by the file system and contains uninitialized data at this point. 
+2.  At the beginning of loop 0 most VAs accessed by the main loop is in physical memory, after a
+    while the program reaches the swapped out region of the array, generated a constant stream of
+    page faults. si remained constant at ~100MB/s. For some reason the OS swapped out more than
+    necessary pages out to the disk on initialization, as swpd decreased from 1.5GB to 1GB with no
+    pages swapped out in this period.
+3.  Starting from loop 1, each page access is now a page fault (maybe due to the page evict policy),
+    the same amount of pages are swapped, in and out every second, si == so == bandwidth, no change
+    in swpd anymore.
+
+21.4
+bi == si, bo == so as expected, no other process utilizing the disk
+cs == 2 * in, each interrupt is handled by a context switch from the process to kernel and a context
+switch from kernel to the process
+the CPU is entirely idle, the user process is blocking on IO, the kernel has no ready process to
+schedule, only the disk is busily swapping pages in and out.
+
+21.5
+./mem $((4 * 1024))
+    The first loop is slower than subsequent loops as the memory is initialized on the fly. After
+    that the bandwidth is 9000MB/s constant.
+./mem $((13 * 1024))
+    The first loop is faster than subsequent loops as a major part of the memory it accesses is not
+    in swap space yet. After that the bandwidth is 100MB/s constant.
+The graph should be like a step function: any x <= 12 maps to 9000, any x > 12 maps to 100.
+
+21.6
+the entire system freezes after a certain size
+the allocation fails once array size > memory available to user process + swap file size
+
+21.7
+// is it even possible to configure swap space from WSL?
+
