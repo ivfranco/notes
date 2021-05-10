@@ -1,0 +1,7 @@
+[package]
+name = "lackey_parser"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@protonmail.com>"]
+edition = "2018"
+
+[dependencies]

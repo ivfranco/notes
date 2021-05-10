@@ -836,3 +836,46 @@ the allocation fails once array size > memory available to user process + swap f
 21.7
 // is it even possible to configure swap space from WSL?
 
+22. Beyond Physical Memory: Policies
+"However, in many cases the importance of said algorithms has decreased, as the discrepancy between
+memory-access and disk-access times has increased."
+A reasonably available NVMe storage now is only 1 magnitude slower than DDR4 in terms of both speed
+and IOPS.
+
+Questions
+21.1
+-p FIFO -s 0 -n 10
+    10% hit rate 
+-p LRU -s 0 -n 10
+    20% hit rate
+-p RAND -s 0 -n 10
+    0% hit rate
+-p OPT -s 0 -n 10
+    40% hit rate
+-p CLOCK -s 0 -n 10
+    10% hit rate
+the seemingly random sequence (8 7 4 2 5 4 7 3 4 5) and the small default cache size (3 pages)
+nullified the potential benefit of LRU and CLOCK.
+
+21.2
+FIFO
+    a repeated sequential access to a pattern of length > 5, 0% hit rate. Would be dramatically
+    improved to 100% once the cache size is equal or greater to the length of the pattern
+LRU
+    the same to FIFO
+MRU
+    (1 2 3 4 5 6 5 6 5 6 ...), the last two pages 5 and 6 will be evicted each time on the access of
+    the other, 0% hit rate, would be dramatically improved to 100% once cache size is increased by 1
+
+21.3
+same to Figure 22.6 , given the trace is long enough
+
+21.4
+hot / cold pages, same to Figure 22.7, given the trace is long enough
+
+21.5
+The processed list of page numbers exceeds the length limit of argument list (getconf ARG_MAX, in
+this case 2097152 bytes). The output is limited to the first 10_000 accesses. The program ls has a
+working set so tiny that even a single cached page will cover more than 60% memory accesses,
+regardless of policy in use. The first 10_000 memory access of a Linux core utility must be a bad
+sample as the trace of vmstat gives the exact same results.
