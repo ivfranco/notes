@@ -878,4 +878,19 @@ The processed list of page numbers exceeds the length limit of argument list (ge
 this case 2097152 bytes). The output is limited to the first 10_000 accesses. The program ls has a
 working set so tiny that even a single cached page will cover more than 60% memory accesses,
 regardless of policy in use. The first 10_000 memory access of a Linux core utility must be a bad
-sample as the trace of vmstat gives the exact same results.
+Gsample as the trace of vmstat gives the exact same results.
+
+---NOTE START---
+Two system parameters, a low limit and a high limit, are associated with the global modified list of
+pages. Once the list size reaches the high limit, the OS writes out pages until the size of the
+modified list is now the lower limit, during which process contiguous pages in virtual memory is
+written to contiguous regions of the disk, next time the process faults on one of the pages (and by
+spatial locality, would fault on consecutive pages) the OS may cluster the read to a sequential
+access to the disk. 
+
+Whenever a process is removed from the memory (e.g. on context switch), its resident set is swapped
+out to the disk. A process is never swapped in unless there's enough memory for its entire resident
+set at the point it's swapped out. A process could lock itself and its pages in memory so it's never
+swapped out, a privileged syscall in modern Linux, which should also be the case of VAX/VMS (not
+mentioned in the paper).
+---NOTE END---
