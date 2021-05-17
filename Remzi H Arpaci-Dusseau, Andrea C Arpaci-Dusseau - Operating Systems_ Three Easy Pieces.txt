@@ -899,3 +899,86 @@ set at the point it's swapped out. A process could lock itself and its pages in 
 swapped out, a privileged syscall in modern Linux, which should also be the case of VAX/VMS (not
 mentioned in the paper).
 ---NOTE END---
+
+26. Concurrency: An Introduction
+Questions
+26.1
+All general registers, if not specified otherwise, has initial value 0. The program will halt after
+the first iteration of the loop, on exit %dx = -1.
+
+26.2
+The state of registers are not shared between threads, no matter what is the interrupt frequency the
+two threads will be decremented by 1 each iteration, after 3 iterations both threads will halt.
+Since interrupt frequency is set to a value much larger than the cycles required to run a thread to
+completion, the second thread will start only after when the first thread halted.
+
+26.3
+As stated above in 26.2, the program is deterministic and the interrupt frequency will not change
+the result of execution.
+
+26.4
+In C terms,
+    int *ptr = 2000;
+    do {
+        *ptr += 1;
+    } while (b > 0);
+b = 0, *ptr = 0 at the beginning of the program, value = *ptr is incremented once from 0 to 1 by
+instruction 1004 then the program halts.
+
+26.5
+The default interrupt frequency is once between 50 instructions, both threads are not interrupted
+while in the critical section, the number of iterations is controlled by the initial value of the
+loop counter %bx which is set to 3, the final value of memory position 2000 is 6.
+
+26.6
+-s 0
+    final value is 2, both threads are not interrupted in critical section
+-s 1
+    Thread 0 is interrupted right after instruction 1000, the same value 1 is written twice by
+    thread 0 and 1 to the memory position 2000, final value is 1
+-s 2
+    final value is 2, both threads are not interrupted in critical section
+critical section is instruction 1000 to 1002 inclusive, if a thread is interrupted after instruction
+1000 and before instruction 1003 the execution order is unsafe.
+
+26.7
+-i 1
+    final value is 1, both thread loads the initial value of (2000) to %ax
+-i 2 
+    final value is 1, both thread loads the initial value of (2000) to %ax
+-i 3
+    final value is 2, the store operation (instruction 1002) of thread 0 happens before the context
+    switch, threads 1 read value 1 from the memory location
+for i >= 3, the answer is correct for a single iteration
+
+26.8
+There's 6 instructions in the loop, if a = b mod 6, using a or b as the interrupt frequency should
+yield the same correctness.
+-i 1, -i 2 is incorrect as stated above in 26.7
+-i 3 is correct
+    length of the critical section is 3, the execution order is:
+        critical section of thread 0
+        critical section of thread 1
+        jump test of thread 0
+        jump test of thread 1
+        (repeat)
+    both threads are never interrupted in critical section
+-i 4 is incorrect
+    thread 0 is interrupted in the critical section of the 2nd iteration
+-i 5 is incorrect
+    thread 0 is interrupted in the critical section of the 4th iteration
+-i 6 is correct
+    each thread runs for a whole iteration of the loop before being interrupted
+
+26.9
+The memory location 2000 is used as a spin lock, thread 1 initialized with ax = 1 releases the lock
+by storing 1 to the memory location, thread 0 initialized with ax = 0 busily waits for the store in
+the other thread. the final value of (2000) is always 1 on exit.
+
+26.10
+As long as there's only one signaller, the behavior of the program is deterministic, both threads
+doesn't have a critical section assume the instructions are atomic and the threads are scheduled on
+a single CPU. On multiple CPUs the behavior of the program is less consistent, the modification done
+by one CPU may not be immediately visible to another CPU. 
+The memory location is used as a spin lock, the waiter loop at full speed until the lock is released
+by the signaller, that's definitely not an efficient use of the CPU.
