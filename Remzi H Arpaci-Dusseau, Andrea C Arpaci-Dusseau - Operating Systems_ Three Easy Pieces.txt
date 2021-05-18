@@ -982,3 +982,108 @@ a single CPU. On multiple CPUs the behavior of the program is less consistent, t
 by one CPU may not be immediately visible to another CPU. 
 The memory location is used as a spin lock, the waiter loop at full speed until the lock is released
 by the signaller, that's definitely not an efficient use of the CPU.
+
+27. Interlude: Thread API
+Cast between long long int and void * is not always safe, void * could be 32-bit
+
+A possible deadlock scenario of 2 threads if mutex was released before sending signal, thanks
+https://stackoverflow.com/questions/21439359/
+    1.  thread 1 (signaller) releases mutex
+    2.  thread 0 (waiter) awoken spuriously
+    3.  thread 0 checks condition, the condition is not met
+    4.  signal from thread 1 arrives, ignored because thread 0 is not waiting on condvar
+    5.  thread 0 waits on condvar and deadlock 
+
+Questions
+27.1
+Redirect the output of valgrind to less:
+    valgrind --tool=helgrind 2>&1 ./main | less
+If the program is compiled with debug symbols (-g flag to gcc), helgrind will report the file name
+and line number where the data race occurred.
+Two data races are reported: one between read in main thread and write in spawned thread, another
+between write in main thread and read in spawned thread.
+==221== ----------------------------------------------------------------
+==221==
+==221== Possible data race during read of size 4 at 0x10C07C by thread #1
+==221== Locks held: none
+==221==    at 0x1094D0: main (main-race.c:15)
+==221==
+==221== This conflicts with a previous write of size 4 by thread #2
+==221== Locks held: none
+==221==    at 0x109497: worker (main-race.c:8)
+==221==    by 0x483C8B6: mythread_wrapper (hg_intercepts.c:389)
+==221==    by 0x4856FA2: start_thread (pthread_create.c:486)
+==221==    by 0x49694CE: clone (clone.S:95)
+==221==  Address 0x10c07c is 0 bytes inside data symbol "balance"
+==221==
+==221== ----------------------------------------------------------------
+...
+==221== ----------------------------------------------------------------
+==221==
+==221== Possible data race during write of size 4 at 0x10C07C by thread #1
+==221== Locks held: none
+==221==    at 0x1094D0: main (main-race.c:15)
+...
+Along with where the race occurred, helgrind reports the size of the conflicting read, the thread
+performing the conflicting read and write, any lock held by the threads at the point of data race,
+the memory address of the data race and the variable name under unprotected access.
+
+27.2
+remove one of the offending lines of code
+    empty report from helgrind 
+lock only the access to balance in main thread with a mutex
+    helgrind reports the appearance of the lock
+    ==599==  Lock at 0x10C0A0 was first observed
+    ==599==    at 0x483DB1D: pthread_mutex_init (hg_intercepts.c:787)
+    ==599==    by 0x10924C: Pthread_mutex_init (mythreads.h:18)
+    ==599==    by 0x1094C3: main (main-race.c:16)
+    ==599==  Address 0x10c0a0 is 0 bytes inside data symbol "mutex"
+    the same lock is reported at the data race since the data race is not eliminated by the lock
+    ==599== Possible data race during write of size 4 at 0x10C084 by thread #1
+    ==599== Locks held: 1, at address 0x10C0A0
+    ==599==    at 0x1094F6: main (main-race.c:20)
+lock both access with the same mutex
+    again empty report from helgrind 
+
+27.3
+The two workers lock the two mutexes in reverse order, a possible execution order is
+    1.  worker 1 locks mutex m1
+    2.  worker 2 locks mutex m2
+    3.  worker 1 try locking mutex m2 and block
+    4.  worker 2 try locking mutex m1 and block
+no thread can make progress any more, hence a deadlock
+
+27.4
+helgrind reported "lock order violated", followed by where and to which locks the lock order is
+reversed in one thread from another
+
+27.5
+main-deadlock-global.c doesn't have the deadlock problem that's present in main-deadlock.c, the two
+locks m1 and m2 are still acquired in reverse order in different threads but the acquisition are
+themselves protected by a global mutex g, nonetheless helgrind still reported the same lock order
+violation as a bug of the program.
+As deadlock-detection is probably NP-hard[1], it's a reasonable decision for a tool like helgrind to
+utilize heuristics that may have false-positives and false-negatives instead of basing itself on an
+algorithm that's 100% correct.
+[1] https://madoc.bib.uni-mannheim.de/1309/1/Deadlock_Detection_in_Component_Based_Systems_is_NP_hard.pdf
+
+27.6
+The OS cannot reliably distinguish between a thread doing useful work and a thread spinning on a
+condition check, if the child thread takes a long time to complete the main thread will saturate the
+CPU resource available to it doing meaninglessly frequent check.
+
+27.7
+helgrind reports the data race on `done`. Data race in C is undefined behavior, compilers are
+allowed to do whatever they want if there's unprotected mutual access to a variable, the binary may
+appear to be correct only because the current compile target performs all read / write atomically
+and the compiler is not yet exploiting the assumption hard enough.
+Also helgrind doesn't understand atomic operations, even if `done` is defined as an atomic int and
+modified with proper atomic builtins the same "errors" are still reported.
+
+27.8
+The main improvement of main-signal-cv.c from main-signal.c is:
+    1.  there's no data race anymore, the program is now correct and cross-platform
+    2.  the program no longer spin on a condition check
+
+27.9
+No error reported by helgrind
