@@ -1086,4 +1086,156 @@ The main improvement of main-signal-cv.c from main-signal.c is:
     2.  the program no longer spin on a condition check
 
 27.9
-No error reported by helgrind
+No error reported by helgrinGd
+
+28. Locks
+Figure 28.9: Lock With Queues, Test-and-set, Yield, And Wakeup
+In reality park() may return spuriously without another thread calling unpack
+
+What would happen if the release of the guard lock came after the park(), and not before?
+Deadlock: the current thread is parked while holding the guard to the lock structure, the rest of
+threads take turns to spin until a timer interrupt.
+
+Figure 28.10: Linux-based Futex Locks
+---NOTE START---
+All modifications to `mutex` is atomic, but reads are not necessarily so. In particular
+    v = *mutex;
+is not atomic, but the code snippet is simplified a lot from the source of glibc/nptl, the original
+function is a few hundred lines long littered with macros and compiler flags.
+
+The lower 31 bits of `mutex` are only modified when a thread enters or leaves lock state. futex_wait
+solves the problem with park(): if the thread is interrupted after v = *mutex and before futex_wait,
+during which the lock is released, either the caller acquires the lock
+    if (v >= 0)
+        continue;
+    // another iteration of the loop
+    if (atomic_bit_test_set (mutex, 31) == 0)
+        return;
+or another thread had acquired the lock, mutex is decremented by 1, difference between `mutex` and `v`
+causes futex_wait to return immediately.
+---NOTE END---
+
+Questions 
+28.1
+In C terms,
+    for (; b > 0; b--) {
+        while (flag != 0)
+            ;
+        flag = 1;
+        count += 1;
+        flag = 0;
+    }
+Spin lock on non-atomic flag variable, wrong in every possible way.
+
+28.2
+The default interrupt frequency is once per 50 instructions, both threads will not be interrupted in
+critical section, the program will correctly put 2 in `count` no matter how broken the lock is.
+`flag` will be 0 after the second thread released the lock.
+
+28.3 - 28.4
+Once the number of iteration (%bx) is large enough, threads start to be interrupted in critical
+sections, the end value of `count` would no longer equal to twice the number of iterations, but as
+the lock is always released at the end of an iteration, `flag` would still contain 0 at the end of
+execution.
+
+28.5
+In C terms, 
+    _Atomic int mutex = 0;
+    // acquire
+    while (atomic_exchange(&mutex, 1) != 0)
+        ;
+    // release
+    atomic_store(&mutex, 0);
+Assuming a strict memory order (modification from one thread is immediately visible to all others),
+both the lock acquire and release are correct.
+
+28.6
+A possible measurement of efficiency is total executed instructions / %bx.
+    BX=50;INS=$(./x86.py -p test-and-set.s -M mutex,count -a bx=$BX,bx=$BX -i 10 -s 10 -c | wc -l);echo $((INS / BX))
+The average result is 32 instructions per iteration in both threads, the wasting of CPU cycles is
+not that much outrageous as there's 10 instructions per iteration in the shortest path, 20 for both
+threads, roughly 33% CPU time is spent in the spin lock.
+
+28.7
+-P 00111
+    1000 mov  $1, %ax
+    1001 xchg %ax, mutex
+    ------ Interrupt ------  ------ Interrupt ------
+                            1000 mov  $1, %ax
+                            1001 xchg %ax, mutex
+                            1002 test $0, %ax
+    ------ Interrupt ------  ------ Interrupt ------
+    1002 test $0, %ax
+    1003 jne  .acquire
+    ------ Interrupt ------  ------ Interrupt ------
+                            1003 jne  .acquire
+                            1000 mov  $1, %ax
+                            1001 xchg %ax, mutex
+    ------ Interrupt ------  ------ Interrupt ------
+    1004 mov  count, %ax
+    1005 add  $1, %ax
+xchg ensures that only one thread would have %ax = 1 at any point into the execution, without %ax =
+0 a thread cannot enter its critical section. Another thing worth testing is whether one thread will
+starve under any possible scheduling. 
+
+28.8
+The program has 3 1-bit flags:
+    flag[0], flag[1], turn
+in addition to two 1-bit states semantically important to the correctness of the program:
+    thread_1_in_critical_section, thread_2_in_critical_section
+There's 32 states in total, a rigorous proof would have to show the program never enters a state (_,
+_, _, 1, 1). The initial state is (0, 0, 0, 0, 0) or (0, 0, 1, 0, 0).
+The first thread may only enter the critical section when the state is (1, _, 0, 0, 0), the second
+thread may only enter the critical section when the state is (_, 1, 1, 0, 0), the two sets of states
+are mutually exclusive.
+A thread never modifies `turn` in its own favor, that vaguely means when a thread is granted access
+to the critical section (at the start of .spin1 or at the start of .spin2), execution of the other
+thread will not invalidate its access or allow the other thread to enter the critical section
+concurrently. Formally that means there's no path from (1, _, 0, _, 0) to (_, 1, 1, _, 0) executing
+only thread 2.
+The program is deadlock free: if there's no contention, a thread trying to acquire the lock
+immediately jumps to .fini then the start of the critical section; if there's contention exactly one
+of them pointed by the value of `turn` will be granted access to the critical section.
+
+28.9
+starting from -i 7, the execution is much shorter as the first thread acquired the lock with no
+contention, interrupt frequencies shorter than that cause the value of `turn` to bounce between 0
+and 1 a few times.
+
+28.10
+see 28.8
+
+28.11
+A faithful translation of Figure 28.7: Ticket Locks. The shortest path of one iteration contains 13
+instructions, the execution in total is 99481 instructions, or 50 instructions per iteration, only
+26% percent of the time the CPU is doing meaningful works.
+
+28.12
+Without randomized interrupts the performance is stable at ~50 instruction / iteration
+    -t 2: 99481
+    -t 3: 149443
+    -t 4: 199306
+    -t 5: 249169
+    -t 6: 299032
+    -t 7: 348946
+With randomized interrupts the performance is much worse for more threads
+    -t 2: 62608
+    -t 3: 130654
+    -t 4: 209992
+    -t 5: 337954
+    -t 6: 490873
+    -t 7: 656734
+
+28.13
+ostep $ ./x86.py -p test-and-set.s -M mutex,count -t 10 -a bx=100 -c | wc -l
+71311
+ostep $ ./x86.py -p yield.s -M mutex,count -t 10 -a bx=100 -c | wc -l
+18190
+By definition only one thread may progress in the critical section, all other threads would have to
+waste their entire time slice spinning in test-and-set.s, in yield.s however the contending threads
+immediately de-schedule themselves. More threads spawned by the process, more significant the saving
+is.
+
+28.14
+There's a saving only when xchg is much more expensive than mov and time slices are accounted by
+number of instructions instead of real time, both are not true in a realistic system. 
