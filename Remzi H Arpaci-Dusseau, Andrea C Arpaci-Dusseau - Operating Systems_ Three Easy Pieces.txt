@@ -1239,3 +1239,21 @@ is.
 28.14
 There's a saving only when xchg is much more expensive than mov and time slices are accounted by
 number of instructions instead of real time, both are not true in a realistic system. 
+
+29. Lock-based Concurrent Data Structures
+Questions 
+29.1
+see 19.1
+
+29.2
+./ostep/chapter_29/concurrent_structures
+The number of virtual CPUs should have a negative impact on performance, given the number of threads
+a context switch is more likely to be between CPUs when there are more virtual CPUs in the system.
+
+
+29.3
+./ostep/chapter_29/concurrent_structures
+The code in the text has a bug: accumulated local negative updates are never flushed to the global
+count.
+
+29.4
