@@ -1257,3 +1257,13 @@ The code in the text has a bug: accumulated local negative updates are never flu
 count.
 
 29.4
+./ostep/chapter_29/concurrent_structures
+[MS04] “Concurrent Data Structures” by Mark Moir and Nir Shavit, the cited paper didn't show an
+implementation of hand-over-hand linked list, instead it directed reader to two paywalled sources
+for the details. The code here is based on lecture slide from Washington University in St. Louis:
+    https://www.cse.wustl.edu/~angelee/archive/cse539/spr15/lectures/lists.pdf
+The only possible scenario I can think of where hand-over-hand list performs better than a globally
+locked linked list when sequentially ordered items are removed from the list.
+
+
+29.5
