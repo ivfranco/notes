@@ -1259,11 +1259,100 @@ count.
 29.4
 ./ostep/chapter_29/concurrent_structures
 [MS04] “Concurrent Data Structures” by Mark Moir and Nir Shavit, the cited paper didn't show an
-implementation of hand-over-hand linked list, instead it directed reader to two paywalled sources
+implementation of hand-over-hand linked list, instead it redirected reader to two paywalled sources
 for the details. The code here is based on lecture slide from Washington University in St. Louis:
     https://www.cse.wustl.edu/~angelee/archive/cse539/spr15/lectures/lists.pdf
-The only possible scenario I can think of where hand-over-hand list performs better than a globally
-locked linked list when sequentially ordered items are removed from the list.
+The only possible situation I can think of where hand-over-hand list performs better than a globally
+locked linked list is when sequentially ordered items are removed from the list. Even that heavily
+depends on the performance of mutex provided by the system.
 
 
-29.5
+29.5 - 29.6
+https://github.com/ivfranco/talent-plan/tree/main/kvs, a concurrent log-structured key-value store
+
+30. Condition Variables
+Questions
+30.1
+---NOTE START---
+#include <mythreads.h>
+Abort-on-failure wrappers of standard library functions except work().
+    void work(int seconds)
+    keeps the CPU busy in an empty while loop for `seconds` second. This functions is never used in
+    any actual consumer / producer program.
+
+#include <pc-header.h>
+Global variables used through variations of the producer / consumer program.
+    fill_ptr 
+
+#include <main-header.h>
+#include <main-common.h>
+Common structures among variations of the producer / consumer program, parses the command line
+arguments then run the program accordingly. Sets up the p0 - p6, c0 - c6 macros that pause the
+threads wrt. the sleep string argument following -P and -C.
+
+Negative values in a buffer slot indicates the slot is empty (EMPTY) or the producer is terminated
+(END_OF_STREAM). The program emits the same number of END_OF_STREAM as the number of consumers into
+the buffer, each consumer terminates after consuming a different END_OF_STREAM value.
+
+The program is essentially the same to Figure 30.14: The Correct Producer/Consumer Synchronization.
+Producers and consumers are blocked on their own conditional variables and the same mutex.
+---NOTE END---
+
+30.2
+When there's no sleep, apparently what happened is the producer never uses more than one buffer slot
+at a time, after producing a single value into the buffer the producer releases the mutex which will
+immediately be taken over by the consumer, therefore the sole producer and the sole consumer take
+turns to do their work one item at a time till the end of stream, regardless of the buffer size or
+the total number of items produced. In theory the outcome of the program could be far more
+non-deterministic.
+When the sleep time after c6 is set to a non-zero value, the producer after releasing the mutex is
+allowed to re-acquire it instantly hence enter another iteration as there's no contention, until the
+buffer is completely filled (since the work takes negligible time compared to a whole second which
+is the minimum sleeping time) then wait on its conditional variable. `num_full` will bounce between
+`max` and `max` - 1 till end of stream.
+
+30.3
+// skipped
+
+30.4
+At least 0 seconds
+    the producer and one consumer take turns to run, neither the producer or the consumers ever
+    enter the while loop or wait
+At most 13 seconds 
+    1.  all 3 consumers acquire the mutex before the producer, proceeds to wait on the conditional
+        variable
+    2.  producer fills the empty buffer, signals a single consumer 
+    3.  one consumer is woken, after the one-second sleep it consumes the value, signals the
+        producer, re-acquire the lock to begin another iteration then proceeds to wait on the same
+        conditional variables again
+    repeat steps 2 and 3 until all values (10 stream values + 3 END_OF_STREAM tokens) are consumed.
+
+30.5
+Still 0 - 13 seconds, the buffer size is irrelevant to the argument above in 30.4.
+
+30.6
+By moving the sleep to a point after c6, the consumers no longer sleep while holding the mutex.
+At least 0 seconds
+    same to above
+At most 5 seconds
+    1.  all 3 consumers acquire the mutex before the producer, proceeds to wait on the conditional
+        variable
+    2.  producer fills the empty buffer, signals a single consumer 
+    3.  one consumer is woken, it consumes the value, signals the producer, releases the lock then
+        goes to sleep for 1 second
+    every second steps 2 to 3 is repeated 3 times, once for each consumer thread. 13 values in total
+    is consumed in 5 seconds
+
+30.7
+still 0 - 5 seconds, the bottleneck of this system is not the buffer size but the mandatory sleep
+time of the consumers.
+
+30.8
+The program is deadlock free when there's only one consumer. the producer could only block on the
+conditional variable when the buffer is full, then the consumer, the sole other thread will take
+over the lock, consume the values in the buffer and signal the producer from waiting; similarly the
+consumer could only block on the conditional variable when the buffer is empty. The conditional
+variable is never shared by both the consumer and the producer, and when a thread is woken from
+waiting the buffer state is always valid to it. 
+
+30.9
