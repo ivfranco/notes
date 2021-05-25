@@ -8,6 +8,30 @@ use std::sync::{Condvar, Mutex, MutexGuard, PoisonError};
 
 /// Counting semaphore to control concurrent access to a fixed number of shared resource. A rust
 /// clone of the code shown in Figure 31.17: Implementing Zemaphores With Locks And CVs of OSTEP.
+///
+/// # Examples
+/// ```
+/// use semaphore::Semaphore;
+/// use std::sync::Arc;
+/// use std::thread;
+///
+/// // Create the semaphore with no allowance initially.
+/// // `Arc` would not be necessary if the thread is scoped, but std threads must have 'static lifetime.
+/// let semaphore = Arc::new(Semaphore::new(0));
+///
+/// {
+///     let s = Arc::clone(&semaphore);
+///     thread::spawn(move || {
+///         println!("child");
+///         // allows the parent thread to proceed
+///         s.post().unwrap();
+///     });
+/// }
+///
+/// semaphore.wait();
+/// // parent will always print after child
+/// println!("parent");
+/// ```
 pub struct Semaphore {
     cond: Condvar,
     limit: Mutex<u32>,
