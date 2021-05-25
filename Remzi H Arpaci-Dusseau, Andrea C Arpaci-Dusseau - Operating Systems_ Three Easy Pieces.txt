@@ -1356,3 +1356,33 @@ variable is never shared by both the consumer and the producer, and when a threa
 waiting the buffer state is always valid to it. 
 
 30.9
+As stated in the text, it should be possible to cause deadlock even without any particular sleep
+string, but I couldn't reproduce the deadlock in a debian WSL for some reason, no matter what the
+sleep string is set to. 
+Some settings, for example -P 0,0,0,0,0,0,1 may cause deadlock on EOS tokens, but these tokens are
+inserted directly by the main thread ignorant of producers / consumers as well as the conditional
+variables and mutex they rely on. 
+
+30.10
+-c 1
+    assuming there's no spurious wake up, each time the producer or the consumer is woken, state of
+    the buffer cannot possibly be invalidated as there's no contending producers / consumers, the
+    program is correct with a single producer and a single consumer
+-c 2
+    the program error exits on almost every run even without a sleep string crafted for the purpose,
+    as stated in the text a consumer may be exposed to an empty buffer on wake up
+
+30.11
+-p 1 -c 1 -m 2
+    1.  the consumer sees an empty buffer, proceeds to block on `fill`
+    2.  the producer produces two values in quick succession, signals the consumer then proceeds to
+        block on `empty`
+    3.  the consumer consumes one value, signals the producer, re-acquire the lock upon entering a
+        new iteration
+    4.  now the next time the consumer releases the lock at the end of c3, it may be interrupted in
+        critical section by the ready to run producer, which would have access to the critical
+        section as well
+Didn't find a reliable sleep string exposing the race conditions, it would be much more easier if
+the program could set set sleep string for each iteration of the program.
+
+31. Semaphores
