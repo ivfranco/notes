@@ -1386,3 +1386,30 @@ Didn't find a reliable sleep string exposing the race conditions, it would be mu
 the program could set set sleep string for each iteration of the program.
 
 31. Semaphores
+Questions
+31.1
+./ostep/chapter_31/semaphore
+
+31.2
+./ostep/chapter_31/semaphore
+
+31.3
+./ostep/chapter_31/semaphore
+
+31.4 - 31.5
+./ostep/chapter_31/semaphore
+Before sleep() is added to the code, writers almost never had a chance to increment the value as
+long as there's more than one concurrent readers.
+In addition to the code in Figure 31.13: A Simple Reader-Writer Lock, now a waiting writer also
+blocks all pending readers until the writer unlocks. The program now suffers from some degree of
+reader starvation instead.
+An actually fair read-write lock in Rust could be found in parking_lot crate:
+    https://docs.rs/parking_lot/0.11.1/parking_lot/type.RwLock.html
+which bases its scheduling on running times of lock holders.
+
+31.6
+Thanks The Little Book of Semaphores, Allen B. Downey, available at 
+    https://greenteapress.com/semaphores/LittleBookOfSemaphores.pdf
+
+31.7
+No, I do not enjoy it unconditionally.
