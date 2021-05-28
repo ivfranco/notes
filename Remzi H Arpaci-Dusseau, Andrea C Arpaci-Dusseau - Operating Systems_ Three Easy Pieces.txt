@@ -251,7 +251,8 @@ Weighting (Niceness), logarithm of prio_to_weight is roughly linear, i.e.
     
 Remaining questions:
     - how are these dynamic data structures, especially the priority queue in stride scheduling
-      implemented in the kernel where dynamic allocation is not taken as given?
+      implemented in the kernel where dynamic allocation is not taken as given? (A: kernel has its
+      own heap and heap allocator)
 
 Questions
 9.1
@@ -1388,16 +1389,16 @@ the program could set set sleep string for each iteration of the program.
 31. Semaphores
 Questions
 31.1
-./ostep/chapter_31/semaphore
+./ostep/chapter_31/semaphore/src/bin/fork_join.rs
 
 31.2
-./ostep/chapter_31/semaphore
+./ostep/chapter_31/semaphore/src/bin/rendezvous.rs
 
 31.3
-./ostep/chapter_31/semaphore
+./ostep/chapter_31/semaphore/src/bin/barrier.rs
 
 31.4 - 31.5
-./ostep/chapter_31/semaphore
+./ostep/chapter_31/semaphore/src/bin/reader_writer.rs
 Before sleep() is added to the code, writers almost never had a chance to increment the value as
 long as there's more than one concurrent readers.
 In addition to the code in Figure 31.13: A Simple Reader-Writer Lock, now a waiting writer also
@@ -1408,8 +1409,162 @@ An actually fair read-write lock in Rust could be found in parking_lot crate:
 which bases its scheduling on running times of lock holders.
 
 31.6
+./ostep/chapter_31/semaphore/src/bin/mutex_nostarve.rs
 Thanks The Little Book of Semaphores, Allen B. Downey, available at 
     https://greenteapress.com/semaphores/LittleBookOfSemaphores.pdf
+The Rust code is a word to word translation of the C implementation in the book.
 
 31.7
 No, I do not enjoy it unconditionally.
+
+32. Common Concurrency Problems
+TIP: ENFORCE LOCK ORDERING BY LOCK ADDRESS
+Doesn't work if the lock is not process-local, e.g. system-wide named semaphore in Linux.
+
+TIP: DON’T ALWAYS DO IT PERFECTLY (TOM WEST’S LAW)
+The reason behind spurious wake ups and EINTER.
+
+Questions
+32.1
+---NOTE START---
+void vector_add(vector_t *v_dst, vector_t *v_src), in vector-deadlock.c
+    Acquires first the lock of v_dst, then the lock of v_src. The content of v_src is added inplace
+    to the content of v_dst.
+
+void *worker(void *arg), in main-common.c
+    For times supplied by argument -l, call vector_add(&v0, &v1). If -p is _NOT_ set, all threads
+    share the same pair of vectors. If -d is set, half of the threads call vector_add with roles of
+    v0 and v1 reversed.
+
+void print_info(int call_return, int thread_id, int v0, int v1), in main-common.c
+    The output is indented so that reports from different threads are in different column.
+    ->add(v0, v1)
+        A thread called vector_add(v0, v1)
+    <-add(v0, v1)
+        A thread returned from vector_add(v0, v1)
+    
+./vector-deadlock -n 2 -l 1 -v 
+    Except ->add always happens before ->add for the same thread, there's no consistent order
+    between events.
+---NOTE END---
+
+32.2
+The program deadlocks once in a few hundred trials on average. Deadlock manifests only when 
+    ->add(1, 0)
+    ->add(0, 1)
+occur at the same time in different threads. 
+
+32.3
+Increasing the number of threads significantly worsens the situation, on 10 threads the program is
+almost guaranteed to deadlock before the 100th trial, ~20 trials on average. Since circular wait may
+occur between any two threads with reversed lock order, more threads exponentially increases the
+chance of deadlock.
+This program running on any number of threads more than 1 is vulnerable to circular wait, the only
+safe option is -n 1.
+
+32.4
+Locks are acquired in order of their memory address, this program is deadlock-free as there's no
+circular wait. 
+Without the special case where the supplied v_dst and v_src is the same vector, a thread would
+deadlock itself by locking the same lock twice.
+
+32.5
+Running time is roughly linear in number of threads.
+    for n in {1..6}; do
+        THREADS=$((2 ** n));
+        echo "$THREADS threads";
+        ./vector-global-order -t -n $THREADS -l 100000 -d;
+    done
+    2 threads
+    Time: 0.02 seconds
+    4 threads
+    Time: 0.11 seconds
+    8 threads
+    Time: 0.36 seconds
+    16 threads
+    Time: 0.76 seconds
+    32 threads
+    Time: 1.48 seconds
+    64 threads
+    Time: 2.99 seconds
+Running time is roughly linear in number of loops.
+    for l in {1..10}; do 
+        LOOP=$((l * 100000)); 
+        echo "$LOOP loops"; 
+        ./vector-global-order -t -n 4 -l $LOOP -d; 
+    done 
+    100000 loops
+    Time: 0.14 seconds
+    200000 loops
+    Time: 0.27 seconds
+    300000 loops
+    Time: 0.37 seconds
+    400000 loops
+    Time: 0.50 seconds
+    500000 loops
+    Time: 0.65 seconds
+    600000 loops
+    Time: 0.78 seconds
+    700000 loops
+    Time: 0.85 seconds
+    800000 loops
+    Time: 1.11 seconds
+    900000 loops
+    Time: 1.27 seconds
+    1000000 loops
+    Time: 1.27 seconds
+
+32.6
+Up to the physical number of CPUs in the system (6 in my case) the performance should be close to -n
+1 without -p flag. Performance gain beyond that certain number of threads, if any, must be from
+now eliminated overhead of mutex scheduling.
+    for n in {1..6}; do 
+        THREADS=$((2 ** n)); 
+        echo "$THREADS threads"; 
+        ./vector-global-order -t -n $THREADS -l 100000 -d -p; 
+    done
+    2 threads
+    Time: 0.01 seconds
+    4 threads
+    Time: 0.01 seconds
+    8 threads
+    Time: 0.01 seconds
+    16 threads
+    Time: 0.03 seconds
+    32 threads
+    Time: 0.04 seconds
+    64 threads
+    Time: 0.08 seconds
+
+32.7
+The first pthread_mutex_trylock() is unnecessary per deadlock avoidance, the first lock is unlocked
+anyway if the thread failed to acquire the second lock, there's never circular wait in the system no
+matter the first lock is acquired non-blocking or not.
+The performance is much worse than vector-global-order, both the running time and number of retries
+are super linear in number of threads once the number of threads goes beyond the number of physical
+CPUs. 
+    for n in {1..6}; do
+        THREADS=$((2 ** n));
+        echo "$THREADS threads";
+        ./vector-try-wait -t -n $THREADS -l 100000 -d;
+    done
+    2 threads
+    Retries: 12478
+    Time: 0.02 seconds
+    4 threads
+    Retries: 23301
+    Time: 0.07 seconds
+    8 threads
+    Retries: 4442106
+    Time: 0.32 seconds
+    16 threads
+    Retries: 23177620
+    Time: 1.74 seconds
+    32 threads
+    Retries: 71349251
+    Time: 8.53 seconds
+    64 threads
+    Retries: 185078973
+    Time: 16.27 seconds
+
+32.8
