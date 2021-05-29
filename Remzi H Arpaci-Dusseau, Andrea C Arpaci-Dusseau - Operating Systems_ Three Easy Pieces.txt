@@ -1568,3 +1568,77 @@ CPUs.
     Time: 16.27 seconds
 
 32.8
+This approach prohibits any form of parallelism even if the threads are working on different
+vectors. The performance with -p flag is significantly worse than vector-global-order.
+    for n in {1..6}; do
+        THREADS=$((2 ** n));
+        echo "$THREADS threads";
+        ./vector-avoid-hold-and-wait -t -n $THREADS -l 100000 -d -p;
+    done
+    2 threads
+    Time: 0.01 seconds
+    4 threads
+    Time: 0.04 seconds
+    8 threads
+    Time: 0.12 seconds
+    16 threads
+    Time: 0.32 seconds
+    32 threads
+    Time: 0.53 seconds
+    64 threads
+    Time: 1.02 seconds
+    ostep $
+
+32.9
+The semantics of vector-nolock and previous versions of the program are not exactly the same. In
+previous versions the entire vector_add function is atomic, in contrary vector-nolock guarantees
+only atomicity of operations on a single vector element. For example, let 
+    v0 = [1, 1]
+    v1 = [1, 1]
+    v2 = [1, 1]
+when there are two concurrent calls to vector_add
+    ->add(v1, v0)
+    ->add(v2, v1)
+the result of all previous versions of the program would have
+    v2 = [2, 2] or [3, 3]
+but the result of vector-nolock could be
+    v2 = [2, 3]
+
+32.10
+On separate vectors the performance of vector-nolock is on par with vector-global-order
+    for n in {1..6}; do
+        THREADS=$((2 ** n));
+        echo "$THREADS threads";
+        ./vector-nolock -t -n $THREADS -l 100000 -d -p;
+    done
+    2 threads
+    Time: 0.04 seconds
+    4 threads
+    Time: 0.04 seconds
+    8 threads
+    Time: 0.05 seconds
+    16 threads
+    Time: 0.06 seconds
+    32 threads
+    Time: 0.12 seconds
+    64 threads
+    Time: 0.22 seconds
+Quite surprisingly when working on the same vectors the no-lock version is worse in performance
+compared to a global lock
+    for n in {1..6}; do
+        THREADS=$((2 ** n));
+        echo "$THREADS threads";
+        ./vector-nolock -t -n $THREADS -l 100000 -d;
+    done
+    2 threads
+    Time: 0.34 seconds
+    4 threads
+    Time: 0.96 seconds
+    8 threads
+    Time: 1.73 seconds
+    16 threads
+    Time: 2.91 seconds
+    32 threads
+    Time: 5.52 seconds
+    64 threads
+    Time: 12.48 seconds
