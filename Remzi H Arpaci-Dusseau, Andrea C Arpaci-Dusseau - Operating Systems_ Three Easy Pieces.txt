@@ -1642,3 +1642,143 @@ compared to a global lock
     Time: 5.52 seconds
     64 threads
     Time: 12.48 seconds
+
+33. Event-based Concurrency (Advanced)
+Questions
+// skipped, had done this several times as exercise of books of various topics
+
+35. Hard Disk Drives
+Questions
+python-tk, backend of the GUI doesn't work on WSL
+by default, 
+    1.  each track has 12 sectors, 30 unit distance between each other, sectors are numbered
+        counterclockwise 
+    2.  the outmost track is the first one
+    3.  tracks are 40 distance units apart
+    4.  the seek head starts at the midpoint of sector 6
+The rotate time displayed by -c is the time waiting on rotate _after_ the seek. The rotate times
+in calculations below are rotating time _including_ seek and wait.
+
+35.1    
+-a 0
+    seek        = 0
+    rotate      = (0 - 6.5) mod 12 * 30 = 165
+    transfer    = 30
+    total       = 195
+-a 6
+    seek        = 0
+    rotate      = (6 - 6.5) mod 12 * 30 = 345
+    transfer    = 30
+    total       = 375
+-a 30
+    seek        = ceil(30 / 12) * 40 = 80
+    rotate      = (30 - 6.5) mod 12 * 30 = 345
+    transfer    = 30
+    total       = 375 (seek and rotate are concurrent)
+-a 7,30,8
+    section 7
+        seek        = 0
+        rotate      = (7 - 6.5) mod 12 * 30 = 15
+        transfer    = 30
+        total       = 45
+    section 30, start at the start of section 8
+        seek        = |ceil(30 / 12) * 40 - 0| * 40 = 80
+        rotate      = (30 - 8) mod 12 * 30 = 300
+        transfer    = 30
+        total       = 330
+    section 8, start at the start of section 31
+        seek        = 80
+        rotate      = (8 - 31) mod 12 * 30 = 60, +360 must wait for another full rotation 
+        transfer    = 30
+        total       = 420
+    795 in total
+-a 10,11,12,13
+    section 10, 11
+        seek        = 0
+        rotate      = (10 - 6.5) mod 12 * 30 = 105
+        transfer    = 60
+        total       = 165
+    section 12, 13, start at the start of section 0
+        seek        = 40
+        rotate      = 360
+        transfer    = 60
+        total       = 420
+    585 in total 
+
+35.2 - 35.3
+// skipped, mostly the same calculation
+
+35.4
+-a 7,30,8 -p SSTF, one best schedule
+    section 7,8
+        seek        = 0
+        rotate      = 15
+        transfer    = 60
+        total       = 75
+    section 30, start at beginning of section 9
+        seek        = 80
+        rotate      = (30 - 9) mod 12 * 30 = 270
+        transfer    = 30
+        total       = 300
+    375 in total  
+section 8 may be served before section 7 in SSTF
+
+35.5
+SATF guarantees that section 7 is always served before section 8, any time a series of requests of
+the same seek time appears SATF would potentially outperform SSTF.
+
+35.6
+track skew: tracks doesn't numerically start at the same angular position, e.g. for a skew of 2, the
+outmost track start at angular position 0, the track immediately inside to it starts at angular
+position π/3 and so on.
+-a 10,11,12,13 is slow because after access to section 10 and 11, without a skew the seek head must
+wait for a full rotation on the inner track. A skew of 2 will maximize the performance as it
+minimizes the waiting time on the inner track.
+-a 10,11,12,13 -o 2
+    section 10, 11
+        seek        = 0
+        rotate      = (10 - 6.5) mod 12 * 30 = 105
+        transfer    = 60
+        total       = 165
+    section 12, 13, start at the start of section 0
+        seek        = 40
+        rotate      = (2 - 0) mod 12 * 30 = 60
+        transfer    = 60
+        total       = 120
+    285 in total 
+
+35.7
+// it's really hard to tell what the geometry is without graphic output, with -z 10,20,30 the
+// tracks are not perfectly aligned, there's a small 5 degree skew between the first and second
+// tracks as far as I can tell, calculation skipped 
+bandwidth of 
+    outer track: 1/10 section per unit time
+    middle track: 1/20 section per unit time 
+    inner track: 1/30 section per unit time 
+
+35.8
+The limit is different depending on the seed, but at a window size of 200 most seeds reports the
+same result to best performance.
+for s in {1..100}; do 
+    ./disk.py -A 1000,-1,0 -p SATF -w 200 -s $s -c; 
+    ./disk.py -A 1000,-1,0 -p SATF -w -1 -s $s -c; 
+done | grep TOTALS
+In theory the window size must be equal or greater to the total number of requests to maximize
+performance, consider a track with 10000 sectors, a series of requests 
+    1,2,3,..,999,0
+will only be optimally scheduled with window size >= 1000
+When the window size is 1, every scheduling policy degrades into FIFO
+
+35.9
+"Create a series of requests to starve a particular request"
+    32,(0,1,2,3,4,5,6,7,8,9,10,11,0)*
+BSATF solves starvation: upon arrival, every request will be served in a finite time linear to the
+window size. A finite window size always hurts the performance in long term.
+In practice where performance on magnetic disk matters, a file on magnetic disk is virtually never
+modified at any position except the end, policies introduced so far may not incur so much starvation
+it did back in the days magnetic disks are still the only budget choice.
+
+35.10
+-a 17,20,4,23,4
+    FIFO total: 1035
+    SATF total: 1065
