@@ -1647,7 +1647,7 @@ compared to a global lock
 Questions
 // skipped, had done this several times as exercise of books of various topics
 
-35. Hard Disk Drives
+37. Hard Disk Drives
 Questions
 python-tk, backend of the GUI doesn't work on WSL
 by default, 
@@ -1659,7 +1659,7 @@ by default,
 The rotate time displayed by -c is the time waiting on rotate _after_ the seek. The rotate times
 in calculations below are rotating time _including_ seek and wait.
 
-35.1    
+37.1    
 -a 0
     seek        = 0
     rotate      = (0 - 6.5) mod 12 * 30 = 165
@@ -1705,10 +1705,10 @@ in calculations below are rotating time _including_ seek and wait.
         total       = 420
     585 in total 
 
-35.2 - 35.3
+37.2 - 37.3
 // skipped, mostly the same calculation
 
-35.4
+37.4
 -a 7,30,8 -p SSTF, one best schedule
     section 7,8
         seek        = 0
@@ -1723,11 +1723,11 @@ in calculations below are rotating time _including_ seek and wait.
     375 in total  
 section 8 may be served before section 7 in SSTF
 
-35.5
+37.5
 SATF guarantees that section 7 is always served before section 8, any time a series of requests of
 the same seek time appears SATF would potentially outperform SSTF.
 
-35.6
+37.6
 track skew: tracks doesn't numerically start at the same angular position, e.g. for a skew of 2, the
 outmost track start at angular position 0, the track immediately inside to it starts at angular
 position π/3 and so on.
@@ -1747,7 +1747,7 @@ minimizes the waiting time on the inner track.
         total       = 120
     285 in total 
 
-35.7
+37.7
 // it's really hard to tell what the geometry is without graphic output, with -z 10,20,30 the
 // tracks are not perfectly aligned, there's a small 5 degree skew between the first and second
 // tracks as far as I can tell, calculation skipped 
@@ -1756,7 +1756,7 @@ bandwidth of
     middle track: 1/20 section per unit time 
     inner track: 1/30 section per unit time 
 
-35.8
+37.8
 The limit is different depending on the seed, but at a window size of 200 most seeds reports the
 same result to best performance.
 for s in {1..100}; do 
@@ -1769,9 +1769,9 @@ performance, consider a track with 10000 sectors, a series of requests
 will only be optimally scheduled with window size >= 1000
 When the window size is 1, every scheduling policy degrades into FIFO
 
-35.9
+37.9
 "Create a series of requests to starve a particular request"
-    32,(0,1,2,3,4,5,6,7,8,9,10,11,0)*
+    32,(0,1,2,3,4,5,6,7,8,9,10,11)*
 BSATF solves starvation: upon arrival, every request will be served in a finite time linear to the
 window size. A finite window size always hurts the performance in long term.
 In practice where performance on magnetic disk matters, a file on magnetic disk is virtually never
@@ -1782,3 +1782,108 @@ it did back in the days magnetic disks are still the only budget choice.
 -a 17,20,4,23,4
     FIFO total: 1035
     SATF total: 1065
+
+38. Redundant Arrays of Inexpensive Disks (RAIDs)
+Questions 
+38.1
+RAID 5 left symmetric layout, each stripe numerically starts at the parity block
+    0   1   2   3   P0
+    5   6   7   P1  4
+    10  11  P2  8   9
+    15  P3  12  13  14
+    P4  16  17  18  19
+RAID 5 left asymmetric layout, each stripe numerically starts at the first disk
+    0   1   2   3   P0
+    4   5   6   P1  7 
+    8   9   P2  10  11
+    12  P3  13  14  15
+    P4  16  17  18  19
+chunk size defaults to a single block (4KB), Logical block is then mapped to physical block
+according to the RAID level. Let N denotes the number of disks in the RAID system,
+-L 0 
+    Disk = LogicalBlock % N
+    Offset = ceil(LogicalBlock / N)
+-L 1 
+    Disk = LogicalBlock % (N / 2)
+    CopyDisk = Disk + 1
+    Offset = ceil(LogicalBlock / (N / 2))
+-L 4
+    Disk = LogicalBlock % (N - 1)
+    Offset = ceil(LogicalBlock / (N - 1))
+-L 5 -5 LS
+    Offset = ceil(LogicalBlock / (N - 1))
+    StripPos = LogicalBlock % (N - 1)
+    ParityPos = N - 1 - (Offset % N)
+    Disk = (ParityPos + 1 + StripPos) % N
+-L 5 -5 LA
+    Offset = ceil(LogicalBlock / (N - 1))
+    StripPos = LogicalBlock % (N - 1)
+    ParityPos = N - 1 - (Offset % N)
+    Disk = if (PartiyPos == StripPos)
+        StripPos + 1
+    else 
+        StripPos
+
+38.2
+let C denote the number of blocks in a chunk, the blocks are placed as if the block size is C times
+as much in RAID 0,
+-L 0
+    Chunk = ceil(LogicalBlock / C)
+    ChunkOffset = LogicalBlock % C
+    Disk = Chunk % N
+    Offset = ceil(Chunk / N) + ChunkOffset
+The same adjustment can be applied to other RAID levels in a similar fashion.
+
+38.3
+-L 0
+    LogicalBlock = Offset * N + Disk 
+-L 1
+    LogicalBlock = Offset * (N / 2) + ceil(Disk / 2)
+-L 4
+    LogicalBlock = Offset * (N - 1) + Disk
+-L 5 -5 LS
+    StripPos = Disk - ParityPos - 1
+    LogicalDisk = Offset * (N - 1) + StripPos
+-L 5 -5 LA
+    // skipped
+
+38.4
+Each request of K * BlockSize is mapped to K physical read operation. Sequential read on a RAID 4 or
+5 system is not so different to a RAID 0 system, the parity blocks are ignored in case of read
+operations. 
+
+38.5
+-L 0
+    disk:0  busy: 100.00  I/Os:    28 (sequential:0 nearly:1 random:27)
+    disk:1  busy:  93.91  I/Os:    29 (sequential:0 nearly:6 random:23)
+    disk:2  busy:  87.92  I/Os:    24 (sequential:0 nearly:0 random:24)
+    disk:3  busy:  65.94  I/Os:    19 (sequential:0 nearly:1 random:18)
+    STAT totalTime 275.7
+-L 1 
+    disk:0  busy: 100.00  I/Os:    28 (sequential:0 nearly:1 random:27)
+    disk:1  busy:  86.98  I/Os:    24 (sequential:0 nearly:0 random:24)
+    disk:2  busy:  97.52  I/Os:    29 (sequential:0 nearly:3 random:26)
+    disk:3  busy:  65.23  I/Os:    19 (sequential:0 nearly:1 random:18)
+    STAT totalTime 278.7
+-L 4
+    disk:0  busy:  78.48  I/Os:    30 (sequential:0 nearly:0 random:30)
+    disk:1  busy: 100.00  I/Os:    40 (sequential:0 nearly:3 random:37)
+    disk:2  busy:  76.46  I/Os:    30 (sequential:0 nearly:2 random:28)
+    disk:3  busy:   0.00  I/Os:     0 (sequential:0 nearly:0 random:0)
+    STAT totalTime 386.1
+-L 5
+    disk:0  busy: 100.00  I/Os:    28 (sequential:0 nearly:1 random:27)
+    disk:1  busy:  95.84  I/Os:    29 (sequential:0 nearly:5 random:24)
+    disk:2  busy:  87.60  I/Os:    24 (sequential:0 nearly:0 random:24)
+    disk:3  busy:  65.70  I/Os:    19 (sequential:0 nearly:1 random:18)
+    STAT totalTime 276.7
+RAID level 4 is significantly slower than others, an entire disk is allocated for parity blocks
+only, the maximum possible bandwidth of RAID 4 is 3/4 of other RAID levels.
+
+38.6 - 38.7
+// skipped, see Figure 38.8: RAID Capacity, Reliability, and Performance
+
+38.8
+When the request size is a multiple of the strip size ((N - 1) * BlockSize), all the disks can be
+utilized at the same time, also the parity block is updated per (N - 1) block write which is the
+logical minimum.
