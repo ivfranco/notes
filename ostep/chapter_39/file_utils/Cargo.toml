@@ -1,0 +1,13 @@
+[package]
+name = "file_utils"
+version = "0.1.0"
+authors = ["ivfranco <ivfranco33@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.40"
+argh = "0.1.4"
+chrono = "0.4.19"
+nix = "0.20.0"
