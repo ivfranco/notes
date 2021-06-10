@@ -1,14 +1,9 @@
-use std::{fmt::Display, path::Path, process, time::Duration};
+use std::{fmt::Display, path::Path, process};
 
 use anyhow::Context;
 use argh::FromArgs;
-use chrono::{DateTime, Local};
-use file_utils::PermissionBits;
-use nix::{
-    libc::{c_long, mode_t, time_t},
-    sys::stat::stat,
-};
-use std::time::SystemTime;
+use file_utils::{from_sec_nsec, PermissionBits};
+use nix::sys::stat::stat;
 
 fn main() {
     let args = argh::from_env();
@@ -54,19 +49,6 @@ fn exec(args: StatArgs) -> anyhow::Result<()> {
 
 fn list(key: impl Display, value: impl Display) {
     println!("{:>10}: {}", key, value)
-}
-
-fn mask(mode: mode_t) -> mode_t {
-    const MASK: mode_t = 0o777;
-    mode & MASK
-}
-
-fn from_sec_nsec(sec: time_t, nsec: c_long) -> DateTime<Local> {
-    let mut since_epoch = Duration::from_nanos(nsec as u64);
-    since_epoch += Duration::from_secs(sec as u64);
-
-    let epoch = SystemTime::UNIX_EPOCH;
-    DateTime::from(epoch + since_epoch)
 }
 
 #[derive(FromArgs)]

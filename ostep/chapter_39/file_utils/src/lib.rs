@@ -1,10 +1,12 @@
 use std::{
     fmt::{self, Display},
     str,
+    time::{Duration, SystemTime},
 };
 
+use chrono::{DateTime, Local};
 use nix::{
-    libc::mode_t,
+    libc::{c_long, mode_t, time_t},
     sys::stat::{Mode, SFlag},
 };
 pub struct PermissionBits {
@@ -67,4 +69,12 @@ impl Display for PermissionBits {
 
         f.write_str(str::from_utf8(&buf).expect("valid ascii"))
     }
+}
+
+pub fn from_sec_nsec(sec: time_t, nsec: c_long) -> DateTime<Local> {
+    let mut since_epoch = Duration::from_nanos(nsec as u64);
+    since_epoch += Duration::from_secs(sec as u64);
+
+    let epoch = SystemTime::UNIX_EPOCH;
+    DateTime::from(epoch + since_epoch)
 }
