@@ -1,4 +1,4 @@
-// whenever possible, programming homeworks will be done in Rust instead of C.
+// Whenever possible, programming homeworks will be done in Rust instead of C.
 
 4. The Abstraction: The Process
 section 4.5, starting from Oct 2008, struct context in xv6 is:
@@ -1887,3 +1887,65 @@ only, the maximum possible bandwidth of RAID 4 is 3/4 of other RAID levels.
 When the request size is a multiple of the strip size ((N - 1) * BlockSize), all the disks can be
 utilized at the same time, also the parity block is updated per (N - 1) block write which is the
 logical minimum.
+
+39. Interlude: Files and Directories
+Questions
+39.1 - 39.4
+./ostep/chapter_39/file_utils
+
+40. File System Implementation
+Questions
+40.1 
+-s 17
+    mkdir(/u)
+    creat(/a)
+    unlink(/a)
+    mkdir(/z)
+    mkdir(/s)
+    creat(/z/x)
+    link(/z/x, /u/b)
+    unlink(/u/b)
+    open(/z/x), write(), close()
+    creat(/u/b)
+
+40.2
+-s 21
+    mkdir("/o")
+        [d a:0 r:2] [d a:1 r:2]
+        [(.,0) (..,0) (o,1)] [(.,1) (..,0)]
+    creat("/b")
+        [d a:0 r:2] [d a:1 r:2] [f a:-1 r:1]
+        [(.,0) (..,0) (o,1) (b,2)] [(.,1) (..,0)]
+    creat("/o/q")
+        [d a:0 r:2] [d a:1 r:2] [f a:-1 r:1] [f a:-1 r:1]
+        [(.,0) (..,0) (o,1) (b,2)] [(.,1) (..,0) (q,3)]
+    fd=open("/b", O_WRONLY|O_APPEND); write(fd, buf, BLOCKSIZE); close(fd);   
+        [d a:0 r:2] [d a:1 r:2] [f a:2 r:1] [f a:-1 r:1]
+        [(.,0) (..,0) (o,1) (b,2)] [(.,1) (..,0) (q,3)] [u]
+    fd=open("/o/q", O_WRONLY|O_APPEND); write(fd, buf, BLOCKSIZE); close(fd);
+        [d a:0 r:2] [d a:1 r:2] [f a:2 r:1] [f a:3 r:1]
+        [(.,0) (..,0) (o,1) (b,2)] [(.,1) (..,0) (q,3)] [u] [u]
+    creat("/o/j")
+        [d a:0 r:2] [d a:1 r:2] [f a:2 r:1] [f a:3 r:1] [f a:-1 r:1]
+        [(.,0) (..,0) (o,1) (b,2)] [(.,1) (..,0) (q,3) (j,4)] [u] [u]
+    unlink("/b")
+        [d a:0 r:2] [d a:1 r:2] [] [f a:3 r:1] [f a:-1 r:1]
+        [(.,0) (..,0) (o,1)] [(.,1) (..,0) (q,3) (j,4)] [] [u]
+    fd=open("/o/j", O_WRONLY|O_APPEND); write(fd, buf, BLOCKSIZE); close(fd);
+        [d a:0 r:2] [d a:1 r:2] [] [f a:3 r:1] [f a:2 r:1]
+        [(.,0) (..,0) (o,1)] [(.,1) (..,0) (q,3) (j,4)] [u] [u]
+    creat("/o/x")
+        [d a:0 r:2] [d a:1 r:2] [f a:-1 r:1] [f a:3 r:1] [f a:2 r:1]
+        [(.,0) (..,0) (o,1)] [(.,1) (..,0) (q,3) (j,4) (x,2)] [u] [u]
+    mkdir("/o/t")
+        [d a:0 r:2] [d a:1 r:2] [f a:-1 r:1] [f a:3 r:1] [f a:2 r:1] [d a:4 r:2]
+        [(.,0) (..,0) (o,1)] [(.,1) (..,0) (q,3) (j,4) (x,2)] [u] [u] [(.,5) (..,1)]
+
+40.3
+Mostly only empty files under the root directory. Operations that allocate more data blocks would
+fail, namely write() and mkdir().
+
+40.4
+Operations that allocate more inodes would fail, namely mkdir(), creat() and link(). Nothing beside
+the empty root directory exists right before the out-of-space error, neither a new directory or a
+new file can be created without enough inode slots.
