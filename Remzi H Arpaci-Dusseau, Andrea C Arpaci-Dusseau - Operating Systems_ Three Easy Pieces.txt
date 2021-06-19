@@ -1949,3 +1949,64 @@ fail, namely write() and mkdir().
 Operations that allocate more inodes would fail, namely mkdir(), creat() and link(). Nothing beside
 the empty root directory exists right before the out-of-space error, neither a new directory or a
 new file can be created without enough inode slots.
+
+41. Locality and The Fast File System
+Questions
+41.1
+4 blocks of the file is distributed to every cylinder group.
+
+41.2
+29 blocks of the file in cylinder group 0 (the first data block is allocated to the root directory),
+11 blocks in cylinder group 1.
+
+41.3
+-L 4
+    First block of a: second inode of cylinder group 0
+    Last block of a: 4th data block of cylinder group 9 
+    span    = (40 * 9 + 10 + 4) - 2
+            = 372
+-L 100
+    First block of a: second inode of cylinder group 0
+    Last block of a: 11th data block of cylinder group 1
+    span    = (40 + 10 + 11) - 2
+            = 59
+Larger large-file exception parameter causes the file to be less spread among different cylinders,
+the file span however depends on how the distance between blocks is defined.
+
+41.4
+Both inode and data blocks of files under the same directory would be placed at the same cylinder
+group, 3 out of 10 cylinder groups will be allocated to contents and inodes of directory /, /j and
+/t.
+
+41.5
+dir span of /
+    29 - 1 = 28
+dir span of /j
+    21 - 1 = 20
+dir span of /t
+    35 - 1 = 34
+FFS places files under the same directory close to each other, dir span is minimized unless
+large-file exception is turned on.
+
+41.6
+// inode per group is controlled by option -i, not -I
+All the files under the directory /, /j and /t can no longer be allocated into a single cylinder
+group, instead each directory must be spread between two cylinder groups, dir span increases
+accordingly.
+
+41.7
+Directory /j and /t is created back to back, With -A 1 /j and /t are placed at cylinder group 2 and
+3, with -A 2 /j and /t are placed at cylinder group 2 and 4, if later a lot of small files are
+created under the two directories, -A 2 reduces dir span by placing directories more sparsely so
+more file inodes under the same directory can be placed next to each other.
+
+41.8
+0 /ib-d-f-h- ibidifihii ii
+Data blocks of /i is not contiguous on disk, any program reading the content of /i cannot utilize
+the disk throughput more than 66% if the drive is backed by an HDD.
+
+41.9
+This time the content of /i is placed contiguously on the disk. For this specific workload the
+layout won't change anymore for -C greater than 2 as the hole created by deletion are of size 1.
+Greater -C argument should cause the file and dir span to increase as otherwise available data
+blocks are skipped.
