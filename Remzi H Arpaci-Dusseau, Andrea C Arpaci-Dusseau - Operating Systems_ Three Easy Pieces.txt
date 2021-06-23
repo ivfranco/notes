@@ -2010,3 +2010,92 @@ This time the content of /i is placed contiguously on the disk. For this specifi
 layout won't change anymore for -C greater than 2 as the hole created by deletion are of size 1.
 Greater -C argument should cause the file and dir span to increase as otherwise available data
 blocks are skipped.
+
+42. Crash Consistency: FSCK and Journaling
+Questions 
+42.1
+-s 1 
+    directories
+        /, /m, /a
+    files
+        /m/m, /m/e, /a/r, /s, /g
+-s 2
+    directories
+        /, /c, /c/o, /c/o/u
+    files
+        /c/o/u/q, /c/o/u/e, /c/o/q
+-s 3
+    directories
+        /, /r, /r/s
+    files
+        /f, /x
+
+42.2
+Inode bitmap or the inodes are corrupted, bit 13 of inode bitmap is not set but the inode 13 points
+to a file block.
+According to the original fsck tool, in such a case inode bitmap should be rewritten to reflex the
+real state of inodes. 
+
+42.3
+-S 3
+    The link count of inode 13 is 2 while there's only one file system entry /m pointing to the
+    inode
+-S 19
+    Link count of a directory should be at least 2, one in the parent directory and one for the
+    directory itself, but inode 8 has link count 2.
+According to the original fsck tool, in such a case reference count in inodes should be rewritten to
+reflex the state of the file system.
+
+42.4
+-S 5
+    Entry `..` pointing to its parent directory in directory /g is corrupted, it points to the same
+    inode but now has a name /g/y. 
+    Name of the entry should be rewritten to `..`, in this case it's the obvious thing to do.
+-S 38
+    (Reported by -c) the name of file /w/p is altered to /w/b
+    The corruption is impossible to detect, a directory is allowed to reference a file by any name,
+    the file system is in a perfectly legal state.
+-S 642
+    (Reported by -c) the name of directory /g is altered to /w
+    The corruption is detectable but impossible to fix, there's two entries in the root directory
+    with the same name which is not allowed in VSFS, but the original name of the directory is
+    permanently lost.
+
+42.5
+-S 6
+    Inode 12 is not set in inode bitmap nor referenced anywhere in the file system but has obviously
+    corrupted content (an empty directory).
+    The inode should be reset to empty.
+-S 13
+    Inode 10 is not set in inode bitmap nor referenced anywhere in the file system but has valid
+    content of an empty file.
+    The inode should be reset to empty as the file inode doesn't point to any data blocks, otherwise
+    it's content should be moved  to lost+found directory.
+
+42.6
+The type field of inode 13 is corrupted, it points to a data block but the its type is set to
+directory.
+Given the assumption that there's only one corrupted block, the reference count of the parent
+directory `/` must be trusted, the type of the inode should be rewritten to a file. 
+
+42.7
+Inode 0, inode of the root directory has type file instead of directory.
+The VSFS assumes that the inode 0 always points to the root directory, type field of inode 0 should
+be rewritten to directory.
+
+42.8
+Entry `..` to parent directory in directory `/w` points to inode 3 instead of 0.
+Inode number of the entry `/w/..` should be rewritten to 0, the information is available in the data
+block of the root directory.
+
+42.9
+-S 16
+    Inode 13, the inode referenced by file `/m`, points to an empty data block, also the data block 15 is
+    dangling.
+-S 20
+    Inode 8, the inode referenced by directory `/g`, points to an empty data block 11, also the
+    data block 6 is dangling.
+The corrupted inode should be removed, the content of the dangling data block should be moved to
+lost+found.
+
+43. Log-structured File Systems
