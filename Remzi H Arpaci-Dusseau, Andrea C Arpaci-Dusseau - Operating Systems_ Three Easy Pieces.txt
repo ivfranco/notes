@@ -2099,3 +2099,149 @@ The corrupted inode should be removed, the content of the dangling data block sh
 lost+found.
 
 43. Log-structured File Systems
+Questions
+43.1
+-n 3
+    creat("/ku3");
+    int fd = open("/ku3"); write(fd, /* z0 */); close(fd);
+    creat("/qg9");
+    live blocks at the end:
+        0, 8, 9, 11, 12, 13, 14
+-n 5
+    // following operations of -n 3
+    link("/qg9", "/is8");
+    mkdir("/cl6");
+    live blocks at the end:
+        0, 8, 9, 17, 19, 20, 21, 22, 23
+The task doesn't become any more harder as the number of operations increases, unlike a typical file
+system the LFS never overwrites old contents and metadata, the operations can be easily figured out 
+from what has been appended to the log.
+
+43.2
+-s 1
+    creat("/tg4");
+    // the file "/tg4" is resized without written to 
+    creat("/lt0");
+    live blocks at the end:
+        0, 8, 10, 11, 12, 13
+
+43.3
+[   0 ] live checkpoint: 3 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   1 ]      [.,0] [..,0] -- -- -- -- -- --
+[   2 ]      type:dir size:1 refs:2 ptrs: 1 -- -- -- -- -- -- --
+[   3 ]      chunk(imap): 2 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+// creat file /us7
+[   4 ] live [.,0] [..,0] [us7,1] -- -- -- -- --
+[   5 ] live type:dir size:1 refs:2 ptrs: 4 -- -- -- -- -- -- --
+[   6 ]      type:reg size:0 refs:1 ptrs: -- -- -- -- -- -- -- --
+[   7 ]      chunk(imap): 5 6 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+// write file /us7 offset=4 size=0
+[   8 ]      type:reg size:5 refs:1 ptrs: -- -- -- -- -- -- -- --
+[   9 ]      chunk(imap): 5 8 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+// write file /us7 offset=7 size=7
+[  10 ] live [file content of size 7]
+[  11 ] live type:reg size:8 refs:1 ptrs: -- -- -- -- -- -- -- 10
+[  12 ] live chunk(imap): 5 11 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+43.4
+live blocks at the end:
+    check point: 0, 
+    imap: 99
+    file /af4: 66, 60, 64, 65, 
+    file /lt0: 80, 34, 68, 69, 70, 76, 77, 78, 79
+    file /ln7/zp3: 91, 
+    dir /ln7: 94, 93,
+    file /ln7/zu5: 95, 
+    dir /: 98, 97,
+
+43.5
+[   0 ] live checkpoint: 19 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   1 ]      [.,0] [..,0] -- -- -- -- -- --
+[   2 ]      type:dir size:1 refs:2 ptrs: 1 -- -- -- -- -- -- --
+[   3 ]      chunk(imap): 2 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   4 ] live [.,0] [..,0] [foo,1] -- -- -- -- --
+[   5 ] live type:dir size:1 refs:2 ptrs: 4 -- -- -- -- -- -- --
+[   6 ]      type:reg size:0 refs:1 ptrs: -- -- -- -- -- -- -- --
+[   7 ]      chunk(imap): 5 6 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   8 ] live v0v0v0v0v0v0v0v0v0v0v0v0v0v0v0v0
+[   9 ]      type:reg size:1 refs:1 ptrs: 8 -- -- -- -- -- -- --
+[  10 ]      chunk(imap): 5 9 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[  11 ] live t0t0t0t0t0t0t0t0t0t0t0t0t0t0t0t0
+[  12 ]      type:reg size:2 refs:1 ptrs: 8 11 -- -- -- -- -- --
+[  13 ]      chunk(imap): 5 12 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[  14 ] live k0k0k0k0k0k0k0k0k0k0k0k0k0k0k0k0
+[  15 ]      type:reg size:3 refs:1 ptrs: 8 11 14 -- -- -- -- --
+[  16 ]      chunk(imap): 5 15 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[  17 ] live g0g0g0g0g0g0g0g0g0g0g0g0g0g0g0g0
+[  18 ] live type:reg size:4 refs:1 ptrs: 8 11 14 17 -- -- -- --
+[  19 ] live chunk(imap): 5 18 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+
+43.6
+[   0 ] live checkpoint: 13 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   1 ]      [.,0] [..,0] -- -- -- -- -- --
+[   2 ]      type:dir size:1 refs:2 ptrs: 1 -- -- -- -- -- -- --
+[   3 ]      chunk(imap): 2 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   4 ] live [.,0] [..,0] [foo,1] -- -- -- -- --
+[   5 ] live type:dir size:1 refs:2 ptrs: 4 -- -- -- -- -- -- --
+[   6 ]      type:reg size:0 refs:1 ptrs: -- -- -- -- -- -- -- --
+[   7 ]      chunk(imap): 5 6 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+[   8 ] live v0v0v0v0v0v0v0v0v0v0v0v0v0v0v0v0
+[   9 ] live t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1t1
+[  10 ] live k2k2k2k2k2k2k2k2k2k2k2k2k2k2k2k2
+[  11 ] live g3g3g3g3g3g3g3g3g3g3g3g3g3g3g3g3
+[  12 ] live type:reg size:4 refs:1 ptrs: 8 9 10 11 -- -- -- --
+[  13 ] live chunk(imap): 5 12 -- -- -- -- -- -- -- -- -- -- -- -- -- --
+The metadata of the file and the imap is updated (appended) once instead of 4 times if the 4 chunks
+are written at once. Not only the write can be flushed to the disk in a sequential write, the the
+resulting log also is much shorter if the writes are buffered.
+
+43.7
+-L c,/foo:w,/foo,0,1
+    creat("/foo");
+    write file /foo offset=0 size=1;
+-L c,/foo:w,/foo,7,1
+    creat("/foo");
+    write file /foo offset=7 size=1;
+A chunk of size 1 is written to different offset of the file, in the second case the file has size 8
+and its content up to offset 7 is uninitialized, according to the man page of fseek it's content up
+to offset 7 should be filled with 0 bytes (that is, if the writes are done through libc).
+
+43.8
+On file creation the content of the file is empty, only a single inode is allocated for the fresh
+file. On directory creation the new directory must be initialized with the default entries to itself
+and its parent directory, two blocks, one data block and one inode are created. On both cases the
+inode of the parent directory, the imap and the check point must be updated to reflect the existence
+of the new entry.
+
+43.9
+4 blocks are written out to the disk:
+    the new directory entries containing the hard link
+    the new inode of the directory
+    the new inode of the linked file with incremented reference count
+    the new imap pointing to the new inodes
+It resembles the creation of a file except that, instead of a new file inode with reference count 1,
+the same inode of the old file is appended with incremented reference count.
+
+43.10
+With -a s, the 10 files created by the operations fits in a single imap, this imap is updated
+(appended) every single time a new file is created; with -a r, inodes of files are scattered over
+the possible range of inode numbers, 8 instead of 1 imaps are live in the file system.
+Random inode allocation hinders the performance during rebuilding of the imap cache in memory on
+startup if the backing drive has poor random access throughput compared to sequential, the log could
+also be slightly longer as possibly two imaps are updated on file creation if inodes of the
+directory and the file are allocated to different imaps.
+
+43.11
+// The simulator contains a bug. When operations are generated randomly the simulator may attempt to
+// create a hard link of a file while there's no file in the file system, resulting in index out of
+// bound error. This bug is triggered by seed 1000, seed 1001 is used in the answer below as a
+// replacement.
+If the check point is never updated or only updated periodically, upon unexpected power loss or in
+any other way the system crashes, the modification to the file system after the last update is lost.
+Not sure how to roll forward and recover the lost modifications in this simple version of LFS as
+there's no way to tell what exactly an imap points to without an up to date checkpoint, certain file
+system structures e.g. the root directory is easy to figure out _assuming_ the content is not
+corrupted and some of the inodes and imaps can be recovered by following the pointers in reverse,
+but I don't think the entire file system can be recovered reliably in this way. 
+
+44. Flash-based SSDs
