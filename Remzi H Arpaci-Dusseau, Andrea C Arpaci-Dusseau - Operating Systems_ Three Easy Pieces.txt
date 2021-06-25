@@ -2245,3 +2245,196 @@ corrupted and some of the inodes and imaps can be recovered by following the poi
 but I don't think the entire file system can be recovered reliably in this way. 
 
 44. Flash-based SSDs
+Questions
+44.1
+-s 1
+    0:: write(20, u) -> success
+    1:: write(52, M) -> success
+    2:: read(52) -> M
+    3:: write(60, 0) -> success
+    4:: write(57, e) -> success
+    5:: trim(57) -> success
+    6:: read(52) -> M
+    7:: trim(52) -> success
+    8:: read(20) -> u
+    9:: read(20) -> u
+
+44.2
+-s 2
+    cmd   0:: write(58, F) -> success
+        FTL     58: 0
+        0123456789
+        vEEEEEEEEE
+        F
+        +
+    cmd   1:: write(46, 9) -> success
+        FTL     58: 0   46: 1
+        0123456789
+        vvEEEEEEEE
+        F9
+        ++
+    cmd   2:: write(31, I) -> success
+        FTL     58: 0   46: 1   31: 2
+        0123456789
+        vvvEEEEEEE
+        F9I
+        +++
+    cmd   3:: trim(31) -> success
+        FTL     58: 0   46: 1
+        0123456789
+        vvvEEEEEEE
+        F9I
+        ++ 
+    cmd   4:: write(35, g) -> success
+        FTL     58: 0   46: 1   35: 3
+        0123456789
+        vvvvEEEEEE
+        F9Ig
+        ++ +
+    cmd   5:: read(46) -> 9
+        FTL     58: 0   46: 1   35: 3
+        0123456789
+        vvvvEEEEEE
+        F9Ig
+        ++ +
+    cmd   6:: read(35) -> g
+        FTL     58: 0   46: 1   35: 3
+        0123456789
+        vvvvEEEEEE
+        F9Ig
+        ++ +
+    cmd   7:: write(44, e) -> success
+        FTL     58: 0   46: 1   35: 3   44: 4
+        0123456789
+        vvvvvEEEEE
+        F9Ige
+        ++ ++
+    cmd   8:: read(58) -> F
+        FTL     58: 0   46: 1   35: 3   44: 4
+        0123456789
+        vvvvvEEEEE
+        F9Ige
+        ++ ++
+    cmd   9:: write(79, F) -> success
+        FTL     58: 0   46: 1   35: 3   44: 4   79: 5
+        0123456789
+        vvvvvvEEEE
+        F9IgeF
+        ++ +++
+
+44.3
+-s 3 -r 20
+    One read is to uninitialized memory (7:: read(69)), the read returns an error code, the state is
+    not affected by the read to uninitialized memory in any way.
+
+44.4
+assuming there's no read or write cache, 
+T_total     = 1 * T_erase + 4 * T_program + 4 * T_read
+            = 1000 + 160 + 40
+            = 1200
+
+44.5
+Given there's previously N pages not overwritten by the write operation in the same block, a write
+takes
+    T_write = N * T_read + T_erase + (n + 1) * T_program
+T_total = 4 * T_erase + (0 + 0 + 0 + 1) * T_read + (1 + 1 + 1 + 2) * T_program + 4 * T_read
+        = 4000 + 10 + 200 + 40
+        = 4250
+In worst case let P be the number of pages in a block, a write with direct approach takes
+    (P - 1) * T_read + T_erase + P * T_program
+while a write with log approach takes a single T_program.
+
+44.6
+// In the most recent version of the simulator, the default number of blocks in the system is 12
+// while the default high water mark is 10, -G must be set to a larger number to switch off garbage
+// collection.
+Most write operations after cmd 200 failed due to a full device. 
+
+44.7
+The default values worked pretty well, with -G 10 -g 8 no error is reported by any of the 1000
+random operations.
+
+44.8
+With default values (-G 10 -g 8) the GC is triggered every ~30 commands, each time erases two
+blocks, as the FTL never erases the memory as a result of normal operations after the first few
+rounds and how expensive the erase operation is, over the course of the 1000 operations time spent
+on GC dwarfs the actual operations. 
+It's hard to define which reads and writes in this situation are "extra", since most of the
+operations will fail if GC is turned off. 
+-T log 
+    Logical Operation Sums
+        Write count 838 (0 failed)
+        Read count  374 (0 failed)
+        Trim count  106 (0 failed)
+    Times
+        Erase time 87000.00
+        Write time 33520.00
+        Read time  6920.00
+        Total time 127440.00
+-T ideal
+    Logical Operation Sums
+        Write count 520 (0 failed)
+        Read count  374 (0 failed)
+        Trim count  106 (0 failed)
+    Times
+        Erase time 0.00
+        Write time 20800.00
+        Read time  3740.00
+        Total time 24540.00
+100% of erases, ~30% of writes and ~50% of reads are due to the nature of the Flash.
+-T direct
+    Logical Operation Sums
+        Write count 520 (0 failed)
+        Read count  374 (0 failed)
+        Trim count  106 (0 failed)
+    Times
+        Erase time 520000.00
+        Write time 177520.00
+        Read time  47320.00
+        Total time 744840.00
+The log-structured approach is much more efficient at how and when to erase an entire block to make
+room for the new writes. On a nearly full SSD the direct approach triggers a block erase every
+single write operation, way much than ~6 write operations between two erases the log-structured
+approach managed to achieve. 
+
+44.9
+-T direct
+    The skew would not affect performance of the direct approach as every write incurs an erase
+    operation no matter it's to a hot or cold section of the disk.
+    Logical Operation Sums
+        Write count 520 (0 failed)
+        Read count  380 (0 failed)
+        Trim count  100 (0 failed)
+    Times
+        Erase time 520000.00
+        Write time 173880.00
+        Read time  46660.00
+        Total time 740540.00
+-T log 
+    A 80/20 skew will work in favor of the log-structured approach as once the disk utilization hit
+    the high watermark, more writes would have been overwriting a few hot pages, which means less
+    pages in the system will be live and less pages are re-programed during GC.
+    Logical Operation Sums
+        Write count 587 (0 failed)
+        Read count  380 (0 failed)
+        Trim count  100 (0 failed)
+    Times
+        Erase time 62000.00
+        Write time 23480.00
+        Read time  4470.00
+        Total time 89950.00 
+-T log -k 100
+    -k 100 should have a negative impact on the performance of GC as more pages in the system are now
+    live, the performance hit would last until the pages written during the first 100 operations are
+    trimmed by later random commands, the system then converges to a state similar to -k 0.
+    Logical Operation Sums
+        Write count 647 (0 failed)
+        Read count  370 (0 failed)
+        Trim count  107 (0 failed)
+    Times
+        Erase time 68000.00
+        Write time 25880.00
+        Read time  4940.00
+        Total time 98820.00
+
+45. Data Integrity and Protection
