@@ -2440,3 +2440,86 @@ approach managed to achieve.
 45. Data Integrity and Protection
 Questions
 45.1
+add:        01000111
+xor:        00110011
+fletcher:   01001001 11000100
+
+45.2
+// skipped, the process is automated by a script anyway
+
+45.3
+11000000 00110000 00001100 00000011
+XOR and addition is the same operation as long as there's no carry over except at the most
+significant digit.
+
+45.4
+00000001 00000001 00000000 00000000 
+When there's carry over at other than the most significant digit, XOR and addition diverges.
+
+45.5
+10000000 10000000 00000000 00000000
+00000000 00000000 00000000 00000000
+When the sum of the two 4-byte strings are the same modulo 256, their additive checksum would equal
+to each other. Notably additive checksum cannot detect shift in the data since addition is
+commutative.
+
+45.6
+11111111 11111111 11111111 11111111
+00000000 00000000 00000000 00000000 
+XOR is meaningless when an even number of errors occurred at the same bit position. As well as
+additive checksum, XOR ignores reordering in the data.
+
+45.7
+As stated above, the only algorithm able to detect reordering in the data among the three is
+Fletcher's checksum.
+
+45.8
+-D 0,1,2,3 and -D 255,1,2,3 result in the same Fletcher checksum. Since Fletcher checksum is
+addition modulo 255 (why?), it cannot distinguish 0 and 255 anywhere in the data.
+
+Coding Questions
+45.1
+./ostep/chapter_45/checksum/src/bin/check_xor.rs
+
+45.2
+./ostep/chapter_45/checksum/src/bin/check_fletcher.rs
+
+45.3
+---NOTE START---
+./ostep/chapter_45/checksum/benches/checksum.rs
+
+xor                     time:   [12.886 us 13.149 us 13.593 us]
+                        change: [-8.6494% -4.4669% -0.2674%] (p = 0.04 < 0.05)
+                        Change within noise threshold.
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
+
+Benchmarking fletcher: Collecting 100 samples in estimated 5.3711 s (1000 iteratio
+
+fletcher                time:   [2.7384 ms 2.7415 ms 2.7451 ms]
+                        change: [-17.834% -17.603% -17.410%] (p = 0.00 < 0.05)
+                        Performance has improved.
+Found 8 outliers among 100 measurements (8.00%)
+  4 (4.00%) high mild
+  4 (4.00%) high severe
+
+The xor checksum is at least 2 order of magnitude faster than the fletcher checksum, the latest
+rustc compiler managed to vectorize the xor checksum (https://godbolt.org/z/GMeqac9c3) but failed to
+do so with the (naively implemented) fletcher checksum. Both of the two algorithms has major flaws
+hence should not be used as a checksum where error detection is of concern.
+---NOTE END---
+
+45.4
+./ostep/chapter_45/checksum/src/bin/check_crc.rs
+crc                     time:   [8.5589 ms 8.5630 ms 8.5678 ms]
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+The CRC16 checksum, again naively implemented, is even slower than the Fletcher checksum, but is
+considered more acceptable as a checksum algorithm by how widely adopted it is.
+
+45.5
+./ostep/chapter_45/checksum/src/bin/create_csum.rs
+./ostep/chapter_45/checksum/src/bin/check_csum.rs
+./ostep/chapter_45/checksum/corrupt.sh

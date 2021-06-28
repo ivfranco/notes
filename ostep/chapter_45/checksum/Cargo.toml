@@ -7,16 +7,46 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
+doctest = false
+
+[[bin]]
+name = "check_add"
 test = false
 doctest = false
 
 [[bin]]
 name = "check_xor"
+test = false
 doctest = false
 
 [[bin]]
 name = "check_fletcher"
+test = false
 doctest = false
 
+[[bin]]
+name = "check_crc"
+test = false
+doctest = false
+
+[[bin]]
+name = "create_csum"
+test = false
+doctest = false
+
+[[bin]]
+name = "check_csum"
+test = false
+doctest = false
+
+[[bench]]
+name = "checksum"
+harness = false
 
 [dependencies]
+anyhow = "1.0.41"
+argh = "0.1.4"
+
+[dev-dependencies]
+criterion = "0.3.4"
+rand = "0.8.4"

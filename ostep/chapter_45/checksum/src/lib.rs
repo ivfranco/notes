@@ -1,3 +1,8 @@
+pub mod additive;
+pub mod crc;
+pub mod fletcher;
+pub mod xor;
+
 use std::{
     fs::File,
     io::{self, Read},
@@ -8,6 +13,7 @@ use std::{
 pub trait Checksum<const N: usize> {
     fn write(&mut self, bytes: &[u8]);
     fn finish(&self) -> [u8; N];
+    fn clear(&mut self);
 
     fn digest(&mut self, bytes: &[u8]) -> [u8; N] {
         self.write(bytes);
@@ -73,3 +79,23 @@ Usage: cmdname <file>
 Arguments:
     <file>      either path to a file, or '-' and the program will read input from stdin
 ";
+
+/// Read `buf.len()` bytes to the buffer unless the reader is exhausted.
+pub fn read_as_much<R>(mut reader: R, buf: &mut [u8]) -> std::io::Result<usize>
+where
+    R: Read,
+{
+    let mut filled = 0;
+    loop {
+        let amt = reader.read(&mut buf[filled..])?;
+        if amt == 0 {
+            break;
+        }
+        filled += amt;
+        if filled == buf.len() {
+            break;
+        }
+    }
+
+    Ok(filled)
+}
