@@ -1,5 +1,5 @@
 use checksum::{crc::Crc16, fletcher::Fletcher16, xor::Xor, Checksum};
-use criterion::{criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion};
+use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
 use rand::{distributions::Standard, rngs::StdRng, Rng, SeedableRng};
 
 fn checksum_benchmark<C, const N: usize>(name: &str, mut checksum: C, c: &mut Criterion)
