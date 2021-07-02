@@ -7,7 +7,7 @@ pub mod client;
 pub mod server;
 
 #[derive(Debug)]
-pub(crate) struct Packet {
+pub(crate) struct DataPacket {
     sequential_number: u32,
     fragment_identifer: u32,
     fragment_total: u32,
@@ -18,7 +18,7 @@ pub(crate) struct Packet {
 /// https://stackoverflow.com/questions/1098897/
 const MAX_SAFE_DATAGRAM_SIZE: usize = 508;
 
-impl Packet {
+impl DataPacket {
     const HEADER_SIZE: usize = mem::size_of::<u32>() * 4;
     const MAX_SAFE_SIZE: usize = MAX_SAFE_DATAGRAM_SIZE - Self::HEADER_SIZE;
 
@@ -65,13 +65,7 @@ impl Packet {
         Ok(self.len())
     }
 
-    fn read_from(&self, buf: &[u8]) -> io::Result<Self> {
-        fn read_be_u32<R: Read>(mut reader: R) -> io::Result<u32> {
-            let mut buf = [0u8; mem::size_of::<u32>()];
-            reader.read_exact(&mut buf)?;
-            Ok(u32::from_be_bytes(buf))
-        }
-
+    fn read_from(buf: &[u8]) -> io::Result<Self> {
         let mut cursor = Cursor::new(buf);
         let sequential_number = read_be_u32(&mut cursor)?;
         let fragment_identifer = read_be_u32(&mut cursor)?;
@@ -89,4 +83,34 @@ impl Packet {
             datagram,
         })
     }
+}
+
+struct AckPacket {
+    sequential_number: u32,
+}
+
+impl AckPacket {
+    fn new(sn: u32) -> Self {
+        AckPacket {
+            sequential_number: sn,
+        }
+    }
+
+    fn read_from(buf: &[u8]) -> io::Result<Self> {
+        let cursor = Cursor::new(buf);
+        let sn = read_be_u32(cursor)?;
+        Ok(Self::new(sn))
+    }
+
+    fn write_to(&self, buf: &mut [u8]) -> io::Result<usize> {
+        let mut cursor = Cursor::new(buf);
+        cursor.write_all(&self.sequential_number.to_be_bytes())?;
+        Ok(mem::size_of::<u32>())
+    }
+}
+
+fn read_be_u32<R: Read>(mut reader: R) -> io::Result<u32> {
+    let mut buf = [0u8; mem::size_of::<u32>()];
+    reader.read_exact(&mut buf)?;
+    Ok(u32::from_be_bytes(buf))
 }
