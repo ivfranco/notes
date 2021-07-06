@@ -58,7 +58,7 @@ impl RudpState {
     fn on_ack(&mut self, ack: u32) {
         let mut dropped = 0;
         for (packet, _) in self.packet_queue.iter() {
-            if packet.sequential_number <= ack {
+            if packet.sequential_number < ack {
                 dropped += 1;
             } else {
                 break;
@@ -66,7 +66,7 @@ impl RudpState {
         }
 
         self.packet_queue.drain(..dropped);
-        self.acknowledged = self.acknowledged.max(ack + 1);
+        self.acknowledged = self.acknowledged.max(ack);
     }
 }
 

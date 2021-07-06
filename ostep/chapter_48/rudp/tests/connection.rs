@@ -1,18 +1,31 @@
-use std::{net::Ipv4Addr, thread, time::Duration};
+use std::{net::Ipv4Addr, sync::Arc, thread};
 
+use rand::{distributions::Standard, Rng, SeedableRng};
 use rudp::{client::RudpClient, server::RudpServer};
 
 #[test]
-fn connection() {
-    let mut server = RudpServer::bind(8080).unwrap();
-    thread::spawn(move || {
-        server.listen().unwrap();
-    });
+fn fragmented() {
+    const BYTES_LEN: usize = 10 * 1024;
+
+    let rng = rand::rngs::StdRng::from_entropy();
+    let bytes = Arc::new(
+        rng.sample_iter(Standard)
+            .take(BYTES_LEN)
+            .collect::<Vec<u8>>(),
+    );
+
+    let mut server = RudpServer::bind((Ipv4Addr::LOCALHOST, 8080)).unwrap();
+    let handle = {
+        let bytes = Arc::clone(&bytes);
+        thread::spawn(move || {
+            let mut buf = [0u8; BYTES_LEN];
+            server.recv(&mut buf).unwrap();
+            assert_eq!(buf, bytes.as_slice());
+        })
+    };
 
     let client = RudpClient::connect((Ipv4Addr::LOCALHOST, 8080)).unwrap();
-    for i in 0u32..10 {
-        client.send(&i.to_be_bytes()).unwrap();
-    }
+    client.send(&bytes).unwrap();
 
-    thread::sleep(Duration::from_secs(10));
+    handle.join().unwrap();
 }

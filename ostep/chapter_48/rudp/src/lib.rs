@@ -85,11 +85,13 @@ impl DataPacket {
     }
 }
 
-struct AckPacket {
+pub struct AckPacket {
     sequential_number: u32,
 }
 
 impl AckPacket {
+    pub const SIZE: usize = mem::size_of::<u32>();
+
     fn new(sn: u32) -> Self {
         AckPacket {
             sequential_number: sn,
