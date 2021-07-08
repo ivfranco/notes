@@ -2530,3 +2530,36 @@ Questions
 ./ostep/chapter_48/rudp
 
 49. Sun’s Network File System (NFS)
+Questions
+49.1
+The duration is an hour from 
+    Wednesday, October 16, 2002 5:00:00 PM GMT
+to 
+    Wednesday, October 16, 2002 5:59:59 PM GMT
+the same as the title suggests (021015-1300, YYDDMM-hhmm).
+
+49.2
+awk '{print $8}' ~/ostep/anon-deasna-021016-1300.txt | sort | uniq -c | sort -k 1,1 -nr
+1610395 getattr
+1043752 read
+ 619819 write
+ 131453 lookup
+  27699 access
+  19485 setattr
+  11640 remove
+   9924 create
+   9135 fsstat
+   4290 link
+   2297 readdirp
+   1321 fsinfo
+    918 readdir
+    501 rename
+    439 readlink
+    187 pathconf
+    136 symlink
+     36 mkdir
+     14 rmdir
+      4 mknod
+As explained by the text, the clients have to constantly issue getattr to the server.
+
+49.3
