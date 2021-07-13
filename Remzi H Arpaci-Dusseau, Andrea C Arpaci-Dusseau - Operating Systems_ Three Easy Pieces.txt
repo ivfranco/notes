@@ -2563,3 +2563,173 @@ awk '{print $8}' ~/ostep/anon-deasna-021016-1300.txt | sort | uniq -c | sort -k 
 As explained by the text, the clients have to constantly issue getattr to the server.
 
 49.3
+./ostep/chapter_49/nfs_trace
+Average file size by access: 17728821
+Among all 136 users, only 19 users made more than 0.1% getattr requests
+List of requests made by top 10 users:
+    User 31.0320 send 396553 requests
+    User 40.03fe send 223550 requests
+    User 33.03fe send 65911 requests
+    User 45.0320 send 14574 requests
+    User 32.03ff send 12843 requests
+    User 37.03ff send 11597 requests
+    User 38.0320 send 9663 requests
+    User 43.0320 send 9537 requests
+    User 36.0320 send 8050 requests
+    User 44.0320 send 7096 requests
+
+49.4
+./ostep/chapter_49/nfs_trace
+747169 read / write access are sequential
+91826 read / write access are non-sequential
+89.06% access are sequential
+
+49.5
+./ostep/chapter_49/nfs_trace
+Among all 219 clients, only 39 of them made more than 0.1% of all the requests
+List top 10 clients
+    Client 32.03ff made 568181 requests
+    Client 31.0320 made 436586 requests
+    Client 40.03fe made 239866 requests
+    Client 32.03fe made 112251 requests
+    Client 33.03fe made 81760 requests
+    Client 37.03ff made 34013 requests
+    Client 45.0320 made 21433 requests
+    Client 32.03fa made 16059 requests
+    Client 40.03fd made 15144 requests
+    Client 37.03fd made 13288 requests
+
+49.6
+./ostep/chapter_49/nfs_trace
+Min latency: 0.0000
+Max latency: 4.9586
+Avg latency: 0.0014
+
+49.7
+./ostep/chapter_49/nfs_trace
+18409 requests are not replied
+List session id of 10 lost requests
+    7438dda5
+    57fdfdad
+    7437c035
+    fcea1f70
+    57fe8350
+    7437bc2f
+    57fee126
+    4ec9b16
+    743bd03e
+    57fdfde0
+take session id 7438dda5 as an example, the getattr request by client 40.03fe was never replied by
+the server, the client retried the operation 0.002 seconds after with the exactly same parameters
+but a different session id.
+
+49.8
+The fail ratio of operations and how the failures are resolved.
+
+50. The Andrew File System (AFS)
+Questions 
+50.1
+-f 2 -C 3 -n 2
+        Server                         c0                          c1                          c2
+    file:a contains:0
+    file:b contains:1
+                                open:b [fd:0]
+                                                                                        open:a [fd:0]
+                                                            open:b [fd:0]
+                                write:0 1 -> 2
+                                                                                        write:0 0 -> 3
+                                                                                        close:0
+                                                                                        open:b [fd:1]
+                                                                                        write:1 1 -> 4
+                                close:0
+                                                                                        close:1
+                                                            read:0 -> 1
+                                open:a [fd:1]
+                                                            close:0
+                                                            open:b [fd:1]
+                                                            read:1 -> 4
+                                read:1 -> 3
+                                                            close:1
+                                close:1
+    file:a contains:3
+    file:b contains:4
+
+50.2
+-f 2 -n 2
+        Server                         c0                          c1
+    file:a contains:0
+    file:b contains:1
+                                open:b [fd:0]
+                                                            open:b [fd:0]
+                                                            read:0 -> value?
+                                                            close:0
+                                write:0 value? -> 2
+                                                            open:b [fd:1]
+                                                            read:1 -> value?
+                                close:0
+    (callback on file b sent to c1)
+                                                            close:1
+                                open:a [fd:1]
+                                read:1 -> value?
+                                close:1
+    file:a contains:?
+    file:b contains:?
+A callback is issued whenever modification to a file is synced from one client to other clients who
+has opened that same file in the AFS.
+
+50.3
+-f 2 -n 2 -s 2
+        Server                         c0                          c1
+    file:a contains:0
+    file:b contains:1
+                                                            open:b [fd:0]
+                                                            (b:1)
+                                                            write:0 value? -> 2
+                                                            (b:2)
+                                                            close:0
+                                                            (b:2)
+                                open:b [fd:0]
+                                (b:2)
+                                write:0 value? -> 3
+                                (b:3)
+                                close:0
+                                (b:3)
+                                                            (b:2, invalidated)
+                                                            open:b [fd:1]
+                                                            (b:3)
+                                                            read:1 -> value?
+                                                            (b:3)
+                                                            close:1
+                                                            (b:3)
+                                open:a [fd:1]
+                                (a:0; b:3)
+                                read:1 -> value?
+                                (a:0; b:3)
+                                close:1
+                                (a:0; b:3)
+    file:a contains:?
+    file:b contains:?
+
+50.4
+Among all C(6, 3) = 6!/((6 - 3)!3!) = 20 possible schedules, C(3, 0) = 1 of them schedules the close
+of fd 1 at c0 before the open of file a at c1, leads to client 1 reading value 1; in all other 20 -
+1 = 19 schedules leads to client 1 reading the value 0.
+
+50.5
+-S 01
+    client 1 reads 0
+-S 100011
+    client 1 reads 0
+-S 011100
+    client 1 reads 0
+In any schedule but -S 000111 client 1 reads 0.
+
+50.6
+-S 011100
+    a: 2
+-S 010011
+    a: 2
+The final value of file a is completely determined by
+    1.  which write operation is scheduled first
+    2.  which close operation is scheduled first
+

@@ -6,21 +6,29 @@ const REQUEST_COMMON_TAIL: &str = " con = XXX len = XXX";
 const REPLY_COMMON_TAIL: &str = " status=XXX pl = XXX con = XXX len = XXX";
 
 #[derive(Debug)]
-enum Ty {
+pub enum Ty {
     Request,
     Reply(bool),
 }
 
 #[derive(Debug)]
 pub struct Trace {
-    epoch: f64,
-    from: String,
-    to: String,
-    ty: Ty,
-    session_id: u32,
-    op_code: u32,
-    operation: String,
-    params: HashMap<String, String>,
+    /// Seconds since 1970.1.1
+    pub epoch: f64,
+    /// Origin of this trace
+    pub from: String,
+    /// Target of this trace
+    pub to: String,
+    /// Type of this trace (request or reply)
+    pub ty: Ty,
+    /// Id shared by the request and reply of the same dialogue
+    pub session_id: u32,
+    /// Op code of the operation defined by the NFSv3 protocol
+    pub op_code: u32,
+    /// Name of the operation in plain text
+    pub operation: String,
+    /// Operation-specific parameters
+    pub params: HashMap<String, String>,
 }
 
 impl Trace {
@@ -46,13 +54,15 @@ fn p_trace(input: &str) -> IResult<&str, Trace> {
         .map(|s| match s {
             "C3" => Ty::Request,
             "R3" => Ty::Reply(true),
-            _ => unreachable!(),
+            _ => unreachable!("Unknown trace type"),
         })
         .parse(input)?;
     let (input, session_id) = lexeme
         .map(|s| u32::from_str_radix(s, 16).unwrap())
         .parse(input)?;
-    let (input, op_code) = lexeme.map(|s| s.parse::<u32>().unwrap()).parse(input)?;
+    let (input, op_code) = lexeme
+        .map(|s| u32::from_str_radix(s, 16).unwrap())
+        .parse(input)?;
     let (input, operation) = lexeme.map(|s| s.to_string()).parse(input)?;
 
     let input = match ty {
@@ -102,6 +112,7 @@ mod tests {
     #[test]
     fn parse() {
         let input = "1034787600.774001 30.0801 31.0320 U R3 d2891970 1 getattr OK ftype 1 mode 180 nlink 1 uid 18a88 gid 18a88 size e7e used 1000 rdev 0 rdev2 0 fsid 8664 fileid 355861 atime 1034786445.038001 mtime 1034786444.934008 ctime 1034786444.934008 status=XXX pl = XXX con = XXX len = XXX";
-        println!("{:?}", Trace::parse(input).unwrap());
+        let trace = Trace::parse(input).unwrap();
+        // println!("{:?}", trace);
     }
 }
