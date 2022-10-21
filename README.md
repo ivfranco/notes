@@ -7,9 +7,6 @@ mathematically nor grammatically.
 
 ## Reading:
 
-- Operating Systems: Three Easy Pieces, Remzi H Arpaci-Dusseau & Andrea C Arpaci-Dusseau, Version
-  1.00, in C & Rust
-
 ## Read (in temporal order):
 
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
@@ -30,3 +27,5 @@ mathematically nor grammatically.
 - (partial) Mathematical analysis, Tom A. Apostol, 2nd Edition
 - A First Course in Database Systems, Jeffrey D. Ullman et al, 3rd Edition, in Rust & Typescript
 - Designing Data-Intensive Applications, Martin Kleppmann
+- Operating Systems: Three Easy Pieces, Remzi H Arpaci-Dusseau & Andrea C Arpaci-Dusseau, Version
+  1.00, in C & Rust
