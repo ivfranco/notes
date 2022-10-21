@@ -2733,3 +2733,75 @@ The final value of file a is completely determined by
     1.  which write operation is scheduled first
     2.  which close operation is scheduled first
 
+54. Authentication
+ASIDE: LINUX LOGIN PROCEDURES
+Echoing the user name is a compromise for convenience. The screen of the terminal of the user may be
+recorded or be peeped by a passing by adversary. For the same reason passwords typed into a dialog box is usually replaced by asterisks, but this approach leaks the length of the password.
+
+55. Access Control
+[E+09] “Understanding Android Security”
+---NOTE START---
+Motivation: Android applications are more integrated with each other (e.g. user may provide
+credential to a google account and their personal data should be automatically synced to email apps,
+calendar apps , contact apps etc.)
+
+Android applications do not have an entry point, instead an application is defined as a set of
+components and driven by the Android system, there are 4 component types (up to when the paper is
+published):
+    1.  Activity: similar to a window in desktop GUI, only one activity may receive keyboard / touch
+        events at a time, suspended when not focused 
+    2.  Service: background processes, will not be suspended when out of focus, also handles RPC
+        calls from other apps
+    3.  Content provider: interface to a relational database / persistent storage, files are also
+        shared through this component 
+    4.  Broadcast receiver: mail boxes for messages from other applications
+
+Components communicate with each other by performing "ICC (inter-component communication) actions",
+i.e. sending "intents" to the Android API. An intent is an object containing both the destination
+component and the message. The destination can be both explicit or implicit, the implicit name is
+called an "action string", which is received and then filtered on the receiving end. 
+
+Different type of components support different type of ICC actions. Instead of intents content
+providers are addressed by an authority string embedded in a URI e.g. 
+    content://<authority>/<table>/<id>
+
+Android enforces security measures on two levels: 
+    -   each application is assigned a different user identity in the underlying linux system with
+        very limited capabilities
+    -   Android middleware, majorly the reference monitor, mediates all ICC actions
+
+Each component is assigned a access permission label (a string) by the application developer on
+installation, another component may establish ICC with the target if and only if the permission
+labels assigned [by Android system?] to the containing application of the initiator contains the
+permission label of the target component. Alternatively a component may be private (deny all ICC
+actions) or created without a permission label (accept all ICC actions).
+
+Similarly a broadcast message may have a permission label attached, broadcast receiver without the
+permission won't be able to receive the message.
+
+Content provider components (storages) have separate permission labels for read and write actions.
+
+Beyond the permission label assigned to components, Android provides a checkPermission() service
+hook which allows application developers to implement arbitrary runtime security policies. These
+service hooks effectively made it impossible to check the security policy of an application by
+inspecting its manifests alone. 
+
+Access to sensitive system APIs, e.g. network access, camera and microphone must be declared in the
+manifests and manually approved by the user.
+
+Permissions in v0.9r1 SDK have 4 levels:
+    - Normal: granted to anyone requesting
+    - Dangerous: granted only after manual user approval
+    - Signature: granted only to applications signed with the same developer key
+    - Signature or System: legacy compatibility level for old "System" level before v0.9r1
+
+Components can delegate permissions by two means:
+    1.  pending intents: an intent received by a component can be wrapped into a pending intent
+        object then sent to another component which may not have the required permission
+    2.  URI permission: developers of content provider components may set permission in the URI
+        intent to a resource, granting all implicit receivers the capability to read / write the
+        resource pointed by the URI
+Permission delegation combined with ad-hoc security policies in application code vastly complicated
+analysis of the security model of the Android system. 
+---NOTE END---
+
