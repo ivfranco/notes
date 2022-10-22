@@ -52,7 +52,8 @@ int push(struct Vec *vec, void *elem)
 {
     if (vec->elem_cnt >= vec->capacity)
     {
-        if (vec->capacity > SIZE_MAX / 2) {
+        if (vec->capacity > SIZE_MAX / 2) 
+        {
             return -2;
         }
         size_t new_capacity = vec->capacity * 2;
@@ -61,7 +62,8 @@ int push(struct Vec *vec, void *elem)
             new_capacity = 16;
         }
 
-        if (new_capacity > SIZE_MAX / vec->elem_size) {
+        if (new_capacity > SIZE_MAX / vec->elem_size) 
+        {
             return -2;
         }
         void *rc = realloc(vec->ptr, new_capacity * vec->elem_size);
