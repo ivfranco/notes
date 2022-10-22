@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 
 // A homogeneous variable-sized vector.
@@ -46,17 +47,23 @@ int get(struct Vec *vec, size_t idx, void *elem)
 // # Return values:
 // 0:   successful push
 // -1:  allocation failure
+// -2:  capacity overflow
 int push(struct Vec *vec, void *elem)
 {
     if (vec->elem_cnt >= vec->capacity)
     {
+        if (vec->capacity > SIZE_MAX / 2) {
+            return -2;
+        }
         size_t new_capacity = vec->capacity * 2;
         if (new_capacity < 16)
         {
             new_capacity = 16;
         }
 
-        // no idea how to test for integer overflow
+        if (new_capacity > SIZE_MAX / vec->elem_size) {
+            return -2;
+        }
         void *rc = realloc(vec->ptr, new_capacity * vec->elem_size);
         if (rc == NULL)
         {
