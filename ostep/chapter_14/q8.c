@@ -62,12 +62,12 @@ int push(struct Vec *vec, void *elem)
             new_capacity = 16;
         }
 
-        if (new_capacity > SIZE_MAX / vec->elem_size)
+        if (vec->elem_size != 0 && new_capacity > SIZE_MAX / vec->elem_size)
         {
             return -2;
         }
         void *rc = realloc(vec->ptr, new_capacity * vec->elem_size);
-        if (rc == NULL)
+        if (vec->elem_size != 0 && rc == NULL)
         {
             return -1;
         }
