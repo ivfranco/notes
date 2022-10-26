@@ -7,6 +7,8 @@ mathematically nor grammatically.
 
 ## Reading:
 
+- Reversing: Secrets of Reverse Engineering, Eldad Eilam, 1st Edition
+
 ## Read (in temporal order):
 
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
