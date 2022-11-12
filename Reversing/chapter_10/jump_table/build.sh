@@ -1,0 +1,1 @@
+nasm -felf lib.asm
