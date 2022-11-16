@@ -7,7 +7,7 @@ mathematically nor grammatically.
 
 ## Reading:
 
-- Reversing: Secrets of Reverse Engineering, Eldad Eilam, 1st Edition
+- Reversing: Secrets of Reverse Engineering, Eldad Eilam, 1st Edition, in x86 assembly and Rust
 
 ## Read (in temporal order):
 
