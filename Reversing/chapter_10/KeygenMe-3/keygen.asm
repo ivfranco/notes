@@ -5,6 +5,7 @@
     section .text
 main:
     enter 0x4, 0
+; [esp-0x0]: char *exportName;
     mov eax, dword [ebp + 0x8]      ; argc
     cmp eax, 2
     jb  exit
@@ -12,7 +13,7 @@ main:
     mov eax, dword [eax + 0x4]      ; argv[1]
     mov dword [esp], eax
     push eax
-    call strlen
+    call strlen                     ; eax = strlen(argv[1])
     add esp, 0x4
     xor esi, esi
     xor ebx, ebx
@@ -38,7 +39,7 @@ print:
     push 0
     push esi
     push fmt
-    call printf
+    call printf                     ; printf("%u\n", esi)
     add esp, 0xC
 exit:
     add esp, 0x4

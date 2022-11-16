@@ -1,0 +1,46 @@
+# SHA1 hash of unmodified Defender.exe
+defender_sha1 = "a23654a525b018be4a2b868d3679b48894e67162"
+
+# offset of section .h3mf85n, the code section of Defender.exe
+code_offset = 0x400C00
+
+# Base address, byte length and key of encrypted blocks. When key is not available, an expected
+# signature of plaintext must be given for a brute force attack.
+[[blocks]]
+base = 0x0040219a
+length = 0xbf3
+key = 0x5A5A86F3
+
+[[blocks]]
+base = 0x004034dd
+length = 0xd20
+key = 0x2bca6179
+
+[[blocks]]
+base = 0x00401906
+length = 0x30a
+key = 0x0513B5C7
+
+[[blocks]]
+base = 0x00402ff6
+length = 0xec
+key = 0xad7c194b
+
+[[blocks]]
+base = 0x00401fed
+length = 0x92
+# key = 0x8ed105c2
+brute_force = true
+signature = [0xC7, 0x45, 0xFC, 0x00, 0x00, 0x00, 0x00]
+
+[[blocks]]
+base = 0x00401e32
+length = 0x84
+# key = 0xb14ac01a
+brute_force = true
+signature = [0xC7, 0x45, 0xFC, 0x00, 0x00, 0x00, 0x00]
+
+[[blocks]]
+base = 0x00403335
+length = 0x99
+key = 0x9371d0a9
