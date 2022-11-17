@@ -40,11 +40,25 @@ fn decrypt_unaligned(block: &mut [u8], key: u32) {
     }
 }
 
+#[allow(dead_code)]
+fn encrypt(block: &mut [u8], key: u32) {
+    let mut cb_last = 0;
+    for chunk in block.chunks_exact_mut(4) {
+        let mut buf = [0u8; 4];
+        buf.copy_from_slice(chunk);
+        let cb = u32::from_ne_bytes(buf) ^ key ^ cb_last;
+        chunk.copy_from_slice(&cb.to_ne_bytes());
+        cb_last = cb;
+    }
+}
+
 pub(crate) fn brute_force(block: &[u8], signature: &[u8]) -> Result<u32, Box<dyn Error>> {
     let search = |tx: Sender<u32>, kill_switch: Arc<Mutex<bool>>, low: u32, high: u32| {
         const RESOLUTION: u32 = 2u32.pow(20);
+        const SIG_LENGTH: usize = 8;
 
         let mut buf = block.to_vec();
+        let sig_short = &signature[..SIG_LENGTH];
 
         for key in low..=high {
             if key % RESOLUTION == 0 && *kill_switch.lock().unwrap() {
@@ -52,7 +66,7 @@ pub(crate) fn brute_force(block: &[u8], signature: &[u8]) -> Result<u32, Box<dyn
             }
 
             decrypt(&mut buf, key);
-            if buf.windows(signature.len()).any(|w| w == signature) {
+            if buf.windows(SIG_LENGTH).any(|w| w == sig_short) {
                 tx.send(key).expect("main thread shouldn't panic");
                 return;
             }
@@ -92,4 +106,28 @@ pub(crate) fn brute_force(block: &[u8], signature: &[u8]) -> Result<u32, Box<dyn
     println!("key = {:x}", key);
 
     Ok(key)
+}
+
+#[cfg(test)]
+mod tests {
+    use rand::{rngs::StdRng, Rng, SeedableRng};
+
+    use super::*;
+
+    #[test]
+    fn consistency() {
+        let mut rng = StdRng::from_entropy();
+
+        for _ in 0..32 {
+            let mut buf = [0u8; 0x1000];
+            rng.fill(&mut buf);
+            let key = rng.gen::<u32>();
+
+            let mut enc_dec = buf;
+            encrypt(&mut enc_dec, key);
+            decrypt(&mut enc_dec, key);
+
+            assert_eq!(buf, enc_dec);
+        }
+    }
 }

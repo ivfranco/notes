@@ -146,8 +146,8 @@ pub struct Config {
     #[argh(positional)]
     out_path: String,
     /// whether to preserve critical sections, which if decrypted the program will no longer be
-    /// functionally equivalent to Defender.exe. False by default.
-    #[argh(switch, short = 'd')]
+    /// functionally equivalent to Defender.exe, false by default
+    #[argh(switch, short = 'p')]
     preserve_critical: bool,
 }
 

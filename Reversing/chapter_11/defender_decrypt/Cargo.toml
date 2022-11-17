@@ -5,7 +5,18 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[lib]
+doctest = false
+
+[[bin]]
+name = "defender_decrypt"
+test = false
+doctest = false
+
 [dependencies]
 argh = "0.1.9"
 sha1_smol = "1.0.0"
 toml = "0.5.9"
+
+[dev-dependencies]
+rand = "0.8.5"
