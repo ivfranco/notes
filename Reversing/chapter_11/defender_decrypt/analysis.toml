@@ -1,46 +1,81 @@
 # SHA1 hash of unmodified Defender.exe
 defender_sha1 = "a23654a525b018be4a2b868d3679b48894e67162"
 
-# offset of section .h3mf85n, the code section of Defender.exe
+# Offset of section .h3mf85n, the code section of Defender.exe, equals to 
+#   VirtualAddress - PointerToRawData
 code_offset = 0x400C00
 
-# Base address, byte length and key of encrypted blocks. When key is not available, an expected
-# signature of plaintext must be given for a brute force attack.
+# Base address in memory, byte length and key of encrypted blocks. Keys were obtained from plaintext
+# code or during debugging session. When key is not available, an expected signature of plaintext
+# must be given for a brute force attack.
 [[blocks]]
 base = 0x0040219a
 length = 0xbf3
 key = 0x5A5A86F3
+enc_dec_jump = 0x004020b6
+# jmp 0x00402192
+jump_rewrite = [0xe9, 0xd7, 0x00, 0x00, 0x00]
+
 
 [[blocks]]
 base = 0x004034dd
 length = 0xd20
 key = 0x2bca6179
+enc_dec_jump = 0x00403405
+# jmp 0x004034d5
+jump_rewrite = [0xe9, 0xcb, 0x00, 0x00, 0x00]
 
 [[blocks]]
 base = 0x00401906
 length = 0x30a
 key = 0x0513B5C7
+enc_dec_jump = 0x0040177f
+# jmp 0x004018fe
+jump_rewrite = [0xe9, 0x7a, 0x01, 0x00, 0x00]
 
 [[blocks]]
 base = 0x00402ff6
 length = 0xec
 key = 0xad7c194b
+enc_dec_jump = 0x00402f1e
+# jmp 0x00402fee
+jump_rewrite = [0xe9, 0xcb, 0x00, 0x00, 0x00]
+
 
 [[blocks]]
 base = 0x00401fed
 length = 0x92
 # key = 0x8ed105c2
 brute_force = true
+critical = true
 signature = [0xC7, 0x45, 0xFC, 0x00, 0x00, 0x00, 0x00]
+enc_dec_jump = 0x00401eeb
+# jmp 0x00401fe5
+jump_rewrite = [0xe9, 0xf5, 0x00, 0x00, 0x00]
 
 [[blocks]]
 base = 0x00401e32
 length = 0x84
 # key = 0xb14ac01a
 brute_force = true
+critical = true
 signature = [0xC7, 0x45, 0xFC, 0x00, 0x00, 0x00, 0x00]
+enc_dec_jump = 0x00401d54
+# jmp 0x00401e2a
+jump_rewrite = [0xe9, 0xd1, 0x00, 0x00, 0x00]
 
 [[blocks]]
 base = 0x00403335
 length = 0x99
 key = 0x9371d0a9
+enc_dec_jump = 0x0040325d
+# jmp 0x0040332d
+jump_rewrite = [0xe9, 0xcb, 0x00, 0x00, 0x00]
+
+[watchdog]
+base = 0x00403075
+rewrite = [
+    0x90, 0x90,                                             # NOP, NOP
+    0x81, 0x7d, 0xa0, 0x00, 0x94, 0x35, 0x77, 0xeb, 0x42,   # CMP dword ptr [EBP-0x60],0x77359400
+    0xeb                                                    # JMP
+]
