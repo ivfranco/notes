@@ -42,6 +42,7 @@ name = "defender_decrypt"
 version = "0.1.0"
 dependencies = [
  "argh",
+ "memchr",
  "rand",
  "sha1_smol",
  "toml",
@@ -69,6 +70,12 @@ name = "libc"
 version = "0.2.137"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc7fcc620a3bff7cdd7a365be3376c97191aeaccc2a603e600951e452615bf89"
+
+[[package]]
+name = "memchr"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
 
 [[package]]
 name = "ppv-lite86"

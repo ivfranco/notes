@@ -7,6 +7,8 @@ use std::{
     thread,
 };
 
+use memchr::memmem;
+
 pub(crate) fn decrypt(block: &mut [u8], key: u32) {
     // # Safety
     //
@@ -55,10 +57,8 @@ fn encrypt(block: &mut [u8], key: u32) {
 pub(crate) fn brute_force(block: &[u8], signature: &[u8]) -> Result<u32, Box<dyn Error>> {
     let search = |tx: Sender<u32>, kill_switch: Arc<Mutex<bool>>, low: u32, high: u32| {
         const RESOLUTION: u32 = 2u32.pow(20);
-        const SIG_LENGTH: usize = 8;
 
         let mut buf = block.to_vec();
-        let sig_short = &signature[..SIG_LENGTH];
 
         for key in low..=high {
             if key % RESOLUTION == 0 && *kill_switch.lock().unwrap() {
@@ -66,7 +66,7 @@ pub(crate) fn brute_force(block: &[u8], signature: &[u8]) -> Result<u32, Box<dyn
             }
 
             decrypt(&mut buf, key);
-            if buf.windows(SIG_LENGTH).any(|w| w == sig_short) {
+            if memmem::find(&buf, signature).is_some() {
                 tx.send(key).expect("main thread shouldn't panic");
                 return;
             }
