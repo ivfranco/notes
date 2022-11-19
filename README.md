@@ -7,8 +7,6 @@ mathematically nor grammatically.
 
 ## Reading:
 
-- Reversing: Secrets of Reverse Engineering, Eldad Eilam, 1st Edition, in x86 assembly and Rust
-
 ## Read (in temporal order):
 
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
@@ -31,3 +29,4 @@ mathematically nor grammatically.
 - Designing Data-Intensive Applications, Martin Kleppmann
 - Operating Systems: Three Easy Pieces, Remzi H Arpaci-Dusseau & Andrea C Arpaci-Dusseau, Version
   1.00, in C & Rust
+- Reversing: Secrets of Reverse Engineering, Eldad Eilam, 1st Edition, in x86 assembly and Rust
