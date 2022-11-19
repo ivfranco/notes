@@ -2736,7 +2736,8 @@ The final value of file a is completely determined by
 54. Authentication
 ASIDE: LINUX LOGIN PROCEDURES
 Echoing the user name is a compromise for convenience. The screen of the terminal of the user may be
-recorded or be peeped by a passing by adversary. For the same reason passwords typed into a dialog box is usually replaced by asterisks, but this approach leaks the length of the password.
+recorded or be peeped by a passing by adversary. For the same reason passwords typed into a dialog
+box is usually replaced by asterisks, but this approach leaks the length of the password.
 
 55. Access Control
 [E+09] “Understanding Android Security”
