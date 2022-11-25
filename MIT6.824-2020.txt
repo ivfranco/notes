@@ -1,0 +1,114 @@
+Lecture notes will be taken from a video playlist of 2020 MIT 6.824 lectures, which are public
+nicely segmented:
+    https://www.youtube.com/watch?v=cQP8WApzIQQ&list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB
+but the skeleton code of labs in the 2020 repository doesn't work with the latest version of Golang
+(1.19), the 2021 repository is used instead:
+    git clone git://g.csail.mit.edu/6.824-golabs-2021 6.824
+
+Lecture 1. Introduction
+Topics of distributed systems:
+    - Scalability: 
+        increase in the number of nodes (computers) in the system must be translated to increase in
+        performance fairly linearly, not constrained by any bottlenecks
+    - Fail tolerance:
+        - Availability: 
+            the system should keep operating under certain kind of failures on a small number of
+            nodes
+        - Recoverability: 
+            the system should be able to recover from a failure without loss of correctness
+    - Consistency:
+        different flavors of consistency models, strongest consistency model (linearizability) is
+        intentionally avoided because of costs
+
+MapReduce: Also see notes for Designing Data-Intensive Applications
+---NOTE START---
+The computing environment at Google can be characterized as:
+    - commodity machines: Linux, 2-4 GB memory dual core x86 processor
+    - commodity network: 100MB or 1GB interface, even less bisection bandwidth
+    - hundreds to thousands of machines in a cluster, failures are common
+    - inexpensive IDE hard drives, running distributed and replicated file system (GFS), on the same
+        worker machine 
+    - jobs are submitted to then mapped by a single scheduler 
+
+Master tracks the state of each pair of Map and Reduce task:
+    enum State {
+        Idle,
+        InProgress(WorkerId),
+        Completed(WorkerId),
+    }
+for completed Map tasks the Master additionally stores the location and size of intermediate file
+produced by a Map worker. The information is later propagated to in-progress reduce tasks.
+
+Master pings workers periodically and deems them failed if no response for a certain period.
+Completed Reduce task on failed workers doesn't have to be re-executed, however Map task on failed
+workers are rescheduled even if it's completed because Reduce worker has to later access
+intermediate data on the failed machine. Master is responsible for broadcasting the new Map worker 
+to all relevant Reduce workers.
+
+State of the Master is periodically backed up to the NV storage, failed master can restart from a
+checkpoint or simply abort all ongoing MapReduce tasks.
+
+When the tasks are not deterministic, the final output may not be consistent. Consider the following
+sequence of events:
+    1.  A single Map worker M1 produces two intermediate value R1 and R2 
+    2.  Reduce worker 1 executes on R1, produces e(R1)
+    3.  M1 fails, rescheduled and re-executed on M2, M2 produces R1' and R2'
+    4.  Reduce worker 2 executes on R2', produces e(R2')
+if Map task is not deterministic, there may be inconsistency among e(R1) and e(R2'). Otherwise
+consistency is largely ensured by atomicity of operations on GFS.
+
+The main bottleneck of the MapReduce system in Google was their network: Map function has to fetch
+data from the underlying file system, Reduce function requires all value associated with the same
+key that have to be collected from all Map workers. Capacity is only 50MB/s per machine on the top
+level switch. The single leader in the system had to schedule works closed to the files they are
+operating on.
+
+Master spawns more Map and Reduce tasks (denoted by M and R) than available workers the same way
+multi-thread algorithms spawn more threads than available parallelism to achieve load balance. In
+practice a reasonable configuration has M = 200_000, R = 5000 on 2000 worker machines.
+
+Master duplicates still in-progress tasks to different workers at the very end of a MapReduce
+operation as a means to migrate from staggering workers, reportedly it improves performance of some
+workload by 44%.
+
+Refinements on the basic MapReduce framework:
+    - User-defined partitioning function:
+        user may control how output of Reduce are batched into files based on intermediate key
+    - Ordering guarantees:
+        Google implementation of MapReduces guarantees orders of key among a partition
+    - Combiner function:
+        execute after Map on Map worker, combine intermediate (key, value) pairs in similar fashion
+        to the Reduce function, aimed to reduce network load
+    - Custom input and output types:
+        define how data is read from file or how data is written to output
+    - Side effects:
+        side product of Map / Reduce function to file, no consistency guarantees
+    - Skipping bad records:
+        exception handler on workers send the error raising record id to Master, if the same record
+        id is encountered twice Master re-schedule the same task with the record skipped
+    - Status information:
+        Master report states through an internal HTTP server
+    - Counters:
+        named counter objects on workers propagated to Master in Ping response, a very limited form
+        of logging
+---NOTE END---
+
+Golang notes
+`sync.Mutex` along with maybe some other std types cannot be explicitly constructed, the only way to
+initialize a mutex is to implicitly zero-initialize.
+
+By default every type in Golang is byte-copyable, certain types that cannot be safely cloned must be
+immediately hidden behind a reference e.g. sync.Mutex 
+
+Because `map[K]V` is magic, its documentation is not included in the documentation of Golang std. It
+supports two operations:
+    insert: map[key] = value
+    get: value, exists = map[key]
+
+Golang doesn't have a zero-sized unit type, `map[K]bool` seems to be the most accepted substitution
+of sets
+
+Only bare function calls can be deferred, channel insert, variable assignment and other statements
+cannot be deferred. A possible solution is to wrap the statements in an immediate anonymous
+function, javascript IIFE style:
+    defer func() { c <- true }()

@@ -6,6 +6,7 @@ nor a native English speaker. There is no warranty for any part of the notes to 
 mathematically nor grammatically.
 
 ## Reading:
+- MIT 6.824: Distributed Systems, Robert Morris (lecturer), 2020, in Golang
 
 ## Read (in temporal order):
 

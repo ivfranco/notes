@@ -97,8 +97,7 @@ variant that does not overwrite pages of the tree when they are updated, but ins
 new copy of each modified page"
 One such persistent binary search tree is introduced in Introduction to algorithms, problems 13-1
 
-[21] Salvatore Sanfilippo: “A Few Arguments About Redis Sentinel Properties and
-Fail Scenarios”
+[21] Salvatore Sanfilippo: “A Few Arguments About Redis Sentinel Properties and Fail Scenarios”
 A Redis leader, configured not to persist data on disk, crashed and restarted with an empty
 store, yet managed to restart so fast that the watcher instance (Redis Sentinel) hadn't detected
 the failure, as a result all replica synchronized with the leader and wiped their database. The
@@ -218,7 +217,7 @@ Consensus with One Faulty Process”
 helpful contents:
     https://www.the-paper-trail.org/post/2008-08-13-a-brief-tour-of-flp-impossibility/
     https://www.youtube.com/watch?v=Vmlj-67aymw
-
+---NOTE START---
 Let a consensus protocol P be an asynchronous system of N processes (N >= 2)
 Let xp, yp be input and output register with value in {0, 1, b}, initially yp = b, if yp ∈ {0, 1}
 the process is in decision states, once written output register cannot be modified (stricter than
@@ -332,6 +331,7 @@ starting from a bivalent initial configuration (must exist by Lemma 2):
 
 The run is admissible but not finitely deciding, therefore no protocol is totally correct in spite
 of one fault.
+---NOTE END---
 
 p365, Consensus means:
     1.  Uniform agreement: no two nodes decide differently.
@@ -355,9 +355,9 @@ Derived data systems
     -   denormalized
     -   redundant
 
-
 [1] Jeffrey Dean and Sanjay Ghemawat: “MapReduce: Simplified Data Processing on
 Large Clusters”
+---NOTE START---
 MapReduce is the combination of 4 functions:
     1.  read :: Data -> [(RawKey, RawValue)]
         extract the data from the database / file system. 
@@ -393,8 +393,10 @@ workers, reset their state and output when workers are considered failed.
 
 The model described in the paper is vulnerable to read skews, maybe it's handled by the file system
 (GFS apparently) or read skew is insignificant in their use cases.
+---NOTE END---
 
 [19] Sanjay Ghemawat, Howard Gobioff, and Shun-Tak Leung: “The Google File System”
+---NOTE START---
 Optimized for
     - large files (> 100MB, multi-GB files are common)
     - large sequential read and write (from MapReduce instances)
@@ -466,8 +468,8 @@ server as the source chunks, means snapshots cannot be used in place of backups.
 Data is forwarded from each replica to its closest neighbor instead of being distributed in a
 tree-shaped topology. Data is pipelined through TCP, is immediately forwarded on receiving.
 
-GFS doesn't support hard or symbolic links, nor does have per-directory data structure that must be
-locked on file creation. All file paths are stored in a single structure with prefix compression,
+GFS doesn't support hard or symbolic links, nor does it have per-directory data structure that must
+be locked on file creation. All file paths are stored in a single structure with prefix compression,
 multiple files may be created concurrently in the same directory as there's no inode: file creation
 requires only read lock of all ancestors (so the ancestors cannot be removed) and write lock of the
 file path.
@@ -486,6 +488,7 @@ Availability is ensured by:
     - chunk replication and checksum (detection only, no ECC)
     - duplicated masters: a new master can be launched in seconds from operation log on a different
       machine, read-only "shadow" masters
+---NOTE END---
 
 p457, "Event sourcing makes it easier to evolve applications over time, helps with debugging by
 making it easier to understand after the fact why something happened"
@@ -505,10 +508,9 @@ a logical clause built from the documents in the stream.
 [90] Viktor Klang: “I’m coining the phrase ‘effectively-once’ for message processing with
 at-least-once + idempotent operations”
 
-p518, "For example, you could generate a unique identifier for an operation (such as a
-UUID) and include it as a hidden form field in the client application"
-Which is a bad idea: even if the user won't manually manipulate the form data, there's non
-negligible chance one of the dozen extensions the user installed on their browser will mess over the
-form data, sometimes even adversarially. No data submitted by the user should be trusted.  The UUID
-should be generated at server side as part of the initial client state and verified on its way back
-to the server.
+p518, "For example, you could generate a unique identifier for an operation (such as a UUID) and
+include it as a hidden form field in the client application" Which is a bad idea: even if the user
+won't manually manipulate the form data, there's non negligible chance one of the dozen extensions
+the user installed on their browser will mess over the form data, sometimes even adversarially. No
+data submitted by the user should be trusted.  The UUID should be generated at server side as part
+of the initial client state and verified on its way back to the server.
