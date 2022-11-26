@@ -6,7 +6,7 @@ nor a native English speaker. There is no warranty for any part of the notes to 
 mathematically nor grammatically.
 
 ## Reading:
-- MIT 6.824: Distributed Systems, Robert Morris (lecturer), 2020, in Golang
+- MIT 6.824: Distributed Systems, Robert Morris (lecturer) et al., 2020, in Golang
 
 ## Read (in temporal order):
 
@@ -14,7 +14,7 @@ mathematically nor grammatically.
 - Types and Programming Languages, Benjamin C. Pierce, in Haskell
 - Automata and Computability, Dexter C. Kozen
 - (partial) Introduction to the Theory of Computation, Michael Sipser, 3rd Edition
-- Design Patterns, Gang of Four, in Typescript
+- Design Patterns, Erich Gamma et al., in Typescript
 - Introduction to Modern Cryptography, Johnathan Katz & Yehuda Lindell
 - Cryptography Engineering: Design Principles and Practical Applications, Niels Ferguson et al., in
   Rust

@@ -1,9 +1,47 @@
-Lecture notes will be taken from a video playlist of 2020 MIT 6.824 lectures, which are public
-nicely segmented:
+Lecture notes will be taken from a video playlist of 2020 MIT 6.824 lectures, which are public, has
+good audo quality and nicely segmented:
     https://www.youtube.com/watch?v=cQP8WApzIQQ&list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB
-but the skeleton code of labs in the 2020 repository doesn't work with the latest version of Golang
+but the skeleton code for labs in the 2020 repository doesn't work with the latest version of Golang
 (1.19), the 2021 repository is used instead:
     git clone git://g.csail.mit.edu/6.824-golabs-2021 6.824
+    
+Golang notes
+References:
+    a tour of go: https://go.dev/tour/welcome/1
+    std doc: https://pkg.go.dev/std
+    effective go: https://go.dev/doc/effective_go
+
+The official go std documentation cannot be searched alone: the result is always polluted by 3rd
+party packages and cannot be filtered for std only. Use devdocs.io instead:
+    https://devdocs.io/go/
+
+`sync.Mutex` along with maybe some other std types cannot be explicitly constructed, the only way to
+initialize a mutex is to implicitly zero-initialize. *sync.Mutex however can be constructed with
+new:
+    mu := new(sync.Mutex)
+
+By default every type in Golang is byte-copyable, certain types that cannot be safely cloned must be
+immediately hidden behind a reference e.g. sync.Mutex 
+
+Because `map[K]V` is magic, its documentation is not included in the documentation of Golang std. It
+supports two operations:
+    insert: map[key] = value
+    get: value, exists = map[key]
+
+Golang doesn't have a zero-sized unit type, `map[K]bool` seems to be the most accepted substitution
+of sets
+
+Only bare function calls can be deferred, channel insert, variable assignment and other statements
+cannot be deferred. A possible solution is to wrap the statements in an immediate anonymous
+function, javascript IIFE style:
+    defer func() { c <- true }()
+
+Golang integer literal in place of time.Duration is implicitly converted to nanoseconds, which means
+    time.Sleep(1000)
+put the thread to sleep for 1000 nanoseconds = 1 microsecond
+
+Unintuitive for loop semantics:
+    https://github.com/golang/go/discussions/56010
 
 Lecture 1. Introduction
 Topics of distributed systems:
@@ -93,22 +131,117 @@ Refinements on the basic MapReduce framework:
         of logging
 ---NOTE END---
 
-Golang notes
-`sync.Mutex` along with maybe some other std types cannot be explicitly constructed, the only way to
-initialize a mutex is to implicitly zero-initialize.
+Lecture 2. RPC and threads
+./MIT6.824-2020/questions/web_crawler.go
 
-By default every type in Golang is byte-copyable, certain types that cannot be safely cloned must be
-immediately hidden behind a reference e.g. sync.Mutex 
+Reason to use threads:
+    - IO Concurrency:
+        allows the OS to better utilize CPU when part of the program is blocking on IO events (file
+        read / write, mouse / keyboard input, etc.), may be solved otherwise by event-driven design
+    - parallelism:
+        threads can be assigned to and executed on different CPU cores
+    - convenience:
+        there's concepts that are most naturally expressed as threads, e.g. periodical jobs and
+        watchdogs 
 
-Because `map[K]V` is magic, its documentation is not included in the documentation of Golang std. It
-supports two operations:
-    insert: map[key] = value
-    get: value, exists = map[key]
+Most non-trivial instructions in x86 are not atomic, even seemingly simple instruction like INC is
+translated to several micro codes hence vulnerable to race condition. Shared data has to be
+explicitly atomic or protected by locks.
 
-Golang doesn't have a zero-sized unit type, `map[K]bool` seems to be the most accepted substitution
-of sets
+Reasons it's not always a good idea for data structures to manage their own locks thus hiding it
+from users:
+    1.  it's meaningless overhead when the data structure is not shared
+    2.  when multiple data structures are interlinked, it's possible that the only way to solve
+        potential deadlock is to lift their locks to a higher scope 
+    
+Synchronization primitives in Golang:
+    - sync.Mutex:
+        every day mutex, copying a sync.Mutex is unsafe after first use, most of the case should
+        immediately be put behind a reference and never dereferenced
+    - channels:
+        by default has a capacity of 0, sending thread is blocked immediately, can be constructed
+        with arbitrary capacity: make(chan T, CAPACITY)
+    - sync.Cond:
+        ordinary conditional variable with ordinary API, slightly generalized to wait on both mutex
+        and RW lock
+    - sync.WaitGroup:
+        barrier implemented in Golang, API allows arbitrary delta to the counter
+    
+The Golang for loop semantic mentioned at 57:10 is about to be fixed:
+    https://github.com/golang/go/discussions/56010
+in some future version (maybe Go 2),
+    vs := []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
+    rs := make([]*int, 0, 10)
+    for _, v := range vs {
+        rs = append(rs, &v)
+    }
+    for _, r := range rs {
+        fmt.Println(*r)
+    }
+will print 1 to 10.
 
-Only bare function calls can be deferred, channel insert, variable assignment and other statements
-cannot be deferred. A possible solution is to wrap the statements in an immediate anonymous
-function, javascript IIFE style:
-    defer func() { c <- true }()
+RPC (Remote Procedure Call) is only mentioned in 2021 lecture video:
+    http://nil.csail.mit.edu/6.824/2021/schedule.html
+Sequence of events of an RPC:
+    1.  client calls the RPC, pass arguments to client-side stub function
+    2.  client-side stub function marshalls (serializes) arguments to a message, type information
+        along only if the message format is self describing (protobuf, the message format of gRPC,
+        is not self-describing for example)
+    3.  message passed to server, unmarshalled by server-side stub function
+    4.  server-side stub function calls the actual target function 
+    5.  server-side stub function marshalls the return value to a message
+    6.  message passed to client, client-side stub function unmarshalls the message to values
+    7.  client-side stub function returns value to client
+most of the steps (stubs, communication protocol, message format) are handled by code auto-generated
+from a schema.
+
+RPC semantics under failures:
+    - at least once:
+        retry until the operations is verifiably performed at least once, only appropriate for
+        idempotent operations e.g. insert into a map
+    - at most once:
+        duplicate requests are filtered based on something (unique tags)? in the message or a lower
+        level (TCP?), server may still receive zero request, the RPC model of Golang
+    - exactly once:
+        expensive, rarely deployed
+     
+Server-side RPC framework must also serve as a local name server to distribute RPC calls to
+corresponding stubs on the same server node. For a bigger RPC system in which calls may land on
+different server nodes a dedicated name server is required.
+
+Golang registers RPC services by runtime reflection magic:
+    rpc.Server.Register registers method of a struct as RPC service iff the method:
+        - is exported method of exported type
+        - has two arguments, both of exported type
+        - the second argument is a pointer
+        - one return value, of type error
+    the service name will be
+        fmt.Sprintf("%s.%s", struct_type_name, struct_method_name)
+    https://pkg.go.dev/net/rpc@go1.19.3#Server.Register
+
+// why is arguments of put in kv.go hard coded to { "subject", "6.824" }?
+
+// 2021 code example on conditional variable, not mentioned anywhere in the lectures
+vote-count-1.go
+    data race and spin wait
+
+vote-count-2.go
+    data race on `count` and `finished` prevented by a mutex
+    still spin wait
+
+vote-count-3.go
+    spin wait on a lower resolution by hard coded time.Sleep
+
+vote-count-4.go
+    wait on conditional variable, finish condition only checked on worker termination. Unlike in
+    other languages, Golang conditional variables do not suffer from spontaneous wake up
+    https://pkg.go.dev/sync#Cond.Wait
+
+vote-count-5.go
+    no shared data, votes are passed back to master thread through a channel, channel function as
+    both a synchronized data structure and a barrier 
+
+vote-count-6.go
+    patches a major bug in 5: collect all votes no matter the result, otherwise worker threads would
+    block forever on 0 capacity channel
+    now think about it, the channel should have a capacity of 10 so the worker threads never block
