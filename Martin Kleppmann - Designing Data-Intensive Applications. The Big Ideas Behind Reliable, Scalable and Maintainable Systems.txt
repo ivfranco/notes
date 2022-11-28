@@ -398,8 +398,12 @@ The model described in the paper is vulnerable to read skews, maybe it's handled
 [19] Sanjay Ghemawat, Howard Gobioff, and Shun-Tak Leung: “The Google File System”
 ---NOTE START---
 Optimized for
-    - large files (> 100MB, multi-GB files are common)
-    - large sequential read and write (from MapReduce instances)
+    - frequent component failure, a norm when there's thousands of commodity grade nodes in the
+        system, error detection and automatic failure recovery are crucial to the system
+    - large files (> 100MB, multi-GB files are common), in contrary to majorly small (~4KB) files in
+        personal computing environment
+    - large sequential read and write (from MapReduce instances), in contrary to random read / write
+        in personal computing environment
     - concurrent append (multiple reducers appending to the same output file)
     - high sustained bandwidth instead of latency (MapReduce is a batch process)
 
@@ -424,8 +428,8 @@ Workflow of a read:
 
 Chunks are large (64MB) and lazily allocated by the linux file system. For large sequential reads /
 writes a large chunk size reduces the required number of communications between client and master,
-in the cost of lower granularity hence more hot spots (which in practices hadn't been a problem
-in deployment in Google).
+in the cost of lower granularity hence more hot spots, one such incident was resolved by increasing
+replication factor and introducing random delay to application launch.
 
 GFS metadata:
     - file and chunk namespaces (persistent, replicated)
@@ -438,28 +442,60 @@ applied in at-least-once semantics, the result file may contain padding, duplica
 writes. It's the client application's responsibility to write self-validating, self-identifying
 data.
 
-A total order over mutations is enforced by leases issued by the GFS master.
+A log-structured store of file system operation logs are persisted on master and multiple remote
+locations. File system state is restored after reboot by replaying the operation logs. Log data is
+compressed to a file system state checkpoint after reaching a certain size.
+
+GFS consistency model:
+    - file namespace mutations (creation, rename, etc.) are atomic and linearizable
+    - consistency of file content immediately after mutations depends on operations:
+        // consistent: all clients see the same data across all replica
+        // defined: mutation is observable in its entirety or more
+        - serial successful write:      consistent, defined
+        - concurrent successful write:  consistent, undefined
+        - serial successful append:     inconsistent, defined
+        - concurrent successful append: inconsistent, defined
+        - failed mutation:              inconsistent, undefined
+
+After a sequence of successful mutations the resulting file system is defined and eventually
+consistent. The window of inconsistency originates from client cache and stale replica.
+
+Chunk corrupted by failed mutation on files will be detected by checksum and replaced by a replica.
+A chunk is lost only if all replicas (3 by default) are lost, user requiring lost chunk receives
+error instead of corrupted data.
+
+Possible client-side solution to the inconsistency of GFS:
+    - append checksum to each write, verify on read
+    - assign unique id to records, filter duplicate appends
 
 Workflow of a write:
     1.  client -> master: ask which chunk server holds the lease and its replica
-        master -> chunk server: grant lease to a replica if no one has it
-    2.  master -> client: identity of replicas, one of them primary
-    3.  client -> chunk server: push mutation operation in arbitrary order
-        chunk server -> client: acknowledgement
-        if mutation is record append & mutation will cause the chunk to exceed 64MB:
-            pad the chunk to 64MB
-            chunk server -> client: should retry 
+        master -> chunk servers: grant lease to a replica if no one has it
+    2.  master -> client: identity of replicas, one of them is primary
+    3.  client -> chunk servers: push mutation operation in arbitrary order
+        chunk servers -> client: acknowledgement
     4.  client -> primary: write request
-        primary -> other servers: assign serial number to mutations
+        primary assign serial number to mutations
         primary applies mutation locally
-    5.  primary -> other servers: forward write request
-        other servers applies mutations in the same order as the primary
-    6.  other servers -> primary: operation result
+    5.  primary -> replicas: forward write request
+        replicas applies mutations in the same order as the primary
+    6.  replicas -> primary: operation result
     7.  primary -> client: aggregated operation result
+        retry steps 3-7 a few times on failure of any replica, then retry from beginning
+Data is piped through TCP in one pass, transferring B bytes of data to R replicas costs:
+    denote
+        T: transfer rate
+        L: TCP handshake latency
+    B/T + RL
 ideally 1MB can be distributed to all replicas in 80ms
 
-Atomic record appends performs at-least-once file append which makes sense in MapReduce because
-output are grouped by keys, duplicated output can be simply ignored.
+Atomic record appends 
+    - performs at-least-once file append 
+    - if the current chunk cannot accommodate the record:
+        1.  allocate a new chunk 
+        2.  tell replicas to do the same
+        3.  tell client to retry
+    - replicas are not byte-wise identical (defined but inconsistent)
 
 Snapshot is implemented as copy-on-write: initially only the metadata is duplicated pointing to the
 same source chunks, which are duplicated on modifications. The new chunks are created on the same
@@ -475,12 +511,27 @@ requires only read lock of all ancestors (so the ancestors cannot be removed) an
 file path.
 
 Location of a new chunk is based on 3 measurements:
-    - disk space utilization: prioritize less full instance
-    - recent creates: evenly distribute recent chunk create (hence the following heavy writes)
-    - spread replicas across racks
+    1.  disk space utilization: prioritize less full instance
+    2.  recent creates: evenly distribute recent chunk create (hence the following heavy writes)
+    3.  spread replicas across racks
+GFS master re-replicates chunks in order of priority calculated from:
+    - how far is it from the replication goal (replication factor)
+    - file liveliness of the chunk
+    - ongoing client access
+Replicas are rebalanced by the master periodically among chunk servers according to criteria similar
+to chunk creation.
 
-Whenever a lease to a chunk is issued, its version number is bumped (much like how ZooKeeper handles
-leases). A staled replica is remove along with deleted files in background garbage collection pass.
+Chunks of deleted files and from failed file creation are GCed by a background process on master.
+Chunks of deleted files are first renamed to a special hidden name then GCed 3 days later. The paper
+claim that lazy storage reclamation by GC is superior to edger deletion as:
+    - GC provides a uniformed solution to dangling chunks created by failed operations
+    - GC is done in batches as a routine background process when master is free, network cost is
+        amortized
+    - accidentally deleted files could still be recovered 
+
+GFS master issues a new version number of a chunk when granting a lease to the chunk, the version
+number is propagated to all replicas of the chunk. A chunk replica for any reason with a version
+number lower than master is treated as failed and GCed later.
 
 Availability is ensured by:
     - fast recovery: client retry, states can be recovered in seconds, no distinction between normal
@@ -488,6 +539,8 @@ Availability is ensured by:
     - chunk replication and checksum (detection only, no ECC)
     - duplicated masters: a new master can be launched in seconds from operation log on a different
       machine, read-only "shadow" masters
+
+Data integrity on chunk servers is maintained by checksum, both on file access and periodically.
 ---NOTE END---
 
 p457, "Event sourcing makes it easier to evolve applications over time, helps with debugging by

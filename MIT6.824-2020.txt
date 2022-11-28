@@ -221,7 +221,7 @@ Golang registers RPC services by runtime reflection magic:
 
 // why is arguments of put in kv.go hard coded to { "subject", "6.824" }?
 
-// 2021 code example on conditional variable, not mentioned anywhere in the lectures
+// 2021 code example on synchronization primitives, not mentioned anywhere in the lectures
 vote-count-1.go
     data race and spin wait
 
@@ -245,3 +245,20 @@ vote-count-6.go
     patches a major bug in 5: collect all votes no matter the result, otherwise worker threads would
     block forever on 0 capacity channel
     now think about it, the channel should have a capacity of 10 so the worker threads never block
+
+Lecture 3. GFS
+paper: The Google File System, see notes for Designing Data-Intensive Applications
+Question: Describe a sequence of events that would result in a client reading stale data from the
+Google File System.
+    1.  a chunk server C fails 
+    2.  master detects the failure, re-replicate all its chunks on other chunk servers
+    3.  a mutation happens on chunks originally replicated on C
+    4.  C back online
+    5.  a client with chunk C in its cache accesses staled data
+
+Bad replication design: multiple servers, clients push request to all of them
+    no global order of events, no consistency
+
+On chunk server outage, Master cannot designate another primary for a chunk before its lease has
+expired due to the risk of "spit brain", i.e. two primaries handling client requests in
+un-synchronized fashion.
