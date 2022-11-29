@@ -43,6 +43,34 @@ put the thread to sleep for 1000 nanoseconds = 1 microsecond
 Unintuitive for loop semantics:
     https://github.com/golang/go/discussions/56010
 
+Golang doesn't have sum type nor proper enums: enums in Golang are new type constants sharing
+namespace with any other constants in the same package, the obvious drawback of this approach is
+that Golang compiler does not ann cannot check if a value is valid for an enum. The following code
+will not trigger any compiler error:
+    type Bool int
+    const (
+        False   Bool = 0
+        True    Bool = 1
+    )
+    var b Bool
+    b := 100
+for the same reason Golang compiler cannot tell if a switch on an enum is exhaustive or not by
+design.
+
+Golang `range` iterator cannot iterate on references: the value of the slice are copied to the loop
+variable on start of each iteration, modification to the loop variable is not reflected to the
+slice. 
+
+Wrapper types (e.g. bufio.Writer) doesn't have a method exposing the underlying raw type, references
+to the raw type have to be kept somewhere if clean up is required.
+
+When passing a struct as RPC argument / reply, every single recursive field must be public
+(Capitalized), otherwise ___the field will not be passed but zero-initialized at callee___
+    type Args struct { V int }
+will be passed normally, but
+    type Args struct { v int }
+means v == 0
+
 Lecture 1. Introduction
 Topics of distributed systems:
     - Scalability: 
@@ -58,7 +86,7 @@ Topics of distributed systems:
         different flavors of consistency models, strongest consistency model (linearizability) is
         intentionally avoided because of costs
 
-MapReduce: Also see notes for Designing Data-Intensive Applications
+MapReduce: see also notes for Designing Data-Intensive Applications
 ---NOTE START---
 The computing environment at Google can be characterized as:
     - commodity machines: Linux, 2-4 GB memory dual core x86 processor
