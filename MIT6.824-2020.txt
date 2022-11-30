@@ -15,21 +15,13 @@ The official go std documentation cannot be searched alone: the result is always
 party packages and cannot be filtered for std only. Use devdocs.io instead:
     https://devdocs.io/go/
 
-`sync.Mutex` along with maybe some other std types cannot be explicitly constructed, the only way to
-initialize a mutex is to implicitly zero-initialize. *sync.Mutex however can be constructed with
-new:
-    mu := new(sync.Mutex)
-
 By default every type in Golang is byte-copyable, certain types that cannot be safely cloned must be
 immediately hidden behind a reference e.g. sync.Mutex 
 
 Because `map[K]V` is magic, its documentation is not included in the documentation of Golang std. It
 supports two operations:
     insert: map[key] = value
-    get: value, exists = map[key]
-
-Golang doesn't have a zero-sized unit type, `map[K]bool` seems to be the most accepted substitution
-of sets
+    get:    value, exists = map[key]
 
 Only bare function calls can be deferred, channel insert, variable assignment and other statements
 cannot be deferred. A possible solution is to wrap the statements in an immediate anonymous
@@ -45,24 +37,23 @@ Unintuitive for loop semantics:
 
 Golang doesn't have sum type nor proper enums: enums in Golang are new type constants sharing
 namespace with any other constants in the same package, the obvious drawback of this approach is
-that Golang compiler does not ann cannot check if a value is valid for an enum. The following code
+that Golang compiler does not and cannot check if a value is valid for an enum. The following code
 will not trigger any compiler error:
     type Bool int
     const (
         False   Bool = 0
         True    Bool = 1
     )
-    var b Bool
-    b := 100
+    var b Bool = 100
 for the same reason Golang compiler cannot tell if a switch on an enum is exhaustive or not by
 design.
 
-Golang `range` iterator cannot iterate on references: the value of the slice are copied to the loop
-variable on start of each iteration, modification to the loop variable is not reflected to the
+Golang `range` iterator doesn not iterate on references: the value of the slice are copied to the
+loop variable on start of each iteration, modification to the loop variable is not reflected to the
 slice. 
 
 Wrapper types (e.g. bufio.Writer) doesn't have a method exposing the underlying raw type, references
-to the raw type have to be kept somewhere if clean up is required.
+to the raw type have to be kept somewhere if clean up is necessary.
 
 When passing a struct as RPC argument / reply, every single recursive field must be public
 (Capitalized), otherwise ___the field will not be passed but zero-initialized at callee___
@@ -258,7 +249,7 @@ vote-count-2.go
     still spin wait
 
 vote-count-3.go
-    spin wait on a lower resolution by hard coded time.Sleep
+    spin wait on a lower resolution by unconditional time.Sleep
 
 vote-count-4.go
     wait on conditional variable, finish condition only checked on worker termination. Unlike in
@@ -290,3 +281,153 @@ Bad replication design: multiple servers, clients push request to all of them
 On chunk server outage, Master cannot designate another primary for a chunk before its lease has
 expired due to the risk of "spit brain", i.e. two primaries handling client requests in
 un-synchronized fashion.
+
+Lecture 4. Primary-Backup Replication
+The Design of a Practical System for Fault-Tolerant Virtual Machines
+---NOTE START---
+Two approaches to keep a server and its backup synchronized:
+    1.  replicate state of CPU, memory and IO devices, unrealistic because of the requirement of
+        high bandwidth
+    2.  start primary and backup at the same initial state then replicate deterministic execution,
+        unrealistic on physical servers because of non-identical devices, much more manageable on
+        VMs
+This paper describes an implementation of the second approach (deterministic replay) on x86: VMWare
+vSphere Fault Tolerance (FT). FT supports single core only, how to apply state transfer on
+multi-core machines is an open question yet to be answered.
+
+FT only attempts to deal with fail-stop failures, i.e. failures are detected before externally
+visible incorrect actions
+
+Primary and backup share nothing but a network storage, connected by a VM -> VM logging channel,
+only primary is visible through network or to the users. Executions are replicated to the backup but
+the outputs are dropped.
+
+Challenges:
+    1.  correctly capturing all the input and non-deterministic info necessary to ensure
+        deterministic execution, x86 is non-deterministic (rdtsc, rdrand)
+    2.  correctly apply captured input on the backup
+    3.  minimal performance impact all the while
+
+Output requirement, the fundamental requirement of FT:
+    "if the backup VM ever takes over after a failure of the primary, the backup VM will continue
+    executing in a way that is entirely consistent with all outputs that the primary VM has sent to
+    the external world."
+
+To ensure that, output is delayed until the backup has acknowledged receiving logs of all inputs
+prior to and including the output operation. On failover (backup VM take over) the backup will
+replay its logs up to the output operation then go live. Note that only the output but not the
+execution of primary is delayed.
+
+FT does not guarantee exactly-once output, application code should handle missing or duplicated
+packets.
+
+Failure detection:
+    - UDP heartbeat between servers
+    - VM monitoring log channel (should have steady stream of traffic because of timer interrupt)
+    - atomic test-and-set (a lock) on shared storage to make sure no split brain
+
+Steps to start an FT backup VM
+    1.  copy the running primary VM, < 1 second pause with VMWare VMotion
+    2.  choose a server connected to the same shared storage, again outsourced to some internal
+        tools at VMWare
+    3.  setup FT and log channel 
+
+Cycle of an input event:
+    1.  primary hypervisor receives input event 
+    2.  primary hypervisor passes input event to primary VM, simultaneously pushes a log entry to
+        the log buffer
+    2.  primary hypervisor flushes log buffer to log channel 
+    3.  backup hypervisor buffers log entries from log channel
+    4.  backup hypervisor sends acknowledgement back to primary hypervisor
+    5.  (maybe simultaneously with 4) backup hypervisor recreates the input event from the log
+        entry, passes it to backup VM
+
+Primary VM is paused when its log buffer is full, backup VM is paused when its log buffer is empty.
+To avoid exceeding execution lag and, thereby, long failover lag, primary hypervisor monitors
+execution lag as part of FT protocol and proceeds to throttle CPU allocation of primary VM.
+
+Most VM operations, i.e. VM power off, CPU reallocation, and other operations beyond the scope of
+guest OS, is logged as control entry and replicated by backup hypervisor. VMotion of backup VM
+additionally requires cooperation from primary.
+
+implementation issues for disk IOs:
+    - concurrent writes are non-deterministic: 
+        must be linearized
+    - DMA on memory-mapped device visible to guest OS is data race: 
+        write on hypervisor managed "bounce buffer" invisible to guest OS, copy to DMA buffer later
+    - failed disk IOs are inconsistent: 
+        IOs free from concurrency and data race is idempotent
+
+implementation issued for network IOs:
+    - asynchronous network operations are non-deterministic:
+        asynchronous network operations disabled, always trap to hypervisor
+    - synchronous network IO is slow and laggy:
+        - batch outgoing / incoming packets
+        - eliminate context switches by attaching log acknowledgement handling to TCP stack as
+            callback
+        - hypervisor flush log entries more frequently
+
+FT with non-shared storage
+    pros: 
+        - disk IOs are no longer outputs, do not have to be delayed per Output Rule
+        - primary and backup may be physically distanced
+    cons:
+        - extra expensive disk sync steps on start up
+        - IO failures creates inconsistency
+        - extra facility to deal with split brain 
+
+backup VM read from disk:
+    pros:
+        - disk input from disk, much less traffic on log channel
+    cons:
+        - slower execution, disk read vs. network buffer read
+        - read result must be transmitted whenever either primary or backup fails
+        - primary write on the same location must be delayed
+
+FT performance highlights:
+    - CPU impact < 10%
+    - log channel bandwidth < 20Mb/s for non-network applications
+    - heavy impact on network bandwidth for network applications
+---NOTE END---
+
+question: How does VM FT handle network partitions?
+    atomic test-and-set a flag on shared storage, only one server may go live
+
+Primary-backup replication: deals with independent fail-stop faults on a single machine. 
+Examples of correlated faults:
+    - whole data center power shortage
+    - whole data center overheat
+    - earthquake
+Examples of fail-stop faults: 
+    - power shortage
+    - network shortage
+    - CPU overheat
+    - kernel panic
+    - (when coded to) network package error caught by checksum
+    - (when coded to) disk error caught by checksum
+Examples of not fail-stop faults 
+    - logical software bugs
+    - memory corruption
+    - malicious intruders
+
+Two replication schemes:
+    1.  state transfer
+        send the whole state (memory, disk, ..), or at least the delta, to backups
+    2.  replicated state machine
+        start from the same initial state, send only external inputs to backups
+
+Characteristics of replication scheme:
+    - what is the state to be replicated
+    - how close is the primary and backups synced
+    - how cut-off (failover) is performed
+    - what's the visible anomaly during a cut-off
+    - how new backups are set up
+
+FT log entry contains:
+    - instruction number (since backup start up) to insert interrupt
+    - type and data of event
+    - (if the operation is non-deterministic) result of the operation
+FT requires CPU hardware support to insert interrupt on specific instruction number
+
+Obviously FT backup VM executes up to the instruction number in the next log entry and blocks on an
+empty log buffer, or it will overrun an input event yet to arrive.
