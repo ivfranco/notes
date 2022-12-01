@@ -4,6 +4,10 @@ good audo quality and nicely segmented:
 but the skeleton code for labs in the 2020 repository doesn't work with the latest version of Golang
 (1.19), the 2021 repository is used instead:
     git clone git://g.csail.mit.edu/6.824-golabs-2021 6.824
+
+Lab code is located at
+    ./MIT6.824-2020/labs
+in the same structure of the 2021 repo, however only modified code are committed.
     
 Golang notes
 References:
@@ -17,6 +21,8 @@ party packages and cannot be filtered for std only. Use devdocs.io instead:
 
 By default every type in Golang is byte-copyable, certain types that cannot be safely cloned must be
 immediately hidden behind a reference e.g. sync.Mutex 
+
+Zero-sized unit type in Golang is struct{}, the only value of it is struct{}{}.
 
 Because `map[K]V` is magic, its documentation is not included in the documentation of Golang std. It
 supports two operations:
@@ -61,6 +67,8 @@ When passing a struct as RPC argument / reply, every single recursive field must
 will be passed normally, but
     type Args struct { v int }
 means v == 0
+
+Official Golang documentation does not list any implementors of an interface.
 
 Lecture 1. Introduction
 Topics of distributed systems:
@@ -240,7 +248,7 @@ Golang registers RPC services by runtime reflection magic:
 
 // why is arguments of put in kv.go hard coded to { "subject", "6.824" }?
 
-// 2021 code example on synchronization primitives, not mentioned anywhere in the lectures
+// 2021 code example on synchronization primitives, not mentioned anywhere in 2020 lecture 2
 vote-count-1.go
     data race and spin wait
 
@@ -283,7 +291,7 @@ expired due to the risk of "spit brain", i.e. two primaries handling client requ
 un-synchronized fashion.
 
 Lecture 4. Primary-Backup Replication
-The Design of a Practical System for Fault-Tolerant Virtual Machines
+paper: The Design of a Practical System for Fault-Tolerant Virtual Machines
 ---NOTE START---
 Two approaches to keep a server and its backup synchronized:
     1.  replicate state of CPU, memory and IO devices, unrealistic because of the requirement of
@@ -431,3 +439,140 @@ FT requires CPU hardware support to insert interrupt on specific instruction num
 
 Obviously FT backup VM executes up to the instruction number in the next log entry and blocks on an
 empty log buffer, or it will overrun an input event yet to arrive.
+
+Lecture 5. Go, Threads, and Raft
+paper: The Go Memory Model
+---NOTE START---
+Worth reading:
+    Foundations of the C++ Concurrency Memory Model
+        https://www.hpl.hp.com/techreports/2008/HPL-2008-56.pdf
+    How to Make a Correct Multiprocess Program Execute Correctly on a Multiprocessor
+        https://lamport.azurewebsites.net/pubs/lamport-how-to-make.pdf
+
+A data race is defined as a write to a memory location and a read / write to that same location
+happens concurrently, unless all accesses are atomic data accesses.
+
+A memory operation is defined by four criteria:
+    1.  kind, including
+        - ordinary read
+        - ordinary write 
+        - synchronizing operation (atomic data access, mutex operation, channel operation, etc.)
+    2.  location in the program
+    3.  memory location or variable being accessed
+    4.  values read / written by the operation
+A memory operation may be read-like, write-like, or both.
+
+A Golang program execution is modeled as a set of goroutine executions together with a mapping 
+    W: ReadLike -> WriteLike
+specifying the write-like operation that each read-like operation reads from. The execution (mainly
+the mapping W) may not be the same each time for the same program.
+
+"sequenced before" is a partial order defined on:
+    Seq ⊆ OrdinaryWrite x OrdinaryRead
+    // inherent to the structure of the program
+"synchronized before" is a partial order similarly defined on read- / write-like synchronization
+operations:
+    Sync ⊆ SyncWriteLike x SyncReadLike
+    ∀(w, r) ∈ Sync, W(r) = w
+"happens before" relation is the transitive closure of the union of "sequenced before" and
+"synchronized before":
+    H ⊆ WriteLike x ReadLike
+    H = (Seq ∪ Sync)^+
+
+Sequential consistency is defined as (L. Lamport, "How to make a multiprocessor computer that
+correctly executes multiprocess programs", 1979):
+    H is a total order on memory operations for all possible executions
+
+Correctness (data race free) requirements:
+    1.  "memory operations in each goroutine must correspond to a correct sequential execution of
+        that goroutine."
+        notably order of evaluation in struct literals is undefined:
+            m := map[int]{1: 1, 1: 2}
+        may be {1: 1} or {1: 2}
+    2.  "For a given program execution, the mapping W, when limited to synchronizing operations,
+        must be explainable by some implicit total order of the synchronizing operations that is
+        consistent with sequencing and the values read and written by those operations."
+    3.  "For an ordinary (non-synchronizing) data read r on a memory location x, W(r) must be a
+        write w that is visible to r, where visible means that both of the following hold:"
+            - w happens before r
+            - w does not happen before any other w' to the same location that happens before r
+
+A read-write data race on memory location x consists of a read-like operation r and a write-like
+operation w on x unordered by happened before:
+    (w, r) ∉ H
+
+A write-write data race on memory location x consists of two write-like operations on x unordered by
+happened before:
+    (w, w') ∉ H & (w', w) ∉ H
+
+A Golang program free of data races is sequentially consistent. Word / sub-word memory access in
+Golang is always atomic: a correct implementation of Golang should abort on data race or observe a
+value actually written to the same location on single / sub word memory access that satisfies
+correctness requirement 3. Races on multi-word data structures leave undefined value.
+
+Synchronized before relations:
+// denote 
+//  "synchronized before" as <S
+//  "happens before" as <H
+    - Initialization
+        If package p imports package q, completion of p's init functions <H the start of of any of
+        q's. 
+        The completion of all init functions <S the start of main.main.
+    - Goroutine creation
+        The Golang statement that starts a new goroutine <S the start of the goroutine. Destruction
+        of a goroutine has no order guarantee.
+    - Channel communication
+        A send on a channel <S the completion of the corresponding receive.
+        The closing of a channel <S a receive that returns a zero value because of the close .
+        The kth receive on a channel with capacity C <S the completion of k+Cth send.
+    - Locks
+        For both l sync.Mutex and sync.RWMutex, n < m, nth call to l.Unlock() <S mth call to return
+        from l.Lock().
+        For any call to l.RLock() on sync.RWMutex, ∃n that
+            nth call to l.Unlock() <S return from l.RLock()
+            matching call to l.RUnlock() <S return from n+1th call to l.Lock()
+        A successful call to l.TryLock() or l.TryRLock() is equivalent to l.Lock() or l.RLock(), an
+        unsuccessful call has no ordering.
+    - Once
+        completion of f() from once.Do(f) <S return from any call to once.Do(f)
+    - Atomic values
+        If effect of an atomic operation A is observed by another atomic operation B, A <S B. The
+        only atomic memory order ordering in Golang is SeqCst.
+    - Finalizers
+        SetFinalizer(x, f) <S the finalization call f(x).
+    - Cond
+        call to c.Broadcast() <S any return from c.Wait() it unblocks, no spontaneous awake in
+        Golang.
+---NOTE END---
+
+question:
+---CODE START---
+var a string
+var done bool
+
+type Unit struct{}
+
+func setup(done chan Unit) {
+	a = "hello, world"          // 1
+	done <- Unit{}              // 2
+}
+
+func main() {
+	done := make(chan Unit)     // 3
+	go setup(done)              // 4
+	<-done                      // 5
+	print(a)                    // 6
+}
+---CODE END---
+By order of evaluation:
+    (1, 2), (3, 4), (4, 5), (5, 6) ∈ H
+By synchronized before relations:
+    (4, 1),     // goroutine creation
+    (2, 5),     // channel communication
+    ∈ H
+H is a total order:
+    3 <H 4 <H 1 <H 2 <H 5 <H 6
+the program is sequentially consistent.
+
+// first half of the lecture is about golang sync primitives, nothing remarkable
+// second half of the lecture is about raft, will go back to this after lab 2A
