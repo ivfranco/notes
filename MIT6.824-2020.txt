@@ -70,6 +70,9 @@ means v == 0
 
 Official Golang documentation does not list any implementors of an interface.
 
+The global random number generator in Golang is, actually, global (across threads), it shouldn't be
+used in a performance-critical multi-threaded program.
+
 Lecture 1. Introduction
 Topics of distributed systems:
     - Scalability: 
@@ -444,9 +447,9 @@ Lecture 5. Go, Threads, and Raft
 paper: The Go Memory Model
 ---NOTE START---
 Worth reading:
-    Foundations of the C++ Concurrency Memory Model
+    - Foundations of the C++ Concurrency Memory Model
         https://www.hpl.hp.com/techreports/2008/HPL-2008-56.pdf
-    How to Make a Correct Multiprocess Program Execute Correctly on a Multiprocessor
+    - How to Make a Correct Multiprocess Program Execute Correctly on a Multiprocessor
         https://lamport.azurewebsites.net/pubs/lamport-how-to-make.pdf
 
 A data race is defined as a write to a memory location and a read / write to that same location
@@ -576,3 +579,74 @@ the program is sequentially consistent.
 
 // first half of the lecture is about golang sync primitives, nothing remarkable
 // second half of the lecture is about raft, will go back to this after lab 2A
+
+Lecture 6. Fault Tolerance: Raft (1)
+paper: In Search of an Understandable Consensus Algorithm (Extended Version), up to Section 5
+---NOTE START---
+Worth reading:
+    - The Raft Consensus Algorithm, interactive Raft system demonstration
+        https://raft.github.io/
+    - Students' Guide to Raft
+        https://thesquareplanet.com/blog/students-guide-to-raft/
+
+Raft consistency and performance guarantees:
+    1.  Safety: never return incorrect result under non-Byzantine conditions, including network
+        delays / partitions and packet loss / duplication / reordering.
+    2.  Functional: assuming fail-stop, as long as a simple majority of the replicas are operational
+        the system is available.
+    3.  Consistency doesn't rely on accurate system clocks
+    4.  A minority of slow servers will not affect response time
+
+Raft protocol invariants:
+    1.  Election safety: 
+            at most one leader can be elected in a given term
+    2.  Leader append-only: 
+            a leader never overwrites or deletes entries in its log
+    3.  Log matching: 
+            if two logs contain an entry with the same index and term, the all log entries up to the
+            index are identical
+    4.  Leader completeness:
+            if a log entry is committed in a given term, then that entry will be present in the logs
+            of the leaders of all higher-numbered terms
+    5.  State machine safety:
+            if a server applied a log entry at an index to its state machine, no other server will
+            ever apply a different log entry at the same index
+
+A Raft server is in one of three states:
+    - Leader, handles all client requests
+    - Follower, passively respond to leaders and candidates
+    - Candidate, entered after Follower timeout, starts election
+
+Raft server divides time into terms. One or no leader is elected each term. Term increases
+monotonically as a logical clock.
+
+A server with currentTerm smaller than the term it received in an RPC call updates currentTerm to
+the larget one. A leader received a larger term in an RPC call reverts to Follower state. A leader
+received a smaller term in a request rejects the request.
+
+Raft servers communicate with each other using RPCs, timed out RPCs are retried (consistent to
+Golang RPC model), RPCs should be issued in parallel.
+
+Raft election process:
+    0.  Follower is informed the presence of a Leader by periodic heartbeats (empty AppendEntries RPC)
+    1.  A timed out Follower turns into a Candidate, increments currentTerm
+    2.  Candidate vote for itself, issues RequestVotes RPC to other servers in the cluster until one
+        of the three happens:
+        1.  it wins the election (simple majority of the responses voted for it) 
+            => become the new Leader
+        2.  another server is established as leader (heartbeat with a term >= currentTerm)
+            => revert to Follower
+        3.  neither 1 or 2 happened until timeout
+            => increment currentTerm, send RequestVotes again 
+        timeout is randomized between 150 - 300ms, typically a lucky candidate will timeout early
+        and win the election 
+    3.  The newly elected leader immediately sends the initial AppendEntries heartbeat to all other
+        servers in the cluster
+
+Heartbeat interval of the Leader is not mentioned in the paper, naturally it should be much smaller
+than the minimal election timeout so occasional packet loss / delay will not start an unnecessary
+election, at the same time not too small to the point of visibly consuming the network bandwidth.
+50ms is used in the interactive Raft demonstration at https://raft.github.io. 
+
+Never do anything time consuming while holding the lock.
+---NOTE END---
