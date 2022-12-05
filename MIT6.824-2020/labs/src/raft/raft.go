@@ -19,9 +19,10 @@ package raft
 
 import (
 	//	"bytes"
-
 	"log"
 	"math/rand"
+	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -51,6 +52,81 @@ const (
 	Candidate
 	Follower
 )
+
+type LogLevel int
+
+const (
+	LogTrace LogLevel = iota
+	LogDebug
+	LogInfo
+	LogWarn
+	LogError
+)
+
+type Logger struct {
+	level LogLevel
+}
+
+func MakeFromEnv() Logger {
+	level := LogLevel(LogWarn)
+
+	switch strings.ToLower(os.Getenv("LOG_LEVEL")) {
+	case "trace":
+		level = LogTrace
+	case "debug":
+		level = LogDebug
+	case "info":
+		level = LogInfo
+	case "error":
+		level = LogError
+	}
+
+	return Logger{level: level}
+}
+
+var logger Logger = MakeFromEnv()
+
+func (l *Logger) Printf(level LogLevel, fmt string, args ...interface{}) {
+	if level >= l.level {
+		log.Printf(fmt, args...)
+	}
+}
+
+// A thread-unsafe hierarchical cancellable context simpler than context/Context.
+type context []*bool
+
+// Construct a new cancellable context with a single root level.
+func MakeCancellable() context {
+	ctx := context([]*bool{})
+	return ctx.Chain()
+}
+
+// Check if the context has been cancelled at any level.
+func (c context) IsCancelled() bool {
+	for _, b := range c {
+		if *b {
+			return true
+		}
+	}
+
+	return false
+}
+
+// Immutably chain a new level onto the cancellable context.
+func (c context) Chain() context {
+	cancelled := false
+	return append(c, &cancelled)
+}
+
+// Cancel everything attached to any level of the context.
+func (c context) CancelAll() {
+	*c[0] = true
+}
+
+// Cancel only executions attached to the top (last) level of the context.
+func (c context) CancelTop() {
+	*c[len(c)-1] = true
+}
 
 // as each Raft peer becomes aware that successive log entries are
 // committed, the peer should send an ApplyMsg to the service (or
@@ -90,8 +166,8 @@ type Raft struct {
 	votedFor    int
 
 	// Volatile
-	role      Role
-	cancelled *bool
+	role Role
+	ctx  context
 }
 
 // return currentTerm and whether this server
@@ -102,8 +178,8 @@ func (rf *Raft) GetState() (int, bool) {
 	defer rf.mu.Unlock()
 
 	term := rf.currentTerm
-	isleader := rf.role == Leader
-	return term, isleader
+	isLeader := rf.role == Leader
+	return term, isLeader
 }
 
 // save Raft's persistent state to stable storage,
@@ -158,6 +234,7 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 
 }
 
+// Thread safety: Unsafe
 func (rf *Raft) updateCurrentTerm(term int) (reset bool) {
 	if rf.currentTerm < term {
 		rf.currentTerm = term
@@ -170,25 +247,28 @@ func (rf *Raft) updateCurrentTerm(term int) (reset bool) {
 	return false
 }
 
+// Thread safety: Unsafe
 func (rf *Raft) cancelTimeout() {
-	*rf.cancelled = true
-	cancelled := false
-	rf.cancelled = &cancelled
+	rf.ctx.CancelAll()
+	rf.ctx = MakeCancellable()
 }
 
-func (rf *Raft) setFollowerTimeout() {
-	cancelled := rf.cancelled
-	go rf.followerTimeout(cancelled)
+// Thread safety: Unsafe
+func (rf *Raft) setFollowerTimeout() context {
+	go rf.followerTimeout(rf.ctx)
+	return rf.ctx
 }
 
-func (rf *Raft) setCandidateTimeout() {
-	cancelled := rf.cancelled
-	go rf.candidateTimeout(cancelled)
+// Thread safety: Unsafe
+func (rf *Raft) setCandidateTimeout() context {
+	go rf.candidateTimeout(rf.ctx)
+	return rf.ctx
 }
 
-func (rf *Raft) setHeartbeat() {
-	cancelled := rf.cancelled
-	go rf.heartbeat(cancelled)
+// Thread safety: Unsafe
+func (rf *Raft) setHeartbeat() context {
+	go rf.heartbeat(rf.ctx)
+	return rf.ctx
 }
 
 // example RequestVote RPC arguments structure.
@@ -207,13 +287,14 @@ type RequestVoteReply struct {
 	VoteGranted bool
 }
 
-// example RequestVote RPC handler.
+// Thread safety: Safe
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 
-	log.Printf("[%v] Recv RequestVote { Term: %v, CandidateId: %v }", rf.me, args.Term, args.CandidateId)
+	logger.Printf(LogInfo,
+		"[%v] Recv RequestVote { Term: %v, CandidateId: %v }", rf.me, args.Term, args.CandidateId)
 
 	reset := rf.updateCurrentTerm(args.Term)
 	reply.Term = rf.currentTerm
@@ -235,7 +316,8 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 		rf.setFollowerTimeout()
 	}
 
-	log.Printf("[%v] Repl RequestVote { Term: %v, VoteGranted: %v }", rf.me, reply.Term, reply.VoteGranted)
+	logger.Printf(LogInfo,
+		"[%v] Reply RequestVote { Term: %v, VoteGranted: %v }", rf.me, reply.Term, reply.VoteGranted)
 }
 
 // example code to send a RequestVote RPC to a server.
@@ -280,11 +362,13 @@ type AppendEntriesReply struct {
 	Success bool
 }
 
+// Thread safety: Safe
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 
-	log.Printf("[%v] Recv AppendEntries { Term: %v, LeaderId: %v }", rf.me, args.Term, args.LeaderId)
+	logger.Printf(LogInfo,
+		"[%v] Recv AppendEntries { Term: %v, LeaderId: %v }", rf.me, args.Term, args.LeaderId)
 
 	reset := false
 	// the difference to a greater term is it's still the same term, votedFor should not be reset
@@ -304,9 +388,11 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		rf.setFollowerTimeout()
 	}
 
-	log.Printf("[%v] Repl AppendEntries { Term: %v, Success: %v }", rf.me, reply.Term, reply.Success)
+	logger.Printf(LogInfo,
+		"[%v] Reply AppendEntries { Term: %v, Success: %v }", rf.me, reply.Term, reply.Success)
 }
 
+// Thread safety: Depends on the source of args and reply
 func (rf *Raft) sendAppendEntry(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	return rf.peers[server].Call("Raft.AppendEntries", args, reply)
 }
@@ -351,17 +437,18 @@ func (rf *Raft) Kill() {
 	rf.cancelTimeout()
 }
 
+// Thread safety: Safe
 func (rf *Raft) killed() bool {
 	z := atomic.LoadInt32(&rf.dead)
 	return z == 1
 }
 
-// Access to `cancelled` must be protected by the main mutex.
-func (rf *Raft) heartbeat(cancelled *bool) {
+// Thread safety: Safe
+func (rf *Raft) heartbeat(ctx context) {
 	for !rf.killed() {
 		rf.mu.Lock()
 
-		if *cancelled {
+		if ctx.IsCancelled() {
 			rf.mu.Unlock()
 			break
 		}
@@ -387,6 +474,7 @@ func (rf *Raft) heartbeat(cancelled *bool) {
 	}
 }
 
+// Thread safety: Safe
 func (rf *Raft) handleAppendEntriesReply(reply *AppendEntriesReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
@@ -398,30 +486,25 @@ func (rf *Raft) handleAppendEntriesReply(reply *AppendEntriesReply) {
 }
 
 // Thread safety: Safe
-// Access to `cancelled` must be protected by the main mutex.
-func (rf *Raft) followerTimeout(cancelled *bool) {
+func (rf *Raft) followerTimeout(ctx context) {
 	time.Sleep(randomElectionTimeout())
 
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 
-	if *cancelled {
+	if ctx.IsCancelled() {
 		return
 	}
 
+	rf.cancelTimeout()
 	rf.startElection()
 }
 
 // Thread safety: Unsafe
-// Access to `cancelled` must be protected by the main mutex.
 func (rf *Raft) startElection() {
 	rf.currentTerm += 1
 	rf.role = Candidate
-	rf.cancelTimeout()
-	rf.setCandidateTimeout()
 
-	// the same cancelled passed to rf.candidateTimeout
-	cancelled := rf.cancelled
 	votes := make(map[int]bool)
 	votes[rf.me] = true
 
@@ -430,12 +513,14 @@ func (rf *Raft) startElection() {
 		CandidateId: rf.me,
 	}
 
+	ctx := rf.setCandidateTimeout()
+	ctx = ctx.Chain()
 	for server := range rf.peers {
 		if server != rf.me {
 			go func(server int) {
 				reply := RequestVoteReply{}
 				if rf.sendRequestVote(server, &args, &reply) {
-					rf.handleRequestVoteReply(cancelled, votes, server, &reply)
+					rf.handleRequestVoteReply(ctx, votes, server, &reply)
 				}
 			}(server)
 		}
@@ -443,24 +528,24 @@ func (rf *Raft) startElection() {
 }
 
 // Thread safety: Safe
-// Access to `cancelled` must be protected by the main mutex.
-func (rf *Raft) candidateTimeout(cancelled *bool) {
+func (rf *Raft) candidateTimeout(ctx context) {
 	time.Sleep(randomElectionTimeout())
 
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 
-	if *cancelled {
+	if ctx.IsCancelled() {
 		return
 	}
 
 	// cancel vote handlers for the current term
-	*cancelled = true
+	rf.cancelTimeout()
 	rf.startElection()
 }
 
+// Thread safety: Safe
 func (rf *Raft) handleRequestVoteReply(
-	cancelled *bool,
+	ctx context,
 	votes map[int]bool,
 	server int,
 	reply *RequestVoteReply,
@@ -474,7 +559,7 @@ func (rf *Raft) handleRequestVoteReply(
 		return
 	}
 
-	if *cancelled {
+	if ctx.IsCancelled() {
 		return
 	}
 
@@ -491,14 +576,15 @@ func (rf *Raft) handleRequestVoteReply(
 	if granted > total/2 {
 		// won the election
 		// cancel other vote handlers
-		log.Printf("[%v] Won election with %v/%v votes", rf.me, granted, total)
-		*cancelled = true
+		logger.Printf(LogInfo,
+			"[%v] Won election %v with %v/%v votes", rf.me, rf.currentTerm, granted, total)
+		ctx.CancelTop()
 		rf.startLeadership()
 	} else if voted-granted > total/2 {
 		// lost the election
 		// cancel other vote handlers
-		*cancelled = true
-		// wait for candidate timeout
+		ctx.CancelTop()
+		// wait for candidate timeout or messages from peers
 	}
 }
 
@@ -533,14 +619,13 @@ func Make(
 	rf.currentTerm = 0
 	rf.role = Follower
 	rf.votedFor = NOBODY
-	cancelled := false
-	rf.cancelled = &cancelled
+	rf.ctx = MakeCancellable()
 
 	// initialize from state persisted before a crash
 	rf.readPersist(persister.ReadRaftState())
 
 	// start ticker goroutine to start elections
-	go rf.followerTimeout(rf.cancelled)
+	go rf.followerTimeout(rf.ctx)
 
 	return rf
 }

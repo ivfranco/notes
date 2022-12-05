@@ -578,16 +578,21 @@ H is a total order:
 the program is sequentially consistent.
 
 // first half of the lecture is about golang sync primitives, nothing remarkable
-// second half of the lecture is about raft, will go back to this after lab 2A
+// second half of the lecture is about obvious bugs in Raft implementation, nothing remarkable
 
 Lecture 6. Fault Tolerance: Raft (1)
 paper: In Search of an Understandable Consensus Algorithm (Extended Version), up to Section 5
 ---NOTE START---
 Worth reading:
-    - The Raft Consensus Algorithm, interactive Raft system demonstration
+    - [1] The Raft Consensus Algorithm
         https://raft.github.io/
-    - Students' Guide to Raft
+        interactive Raft system demonstration
+    - [2] Consensus: Bridging Theory and Practice
+        https://github.com/ongardie/dissertation/blob/master/stanford.pdf?raw=true
+        PhD dissertation of the same author, much more detailed than the Raft paper
+    - [3] Students' Guide to Raft
         https://thesquareplanet.com/blog/students-guide-to-raft/
+        notes from one of the TA of MIT6.824 2016, pitfalls on implementing Raft in Golang
 
 Raft consistency and performance guarantees:
     1.  Safety: never return incorrect result under non-Byzantine conditions, including network
@@ -607,7 +612,7 @@ Raft protocol invariants:
             index are identical
     4.  Leader completeness:
             if a log entry is committed in a given term, then that entry will be present in the logs
-            of the leaders of all higher-numbered terms
+            of the leaders at the same index of all higher-numbered terms
     5.  State machine safety:
             if a server applied a log entry at an index to its state machine, no other server will
             ever apply a different log entry at the same index
@@ -646,7 +651,100 @@ Raft election process:
 Heartbeat interval of the Leader is not mentioned in the paper, naturally it should be much smaller
 than the minimal election timeout so occasional packet loss / delay will not start an unnecessary
 election, at the same time not too small to the point of visibly consuming the network bandwidth.
-50ms is used in the interactive Raft demonstration at https://raft.github.io. 
+50ms (1/3 of minimum election timeout) is used in the interactive Raft demonstration [1].
 
-Never do anything time consuming while holding the lock.
+An log entry is committed after been applied to the state on Leader. A log entry is committed once
+the Leader that created the entry in the current term has replicated it on a majority of the servers
+(i.e. received successful AppendEntries from more than half peers). A Follower applies a log entry
+on its state after it's committed (informed by heartbeat). 
+
+Leader maintains a nextIndex value for each Follower, initialized to 1 + last log index. After
+failed AppendEntries, leader decrements nextIndex for that Follower then retry AppendEntries.
+Eventually (prevLogIndex, prevLogTerm) in AppendEntries will match that on Follower, inconsistent
+log entries after prevLogIndex will be purged. 
+
+Raft new command process:
+    1.  client send command to Leader
+    2.  Leader appends (command, term) to its log, send AppendEntries to Followers
+        retried until nextIndex points to empty or first inconsistent log entry on Follower, then
+        new entries are appended to log on Follower
+    3.  After receiving success from a majority of peers (including Leader itself), Leader updates
+        commitIndex, apply new command to its state then update lastApplied
+    4.  Followers will apply the command to their states the same way after been informed of
+        commitIndex on Leader by heartbeat
+
+As stated in invariant 2, a Leader never overwrites or deletes its log entry, such events happens
+only after a new Leader is elected in a new term.
+
+To prevent an out of date newly elected Leader overwriting committed log entries, RequestVotes RPC
+includes (lastLogTerm, lastLogIndex) from the Candidate. Followers reject Candidates less up-to-date
+than itself. Up-to-date-ness of (Term, Index) is defined as lexicographical order of the tuple:
+    (T0, I0) is more up-to-date than (T1, I1) iff:
+        T0 > T1, or
+        T0 == T1 and I0 > I1
+
+It's not safe to commit a last log entry when it has a term smaller than currentTerm, such log
+entries must be indirectly committed by a future command in the currentTerm.
+
+Proof of Leader Completeness Property (invariant 3) by contradiction:
+    Assume for a term T, U is the smallest term U > T that an entry E committed by Leader[T] of term T
+    is not stored by Leader[U] of term U
+    By invariant 2, the entry must be absent since the election of term U
+    By definition of commit, Leader[T] replicated the entry on a majority of peers
+    By process of election, Leader[U] received vote from a majority of peers
+    These two majorities must overlap, there's a peer P replicated the entry and voted for Leader[U]
+    P stored the entry when voting for Leader[U] since:
+        ∀T' that T <= T' < U, Leader[T'] stores the entry by definition of U
+        Followers only remove entries if they are inconsistent with the Leader
+    Leader[U] must be at least as up-to-date as P during election of term U 
+    if Leader[U] and P has the same lastLogTerm:
+        let lastLogTerm be T', T <= T' < U
+        by how AppendEntries RPC is defined (Log Matching Property), both log of P and Leader[U]
+        must be a prefix of Leader[T'] at the end of term T'
+        lastLogIndex of Leader[U] should be at least the same as P
+        log of P is a prefix of Leader[U], Leader[U] contains E 
+    if Leader[U] has greater lastLogTerm than P:
+        let T' be lastLogTerm of Leader[U], T <= T' < U
+        Leader[T'] during its term contained E
+        by Log Matching Property, Leader[U] also contains E
+    both cases contradicts with the assumption, such U doesn't exist,
+    ∀U>T, log of Leader[T] is a prefix of log of Leader[U] 
+
+Proof of State Machine Safety (invariant 5):
+    Assume a peer P applies an entry E to its state machine
+    By how AppendEntries works, logs of P and current Leader are identical up through E
+    Per protocol, E must be committed
+    By Leader Completeness Property, the log of P up through E is a prefix of logs of all future
+    leaders
 ---NOTE END---
+
+Raft implementation details:
+    - Never do anything time consuming while holding the lock. Release the lock and reacquire it
+        later during RPC calls.
+    - Most change in peer states, like a role shift, should cancel all timeouts issued before it,
+        but the deciding vote handler should cancel only other vote handlers, one approach to this
+        is a hierarchy of cancellable contexts.
+
+Wrong replicated system:
+    - clients send request to / expect acknowledgement from all servers 
+        exponentially lower availability
+    - clients send request to reachable servers
+        different server may be reachable from different clients (network partition), split brain,
+        causes inconsistency
+
+Solution: odd number of servers, majority vote required to make any progress
+    - at most one partition may function normally 
+    - system can withstand less than half node failures
+    - any two majorities overlap at at least one server
+
+Raft doesn't manage state, the application code built on top of it replicates commands in Raft but
+states are managed by the application itself.
+
+Raft interface exposed to application code:
+    - func Start(Command) (Index, Term)
+        replicate the command in the raft cluster, return index and term of the command in leader
+    - func ApplyCh <-ApplyMsg{Command, Index}
+        a channel sending out committed commands and its index in the Raft cluster 
+
+One possible network failure that halts the (most naive) Raft system to a full stop: Leader can
+send out heartbeats but cannot receive any message, no new election will occur
