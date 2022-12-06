@@ -718,12 +718,26 @@ Proof of State Machine Safety (invariant 5):
     leaders
 ---NOTE END---
 
+question: 
+    currentTerm >= lastLogTerm on each Follower, the exact value of currentTerm is uncertain for any
+    server, but a majority of them should be 8 by the election of term 8. Since RequestVotes RPC
+    doesn't change the logs, any server may be assumed to have currentTerm = 8.
+    candidate       possible voters
+    (a)             (b), (e), (f)
+    (b)             (f)
+    (c)             (a), (b), (e), (f)
+    (d)             (a), (b), (c), (e), (f)
+    (e)             (b), (f)
+    (f)             
+
 Raft implementation details:
     - Never do anything time consuming while holding the lock. Release the lock and reacquire it
         later during RPC calls.
     - Most change in peer states, like a role shift, should cancel all timeouts issued before it,
         but the deciding vote handler should cancel only other vote handlers, one approach to this
         is a hierarchy of cancellable contexts.
+    - applyCh must be unbuffered, otherwise the client may crash and loss buffered ApplyMsg in
+        the channel
 
 Wrong replicated system:
     - clients send request to / expect acknowledgement from all servers 
@@ -748,3 +762,80 @@ Raft interface exposed to application code:
 
 One possible network failure that halts the (most naive) Raft system to a full stop: Leader can
 send out heartbeats but cannot receive any message, no new election will occur
+
+Lecture 7. Fault Tolerance: Raft (2)
+paper: In Search of an Understandable Consensus Algorithm (Extended Version), Section 7 to end
+---NOTE START---
+Logs cannot grow unbounded, server will one day run out of memeory: Raft needs log compaction.
+Snapshotting is preferred log compaction method in the paper.
+
+Log compaction usually can be performed independently on each server unless a Follower lags far
+behind the Leader or a new server joins the cluster, in which case Leader has to manually send its
+committed snapshot to Followers. The snapshot should be labelled with last included index and term
+to support up-to-date check in AppendEntries RPC.
+
+InstallSnapshot may be triggered when
+    - nextIndex for a Follower is reduced to a log index that has already be compacted on Leader
+    - Leader the have to send InstallSnapshot instead of AppendEntries to the Follower
+
+Clients start with a randomly picked Raft peer, then redirected from a Follower to the last recorded
+Leader. If Leader crashes, clients will try again with randomly picked servers. The exact RPC
+suggested by the paper is slightly more complicated than necessary: check the lab 2D requirements of
+MIT6.824 2021 course.
+
+Raft may commit the same command twice:
+    1.  client request command
+    2.  command committed to majority of servers
+    3.  Leader crashes before replying to client
+    4.  client retry request, succeed again
+Possible solution is to assign unique serial numbers to every command.
+
+Read-only commands doesn't affect the state managed by Raft, but application must not bypass the
+Raft replication scheme entirely on read-only commands otherwise clients may read stale data.
+Leaders may commit an extra no-op command at start of their term to stay up-to-date all the time,
+read-only commands on an always up-to-date Leader can be handled without being appended to the log.
+---NOTE END---
+
+question: Could a received InstallSnapshot RPC cause the state machine to go backwards in time?
+    No, because:
+        - InstallSnapshot doesn't overwrite log entries more up-to-date than the last entry in the
+            snapshot, as described in step 6 of InstallSnapshot RPC receiver implementation.
+        - A log entry must be committed before being applied to the state, snapshot constructed from
+            committed entries on Leader contains no more and no less commands up to the last index.
+
+Fast backup of nextIndex: instead of 1 at a time, AppendEntries may be modified to return:
+    xTerm: the first term that contains conflicting log entries (may be -1 == None)
+    xIndex: the first log index of xterm (may be -1 == None)
+    xLen: the length of logs
+That's enough information for Leader to backup a term at a time:
+    case 1: Leader has no entries in xTerm
+        nextIndex = xIndex, the entire term should be removed
+    case 2: Leader has entries in xTerm
+        nextIndex = last log index with xTerm on Leaders, only conflicting logs should be removed 
+    case 3: xTerm == xIndex == -1
+        nextIndex = xLen, no conflicting terms, send all missing logs to Follower
+
+Persistent states should be stored on non-volatile memory in a verifiable way, three pieces of
+information has to be persisted for Raft to function correctly after a crash:
+    - log
+        otherwise the application won't be able to replay the state after a crash
+    - currentTerm
+        otherwise servers may conduct another election for a past term  
+    - votedFor
+        otherwise a crashed server may vote twice to different candidates during an election  
+New value of these states should be persisted before the change is externally visible, to clients or
+peers through RPCs.  
+
+Storing even a small piece of data to a mechanical disk is expansive, a slow persistent storage will
+the main bottleneck of Raft system.
+
+Followers should (have to) ignore InstallSnapshot if Leader snapshot is a prefix of a locally
+compacted snapshot.
+
+Linearizability defined in this lecture (see also notes for Designing Data-Intensive Applications):
+    ∃R∈(MemoryOps x MemoryOps), there's a total order R over memory ops that
+        1.  if an operation a finished before another operation b started, a <_R b
+        2.  if a read a sees the value written by a write b,
+                a <_R b
+                ~∃b' != b, a <_R b' <_R b
+            (b is the immediate write preceding a)

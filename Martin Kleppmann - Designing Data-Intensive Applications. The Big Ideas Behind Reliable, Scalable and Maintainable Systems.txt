@@ -152,7 +152,7 @@ complete(H) is the maximum subsequence of H that all invocations has matching re
 A history H is sequential if 
     1.  H starts with an invocation
     2.  except for the final invocation, each invocation is followed immediately by a matching
-        response each response is followed immediately by a matching invocation
+        response, each response is followed immediately by a matching invocation
 A process sub-history H|P is the subsequence of all events in H whose process names are P
 An object sub-history H|x is similarly defined
 A history is well-formed if for all P, H|P is sequential
