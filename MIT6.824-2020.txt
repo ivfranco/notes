@@ -834,8 +834,9 @@ compacted snapshot.
 
 Linearizability defined in this lecture (see also notes for Designing Data-Intensive Applications):
     ∃R∈(MemoryOps x MemoryOps), there's a total order R over memory ops that
-        1.  if an operation a finished before another operation b started, a <_R b
-        2.  if a read a sees the value written by a write b,
-                a <_R b
-                ~∃b' != b, a <_R b' <_R b
-            (b is the immediate write preceding a)
+        1.  if an operation A finished before another operation B started,
+                A <_R B
+        2.  if a read A sees the value written by a write B,
+                A <_R B
+                ~∃B'∈WriteOps, B' != B & A <_R B' <_R B
+            (B is the immediate write preceding A)
