@@ -42,6 +42,8 @@ const (
 
 	// Valid server id starts from 0
 	NOBODY int = -1
+	// Invalid index and term, used sparsely in example code
+	NONE int = -1
 )
 
 func min(a int, b int) int {
@@ -237,23 +239,67 @@ func (l *Logs) translateIndex(index int) int {
 	return index - l.lastIncludedIndex - 1
 }
 
+func (l *Logs) unTranslateIndex(index int) int {
+	return index + l.lastIncludedIndex + 1
+}
+
 func (l *Logs) get(index int) *LogEntry {
 	return &l.liveLogs[l.translateIndex(index)]
 }
 
 func (l *Logs) termOf(index int) int {
-	if l.isLive(index) {
+	if index > l.lastIndex() {
+		// querying term of non-existing log entry
+		return NONE
+	} else if l.isLive(index) {
 		return l.get(index).Term
 	} else if index == l.lastIncludedIndex {
 		return l.lastIncludedTerm
 	} else {
-		logger.PrintfLn(LogWarn, "Querying term of log entry %v replaced by snapshot", index)
-		return -1
+		// querying term of log entry replaced by snapshot
+		return NONE
 	}
 }
 
 func (l *Logs) entriesStartFrom(index int) []LogEntry {
 	return l.liveLogs[l.translateIndex(index):]
+}
+
+func (l *Logs) detectConflict(prevIndex int, prevTerm int, entries []LogEntry) (int, int) {
+	xTerm := NONE
+	xIndex := NONE
+
+	if term := l.termOf(prevIndex); term != NONE && term != prevTerm {
+		xTerm = term
+		xIndex = l.translateIndex(prevIndex)
+	} else {
+		for i, entry := range entries {
+			j := prevIndex + i + 1
+			// skip snapshot
+			if !l.isLive(j) {
+				continue
+			}
+
+			k := l.translateIndex(j)
+			if k >= len(l.liveLogs) {
+				break
+			} else if l.liveLogs[k].Term != entry.Term {
+				xTerm = l.liveLogs[k].Term
+				xIndex = k
+				break
+			}
+		}
+	}
+
+	// backtrack to the first index with the same term, xIndex > 0 also handles NONE
+	for xIndex > 0 && l.liveLogs[xIndex-1].Term == xTerm {
+		xIndex -= 1
+	}
+	if xIndex != NONE {
+		xIndex = l.unTranslateIndex(xIndex)
+	}
+
+	return xTerm, xIndex
 }
 
 func (l *Logs) update(prevIndex int, entries []LogEntry) {
@@ -268,10 +314,32 @@ func (l *Logs) update(prevIndex int, entries []LogEntry) {
 		if k+1 > len(l.liveLogs) {
 			l.liveLogs = append(l.liveLogs, entry)
 		} else if l.liveLogs[k].Term != entry.Term {
+			// conflicting log entries, happens exactly once as all following entries are deleted
 			l.liveLogs = l.liveLogs[:k]
 			l.liveLogs = append(l.liveLogs, entry)
 		}
 	}
+}
+
+func (l *Logs) nextIndexFromReply(xTerm int, xIndex int, xLen int) int {
+	// case 3: XTerm == XIndex == NONE
+	if xTerm == NONE && xIndex == NONE {
+		return xLen
+	}
+
+	// case 2: leader has entries in XTerm
+	for i := len(l.liveLogs) - 1; i >= 0; i -= 1 {
+		if l.liveLogs[i].Term == xTerm {
+			return l.unTranslateIndex(i) + 1
+		}
+	}
+
+	if l.lastIncludedTerm == xTerm {
+		return l.lastIncludedIndex + 1
+	}
+
+	// case 1: leader has no entry in XTerm
+	return xIndex
 }
 
 // A Go object implementing a single Raft peer.
@@ -469,7 +537,9 @@ func (rf *Raft) setHeartbeatTicker() {
 
 // Thread safety: Unsafe
 func (rf *Raft) revertToFollowerKeepVote() {
-	logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Reader", rf.me, rf.role)
+	if rf.role != Follower {
+		logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Follower", rf.me, rf.role)
+	}
 	rf.role = Follower
 
 	rf.nextIndex = nil
@@ -486,6 +556,7 @@ func (rf *Raft) revertToFollower() {
 
 // Thread safety: Unsafe
 func (rf *Raft) appendRequestFrom(nextIndex int) AppendEntriesArgs {
+	nextIndex = min(nextIndex, rf.logs.lastIndex()+1)
 	prevLogIndex := nextIndex - 1
 	prevLogTerm := rf.logs.termOf(prevLogIndex)
 	entries := rf.logs.entriesStartFrom(nextIndex)
@@ -660,10 +731,13 @@ func (args *AppendEntriesArgs) lastIndex() int {
 type AppendEntriesReply struct {
 	Term    int
 	Success bool
+	XTerm   int
+	XIndex  int
+	XLen    int
 }
 
 func (reply *AppendEntriesReply) String() string {
-	return fmt.Sprintf("AppendEntriesReply { Term: %v, Success: %v }", reply.Term, reply.Success)
+	return fmt.Sprintf("AppendEntriesReply { Term: %v, Success: %v, XTerm: %v, XIndex: %v, XLen: %v}", reply.Term, reply.Success, reply.XTerm, reply.XIndex, reply.XLen)
 }
 
 // Thread safety: Safe, Locking
@@ -671,6 +745,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
+	defer logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
 
 	logger.PrintfLn(LogDebug, "[%v%v] Recv %v", rf.me, rf.role, args)
 
@@ -688,6 +763,9 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		return
 	}
 
+	reply.XTerm, reply.XIndex = rf.logs.detectConflict(args.PrevLogIndex, args.PrevLogTerm, args.Entries)
+	reply.XLen = rf.logs.lastIndex() + 1
+
 	if args.PrevLogIndex > rf.logs.lastIndex() {
 		reply.Success = false
 		return
@@ -700,7 +778,6 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	}
 
 	rf.logs.update(args.PrevLogIndex, args.Entries)
-	logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
 
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, args.lastIndex())
@@ -733,7 +810,7 @@ func (rf *Raft) Start(command interface{}) (index int, term int, isLeader bool) 
 	defer rf.mu.Unlock()
 
 	if rf.role != Leader {
-		return -1, -1, false
+		return NONE, NONE, false
 	}
 
 	index = rf.logs.append(command, rf.currentTerm)
@@ -785,16 +862,16 @@ func (rf *Raft) appendEntriesRound(server int) bool {
 
 func (rf *Raft) handleAppendEntriesReply(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	rf.mu.Lock()
-	logger.PrintfLn(LogDebug, "[%v%v] Recv from [%v] %v", rf.me, rf.role, server, &reply)
+	defer rf.mu.Unlock()
+	logger.PrintfLn(LogDebug, "[%v%v] Recv from [%v] %v", rf.me, rf.role, server, reply)
+	defer logger.PrintfLn(LogDebug, "[%v%v] nextIndex: %v, matchIndex: %v", rf.me, rf.role, rf.nextIndex, rf.matchIndex)
 
 	if rf.updateCurrentTerm(reply.Term) {
 		rf.revertToFollower()
-		rf.mu.Unlock()
 		return false
 	}
 
-	if rf.currentTerm > args.Term {
-		rf.mu.Unlock()
+	if rf.currentTerm > args.Term || rf.role != Leader {
 		return false
 	}
 
@@ -803,11 +880,9 @@ func (rf *Raft) handleAppendEntriesReply(server int, args *AppendEntriesArgs, re
 		rf.nextIndex[server] = max(rf.nextIndex[server], args.lastIndex()+1)
 
 		rf.leaderUpdateCommitted()
-		rf.mu.Unlock()
 		return false
 	} else {
-		rf.nextIndex[server] -= 1
-		rf.mu.Unlock()
+		rf.nextIndex[server] = rf.logs.nextIndexFromReply(reply.XTerm, reply.XIndex, reply.XLen)
 		return true
 	}
 }
@@ -851,8 +926,8 @@ func (rf *Raft) heartbeat() {
 			continue
 		}
 
-		args := rf.appendRequestFrom(rf.nextIndex[server])
 		logger.PrintfLn(LogDebug, "[%v%v] Send heartbeat to [%v]", rf.me, rf.role, server)
+		args := rf.appendRequestFrom(rf.nextIndex[server])
 		go func(server int) {
 			reply := AppendEntriesReply{}
 			if rf.sendAppendEntry(server, &args, &reply) {
