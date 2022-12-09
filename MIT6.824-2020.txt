@@ -676,9 +676,10 @@ Raft new command process:
 As stated in invariant 2, a Leader never overwrites or deletes its log entry, such events happens
 only after a new Leader is elected in a new term.
 
-To prevent an out of date newly elected Leader overwriting committed log entries, RequestVotes RPC
-includes (lastLogTerm, lastLogIndex) from the Candidate. Followers reject Candidates less up-to-date
-than itself. Up-to-date-ness of (Term, Index) is defined as lexicographical order of the tuple:
+To prevent an out of date newly elected Leader from overwriting committed log entries, RequestVotes
+RPC includes (lastLogTerm, lastLogIndex) from the Candidate. Followers reject Candidates less
+up-to-date than itself. Up-to-date-ness of (Term, Index) is defined as lexicographical order of the
+tuple:
     (T0, I0) is more up-to-date than (T1, I1) iff:
         T0 > T1, or
         T0 == T1 and I0 > I1
@@ -737,7 +738,9 @@ Raft implementation details:
         but the deciding vote handler should cancel only other vote handlers, one approach to this
         is a hierarchy of cancellable contexts.
     - applyCh must be unbuffered, otherwise the client may crash and loss buffered ApplyMsg in
-        the channel
+        the channel. Sending messages to applyCh could be time consuming
+    - Requests and replies should not be skipped simply because they are from an earlier term /
+        context, follow Figure 2 to letters 
 
 Wrong replicated system:
     - clients send request to / expect acknowledgement from all servers 

@@ -77,6 +77,20 @@ const (
 	Follower
 )
 
+func (r Role) String() string {
+	switch r {
+	case Leader:
+		return "L"
+	case Candidate:
+		return "C"
+	case Follower:
+		return "F"
+	default:
+		logger.FatalfLn("Impossible value for Role %v", r)
+		return ""
+	}
+}
+
 type LogLevel int
 
 const (
@@ -135,6 +149,20 @@ func (l *Logger) PrintfLn(level LogLevel, fmt string, args ...interface{}) {
 func (l *Logger) FatalfLn(fmt string, args ...interface{}) {
 	l.PrintfLn(LogError, fmt, args)
 	os.Exit(1)
+}
+
+type Context atomic.Bool
+
+func NewCancellable() *Context {
+	return &Context{}
+}
+
+func (c *Context) IsCancelled() bool {
+	return (*atomic.Bool)(c).Load()
+}
+
+func (c *Context) Cancel() {
+	(*atomic.Bool)(c).Store(true)
 }
 
 // as each Raft peer becomes aware that successive log entries are
@@ -219,7 +247,7 @@ func (l *Logs) termOf(index int) int {
 	} else if index == l.lastIncludedIndex {
 		return l.lastIncludedTerm
 	} else {
-		logger.PrintfLn(LogError, "Querying term of log entry %v replaced by snapshot", index)
+		logger.PrintfLn(LogWarn, "Querying term of log entry %v replaced by snapshot", index)
 		return -1
 	}
 }
@@ -264,12 +292,11 @@ type Raft struct {
 	votedFor    int
 
 	// Volatile
-	role           Role
-	applyCh        chan ApplyMsg
-	commitIndex    int
-	lastApplied    int
-	electionTimer  *time.Timer
-	heartbeatTimer *time.Timer
+	role        Role
+	applyCh     chan ApplyMsg
+	commitIndex int
+	lastApplied int
+	ctx         *Context
 
 	// Volatile, Leader only
 	nextIndex  []int
@@ -353,24 +380,24 @@ func (rf *Raft) updateCurrentTerm(term int) (reset bool) {
 	return false
 }
 
-func (rf *Raft) ticker() {
+func (rf *Raft) electionTimeout(ctx *Context) {
+	time.Sleep(randomElectionTimeout())
+	rf.mu.Lock()
+	if !ctx.IsCancelled() && rf.role != Leader {
+		rf.startElection()
+		go rf.electionTimeout(rf.ctx)
+	}
+	rf.mu.Unlock()
+}
+
+func (rf *Raft) heartbeatTicker(ctx *Context) {
 	for !rf.killed() {
-		select {
-		case <-rf.electionTimer.C:
-			rf.mu.Lock()
-			if rf.role != Leader {
-				rf.startElection()
-				rf.electionTimer.Reset(randomElectionTimeout())
-			}
-			rf.mu.Unlock()
-		case <-rf.heartbeatTimer.C:
-			rf.mu.Lock()
-			if rf.role == Leader {
-				go rf.heartbeat()
-				rf.heartbeatTimer.Reset(HEARTBEAT_INTERVAL)
-			}
-			rf.mu.Unlock()
+		rf.mu.Lock()
+		if !ctx.IsCancelled() && rf.role == Leader {
+			rf.heartbeat()
 		}
+		rf.mu.Unlock()
+		time.Sleep(HEARTBEAT_INTERVAL)
 	}
 }
 
@@ -391,8 +418,11 @@ func (rf *Raft) leaderUpdateCommitted() {
 		mid = len(sorted) / 2
 	}
 
-	if sorted[mid] > rf.commitIndex {
-		rf.commitIndex = sorted[mid]
+	majority := sorted[mid]
+	// if majority has a smaller term or is replaced by a snapshot, so is any other candidate of N
+	// defined as N = sorted[i], i < mid
+	if majority > rf.commitIndex && rf.logs.termOf(majority) == rf.currentTerm {
+		rf.commitIndex = majority
 		rf.applyCommitted()
 	}
 }
@@ -409,7 +439,7 @@ func (rf *Raft) applyCommitted() {
 				Command:      entry.Command,
 				CommandIndex: index,
 			}
-			logger.PrintfLn(LogInfo, "[%v] Apply command %v", rf.me, index)
+			logger.PrintfLn(LogInfo, "[%v%v] Apply command %v", rf.me, rf.role, index)
 			rf.applyCh <- msg
 		}
 
@@ -418,28 +448,43 @@ func (rf *Raft) applyCommitted() {
 }
 
 // Thread safety: Unsafe
-func (rf *Raft) setFollowerTimeout() {
-	rf.electionTimer.Reset(randomElectionTimeout())
+func (rf *Raft) cancelTimeout() *Context {
+	rf.ctx.Cancel()
+	ctx := NewCancellable()
+	rf.ctx = ctx
+	return ctx
 }
 
 // Thread safety: Unsafe
-func (rf *Raft) setHeartbeat() {
-	go rf.heartbeat()
-	rf.heartbeatTimer.Reset(HEARTBEAT_INTERVAL)
+func (rf *Raft) setElectionTimeout() {
+	ctx := rf.cancelTimeout()
+	go rf.electionTimeout(ctx)
 }
 
 // Thread safety: Unsafe
-func (rf *Raft) revertToFollower() {
-	logger.PrintfLn(LogInfo, "[%v] Role Shift: Reader", rf.me)
+func (rf *Raft) setHeartbeatTicker() {
+	ctx := rf.cancelTimeout()
+	go rf.heartbeatTicker(ctx)
+}
+
+// Thread safety: Unsafe
+func (rf *Raft) revertToFollowerKeepVote() {
+	logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Reader", rf.me, rf.role)
 	rf.role = Follower
-	rf.votedFor = NOBODY
 
 	rf.nextIndex = nil
 	rf.matchIndex = nil
 
-	rf.setFollowerTimeout()
+	rf.setElectionTimeout()
 }
 
+// Thread safety: Unsafe
+func (rf *Raft) revertToFollower() {
+	rf.revertToFollowerKeepVote()
+	rf.votedFor = NOBODY
+}
+
+// Thread safety: Unsafe
 func (rf *Raft) appendRequestFrom(nextIndex int) AppendEntriesArgs {
 	prevLogIndex := nextIndex - 1
 	prevLogTerm := rf.logs.termOf(prevLogIndex)
@@ -468,16 +513,16 @@ func (rf *Raft) startLeadership() {
 	}
 	rf.matchIndex[rf.me] = rf.logs.lastIndex()
 
-	rf.setHeartbeat()
+	rf.setHeartbeatTicker()
 }
 
 // Thread safety: Unsafe
 func (rf *Raft) startElection() {
-	logger.PrintfLn(LogInfo, "[%v] Role Shift: Candidate", rf.me)
+	logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Candidate", rf.me, rf.role)
 	rf.currentTerm += 1
 	rf.role = Candidate
 
-	logger.PrintfLn(LogInfo, "[%v] Started election %v", rf.me, rf.currentTerm)
+	logger.PrintfLn(LogInfo, "[%v%v] Started election %v", rf.me, rf.role, rf.currentTerm)
 
 	votes := make(map[int]bool)
 	votes[rf.me] = true
@@ -492,7 +537,7 @@ func (rf *Raft) startElection() {
 
 	for server := range rf.peers {
 		if server != rf.me {
-			logger.PrintfLn(LogDebug, "[%v] Send to [%v] %v", rf.me, server, &args)
+			logger.PrintfLn(LogDebug, "[%v%v] Send to [%v] %v", rf.me, rf.role, server, &args)
 			go func(server int) {
 				reply := RequestVoteReply{}
 				if rf.sendRequestVote(server, &args, &reply) {
@@ -529,14 +574,14 @@ func (reply *RequestVoteReply) String() string {
 	return fmt.Sprintf("RequestVoteReply { Term: %v, VoteGranded: %v }", reply.Term, reply.VoteGranted)
 }
 
-// Thread safety: Safe
+// Thread safety: Safe, Locking
 func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-	defer logger.PrintfLn(LogDebug, "[%v] Reply %v", rf.me, reply)
+	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
 
-	logger.PrintfLn(LogDebug, "[%v] Recv %v", rf.me, args)
+	logger.PrintfLn(LogDebug, "[%v%v] Recv %v", rf.me, rf.role, args)
 
 	if rf.updateCurrentTerm(args.Term) {
 		rf.revertToFollower()
@@ -556,7 +601,7 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	if rf.role == Follower && (rf.votedFor == NOBODY || rf.votedFor == args.CandidateId) {
 		rf.votedFor = args.CandidateId
 		reply.VoteGranted = true
-		rf.setFollowerTimeout()
+		rf.setElectionTimeout()
 	} else {
 		reply.VoteGranted = false
 	}
@@ -621,21 +666,17 @@ func (reply *AppendEntriesReply) String() string {
 	return fmt.Sprintf("AppendEntriesReply { Term: %v, Success: %v }", reply.Term, reply.Success)
 }
 
-// Thread safety: Safe
+// Thread safety: Safe, Locking
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-	defer logger.PrintfLn(LogDebug, "[%v] Reply %v", rf.me, reply)
+	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
 
-	logger.PrintfLn(LogDebug, "[%v] Recv %v", rf.me, args)
+	logger.PrintfLn(LogDebug, "[%v%v] Recv %v", rf.me, rf.role, args)
 
 	// the difference to currentTerm > args.Term is it's still the same term, votedFor should not be reset
 	if rf.currentTerm == args.Term {
-		rf.role = Follower
-		rf.nextIndex = nil
-		rf.matchIndex = nil
-
-		rf.setFollowerTimeout()
+		rf.revertToFollowerKeepVote()
 	}
 	if rf.updateCurrentTerm(args.Term) {
 		rf.revertToFollower()
@@ -659,7 +700,7 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 	}
 
 	rf.logs.update(args.PrevLogIndex, args.Entries)
-	logger.PrintfLn(LogDebug, "[%v] Log %v", rf.me, &rf.logs)
+	logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
 
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, args.lastIndex())
@@ -696,8 +737,8 @@ func (rf *Raft) Start(command interface{}) (index int, term int, isLeader bool) 
 	}
 
 	index = rf.logs.append(command, rf.currentTerm)
-	logger.PrintfLn(LogDebug, "[%v] Log %v", rf.me, &rf.logs)
-	logger.PrintfLn(LogInfo, "[%v] Started new command at term %v, index %v", rf.me, rf.currentTerm, index)
+	logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
+	logger.PrintfLn(LogInfo, "[%v%v] Started new command at term %v, index %v", rf.me, rf.role, rf.currentTerm, index)
 
 	rf.matchIndex[rf.me] = index
 	rf.nextIndex[rf.me] = index + 1
@@ -734,7 +775,7 @@ func (rf *Raft) appendEntriesRound(server int) bool {
 
 	rf.mu.Unlock()
 
-	logger.PrintfLn(LogDebug, "[%v] Send to [%v] %v", rf.me, server, &args)
+	logger.PrintfLn(LogDebug, "[%v%v] Send to [%v] %v", rf.me, rf.role, server, &args)
 	if !rf.sendAppendEntry(server, &args, &reply) {
 		return true
 	}
@@ -744,7 +785,7 @@ func (rf *Raft) appendEntriesRound(server int) bool {
 
 func (rf *Raft) handleAppendEntriesReply(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	rf.mu.Lock()
-	logger.PrintfLn(LogDebug, "[%v] Recv from [%v] %v", rf.me, server, &reply)
+	logger.PrintfLn(LogDebug, "[%v%v] Recv from [%v] %v", rf.me, rf.role, server, &reply)
 
 	if rf.updateCurrentTerm(reply.Term) {
 		rf.revertToFollower()
@@ -771,7 +812,7 @@ func (rf *Raft) handleAppendEntriesReply(server int, args *AppendEntriesArgs, re
 	}
 }
 
-// Thread safety: Safe
+// Thread safety: Safe, No lock
 func (rf *Raft) appendEntriesLoop(server int) {
 	for !rf.killed() {
 		retry := rf.appendEntriesRound(server)
@@ -797,24 +838,21 @@ func (rf *Raft) Kill() {
 	defer rf.mu.Unlock()
 }
 
-// Thread safety: Safe
+// Thread safety: Safe, No lock
 func (rf *Raft) killed() bool {
 	z := atomic.LoadInt32(&rf.dead)
 	return z == 1
 }
 
-// Thread safety: Safe
+// Thread safety: Unsafe
 func (rf *Raft) heartbeat() {
-	rf.mu.Lock()
-	defer rf.mu.Unlock()
-
 	for server := range rf.peers {
 		if server == rf.me {
 			continue
 		}
 
 		args := rf.appendRequestFrom(rf.nextIndex[server])
-		logger.PrintfLn(LogDebug, "[%v] Send heartbeat to [%v]", rf.me, server)
+		logger.PrintfLn(LogDebug, "[%v%v] Send heartbeat to [%v]", rf.me, rf.role, server)
 		go func(server int) {
 			reply := AppendEntriesReply{}
 			if rf.sendAppendEntry(server, &args, &reply) {
@@ -824,7 +862,7 @@ func (rf *Raft) heartbeat() {
 	}
 }
 
-// Thread safety: Safe
+// Thread safety: Safe, Locking
 func (rf *Raft) handleRequestVoteReply(
 	votes map[int]bool,
 	server int,
@@ -857,7 +895,7 @@ func (rf *Raft) handleRequestVoteReply(
 		// won the election
 		// cancel everything, start leadership
 		logger.PrintfLn(LogDebug,
-			"[%v] Role Shift: Leader %v (%v/%v votes)", rf.me, rf.currentTerm, granted, total)
+			"[%v%v] Role Shift: Leader %v (%v/%v votes)", rf.me, rf.role, rf.currentTerm, granted, total)
 		rf.startLeadership()
 	}
 }
@@ -891,8 +929,7 @@ func Make(
 	rf.applyCh = applyCh
 	rf.commitIndex = 0
 	rf.lastApplied = 0
-	rf.heartbeatTimer = time.NewTimer(HEARTBEAT_INTERVAL)
-	rf.electionTimer = time.NewTimer(randomElectionTimeout())
+	rf.ctx = NewCancellable()
 
 	rf.nextIndex = nil
 	rf.matchIndex = nil
@@ -901,7 +938,7 @@ func Make(
 	rf.readPersist(persister.ReadRaftState())
 
 	// start ticker goroutine to start elections
-	go rf.ticker()
+	go rf.electionTimeout(rf.ctx)
 
 	return rf
 }
