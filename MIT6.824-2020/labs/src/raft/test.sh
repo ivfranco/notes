@@ -9,5 +9,6 @@ for (( i=1; i<=$1; i++ )); do
         echo "Passed iteration $i"
     else
         echo "Failed iteration $i"
+        break
     fi
 done

@@ -73,6 +73,17 @@ Official Golang documentation does not list any implementors of an interface.
 The global random number generator in Golang is, actually, global (across threads), it shouldn't be
 used in a performance-critical multi-threaded program.
 
+Golang slices are views to arrays with subtle copy-on-append behavior: 
+	a := [4]int{1, 2, 3, 4}
+	b := a[:2]
+	b = append(b, 5)                // overwrites a[2]
+	fmt.Println("a=", a, "b=", b)   // a=[1 2 5 4] b=[1 2 5]
+    c := a[2:]
+    c = append(c, 6)                // exceeds the capacity of a, copy on append
+    a[3] = 7
+    fmt.Println("a=", a, "c=", c)   // a=[1 2 5 7] c=[5 4 6]
+    fmt.Println("cap(c)=", cap(c))  // cap(c)=4, capacity grows to power of 2
+
 Lecture 1. Introduction
 Topics of distributed systems:
     - Scalability: 
@@ -550,10 +561,10 @@ Synchronized before relations:
 
 question:
 ---CODE START---
-var a string
-var done bool
-
 type Unit struct{}
+
+var a string
+var done Unit
 
 func setup(done chan Unit) {
 	a = "hello, world"          // 1
@@ -755,7 +766,7 @@ Solution: odd number of servers, majority vote required to make any progress
     - any two majorities overlap at at least one server
 
 Raft doesn't manage state, the application code built on top of it replicates commands in Raft but
-states are managed by the application itself.
+states are managed by the application itself (except snapshots).
 
 Raft interface exposed to application code:
     - func Start(Command) (Index, Term)
@@ -809,12 +820,12 @@ question: Could a received InstallSnapshot RPC cause the state machine to go bac
 Fast backup of nextIndex: instead of 1 at a time, AppendEntries may be modified to return:
     xTerm: the first term that contains conflicting log entries (may be -1 == None)
     xIndex: the first log index of xterm (may be -1 == None)
-    xLen: the length of logs
+    xLen: the length of logs, index of the last log + 1
 That's enough information for Leader to backup a term at a time:
     case 1: Leader has no entries in xTerm
         nextIndex = xIndex, the entire term should be removed
     case 2: Leader has entries in xTerm
-        nextIndex = last log index with xTerm on Leaders, only conflicting logs should be removed 
+        nextIndex = last log index with xTerm on Leaders + 1, only conflicting logs should be removed 
     case 3: xTerm == xIndex == -1
         nextIndex = xLen, no conflicting terms, send all missing logs to Follower
 
@@ -843,3 +854,220 @@ Linearizability defined in this lecture (see also notes for Designing Data-Inten
                 A <_R B
                 ~∃B'∈WriteOps, B' != B & A <_R B' <_R B
             (B is the immediate write preceding A)
+
+Lecture 8. ZooKeeper
+paper: ZooKeeper: Wait-free coordination for Internet-scale systems
+---NOTE START---
+ZooKeeper: wait-free FIFO linearizable coordination kernel 
+    - wait-free: ZooKeeper API manipulates wait-free (non-locking) objects similar to a file system,
+        higher performance compared to similar technologies (~100k ops/s if most ops are read)
+    - FIFO: application requests are served first in, first out, with extra mechanism to help
+        clients managing their cache
+    - linearizable: writes to ZooKeeper managed objects has linearizability
+    - coordination kernel: application developers implement their own sync primitives on top of
+        ZooKeeper API, ZooKeeper does not understand Leader / Follower or configuration change
+
+The paper focuses on three topics:
+    - Coordination kernel:
+        ZooKeeper, a wait-free coordination service with relaxed consistency guarantees
+    - Coordination recipes:
+        how sync primitives can be built on top of ZooKeeper
+    - Experience with coordination:
+        case study and performance highlights
+
+ZooKeeper Terminology:
+    - client: user of the ZooKeeper service
+    - znode: ZooKeeper in-memory data node, with time stamp and version number
+    - data tree: znodes organized in a hierarchical namespace 
+    - update / write: operation on the state of the data tree
+    - session: established by client on connection to ZooKeeper, through which client issue requests
+
+ZooKeeper exposes an API similar to a file system:
+    data tree   <=> hierarchical file system
+    znode       <=> file with hierarchical path
+    znode       <=> directory (znode is able to have children and data)
+The major difference is that Zookeeper supports only full read and write.
+
+Two types of znode, specified on creation:
+    - Regular:
+        explicitly created and deleted
+    - Ephemeral:
+        automatically deleted on session termination
+Additionally a file created with the "sequential" flag will have a monotonically increasing counter
+appended to its name. A new znode created under a parent p will have counter not smaller (should be
+greater?) than any znode ever created under p.
+
+If a client issues a read request on a znode with the "watch" flag, a one-time notification that
+triggers whenever the file is modified will be associated with the session. The notification does
+nothing more than informing the client (contains no data).
+
+ZooKeeper session is closed by client calling close on the session handle or by server on timeout.
+Session is duplex:
+    client -> server: client operations
+    server -> client: state change notification reflecting execution of client operations
+Session can be transparently moved from one server to another.
+
+ZooKeeper client API:
+    - create(path, data, flags)
+        create a znode with content data[] at path
+    - delete(path, version)
+        delete the file at path if the version number matches
+    - exists(path, watch)
+        test whether a znode at path exists, if watch flag is set subscribe to one-time
+        state change notification on the file, including znode creation
+    - getData(path, watch)
+        return data and metadata of the znode at path, watch flag will be ignored if the
+        znode doesn't exist
+    - setData(path, data, version)
+        overwrite content of znode at path with data[] if the version number matches
+    - getChildren(path, watch)
+        return children of znode at path
+    - sync(path /* ignored */)
+        wait until all pending operation (before calling sync) is propagated to server
+Each method has both sync (block until propagated to server) and async version. All version check
+may be bypassed with a version number -1.
+
+Update to Zookeeper state is 
+    1.  A-linearizable, a stronger condition than linearizability that allows concurrent requests
+        from a single thread (client).
+    2.  Requests from a single thread is served in FIFO (send by client) order. 
+ 
+Example scenario: leader update configs
+    - other processes may access the configs when leader is updating them
+        solution: a "ready" znode is created under a designated path, leader delete "ready" before
+        changing config and create it after completion, FIFO and linearizability guarantees that
+        async write to configs will finish before the creation of "ready"
+    - leader may crash while modifying the configs 
+        solution: same as above
+    - TOCTOU bug, leader may delete "ready" after a process tests its existence and after the
+      process tries to read configs
+        solution: instead of tests, processes subscribe to watch notifications on "ready", on
+        both deletion and creation the event precedes the state change, the existence of "ready" can
+        then be cached and checked locally
+    - private channels, process A may change a znode then notify process B, if B's replica is
+      lagging the change may not be in place
+        solution: process B calls sync then read, all pending write (wrt. a real timer?) must be
+        resolved before read
+
+Zookeeper availability guarantees:
+    1.  The service is available is a majority of replicas are alive and reachable
+    2.  If the service responses successfully, the change persists after any number of failures as
+        long as a quorum (majority?) of servers eventually recover
+
+Examples of primitives built on ZooKeeper:
+    - Config management:
+        Shared config in a znode, clients subscribe to watch notification.
+    - Group membership:
+        Create a znode z_g for the group, each process member create a sequential ephemeral child of
+        z_g on start up. Group membership will be revoked on process termination. Use getChildren to
+        query group membership.
+    - Simple exclusive locks:
+        (Similar to lock files in a ordinary file system) A process create ephemeral file on an
+        agreed path, other files block on delete event on watch notification.
+        Like Cond.Broadcast in Golang, Watch notification awakes all blocking processes despite that
+        only one of them may acquire the lock ("herd effect").
+    - Simple exclusive locks free from herd effect:
+        For a znode l on agreed path, a process lock the mutex by:
+            1.  n = create(l, "/lock-", EPHEMERAL|SEQUENTIAL) 
+            2.  call getChildren(l, false)
+            3.  if n is the child of l with lowest sequence number, acquire the lock
+            4.  if not, let p be the child of l immediately precedes n
+            5.  call exists(p, true), if p exists, wait on watch event
+            6.  goto 2
+        unlock the mutex by:
+            1.  delete(n)
+        A protocol abiding process cannot create a child with sequence number lower than or equal to
+        an existing child, once lock step 5 returns false it will always return false in future, no
+        TOCTOU bugs here
+    - Read / Write locks:
+        Start from a znode l on agreed path, acquire write lock:
+            // almost identical to mutex lock
+            // sequence number shared by write / read znodes
+            1.  n = create(l, "/write-", EPHEMERAL|SEQUENTIAL) 
+            2.  call getChildren(l, false)
+            3.  if n has lowest sequence number, acquire write lock
+            4.  if not, let p be the child of l immediately precedes n
+            5.  call exists(p, true), if p exists, wait on watch event
+            6.  goto 2
+        Acquire read lock:
+            1.  n = create(l, "/read-", EPHEMERAL|SEQUENTIAL) 
+            2.  call getChildren(l, false)
+            3.  if there's no "l/write-" child with a lower sequence number, acquire read lock
+            4.  if not, let p be that write child
+            5.  call exists(p, true), if p exists, wait on watch event
+            6.  goto 2
+        unlock (both read and write):
+            1.  delete(n)
+    - Double barrier (Barrier with thresholds on entrance and exit):
+        Enter (implied by the high level description in the paper):
+            // start from a znode b on agreed path
+            1.  n = create(b, "/barrier-", EPHEMERAL|SEQUENTIAL)
+            2.  call getChildren(b, false)
+            3.  if number of children >= threshold, create(b, "/ready"), enter the barrier 
+            4.  call exists(b + "/ready", true)
+            5.  if true enter the barrier, if not goto 2
+        Exit:
+            1.  delete(n)
+            2.  call getChildren(b, false)
+            3.  if b has no "barrier-" child, exit the barrier
+            4.  if not, call exist(c, true) on a random child c of b, wait on watch event
+            5.  goto 2
+
+Examples of ZooKeeper applications and their primitives:
+    - The Fetching Service (config metadata, leader election):
+        part of the crawler at Yahoo!, use ZooKeeper to redirect clients to healthy server and elect
+        new leader on master failure
+    - Katta (group membership, leader election, config management):
+        distributed indexer at Yahoo!, master assign works to slaves (config management), both
+        master and slaves may fail (leader election), slaves frequently join and leave the cluster
+        (group membership)
+    - Yahoo! Message Broker (config metadata, failure detection, group membership, leader election):
+        distributed publish-subscribe system, thousands of topics replicated among a set of servers
+        with a primary-backup scheme, use ZooKeeper to manage distribution of topics (config
+        metadata) and deal with failed replicas (failure detection, group membership, leader
+        election)
+
+ZooKeeper components:
+    - Request processor:
+        transforms update requests to idempotent transactions 
+    - Atomic broadcast:
+        agreement protocol used to replicate the ZooKeeper data tree, tolerates less than majority
+        server failure, guarantees order of broadcasts from a leader, all changes from a previous
+        leader is delivered to new leader before the new leader starts broadcasting its own changes,
+        followers never diverge but may stale
+    - Replicated database:
+        in-memory replica of the entire ZooKeeper data tree, persisted to a write-ahead log and
+        periodically to a snapshot, snapshot of the database is fuzzy in the sense that the database
+        is not locked when the snapshot is taken, the snapshot may not correspond to a legal state,
+        replaying a few idempotent updates from the log fixes it (possible because updates are
+        idempotent)
+
+Write requests goes through request processor -> atomic broadcast -> replicated database, read
+requests are served locally by the replicated database alone (may be stale).
+
+Watch events are triggered and served locally, by the server the client is connected to.
+
+sync() is an async primitive that guarantees the order of operations after it, all operations
+following a sync() is guaranteed to executed after all pending requests before sync() is applied to
+the local replicated database.
+
+Responses from ZooKeeper server contains a zxid as a total order on updates. Session reestablishment
+to a new server is refused until the server caught up to the last zxid of the client. Clients send
+heartbeats on idle.
+
+Adding server to a ZooKeeper cluster negatively impacts write overall throughput as writes must be
+both replicated to all servers and persisted on non-volatile storage, while overall throughput of
+purely read operations grows linearly to the number of servers as reads are served locally. In
+practice write throughput is improved by partitioning terms to different ZooKeeper clusters.
+
+Typical write request latency of ZooKeeper is 1-2ms.
+---NOTE END---
+question: Why isn't possible for two clients to acquire the same lock?
+    Sequential znode creation enforces a strict total order on acquire attempts, let p and q be two
+    processes trying to acquire the lock, n and m be the corresponding znodes they created at step
+    1, either n < m or n > m, w/o loss of generality assume n < m, by step 2-6 m cannot enter
+    critical section until n is deleted (unlocked). Order of events is well-defined as implied by 
+    linearizability.
+    On client crash or network failure, client ceases to send requests and heartbeats, after session
+    timeout server determines that the client has failed then deletes the ephemeral files created by
+    it, in this case the lock file created by the client hence unlocks the mutex.
