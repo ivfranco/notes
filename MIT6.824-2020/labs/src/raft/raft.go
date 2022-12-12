@@ -20,6 +20,7 @@ package raft
 import (
 	//	"bytes"
 
+	"bytes"
 	"fmt"
 	"log"
 	"math/rand"
@@ -32,6 +33,7 @@ import (
 	"time"
 
 	//	"6.824/labgob"
+	"6.824/labgob"
 	"6.824/labrpc"
 )
 
@@ -195,31 +197,31 @@ type LogEntry struct {
 
 // A log of commands, possibly with a prefix replaced by a snapshot.
 type Logs struct {
-	snapshot          []byte
-	lastIncludedIndex int
-	lastIncludedTerm  int
-	liveLogs          []LogEntry
+	Snapshot          []byte
+	LastIncludedIndex int
+	LastIncludedTerm  int
+	LiveLogs          []LogEntry
 }
 
 func (l *Logs) String() string {
-	terms := make([]string, 0, len(l.liveLogs))
-	for _, entry := range l.liveLogs {
+	terms := make([]string, 0, len(l.LiveLogs))
+	for _, entry := range l.LiveLogs {
 		terms = append(terms, strconv.Itoa(entry.Term))
 	}
-	return "(" + strings.Join(terms, "|") + ")"
+	return "Logs (" + strings.Join(terms, "|") + ")"
 }
 
 func MakeLogs() Logs {
 	return Logs{
-		snapshot:          nil,
-		lastIncludedIndex: 0,
-		lastIncludedTerm:  0,
-		liveLogs:          make([]LogEntry, 0),
+		Snapshot:          nil,
+		LastIncludedIndex: 0,
+		LastIncludedTerm:  0,
+		LiveLogs:          make([]LogEntry, 0),
 	}
 }
 
 func (l *Logs) lastIndex() int {
-	return l.lastIncludedIndex + len(l.liveLogs)
+	return l.LastIncludedIndex + len(l.LiveLogs)
 }
 
 func (l *Logs) lastTerm() int {
@@ -227,24 +229,24 @@ func (l *Logs) lastTerm() int {
 }
 
 func (l *Logs) append(command interface{}, term int) int {
-	l.liveLogs = append(l.liveLogs, LogEntry{Command: command, Term: term})
+	l.LiveLogs = append(l.LiveLogs, LogEntry{Command: command, Term: term})
 	return l.lastIndex()
 }
 
 func (l *Logs) isLive(nextIndex int) bool {
-	return nextIndex > l.lastIncludedIndex
+	return nextIndex > l.LastIncludedIndex
 }
 
 func (l *Logs) translateIndex(index int) int {
-	return index - l.lastIncludedIndex - 1
+	return index - l.LastIncludedIndex - 1
 }
 
 func (l *Logs) unTranslateIndex(index int) int {
-	return index + l.lastIncludedIndex + 1
+	return index + l.LastIncludedIndex + 1
 }
 
 func (l *Logs) get(index int) *LogEntry {
-	return &l.liveLogs[l.translateIndex(index)]
+	return &l.LiveLogs[l.translateIndex(index)]
 }
 
 func (l *Logs) termOf(index int) int {
@@ -253,8 +255,8 @@ func (l *Logs) termOf(index int) int {
 		return NONE
 	} else if l.isLive(index) {
 		return l.get(index).Term
-	} else if index == l.lastIncludedIndex {
-		return l.lastIncludedTerm
+	} else if index == l.LastIncludedIndex {
+		return l.LastIncludedTerm
 	} else {
 		// querying term of log entry replaced by snapshot
 		return NONE
@@ -262,7 +264,7 @@ func (l *Logs) termOf(index int) int {
 }
 
 func (l *Logs) entriesStartFrom(index int) []LogEntry {
-	return l.liveLogs[l.translateIndex(index):]
+	return l.LiveLogs[l.translateIndex(index):]
 }
 
 func (l *Logs) detectConflict(prevIndex int, prevTerm int, entries []LogEntry) (int, int) {
@@ -281,10 +283,10 @@ func (l *Logs) detectConflict(prevIndex int, prevTerm int, entries []LogEntry) (
 			}
 
 			k := l.translateIndex(j)
-			if k >= len(l.liveLogs) {
+			if k >= len(l.LiveLogs) {
 				break
-			} else if l.liveLogs[k].Term != entry.Term {
-				xTerm = l.liveLogs[k].Term
+			} else if l.LiveLogs[k].Term != entry.Term {
+				xTerm = l.LiveLogs[k].Term
 				xIndex = k
 				break
 			}
@@ -292,7 +294,7 @@ func (l *Logs) detectConflict(prevIndex int, prevTerm int, entries []LogEntry) (
 	}
 
 	// backtrack to the first index with the same term, xIndex > 0 also handles NONE
-	for xIndex > 0 && l.liveLogs[xIndex-1].Term == xTerm {
+	for xIndex > 0 && l.LiveLogs[xIndex-1].Term == xTerm {
 		xIndex -= 1
 	}
 	if xIndex != NONE {
@@ -302,7 +304,9 @@ func (l *Logs) detectConflict(prevIndex int, prevTerm int, entries []LogEntry) (
 	return xTerm, xIndex
 }
 
-func (l *Logs) update(prevIndex int, entries []LogEntry) {
+func (l *Logs) update(prevIndex int, entries []LogEntry) bool {
+	shouldPersist := false
+
 	for i, entry := range entries {
 		j := prevIndex + i + 1
 		// skip snapshot
@@ -311,14 +315,18 @@ func (l *Logs) update(prevIndex int, entries []LogEntry) {
 		}
 
 		k := l.translateIndex(j)
-		if k+1 > len(l.liveLogs) {
-			l.liveLogs = append(l.liveLogs, entry)
-		} else if l.liveLogs[k].Term != entry.Term {
+		if k+1 > len(l.LiveLogs) {
+			shouldPersist = true
+			l.LiveLogs = append(l.LiveLogs, entry)
+		} else if l.LiveLogs[k].Term != entry.Term {
 			// conflicting log entries, happens exactly once as all following entries are deleted
-			l.liveLogs = l.liveLogs[:k]
-			l.liveLogs = append(l.liveLogs, entry)
+			shouldPersist = true
+			l.LiveLogs = l.LiveLogs[:k]
+			l.LiveLogs = append(l.LiveLogs, entry)
 		}
 	}
+
+	return shouldPersist
 }
 
 func (l *Logs) nextIndexFromReply(xTerm int, xIndex int, xLen int) int {
@@ -328,18 +336,24 @@ func (l *Logs) nextIndexFromReply(xTerm int, xIndex int, xLen int) int {
 	}
 
 	// case 2: leader has entries in XTerm
-	for i := len(l.liveLogs) - 1; i >= 0; i -= 1 {
-		if l.liveLogs[i].Term == xTerm {
+	for i := len(l.LiveLogs) - 1; i >= 0; i -= 1 {
+		if l.LiveLogs[i].Term == xTerm {
 			return l.unTranslateIndex(i) + 1
 		}
 	}
 
-	if l.lastIncludedTerm == xTerm {
-		return l.lastIncludedIndex + 1
+	if l.LastIncludedTerm == xTerm {
+		return l.LastIncludedIndex + 1
 	}
 
 	// case 1: leader has no entry in XTerm
 	return xIndex
+}
+
+type ShouldPersist struct {
+	Logs        Logs
+	CurrentTerm int
+	VotedFor    int
 }
 
 // A Go object implementing a single Raft peer.
@@ -383,6 +397,8 @@ func (rf *Raft) GetState() (int, bool) {
 	return term, isLeader
 }
 
+// Thread safety: Unsafe
+//
 // save Raft's persistent state to stable storage,
 // where it can later be retrieved after a crash and restart.
 // see paper's Figure 2 for a description of what should be persistent.
@@ -395,8 +411,24 @@ func (rf *Raft) persist() {
 	// e.Encode(rf.yyy)
 	// data := w.Bytes()
 	// rf.persister.SaveRaftState(data)
+
+	w := &bytes.Buffer{}
+	enc := labgob.NewEncoder(w)
+
+	state := ShouldPersist{
+		Logs:        rf.logs,
+		CurrentTerm: rf.currentTerm,
+		VotedFor:    rf.votedFor,
+	}
+	if err := enc.Encode(state); err != nil {
+		logger.FatalfLn("Encoding error: %v", err)
+	}
+
+	rf.persister.SaveRaftState(w.Bytes())
 }
 
+// Thread safety: Unsafe
+//
 // restore previously persisted state.
 func (rf *Raft) readPersist(data []byte) {
 	if data == nil || len(data) < 1 { // bootstrap without any state?
@@ -415,6 +447,17 @@ func (rf *Raft) readPersist(data []byte) {
 	//   rf.xxx = xxx
 	//   rf.yyy = yyy
 	// }
+
+	r := bytes.NewBuffer(data)
+	dec := labgob.NewDecoder(r)
+	state := ShouldPersist{}
+	if err := dec.Decode(&state); err != nil {
+		logger.FatalfLn("Decode error: %v", err)
+	}
+
+	rf.logs = state.Logs
+	rf.currentTerm = state.CurrentTerm
+	rf.votedFor = state.VotedFor
 }
 
 // A service wants to switch to snapshot.  Only do so if Raft hasn't
@@ -439,13 +482,49 @@ func (rf *Raft) Snapshot(index int, snapshot []byte) {
 func (rf *Raft) updateCurrentTerm(term int) (reset bool) {
 	if rf.currentTerm < term {
 		rf.currentTerm = term
-		rf.role = Follower
-		rf.votedFor = NOBODY
-
 		return true
+	} else {
+		return false
 	}
+}
 
-	return false
+// Thread safety: Unsafe
+func (rf *Raft) cancelTimeout() *Context {
+	rf.ctx.Cancel()
+	ctx := NewCancellable()
+	rf.ctx = ctx
+	return ctx
+}
+
+// Thread safety: Unsafe
+func (rf *Raft) setElectionTimeout() {
+	ctx := rf.cancelTimeout()
+	go rf.electionTimeout(ctx)
+}
+
+// Thread safety: Unsafe
+func (rf *Raft) setHeartbeatTicker() {
+	ctx := rf.cancelTimeout()
+	go rf.heartbeatTicker(ctx)
+}
+
+// Thread safety: Unsafe
+func (rf *Raft) revertToFollowerKeepVote() {
+	if rf.role != Follower {
+		logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Follower", rf.me, rf.role)
+	}
+	rf.role = Follower
+
+	rf.nextIndex = nil
+	rf.matchIndex = nil
+
+	rf.setElectionTimeout()
+}
+
+// Thread safety: Unsafe
+func (rf *Raft) revertToFollower() {
+	rf.revertToFollowerKeepVote()
+	rf.votedFor = NOBODY
 }
 
 func (rf *Raft) electionTimeout(ctx *Context) {
@@ -516,45 +595,6 @@ func (rf *Raft) applyCommitted() {
 }
 
 // Thread safety: Unsafe
-func (rf *Raft) cancelTimeout() *Context {
-	rf.ctx.Cancel()
-	ctx := NewCancellable()
-	rf.ctx = ctx
-	return ctx
-}
-
-// Thread safety: Unsafe
-func (rf *Raft) setElectionTimeout() {
-	ctx := rf.cancelTimeout()
-	go rf.electionTimeout(ctx)
-}
-
-// Thread safety: Unsafe
-func (rf *Raft) setHeartbeatTicker() {
-	ctx := rf.cancelTimeout()
-	go rf.heartbeatTicker(ctx)
-}
-
-// Thread safety: Unsafe
-func (rf *Raft) revertToFollowerKeepVote() {
-	if rf.role != Follower {
-		logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Follower", rf.me, rf.role)
-	}
-	rf.role = Follower
-
-	rf.nextIndex = nil
-	rf.matchIndex = nil
-
-	rf.setElectionTimeout()
-}
-
-// Thread safety: Unsafe
-func (rf *Raft) revertToFollower() {
-	rf.revertToFollowerKeepVote()
-	rf.votedFor = NOBODY
-}
-
-// Thread safety: Unsafe
 func (rf *Raft) appendRequestFrom(nextIndex int) AppendEntriesArgs {
 	nextIndex = min(nextIndex, rf.logs.lastIndex()+1)
 	prevLogIndex := nextIndex - 1
@@ -589,8 +629,10 @@ func (rf *Raft) startLeadership() {
 
 // Thread safety: Unsafe
 func (rf *Raft) startElection() {
-	logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Candidate", rf.me, rf.role)
-	rf.currentTerm += 1
+	rf.updateCurrentTerm(rf.currentTerm + 1)
+	if rf.role != Candidate {
+		logger.PrintfLn(LogInfo, "[%v%v] Role Shift: Candidate", rf.me, rf.role)
+	}
 	rf.role = Candidate
 
 	logger.PrintfLn(LogInfo, "[%v%v] Started election %v", rf.me, rf.role, rf.currentTerm)
@@ -598,6 +640,8 @@ func (rf *Raft) startElection() {
 	votes := make(map[int]bool)
 	votes[rf.me] = true
 	rf.votedFor = rf.me
+
+	rf.persist()
 
 	args := RequestVoteArgs{
 		Term:         rf.currentTerm,
@@ -650,11 +694,20 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 	// Your code here (2A, 2B).
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
+
 	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
+
+	shouldPersist := false
+	defer func() {
+		if shouldPersist {
+			rf.persist()
+		}
+	}()
 
 	logger.PrintfLn(LogDebug, "[%v%v] Recv %v", rf.me, rf.role, args)
 
 	if rf.updateCurrentTerm(args.Term) {
+		shouldPersist = true
 		rf.revertToFollower()
 	}
 	reply.Term = rf.currentTerm
@@ -671,12 +724,12 @@ func (rf *Raft) RequestVote(args *RequestVoteArgs, reply *RequestVoteReply) {
 
 	if rf.role == Follower && (rf.votedFor == NOBODY || rf.votedFor == args.CandidateId) {
 		rf.votedFor = args.CandidateId
+		shouldPersist = true
 		reply.VoteGranted = true
 		rf.setElectionTimeout()
 	} else {
 		reply.VoteGranted = false
 	}
-
 }
 
 // example code to send a RequestVote RPC to a server.
@@ -744,16 +797,25 @@ func (reply *AppendEntriesReply) String() string {
 func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply) {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
-	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
-	defer logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
 
 	logger.PrintfLn(LogDebug, "[%v%v] Recv %v", rf.me, rf.role, args)
+	defer logger.PrintfLn(LogDebug, "[%v%v] Reply %v", rf.me, rf.role, reply)
+	logger.PrintfLn(LogDebug, "[%v%v] before %v", rf.me, rf.role, &rf.logs)
+	defer logger.PrintfLn(LogDebug, "[%v%v] after %v", rf.me, rf.role, &rf.logs)
+
+	shouldPersist := false
+	defer func() {
+		if shouldPersist {
+			rf.persist()
+		}
+	}()
 
 	// the difference to currentTerm > args.Term is it's still the same term, votedFor should not be reset
 	if rf.currentTerm == args.Term {
 		rf.revertToFollowerKeepVote()
 	}
 	if rf.updateCurrentTerm(args.Term) {
+		shouldPersist = true
 		rf.revertToFollower()
 	}
 
@@ -771,13 +833,14 @@ func (rf *Raft) AppendEntries(args *AppendEntriesArgs, reply *AppendEntriesReply
 		return
 	}
 	prevTerm := rf.logs.termOf(args.PrevLogIndex)
-	// snapshot is always committed, always correct
+	// prevTerm == -1 if index is replaced by snapshot, snapshot is always committed, always correct
 	if prevTerm >= 0 && prevTerm != args.PrevLogTerm {
 		reply.Success = false
 		return
 	}
 
-	rf.logs.update(args.PrevLogIndex, args.Entries)
+	// order significant, otherwise Logs.update may be skipped because of shouldPersist == true
+	shouldPersist = rf.logs.update(args.PrevLogIndex, args.Entries) || shouldPersist
 
 	if args.LeaderCommit > rf.commitIndex {
 		rf.commitIndex = min(args.LeaderCommit, args.lastIndex())
@@ -814,8 +877,10 @@ func (rf *Raft) Start(command interface{}) (index int, term int, isLeader bool) 
 	}
 
 	index = rf.logs.append(command, rf.currentTerm)
-	logger.PrintfLn(LogDebug, "[%v%v] Log %v", rf.me, rf.role, &rf.logs)
+	logger.PrintfLn(LogDebug, "[%v%v] %v", rf.me, rf.role, &rf.logs)
 	logger.PrintfLn(LogInfo, "[%v%v] Started new command at term %v, index %v", rf.me, rf.role, rf.currentTerm, index)
+
+	rf.persist()
 
 	rf.matchIndex[rf.me] = index
 	rf.nextIndex[rf.me] = index + 1
@@ -833,6 +898,7 @@ func (rf *Raft) Start(command interface{}) (index int, term int, isLeader bool) 
 
 func (rf *Raft) appendEntriesRound(server int) bool {
 	rf.mu.Lock()
+
 	if rf.role != Leader {
 		rf.mu.Unlock()
 		return false
@@ -850,9 +916,9 @@ func (rf *Raft) appendEntriesRound(server int) bool {
 	args := rf.appendRequestFrom(nextIndex)
 	reply := AppendEntriesReply{}
 
+	logger.PrintfLn(LogDebug, "[%v%v] Send to [%v] %v", rf.me, rf.role, server, &args)
 	rf.mu.Unlock()
 
-	logger.PrintfLn(LogDebug, "[%v%v] Send to [%v] %v", rf.me, rf.role, server, &args)
 	if !rf.sendAppendEntry(server, &args, &reply) {
 		return true
 	}
@@ -863,10 +929,19 @@ func (rf *Raft) appendEntriesRound(server int) bool {
 func (rf *Raft) handleAppendEntriesReply(server int, args *AppendEntriesArgs, reply *AppendEntriesReply) bool {
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
+
 	logger.PrintfLn(LogDebug, "[%v%v] Recv from [%v] %v", rf.me, rf.role, server, reply)
 	defer logger.PrintfLn(LogDebug, "[%v%v] nextIndex: %v, matchIndex: %v", rf.me, rf.role, rf.nextIndex, rf.matchIndex)
 
+	shouldPersist := false
+	defer func() {
+		if shouldPersist {
+			rf.persist()
+		}
+	}()
+
 	if rf.updateCurrentTerm(reply.Term) {
+		shouldPersist = true
 		rf.revertToFollower()
 		return false
 	}
@@ -947,7 +1022,17 @@ func (rf *Raft) handleRequestVoteReply(
 	rf.mu.Lock()
 	defer rf.mu.Unlock()
 
+	shouldPersist := false
+	defer func() {
+		if shouldPersist {
+			rf.persist()
+		}
+	}()
+
+	logger.PrintfLn(LogDebug, "[%v%v] Recv from %v %v", rf.me, rf.role, server, reply)
+
 	if rf.updateCurrentTerm(reply.Term) {
+		shouldPersist = true
 		rf.revertToFollower()
 		return
 	}
