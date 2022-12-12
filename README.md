@@ -9,7 +9,6 @@ mathematically nor grammatically.
 - MIT 6.824: Distributed Systems, Robert Morris (lecturer) et al., 2020, in Golang
 
 ## Read (in temporal order):
-
 - Introduction to Algorithms, Thomas H. Cormen et al., 3rd Edition, in Typescript
 - Types and Programming Languages, Benjamin C. Pierce, in Haskell
 - Automata and Computability, Dexter C. Kozen

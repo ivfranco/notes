@@ -145,7 +145,7 @@ where
     term:   a termination condition
     res:    a sequence of results
     A:      a process name
-A response matches an invocation if their object names agree and their process names agree.
+A response matches an invocation if their object names agree and their process names agree
 An event is either an invocation or a response
 A history H is a sequence of events
 complete(H) is the maximum subsequence of H that all invocations has matching responses
@@ -155,7 +155,7 @@ A history H is sequential if
         response, each response is followed immediately by a matching invocation
 A process sub-history H|P is the subsequence of all events in H whose process names are P
 An object sub-history H|x is similarly defined
-A history is well-formed if for all P, H|P is sequential
+A history is well-formed if for all process P, H|P is sequential
 Two histories H and H' are equivalent if
     ∀P, H|P = H'|P
 A sequential specification for an object is a prefix-closed set of single-object sequential
@@ -168,7 +168,7 @@ An operation
 is a pair of matching invocation and the next matching response
 An operation e0 lies within another operation e1 if inv(e1) precedes inv(e0) and res(e0) precedes
 res(e1)
-A history H induces an partial order <_H on operations:
+A history H induces a partial order <_H on operations:
     e0 <_H e1 if res(e0) precedes inv(e1) in H
 if H is sequential, <_H is a total order
 A history H is linearizable if it can be extended (by appending zero or more response events) to

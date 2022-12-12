@@ -7,7 +7,7 @@ but the skeleton code for labs in the 2020 repository doesn't work with the late
 
 Lab code is located at
     ./MIT6.824-2020/labs
-in the same structure of the 2021 repo, however only modified code are committed.
+in the same structure of the 2021 repo, however only modified files are committed.
     
 Golang notes
 References:
@@ -564,7 +564,7 @@ question:
 type Unit struct{}
 
 var a string
-var done Unit
+var done chan Unit
 
 func setup(done chan Unit) {
 	a = "hello, world"          // 1
@@ -886,7 +886,7 @@ ZooKeeper exposes an API similar to a file system:
     data tree   <=> hierarchical file system
     znode       <=> file with hierarchical path
     znode       <=> directory (znode is able to have children and data)
-The major difference is that Zookeeper supports only full read and write.
+The major difference is that ZooKeeper supports only full read and write.
 
 Two types of znode, specified on creation:
     - Regular:
@@ -927,10 +927,14 @@ ZooKeeper client API:
 Each method has both sync (block until propagated to server) and async version. All version check
 may be bypassed with a version number -1.
 
-Update to Zookeeper state is 
-    1.  A-linearizable, a stronger condition than linearizability that allows concurrent requests
-        from a single thread (client).
-    2.  Requests from a single thread is served in FIFO (send by client) order. 
+ZooKeeper order guarantees:
+    1.  A-linearizable writes, a stronger condition than linearizability that allows concurrent
+        requests from a single thread (client), but only for write-like operations
+    2.  Write requests from a single thread is served in FIFO (send by client) order
+    3.  Read requests from a single thread is each associated with a logical time stamp on writes
+        (zxid), which obeys the same FIFO order as read requests are issued, i.e. server state
+        perceivable to a client cannot go back in time, even across multiple sessions (server
+        switches)
  
 Example scenario: leader update configs
     - other processes may access the configs when leader is updating them
@@ -949,7 +953,7 @@ Example scenario: leader update configs
         solution: process B calls sync then read, all pending write (wrt. a real timer?) must be
         resolved before read
 
-Zookeeper availability guarantees:
+ZooKeeper availability guarantees:
     1.  The service is available is a majority of replicas are alive and reachable
     2.  If the service responses successfully, the change persists after any number of failures as
         long as a quorum (majority?) of servers eventually recover
@@ -1064,10 +1068,72 @@ Typical write request latency of ZooKeeper is 1-2ms.
 ---NOTE END---
 question: Why isn't possible for two clients to acquire the same lock?
     Sequential znode creation enforces a strict total order on acquire attempts, let p and q be two
-    processes trying to acquire the lock, n and m be the corresponding znodes they created at step
-    1, either n < m or n > m, w/o loss of generality assume n < m, by step 2-6 m cannot enter
-    critical section until n is deleted (unlocked). Order of events is well-defined as implied by 
-    linearizability.
+    processes trying to acquire the lock, p_n and q_n be the corresponding znodes they created at
+    step 1, either p_n < q_n or p_n > q_n, w/o loss of generality assume p_n < q_n, by step 2-6 q
+    cannot enter critical section until p_n is deleted (unlocked). Order of events is well-defined
+    as implied by linearizability.
     On client crash or network failure, client ceases to send requests and heartbeats, after session
     timeout server determines that the client has failed then deletes the ephemeral files created by
     it, in this case the lock file created by the client hence unlocks the mutex.
+
+Definition of linearizability in the lectures relies on global real time, which is not present in
+the original definition by Herlihy (1990). The original definition only requires sequential order
+per process, a condition stronger than a thread-local real time.
+
+Typical non-linearizable configuration:
+    - clients perceive two different writes in different order, assume 
+            (unordered) Wx1 Wx2
+            C1: Rx1 Rx2
+            C2: Rx2 Rx1
+        assume w/o loss of generality in an total order H, Wx1 <_H Wx2, by H|C2:
+            Wx1 <_H Rx1 <_H Wx2
+            Rx2 <_H Rx1 <_H Wx2
+        Rx2 doesn't have a corresponding write, non-linearizable
+    - clients perceive stale write, let x-axis be the real time: 
+            S1: Wx1
+            S2:     Wx2
+            C1:         Rx1
+        because of the extra global real time, Rx1 is not immediately preceded by a corresponding
+        write, non-linearizable
+
+Linearizability implies that a distributed system has to determine whether retransmission is or is
+not transparent to the clients, for instance:
+    C1: |--Wx1--| |--Wx2--|
+    C2:     |------Rx?- (reply lost) |--Rx?--] (retransmission)
+if retransmission is transparent to clients, history of C2 is 
+    C2:     |------Rx?-----------------------]
+both Rx1 and Rx2 are possible and legal replies according to linearizability, if retransmission is
+not transparent to clients:
+    C2:     |------Rx?-              |--Rx2--]
+the only legal reply is Rx2 according to the global time order.
+One viable solution is for servers to record replies to client responses then replay the reply on
+duplicate (per sequence number) request.
+
+Interesting aspects of ZooKeeper:
+    - API of a stand-alone general purpose coordination service
+    - how does the performance of replicated service scale
+
+ZAB, the single-leader consensus protocol deployed by ZooKeeper servers, has similar performance
+characteristics to Raft that, adding more server _worsen_ the performance of updates as the leader
+has to wait on more peers.
+
+Read requests may be served locally by a follower, but a follower in a Raft-like system is not
+guaranteed to be up-to-date. Linearizability forbids this approach. ZooKeeper allows clients to read
+stale data, read performance is scalable at the sacrifice of linearizability.
+
+Analysis of ZooKeeper atomic config update example in the paper, on two config files:
+Operations performed by the leader on config update:
+    1.  delete(ready)
+    2.  update config 1
+    3.  update config 2
+    4.  create(ready)
+Operations performed by a follower attempting to read the config:
+    1.  while exist(ready, watch = true) == false
+            wait on event
+    2.  read config 1
+    3.  read config 2
+    4.  if at any point between 1 and the return of 3 the event triggered, goto 1
+Watch notification is guaranteed to be delivered before the state change is perceivable to the
+clients, in this particular scenario if the reader is not informed of the deletion of ready, step 1
+ensures that reads are atomic in general (by monotonicity of perceivable state) and step 4 ensures
+that reads are atomic during the operation (by notification timing).
