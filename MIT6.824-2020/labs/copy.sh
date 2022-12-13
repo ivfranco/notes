@@ -6,11 +6,11 @@ echo "copying to $NOTE_DIR"
 
 files=(
     "copy.sh"
-
+    # lab 1
     "src/mr/coordinator.go"
     "src/mr/rpc.go"
     "src/mr/worker.go"
-
+    # lab 2
     "src/mrapps/grep.go"
     "src/raft/raft.go"
     "src/raft/test.sh"

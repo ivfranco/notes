@@ -18,8 +18,6 @@ package raft
 //
 
 import (
-	//	"bytes"
-
 	"bytes"
 	"fmt"
 	"log"
@@ -32,15 +30,15 @@ import (
 	"sync/atomic"
 	"time"
 
-	//	"6.824/labgob"
 	"6.824/labgob"
 	"6.824/labrpc"
 )
 
 const (
-	HEARTBEAT_INTERVAL   time.Duration = time.Millisecond * 200
-	MIN_ELECTION_TIMEOUT time.Duration = time.Millisecond * 500
-	MAX_ELECTION_TIMEOUT time.Duration = time.Millisecond * 1000
+	SLOW_MOTION          time.Duration = time.Millisecond * 3
+	HEARTBEAT_INTERVAL   time.Duration = SLOW_MOTION * 50
+	MIN_ELECTION_TIMEOUT time.Duration = SLOW_MOTION * 150
+	MAX_ELECTION_TIMEOUT time.Duration = SLOW_MOTION * 300
 
 	// Valid server id starts from 0
 	NOBODY int = -1
@@ -368,6 +366,12 @@ type Raft struct {
 	// Look at the paper's Figure 2 for a description of what
 	// state a Raft server must maintain.
 
+	// const fields, initialized once on startup, should not be reassigned
+	applyCh    chan ApplyMsg // Channel for commands and snapshots
+	applyCond  *sync.Cond    // Conditional variable guarding the command applier
+	looperMu   []*sync.Mutex // Lock to protect shared access to AppendEntries loopers
+	looperCond []*sync.Cond  // Conditional variables guarding AppendEntries loopers
+
 	// Non-volatile, persist on modification
 	logs        Logs
 	currentTerm int
@@ -375,7 +379,6 @@ type Raft struct {
 
 	// Volatile
 	role        Role
-	applyCh     chan ApplyMsg
 	commitIndex int
 	lastApplied int
 	ctx         *Context
@@ -574,23 +577,47 @@ func (rf *Raft) leaderUpdateCommitted() {
 	}
 }
 
+func (rf *Raft) shouldCommit() bool {
+	return rf.lastApplied < rf.commitIndex
+}
+
 // Thread safety: Unsafe
 func (rf *Raft) applyCommitted() {
-	for rf.commitIndex > rf.lastApplied {
-		index := rf.lastApplied + 1
+	if rf.shouldCommit() {
+		rf.applyCond.Broadcast()
+	}
+}
 
-		if rf.logs.isLive(index) {
-			entry := rf.logs.get(index)
-			msg := ApplyMsg{
-				CommandValid: true,
-				Command:      entry.Command,
-				CommandIndex: index,
-			}
-			logger.PrintfLn(LogInfo, "[%v%v] Apply command %v", rf.me, rf.role, index)
-			rf.applyCh <- msg
+func (rf *Raft) applier() {
+	for !rf.killed() {
+		rf.mu.Lock()
+
+		for !rf.shouldCommit() {
+			rf.applyCond.Wait()
 		}
 
+		index := rf.lastApplied + 1
+		if !rf.logs.isLive(index) {
+			rf.lastApplied = index
+			rf.mu.Unlock()
+			continue
+		}
+		entry := rf.logs.get(index)
+
+		rf.mu.Unlock()
+
+		msg := ApplyMsg{
+			CommandValid: true,
+			Command:      entry.Command,
+			CommandIndex: index,
+		}
+
+		rf.applyCh <- msg
+
+		rf.mu.Lock()
+		logger.PrintfLn(LogInfo, "[%v%v] Applied command %v", rf.me, rf.role, index)
 		rf.lastApplied = index
+		rf.mu.Unlock()
 	}
 }
 
@@ -1081,12 +1108,14 @@ func Make(
 	rf.me = me
 
 	// Your initialization code here (2A, 2B, 2C).
+	rf.applyCh = applyCh
+	rf.applyCond = sync.NewCond(&rf.mu)
+
 	rf.logs = MakeLogs()
 	rf.currentTerm = 0
 	rf.votedFor = NOBODY
 
 	rf.role = Follower
-	rf.applyCh = applyCh
 	rf.commitIndex = 0
 	rf.lastApplied = 0
 	rf.ctx = NewCancellable()
@@ -1099,6 +1128,7 @@ func Make(
 
 	// start ticker goroutine to start elections
 	go rf.electionTimeout(rf.ctx)
+	go rf.applier()
 
 	return rf
 }
