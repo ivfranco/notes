@@ -367,25 +367,23 @@ type Raft struct {
 	// state a Raft server must maintain.
 
 	// const fields, initialized once on startup, should not be reassigned
-	applyCh    chan ApplyMsg // Channel for commands and snapshots
-	applyCond  *sync.Cond    // Conditional variable guarding the command applier
-	looperMu   []*sync.Mutex // Lock to protect shared access to AppendEntries loopers
-	looperCond []*sync.Cond  // Conditional variables guarding AppendEntries loopers
+	applyCh   chan ApplyMsg // Channel for commands and snapshots
+	applyCond *sync.Cond    // Conditional variable guarding the command applier
 
 	// Non-volatile, persist on modification
-	logs        Logs
-	currentTerm int
-	votedFor    int
+	logs        Logs // Logs and snapshot of the Raft server
+	currentTerm int  // Highest term perceived by this Raft server
+	votedFor    int  // To which peer this server granted vote during this election
 
 	// Volatile
-	role        Role
-	commitIndex int
-	lastApplied int
-	ctx         *Context
+	role        Role     // One of Leader, Candidate and Follower
+	commitIndex int      // Index of highest log entry known to be committed
+	lastApplied int      // Index of highest log entry applied to state machine
+	ctx         *Context // Cancellable context controlling the current timeout
 
 	// Volatile, Leader only
-	nextIndex  []int
-	matchIndex []int
+	nextIndex  []int // For each server, index of the next log entry to send to that server
+	matchIndex []int // For each server, index of highest log entry known to be replicated on server
 }
 
 // return currentTerm and whether this server
@@ -694,10 +692,11 @@ func (rf *Raft) startElection() {
 // field names must start with capital letters!
 type RequestVoteArgs struct {
 	// Your data here (2A, 2B).
-	Term         int
-	CandidateId  int
-	LastLogIndex int
-	LastLogTerm  int
+	Term         int // candidate’s term
+	CandidateId  int // candidate requesting vote
+	LastLogIndex int // index of candidate’s last log entry
+	LastLogTerm  int // term of candidate’s last log entry
+
 }
 
 func (args *RequestVoteArgs) String() string {
@@ -708,8 +707,8 @@ func (args *RequestVoteArgs) String() string {
 // field names must start with capital letters!
 type RequestVoteReply struct {
 	// Your data here (2A).
-	Term        int
-	VoteGranted bool
+	Term        int  // currentTerm, for candidate to update itself
+	VoteGranted bool // true means candidate received vote
 }
 
 func (reply *RequestVoteReply) String() string {
@@ -792,12 +791,12 @@ func (rf *Raft) sendRequestVote(server int, args *RequestVoteArgs, reply *Reques
 }
 
 type AppendEntriesArgs struct {
-	Term         int
-	LeaderId     int
-	PrevLogIndex int
-	PrevLogTerm  int
-	Entries      []LogEntry
-	LeaderCommit int
+	Term         int        // leader’s term
+	LeaderId     int        // so follower can redirect clients, un-used in lab 2
+	PrevLogIndex int        // index of log entry immediately preceding new ones
+	PrevLogTerm  int        // term of prevLogIndex entry
+	Entries      []LogEntry // log entries to store
+	LeaderCommit int        // leader’s commitIndex
 }
 
 func (args *AppendEntriesArgs) String() string {
@@ -809,11 +808,11 @@ func (args *AppendEntriesArgs) lastIndex() int {
 }
 
 type AppendEntriesReply struct {
-	Term    int
-	Success bool
-	XTerm   int
-	XIndex  int
-	XLen    int
+	Term    int  // currentTerm, for leader to update itself
+	Success bool // true if follower contained entry matching
+	XTerm   int  // first term containing conflicting entries
+	XIndex  int  // index to first entry in XTerm
+	XLen    int  // length of logs, 1 + last index
 }
 
 func (reply *AppendEntriesReply) String() string {
