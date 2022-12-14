@@ -908,19 +908,23 @@ Session is duplex:
 Session can be transparently moved from one server to another.
 
 ZooKeeper client API:
-    - create(path, data, flags)
+// https://zookeeper.apache.org/doc/r3.4.6/api/org/apache/zookeeper/ZooKeeper.html
+    - create(path, data, flags) -> String | Error
         create a znode with content data[] at path
+        return path if znode is created by the request, return error if znode already exists
     - delete(path, version)
         delete the file at path if the version number matches
-    - exists(path, watch)
+    - exists(path, watch) -> Stat | null
         test whether a znode at path exists, if watch flag is set subscribe to one-time
         state change notification on the file, including znode creation
-    - getData(path, watch)
+        return stats of the znode or null if no such znode exists
+    - getData(path, watch) -> byte[]
         return data and metadata of the znode at path, watch flag will be ignored if the
         znode doesn't exist
-    - setData(path, data, version)
+    - setData(path, data, version) -> Stat
         overwrite content of znode at path with data[] if the version number matches
-    - getChildren(path, watch)
+        return the stats of the znode
+    - getChildren(path, watch) -> List<String>
         return children of znode at path
     - sync(path /* ignored */)
         wait until all pending operation (before calling sync) is propagated to server
@@ -1382,3 +1386,29 @@ question: Explain how this could lead to violations of linearizability
         3.  C disconnects, connects with N2 instead
         4.  V1 haven't be propagated to N2 yet, C reads an earlier value V1
     the state perceivable to C went backwards in time, non-linearizable
+
+A distributed counter, implemented on ZooKeeper:
+    loop {
+        x, v = getData("cnt")
+        if setData("cnt", x + 1, v) {
+            break
+        }
+    }
+Short coming: Ω(N^2) complexity with N contending clients
+possible solution: 
+    - randomized exponential backoff (similar to Raft election timeout)
+    - mutex without herd effect as described in ZooKeeper paper 
+
+ZooKeeper mutex doesn't provide atomicity over multiple znodes, it's still possible for a client to
+crash in the middle of editing one of the files, the next client will see garbage data with or
+without locking.
+
+Advantage of CQ over Raft:
+    - straightforward fail patterns: 
+        update flows linearly through all nodes, a failed node may be easily recovered or replaced
+    - better read / write throughput: 
+        head node replicates update to a single other node instead of all of them, head node is
+        capable to handle multiple ongoing writes, read and write are handled by different nodes
+Disadvantage of CQ compared to Raft:
+    - CQ by itself doesn't prevent split brain, relies on another coordination service
+    - every single lagging replica slows down the entire system
