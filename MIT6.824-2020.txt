@@ -1,5 +1,5 @@
 Lecture notes will be taken from a video playlist of 2020 MIT 6.824 lectures, which are public, has
-good audo quality and nicely segmented:
+good audio quality and nicely segmented:
     https://www.youtube.com/watch?v=cQP8WApzIQQ&list=PLrw6a1wE39_tb2fErI4-WkMbsvGQk9_UB
 but the skeleton code for labs in the 2020 repository doesn't work with the latest version of Golang
 (1.19), the 2021 repository is used instead:
@@ -1102,8 +1102,8 @@ not transparent to the clients, for instance:
     C2:     |------Rx?- (reply lost) |--Rx?--] (retransmission)
 if retransmission is transparent to clients, history of C2 is 
     C2:     |------Rx?-----------------------]
-both Rx1 and Rx2 are possible and legal replies according to linearizability, if retransmission is
-not transparent to clients:
+both Rx1 and Rx2 are possible and legal replies according to linearizability. 
+If retransmission is not transparent to clients:
     C2:     |------Rx?-              |--Rx2--]
 the only legal reply is Rx2 according to the global time order.
 One viable solution is for servers to record replies to client responses then replay the reply on
@@ -1137,3 +1137,248 @@ Watch notification is guaranteed to be delivered before the state change is perc
 clients, in this particular scenario if the reader is not informed of the deletion of ready, step 1
 ensures that reads are atomic in general (by monotonicity of perceivable state) and step 4 ensures
 that reads are atomic during the operation (by notification timing).
+
+Lecture 9. More Replication, CRAQ
+paper: Object Storage on CRAQ
+---NOTE START---
+CRAQ (Chain Repllication with Apportioned Queries): distributed chain replication object storage
+system providing strong consistency and scalable read throughput at the same time 
+    - chain replication: 
+        chain head handles writes, chain tail handles reads, writes are propagated down the chain
+    - object storage: 
+        key-value storage with flat namespace, whole-object modifications, possibly no consistency
+        guarantees across multiple objects 
+    - apportioned queries: 
+        read operations in the chain replication system are handled by all nodes
+
+Contributions of this paper:
+    - scalable read operations on CR (chain replication) without sacrificing strong consistency  
+    - lower-latency eventually consistent read mode, clients may specify the maximum staleness they
+        are willing to tolerate 
+    - a system design for building CRAQ across geo-diverse clusters that preserve strong locality,
+        on top of ZooKeeper
+    - possible extensions to CRAQ, including atomic multi-object updates and the use of multicast to
+        improve write performance
+
+Interface of a typical object storage:
+    - write(objID, V)
+        stores the value V associated with object identifier objID 
+    - V <- read(objID)
+        retrieves the value V associated with object id objID
+
+Consistency models in CRAQ:
+    - strong consistency:
+        read and write to a single object is are executed in the same sequential order on all nodes
+        (linearizability?), read always sees up-to-date value
+    - eventual consistency (with or without maximum-bounded staleness):
+        writes are executed in the same sequential order on all nodes, reads may return stale data,
+        state perceivable to clients are monotonic among a single session but not across sessions
+
+Characteristics of CR:
+    - strong read / write consistency
+    - head node handles all writes, writes are propagated down the chain, a write arrived at the
+        tail node is committed, acknowledgement of write of commit is propagated in reverse
+        direction, from tail to head, then finally to the client as a reply to the write operation
+    - tail node handles all reads, returns only committed values
+        natural strong consistency
+    - multiple concurrent writes can be pipelined down the chain, write performance is competitive
+        or superior to primary / backup replication
+
+Characteristics of CRAQ:
+    - read may be handled by any node in the chain, not just the tail
+    - a node in CRAQ stores multiple versions of an object, each tagged by a monotonically
+        increasing version number and a binary flag "clean" or "dirty", all versions start as clean
+    - when a node receives a new version of an object,
+        1.  the node appends this latest version to the list of versions for the object
+        2.  if node is not the tail, marks the version as dirty, propagates the write to successor
+        3.  if node is tail, marks the now committed version as clean, propagate acknowledgement
+            backwards up the chain
+    - when a node receives an acknowledgement, 
+        1.  mark the object version as clean, (allowed to) delete all previous versions
+        2.  propagate the acknowledgement to predecessor 
+    - when a node receives a read request to an object,
+        1.  if the latest known version of the object is clean, return its value
+        2.  if not, ask tail's last committed version number of the object, return that version of
+            the object, which must be there based on how writes are committed
+
+CRAQ read throughput is higher than CR in:
+    - Read-heavy workloads:
+        most reads are clean, scales linearly with number of servers
+    - Write-heavy workloads:
+        version queries are lighter-weight than full read operation, tail is less of a bottleneck,
+        additionally the system could forbid reads on tail node when the chain is long enough
+
+A read operation may be annotated with one of three permissive consistency model:
+    - strong consistency:
+        clean read as describe above
+    - (unbounded) eventual consistency:
+        allows a node to return latest (clean or dirty) version of an object, different nodes may
+        stale to different degrees 
+    - eventual consistency with maximum-bounded inconsistency:
+        return value is allowed to have a maximum inconsistency period, defined over real time or
+        versioning
+
+Each chain node knows its predecessor, successor, head and tail. When the head fails it's successor
+takes over as the new head, when the tail fails it's predecessor takes over as the new tail. CRAQ
+leverages ZooKeeper to keep track of chain membership.
+
+Workload assumptions behind common chain placement strategies:
+    - most of all writes to an object originate in a single datacenter
+    - some objects are only relevant to a subset of datacenters
+    - different objects are accessed in different frequency
+
+A CRAQ configuration consists of multiple chains, object identifier in CRAQ is a two-tuple:
+    (chain identifier, key identifier)
+where hash of chain identifier determines which node in a datacenter stores the chain, key
+identifier is only unique among the chain. Key identifier can grow unbounded. Alternatively
+assignment of chain identifier to chains could be dynamic, managed by some other coordination
+service.
+
+The paper described 3 ways of specifying chain placement:
+    - implicit datacenters & global chain size: { num_datacenters, chain_size }
+        num_datacenters: number of datacenters the nodes of the chain will be distributed to
+        chain_size: length of the chain within a single datacenter
+    - explicit datacenters & global chain size { chain_size, dc_1, dc_2, .., dc_N }:
+        dc1, .., dcN: a sequence of datacenters in the chain, last node in dc_{k} is predecessor of
+            first node in dc_{k+1}, dc1 stores the head, dcN stores the tail
+        chain_size: same as above, if chain_size == 0 all nodes in a datacenter is included
+    - explicit datacenter chain sizes { dc_1, chain_size_1, .., dc_N, chain_size_N }
+        same as above except chain size is specified separately
+
+When using explicit datacenters configs, dc_1 may be appointed as the master datacenter: write to
+the chain will be rejected if all nodes in dc_1 is unreachable. Otherwise some node in dc_2 could
+become the new head when dc_1 is disconnected and so on. Writes are only served in a partition if a
+majority of nodes is in it, read would still be served up to maximum-bounded inconsistent period as
+aforementioned.
+
+Explicit datacenter configs improves write latency by ensuring that write operations cross
+datacenter boundaries exactly twice: once as new version to an object, another as acknowledgement.
+Despite that, when enough datacenters are added to the chain, write latency are still significantly
+higher than primary / replica systems.
+
+CRAQ uses ZooKeeper to track membership changes and chain metadata. Since ZooKeeper is not designed
+for multi-datacenter situation, the example deployment of CRAQ puts in extra effort to make sure
+chain nodes in each datacenter are connected to local ZooKeeper nodes.
+
+Extended API of CRAQ on top of typical object storage:
+    - prepend / append:
+        adds data to start or end of an object's current value
+        head applies the modification to the (maybe dirty) latest version, then propagates a full
+        write to successor
+    - increment / decrement:
+        adds or subtracts to an object, interpreted as an integer
+        implementation similar to prepend / append
+    - test-and-set:
+        update an object iff its version number equals the input
+        head node checks if most recent committed version number matches the input and there's no
+        uncommitted versions, if not rejects the request without any further chain action
+
+Multi-object atomic update ("mini-transition") typically could be implemented as a two-phase commit
+operation (one pass locks the objects, the second pass commits the update), in single-chain CRAQ the
+two passes could be fused into one as head is the only node handling write requests thus is able to
+lock all objects.  Even in multi-chain CRAQ only head nodes are involved in such an operation.
+
+Write could be broadcasted to all nodes in a chain in help of a multicast network protocol, then
+instead of the whole value only the metadata (objId and version?) needs to be propagated down the
+chain. If a node didn't receive the multicast, it should block the acknowledgement until it acquired
+the value in other means, e.g. from its predecessor.
+The paper also suggests to broadcast acknowledgement through the same multicast protocol, author
+didn't explain why this is safe.
+
+ZooKeeper znode hierarchy of CRAQ:
+    - /nodes/dc_name
+        one unique name for each datacenter, nodes in a datacenter subscribe to changes to its
+        children 
+    - /nodes/dc_name/node_id
+        each node creates an ephemeral znode with unique identifier under their designated
+        datacenter on initialization 
+        contains IP address and CRAQ port numbers
+    - /nodes/chain_id
+        one unique identifier for each chain, nodes in a chain subscribe to changes to its metadata
+        contains chain config but no membership data
+Based on the assumptions:
+    - number of chains is at least an order of magnitude higher than the number of datacenters
+    - chain membership is much more dynamic than datacenter membership
+Alternatively node membership could be organized under chain_id if deployment deviates from the
+above assumptions.
+
+Nodes within a datacenter form a one-hop DHT (distributed hash table, a peer-to-peer protocol
+utilized by e.g. bittorrent), CRAQ successor and predecessor are defined in terms of the DHT ring.
+Chain membership is tracked by this peer-to-peer protocol, not ZooKeeper. 
+
+Nodes opens a pool of TCP connections with each of its predecessor, successor and tail, RPC messages
+are pipelined and round-robin-ed across these connections.
+
+Furthermore first and last node in a datacenter watches node membership of the other datacenter they
+are connected to.
+
+A second form of write propagation, the back propagation, is triggered on membership change or node
+failure. When a new node joins the chain at the middle it may receive write propagation from both
+direction for a period. Both forward and back write propagation could send full history of an object
+(both clean and dirty versions) during recovery of a predecessor / successor.
+More precisely, let
+    L_C:    configured, fixed length of chain C
+    N:      an existing node in chain C
+On addition of a node A to the chain C:
+    - if A is N's successor:
+        1.  N propagates full history of all objects in C to A
+        2.  if A has been in the chain before, instead of the entire object store only the
+            difference is calculated and communicated by a un-specified reconciliation algorithm
+    - if A is N's predecessor:
+        1.  if N was not the head, N back propagates full history of all objects in C to A
+            (what happens when A is inserted as the new head?)
+        2.  A take over as the tail if N is the previous tail
+        3.  N becomes the tail if N's successor is previously the tail
+        4.  A take over as the head if N is the previous head
+    - if A is within L_C predecessors of N:
+        1.  if N was the tail, N retires from tail duties, mark its data in chain C as removable
+        2.  if N's successor is the tail, N assumes tail duties
+On deletion of a node D:
+    - if D was N's successor:
+        1.  N reconciles with its new successor, as D could be in the process of propagating a write
+            down the chain
+    - if D was N's predecessor:
+        1.  N reconciles with its new predecessor, as D could be in the process of propagating an
+            acknowledgement up the chain
+        2.  if D was the head, N assumes head duties
+        3.  if N was the tail, retires from tail duties, propagate full history of all notes to N's
+            new successor
+    - if D was within L_C predecessors of N
+        1.  if N was the tail, retires from tail duties, propagate full history of all notes to N's
+            new successor
+(again, presented without any prove of correctness)
+
+Performance of CRAQ:
+    - throughput:
+        - 500-byte read throughput scales linearly with number of nodes, ~100k read ops/s on CRAQ-5
+            (7-node CRAQ)
+        - 500-byte write throughput decreased gradually as chain length increased, ~5k ops/s on
+            CRAQ-5 
+        - 4-byte test-and-set throughput linear to the reciprocal of chain length, as one
+            test-and-set operation blocks the entire chain, ~400 ops/s on CRAQ-5
+        - read throughput decreases gradually in response to more concurrent write operations, still
+            more performant than CR as the tail node in CRAQ handles thinner version queries
+        - read from non-tail node approaches 100% dirty as concurrent writes increases 
+    - latency:
+        - dirty read has higher latency than clean read (obvious)
+        - write latency linear to chain size
+        - both read and write latency are negatively impacted by heavy load and object size
+        - when tail is in a remote datacenter, dirty read latency is dominated by RTT across
+            datacenters 
+    - failure recovery:
+        - affect of node failure on read throughput is 1/C, where C is the chain length
+        - node failure slightly increases read latency as read has to be retried
+        - write cannot be committed until a new node is assigned to the chain, the major drawback of
+            CRAQ in comparison to a consensus protocol like Raft
+---NOTE END---
+
+question: Explain how this could lead to violations of linearizability
+    let 
+        N1 and N2 be two nodes in CRAQ chain, N2 is further down the chain than N1
+        C be a client
+    in the scenario below:
+        1.  C connects to N1
+        2.  C reads a dirty value V2
+        3.  C disconnects, connects with N2 instead
+        4.  V1 haven't be propagated to N2 yet, C reads an earlier value V1
+    the state perceivable to C went backwards in time, non-linearizable
