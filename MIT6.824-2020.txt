@@ -788,9 +788,9 @@ behind the Leader or a new server joins the cluster, in which case Leader has to
 committed snapshot to Followers. The snapshot should be labelled with last included index and term
 to support up-to-date check in AppendEntries RPC.
 
-InstallSnapshot may be triggered when
-    - nextIndex for a Follower is reduced to a log index that has already be compacted on Leader
-    - Leader the have to send InstallSnapshot instead of AppendEntries to the Follower
+InstallSnapshot may be triggered when nextIndex for a Follower is reduced to a log index that has
+already be compacted on Leader. Leader then have to send InstallSnapshot instead of AppendEntries to
+the Follower.
 
 Clients start with a randomly picked Raft peer, then redirected from a Follower to the last recorded
 Leader. If Leader crashes, clients will try again with randomly picked servers. The exact RPC
@@ -840,8 +840,8 @@ information has to be persisted for Raft to function correctly after a crash:
 New value of these states should be persisted before the change is externally visible, to clients or
 peers through RPCs.  
 
-Storing even a small piece of data to a mechanical disk is expansive, a slow persistent storage will
-the main bottleneck of Raft system.
+Storing even a small piece of data to a mechanical disk is expansive, a slow persistent storage
+would be the main bottleneck of Raft system.
 
 Followers should (have to) ignore InstallSnapshot if Leader snapshot is a prefix of a locally
 compacted snapshot.
