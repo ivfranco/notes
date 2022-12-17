@@ -1412,3 +1412,90 @@ Advantage of CQ over Raft:
 Disadvantage of CQ compared to Raft:
     - CQ by itself doesn't prevent split brain, relies on another coordination service
     - every single lagging replica slows down the entire system
+
+Lecture 10. Cloud Replicated DB, Aurora
+paper: Amazon Aurora: Design Considerations for High Throughput Cloud-Native Relational Databases
+---NOTE START---
+Amazon Aurora: high throughput DB for OLTP workloads with a focus on network capacity
+    DB: 
+        not an object store, supports SQL (presumably not the entirety of SQL)
+    OLTP: 
+        OnLine Transaction Processing, non-blocking, atomic change of state across multiple objects
+        / database records
+    focus on network capacity:
+        author believes that network capacity, not computing nor storage, will be the main
+        bottleneck for distributed systems, indeed IO in e.g. a sharded object store is spread
+        across multiple physical devices, in contrary almost all replication schemes amplifies
+        network stress
+
+Issues of traditional replicated RDBMS:
+    - network stress
+    - cache miss blocks reading thread during slow disk operation
+    - multi-phase transaction protocols (e.g. 2PC) are high latency and intolerant to failures 
+Advantages of Aurora over traditional RDBMS:
+    - storage is an independent fault-tolerant and self-healing geo-diverse service, treats
+        failure in durability (physical failures), availability and performance variation uniformly 
+    - network IOPs are reduced by an order of magnitude by only writing redo log records to storage 
+    - move expansive functions (backup, redo recovery) from database engine to continuous async
+        operations distributed to a cluster
+
+Contributions of this paper:
+    - distributed storage system tolerant to correlated physical failure 
+    - offload traditional low level functions of a database to a distributed storage
+    - eliminate blocking operations in RDBMS (2PC, crash recovery, checkpointing)
+
+Two quorum rules in Aurora:
+    let 
+        V:      number of replicas in the cluster 
+        V_r:    quorum required for read operations
+        V_w:    quorum required for write operations
+    1.  V_r + V_w > V
+        read overlaps with most recent write, read is up-to-date
+    2.  V_w > V / 2
+        each write overlaps with the last write, same as Raft
+A common assignment of V = 3, V_w = V_r = 2 is inadequate: replicated system should be tolerant to a
+major failure on a replica and constant "background noise" failures among other replicas, a 2/3
+quorum would frequently be unavailable in that scenario. The recommended quorum assignment by the
+paper is V = 6, V_w = 4, V_r = 3.
+
+AZ (Availability Zone): a subset of replicas loosely connected with other replicas with low latency
+links but otherwise isolated for most physical faults (power, intra-AZ networking, software
+deployments, flooding etc.). Replication target of Aurora is
+    1.  losing an entire AZ and one additional node (AZ+1) doesn't cause data loss
+    2.  losing an entire AZ doesn't cause write unavailability
+The (6, 4, 3) model mentioned above with 2 replicas in each AZ satisfies both requirements.
+
+"AZ+1" quorum is sufficient iff MTTF (Mean Time to Failure) of a uncorrelated double fault is
+sufficiently lower than the MTTR (Mean Time to Repair) of a single node. MTTF of uncorrelated faults
+is hard to reduce after a certain point, instead Amazon focused on reducing MTTR.
+
+Hierarchy of a typical deployment:
+    volume:                     up to 64TB, divided to PGs 10GB in size each
+    PG (Protection Groups):     replicated 6-way to 3 AZs
+    AZ:                         two replicated 10GB segments in each AZ
+    segment:                    stored on separate Amazon EC2 VM
+A 10GB segment can be repaired in 10 seconds over a 10GB link. A failure beyond the capacity of AZ+1
+quorum is at least fault of 1 entire AZ and 2 node in the same 10s MTTR.
+
+Aurora treats all unavailability as a fault, including disk overheating, OS patch and software
+upgrades (which is executed on different timing in different AZ).
+
+A traditional RDBMS on write request has to write to:
+    - transaction replay log
+    - SQL statement binary log  
+    - the actual data page 
+    - a second temporary data page, in case of write failure
+    - DB metadata
+These writes are fully and sequentially replicated from primary to replicas, then storage of primary
+and replicas, then mirrors of storages, multiple links in the chain are sync so the latency is
+additive. Quorum of a traditional replicated RDBMS is the total number of replicas, means outliers
+severely impact the overall performance.
+
+In Aurora, the only write replicated are redo log records and metadata. DB tier of Aurora doesn't
+write pages: not for background bookkeeping, not for checkpoints, not for cache miss, instead a
+dedicated log applier in storage tier generates DB pages on background or on demand. In fact in
+perspective of the engine, the log is the DB and the materialized DB pages are merely a cache.
+
+In one of their test (Table 1) Aurora is able to sustain 35x more transactions than mirrored MySQL,
+each transaction caused 7.7x fewer IOs.
+
