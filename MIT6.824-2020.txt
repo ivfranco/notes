@@ -84,6 +84,13 @@ Golang slices are views to arrays with subtle copy-on-append behavior:
     fmt.Println("a=", a, "c=", c)   // a=[1 2 5 7] c=[5 4 6]
     fmt.Println("cap(c)=", cap(c))  // cap(c)=4, capacity grows to power of 2
 
+Golang can correctly infer unreachable memory behind a slice, the program below doesn't OOM:
+    s := make([]int, 0)
+    for {
+        s = append(s, 1)
+        s = s[1:]
+    }
+
 Lecture 1. Introduction
 Topics of distributed systems:
     - Scalability: 
@@ -1486,16 +1493,103 @@ A traditional RDBMS on write request has to write to:
     - the actual data page 
     - a second temporary data page, in case of write failure
     - DB metadata
-These writes are fully and sequentially replicated from primary to replicas, then storage of primary
-and replicas, then mirrors of storages, multiple links in the chain are sync so the latency is
-additive. Quorum of a traditional replicated RDBMS is the total number of replicas, means outliers
-severely impact the overall performance.
+These writes are fully and sequentially replicated from 
+    - primary   -> replicas
+    - DBs       -> storages
+    - storages  -> mirrors
+multiple links in the chain are sync so the latency is additive. Quorum of a traditional replicated
+RDBMS is the total number of replicas, means outliers severely impact the overall performance.
 
-In Aurora, the only write replicated are redo log records and metadata. DB tier of Aurora doesn't
-write pages: not for background bookkeeping, not for checkpoints, not for cache miss, instead a
-dedicated log applier in storage tier generates DB pages on background or on demand. In fact in
-perspective of the engine, the log is the DB and the materialized DB pages are merely a cache.
+In Aurora, the only write replicated are redo log records and metadata from 
+    - primary   -> replicas 
+    - primary   -> a quorum of storages
+    - storages  -> mirrors
+DB tier of Aurora doesn't write pages: not for background bookkeeping, not for checkpoints, not for
+cache miss, instead a dedicated log applier in storage tier generates DB pages on background or on
+demand. In fact in perspective of the engine, the log is the DB and the materialized DB pages are
+merely a cache.
+
+As a result DB on startup / crash recovery no longer have to replay logs from a previous checkpoint. 
 
 In one of their test (Table 1) Aurora is able to sustain 35x more transactions than mirrored MySQL,
 each transaction caused 7.7x fewer IOs.
 
+Life cycle of a log record in the storage layer of Aurora:
+    1.  received, placed in in-memory incoming queue
+    2.  taken out from the queue, persisted on non-volatile update queue
+        (acknowledgement sent to primary)
+    3.  sorted, grouped, placed in hot log list
+    4.  gaps in hot log list filled by gossiping with replicas
+    5.  log records coalesced into new data pages 
+    6.  periodically
+            - stage logs and pages to backup
+            - garbage collect old versions
+            - validate checksum on pages
+Every step is async, only steps 1 - 2 adds latency to the foreground.
+
+Aurora tags each log record with a monotonically increasing LSN (Log Sequence Number). The storage
+service keeps track of:
+    - VCL (Volume Complete LSN): the greatest LSN that all previous log records are available 
+    - CPLs (Consistency Point LSNs): LSN of last log record of MTRs (Mini-TRansactions, composed of
+        continuous log records)
+    - VDL (Volume durable LSN): greatest CPL <= VCL
+During storage recovery the log records are truncated to VDL. Atomicity of MTRs is thus restored by
+the storage service, while atomicity of DB-level transactions are managed by the DB layer.
+
+Write to the storage is throttled by an LAL (LSN Allocation Limit), DB cannot assign LSN to newly
+generated log records greater than LAL + VDL.
+
+Log of each segment of each PG are not necessarily continuous in storage, log records contains a
+backlink to the preceding log record in the same segment. Metadata for each segment contains a SCL
+(Segment Complete LSN) that's used by storage nodes on log exchange.
+
+Transaction commits are completed async: acknowledgement are sent to clients once the latest VDL
+exceeds the commit LSN.
+
+A cache page is evicted from memory iff its page LSN >= VDL (why?). Aurora employs a mechanism
+similar to zxid in ZooKeeper to guarantee consistency of read results.
+
+A storage volume can be shared by a single write replica and 15 read replicas. Reader applies log
+records relative to its cache pages up to VDL. Log records of a MTR is always applied atomically.
+Reader applies log records async to the writer with a ~20ms lag.
+
+After a crash DB contacts with a read quorum of storage replicas for each PG. As V_r + V_w > V, it
+can recalculate the latest VDL before crash. Logs after VDL is truncated, and the truncation
+operations is persisted to the storage in case the DB crashes again during recovery.
+
+Performance of Aurora:
+    - throughput of both read-only and write-only workloads scales linearly to instance size (number
+        of vCPUs and memory), scales way better than MySQL
+    - 34x faster than MySQL with out-of-cache write-only workload on a 1TB database
+    - scales 10x better than MySQL on concurrent connections, up to 5000 users
+        (write-only workload doesn't scale with concurrent users: Aurora is a single writer system)
+    - replica lag behind primary in range of 1 - 10ms, in contrary of 300_000ms with MySQL
+    - 2-15x throughput than MySQL on hot row contention
+    - drastically reduced latency in real applications
+---NOTE END---
+
+question: What runtime state does the database need to maintain?
+    (mentioned in 4.2.3) a read-point, i.e. the VDL at the time the request is issued, in the same
+    manner of zxid in ZooKeeper
+
+Lineup of Amazon services:
+    - EC2: virtual machine for rent
+    - S3: physically detached storage backing EC2, supports periodical / manual snapshot
+        risks data loss between snapshot period
+    - EBS: chain-replicated storage backing EC2, cannot be shared between concurrent EC2 instances
+        storages are physically close to each other, vulnerable to correlated faults
+    - RDS: fully replicated EC2 + EBS on 2 AZs
+        the scheme described by Figure 2 in the paper, write to record of few bytes are amplified to
+        a remote page write of 4KB or more, slow and high latency
+    - Aurora: log replicated quorum system across 3 AZs 
+
+Data pages in Aurora function as a kind of snapshot, storage service stores old pages and a series
+of relevant log records for each page.
+
+PGs ~ shards, logs are only sent to a PG if the operation modifies data in that PG.
+
+When a storage server goes down, each of the segments stored on it is replicated to a separate
+living storage server in parallel, hence PGs may recover from a single failed machine in 10s.
+
+Aurora writer sends log records and transaction-respecting commit index (VDL?) to active readers so
+they can update local cache pages without talking to storage services.
