@@ -1696,7 +1696,7 @@ Assignment of lock groups are adjusted  for load balance, the reassignment happe
     2.  lock servers gaining locks contact clerks holding the locks, recover the state from them
 
 Both the lock servers and the Petal servers can tolerate less than majority failures and network
-partitions.  
+partitions.
 
 Currently this scheme contains a bug: Petal servers doesn't check the up-to-date-ness of Frangipani
 read / write locks, a write request issued before the lease expiration and arrived at a Petal server
@@ -1729,3 +1729,42 @@ Performance of Frangipani:
         also a fsync: lock is acquired and dropped during every write, causing dirty data to be
         write out
 ---NOTE END---
+
+questions: How does Frangipani avoid or cope with this situation?
+    (section 4) each block in Petal is tagged with a monotonically increasing version number, a log
+    record contains the version number of relevant data blocks after the operation, if a log record
+    is already applied the version number of the block would be greater or equal to the version
+    number in the log record, in which case recovery daemon will not apply the log again
+
+Frangipani write log records async to Petal after replying to the client (write-back caching),
+nothing is guaranteed until an explicit fsync() call or the periodical 30s write out.
+
+Petal data blocks are chain replicated to 2 servers.
+
+Challenges Frangipani was facing, as a caching and decentralized file system:
+    - cache coherence
+    - atomicity
+    - crash recovery
+
+There's 4 types of messages in the lock protocol:
+    - Frangipani => lock server: request
+    - lock server => Frangipani: revoke
+    - Frangipani => lock server: release
+    - lock server => Frangipani: grant
+When holding a lock, Frangipani server may be actively accessing the file protected by the lock
+(BUSY), or not really (IDLE). Frangipani releases a lock only on revoke request from the lock
+server, and only when the lock is IDLE. A typical chain of event is:
+    1.  Frangipani server 1 sends request for lock L to lock server
+    2.  lock server sends revoke to the current holder of the lock, Frangipani server 2
+    3.  if lock L is IDLE on Frangipani server 2, Frangipani server 2 
+        1.  writes out logs relevant to L to Petal 
+        2.  writes out dirty blocks protected by L to Petal
+        3.  invalidate local cache
+        4.  sends release to lock server
+    4.  lock server sends grant to Frangipani server 1
+Lock server is oblivious about the file system, locks are accessed by (in perspective of the lock
+server) arbitrary string keys.
+
+How WAL of Frangipani is special:
+    - one log sequence per Frangipani server
+    - logs are stored on Petal server instead of local disk
