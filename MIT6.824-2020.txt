@@ -1593,3 +1593,139 @@ living storage server in parallel, hence PGs may recover from a single failed ma
 
 Aurora writer sends log records and transaction-respecting commit index (VDL?) to active readers so
 they can update local cache pages without talking to storage services.
+
+Lecture 11. Cache Consistency: Frangipani
+paper: Frangipani: A Scalable Distributed File System
+---NOTE START---
+Frangipani: A 2-layer adaptive consistent distributed file system
+    - 2-layer: a distributed storage layer (Petal) and a file system layer (Frangipani)
+    - adaptive: servers can be added to the cluster without changing configs on existing servers
+    - consistent: access to the storage service is protected by locks, tolerates machine, network
+        and disk failures without intervention, backup could be taken on the fly
+
+Frangipani registers itself as a normal file system in Unix Kernel, users access files in Frangipani
+as they would a local file system. Modifications are cached in the kernel's buffer pool only to be
+flushed to Frangipani on fsync() syscall; the metadata however may be guaranteed non-volatile by the
+time write() returns.
+
+Petal behaves just like a local physical drive, any Unix file system may use Petal as the backing
+storage, but only Frangipani (with the help of a lock service) provides coherent access to the data. 
+
+Petal / Frangipani deployment is secure iff:
+    - Petal, Frangipani and the lock service run on trusted systems
+    - they authenticate themselves to one another
+    - network connecting them cannot be eavesdropped
+    - untrusted client accesses the file system by talking to a Frangipani server through separated
+        network 
+
+Petal servers share a 2^64 byte virtual disk address space, used part of which is committed to
+physical disk in 64 KB chunks. Each region stores:
+    - 0-0 TB: config parameters
+    - 1-1 TB: WALs (Write Ahead Logs) of metadata, 4GB for each server, supports 256 servers
+        maximum, user data is not logged
+    - 2-4 TB: allocation bitmaps for the rest of the disk address space, dynamically partitioned to
+        blocks exclusive to each servers
+    - 5-5 TB: inodes, 512 bytes each in size, one-one corresponds to indices in allocation bitmaps,
+        shared read / write access from all servers
+    - 6-133 TB: small data blocks, 4KB each in size
+    - 133- TB: large data blocks, 1TB each in size
+
+The metadata log records are written out to Petal async in the order of requests.  Frangipani can be
+configured to write out log records sync. Metadata is only updated after log is persisted in Petal.
+Logs frequently fill up the allocated space (128KB), each time the oldest 25% of logs are reclaimed
+(and written out to Petal if hasn't).
+
+On failure of a Frangipani server, ownership of it's logs are implicitly (by the lock service?)
+given to the recovery daemon, which will then replay the incomplete portion of the logs on Petal.
+The failed Frangipani server could later be restarted with an empty log.
+
+Each log is tagged with a monotonically increasing sequence number, the last log record is the
+log record with a sequence number greater than the succeeding record.
+
+Correctness of metadata recovery relies on:
+    - the locking protocol serializes updates to the same data: 
+        write lock covering dirty data is only released after the data has been written to Petal, by
+        the original holder or the recovery daemon 
+    - recovery daemon never replays a log describing completed update: 
+        each 512-byte metadata block is tagged with a monotonically increasing version number, each
+        log record contains the new version number, a log is replayed iff the block version number
+        is less than the record version number
+    - at any time only one recovery daemon is trying to replay the logs of a failed server
+Consistency of file data blocks is not guaranteed.
+
+Access to data blocks are protected by a read / write lock:
+    - a read lock allows a server to read the associated data from disk and cache it, the server
+        must invalidate its cache before releasing the read lock
+    - a write lock allows a server to read and write the associated data from disk and cache it, the
+        cache deviates from the data on disk iff the server holding the write lock updated it, the
+        server must write out the dirty data to disk before releasing or downgrading the write lock
+Dirty data is never forwarded from writing server to reading server for simplicity.
+
+There is a read / write lock for each:
+    - log record
+    - segment of bitmap space (no contention on file creation)
+    - data block or inode not currently allocated to a file (shares the same lock with the bitmap
+        space pointing to it)
+    - file, directory or symbolic link (shares the same lock with its inode)
+Locks are acquired in globally defined total order and in two phase to avoid deadlock:
+    1.  in 1st phase, server looks up all locks necessary to the operation, may involve acquiring and
+        releasing locks, examine their content
+    2.  in 2nd phase, locks is sorted and acquired in order
+    3.  if any file is modified since phase 1, release all locks and go to step 1
+    4.  if not, perform the operation on cache and write logs, locks are retained until dirty blocks
+        are written out to the disk
+Appropriate to a workload in which concurrent shared writing is rare (not appropriate to e.g.
+    MapReduce)
+
+Each lock is leased with an expiration time of 30s, clients (Frangipani servers) must renew their
+locks periodically, if failed to do so the clients invalidates its cache, return error to all
+requests until the file system is unmounted.
+
+Iterations of lock service:
+    1.  a centralized lock server, causes large performance glitch on failure
+    2.  on the same petal virtual disk, common case performance is poor
+    3.  a distributed lock service based on Paxos
+Locks are divided into 100 disjoint groups then assigned to lock servers, the global state
+maintained by the consensus protocol consists of
+    - a list of lock servers
+    - assignment of lock group to lock servers
+    - a list of operating clerks (lock module linked into Frangipani server)
+Assignment of lock groups are adjusted  for load balance, the reassignment happens in 2 phases:
+    1.  lock servers losing locks discard them from the internal state
+    (some agreement achieved between 1 and 2?)
+    2.  lock servers gaining locks contact clerks holding the locks, recover the state from them
+
+Both the lock servers and the Petal servers can tolerate less than majority failures and network
+partitions.  
+
+Currently this scheme contains a bug: Petal servers doesn't check the up-to-date-ness of Frangipani
+read / write locks, a write request issued before the lease expiration and arrived at a Petal server
+after the expiration may cause inconsistency. A possible solution (not yet implemented) is tag each
+request with an expiration timestamp.
+
+Frangipani server can be added to the cluster with minimal administrative effort and removed
+effortlessly. Both addition and removal of Petal servers and lock servers are transparent.
+
+Petal async creates read-only snapshot of the whole virtual disk by copy-on-write, but snapshot
+created this way is not consistent with the file system. Alternatively Frangipani may facilitate the
+lock server to create a consistent sync snapshot.
+
+Performance of Frangipani:
+    - on a single machine: comparable performance to a local installation of AdvFS, both with and
+        without NVRAM cache
+    - on a single machine: comparable big file read / write throughput to AdvFS
+    - on a single machine: comparable read / write latency to AdvFS, thanks to async handling of
+        logs
+    - adding Frangipani servers to a no-shared-write workload has minimal negative impact on latency 
+    - uncached read scales almost linearly to the number of Frangipani servers
+    - non-shared write scales gradually until the network is saturated
+    - in presence of a writer, read scales much worse than linearly, flatted out at 2 readers with
+        read-ahead (reader invalidates its cache when dropping the lock, read-ahead is unhelpful
+        when there's contention)
+    - in presence of a writer, reader performance improves as the amount of shared data decreases:
+        even though reader invalidates its entire cache on dropping locks, writer would has less
+        data to write out
+    - in presence of multiple writers, write performance is abysmal as nearly each write syscall is
+        also a fsync: lock is acquired and dropped during every write, causing dirty data to be
+        write out
+---NOTE END---
