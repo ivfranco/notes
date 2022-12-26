@@ -1768,3 +1768,60 @@ server) arbitrary string keys.
 How WAL of Frangipani is special:
     - one log sequence per Frangipani server
     - logs are stored on Petal server instead of local disk
+
+Lecture 12. Distributed Transactions
+paper: 6.033 Chapter 9
+---NOTE START---
+9.1.5
+Concurrency coordination requirements:
+    - Sequence coordination:
+        action a must complete before action b
+    - Before-or-after atomicity:
+        "Concurrent actions have the before-or-after property if their effect from the point of view
+        of their invokers is the same as if the actions occurred either completely before or
+        completely after one another."
+
+9.1.6
+Correctness in this section is 
+    - linearizability: 
+        result of concurrent actions equals to some sequential execution 
+    - external time consistency:
+        observable sequence coordination between actions
+    - sequential consistency:
+        result of concurrent actions equals to one sequential execution
+
+9.5.2
+Simple locking discipline, each transaction must:
+    - acquire a lock for every shared data object it intends to access, before any update
+    - release the lock only when its last update is committed or the data is completely restored
+
+9.5.3
+Two-phase locking:
+    - acquire locks as the transaction proceeds, access data as soon as lock is acquired
+    - release the lock once the data is no longer used, even on abort
+
+Log recovery algorithm 
+    - in reverse log order, undo logs of uncommitted transactions
+    - in log order, redo committed transactions
+
+9.6.3
+Distributed 2PC, based on exactly once RPC:
+    - coordinator sends transaction number and work to workers
+    - workers perform the work until commit, send "ready to commit" message to coordinator
+        result is written to temporary copies and log entry
+    - collected "ready to commit" from all workers, coordinator send "prepare to commit" to workers
+    - workers commit their results or abort, send outcome to coordinator
+        workers respectively in PREPARED or ABORTED state
+    - coordinator send completion message "committed" or "aborted" to workers
+        coordinator must remember the result to resend messages, or instead require an
+        acknowledgement from workers then discard the outcome
+    
+Recovery procedure during a distributed 2PC has to take 3 extra steps:
+    - any PREPARED transaction must be restored to PREPARED state
+    - reacquire any locks the PREPARED transaction was holding
+    - restart the persistent RPC sender
+---NOTE END---
+
+questions: describe a situation where Two-Phase Locking yields higher performance
+    read-only transactions with very few shared objects, 2PC may release the shared locks early and
+    on average hold shared locks for a shorter period than simple locking
