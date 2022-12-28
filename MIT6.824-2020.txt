@@ -1798,7 +1798,7 @@ Simple locking discipline, each transaction must:
 9.5.3
 Two-phase locking:
     - acquire locks as the transaction proceeds, access data as soon as lock is acquired
-    - release the lock once the data is no longer used, even on abort
+    - release the lock only when its last update is committed or the data is completely restored
 
 Log recovery algorithm 
     - in reverse log order, undo logs of uncommitted transactions
@@ -1808,8 +1808,9 @@ Log recovery algorithm
 Distributed 2PC, based on exactly once RPC:
     - coordinator sends transaction number and work to workers
     - workers perform the work until commit, send "ready to commit" message to coordinator
-        result is written to temporary copies and log entry
     - collected "ready to commit" from all workers, coordinator send "prepare to commit" to workers
+        before replying, worker result, 2PC state and locks are written to temporary copies and log
+        entry
     - workers commit their results or abort, send outcome to coordinator
         workers respectively in PREPARED or ABORTED state
     - coordinator send completion message "committed" or "aborted" to workers
@@ -1825,3 +1826,30 @@ Recovery procedure during a distributed 2PC has to take 3 extra steps:
 questions: describe a situation where Two-Phase Locking yields higher performance
     read-only transactions with very few shared objects, 2PC may release the shared locks early and
     on average hold shared locks for a shorter period than simple locking
+
+transactions should be ACID:
+    - atomic: all-or-nothing in face of failure
+    - consistent: application invariants
+    - isolated: serializable, intermediate states are not externally visible 
+    - durable: persisted, not lost after failure
+
+A concurrent execution of transactions is serializable if there's a sequential execution of these
+transactions that yields the same result.
+
+Two forms of concurrency control:
+    - pessimistic: locking 
+    - optimistic: do without lock, retry if conflicting (the same strategy behind software
+        transactional memory?)
+
+Commit state must be persisted when:
+    - coordinator: before sending COMMIT / ABORT 
+    - workers: before sending PREPARED / ABORTED
+Notably workers must block between sending PREPARED / ABORTED and receiving COMMIT / ABORT, they are
+not allowed to make any decision on their own.
+
+Participants of 2PC are under strong pressure to make decisions quickly: they are holding locks to
+shared objects, blocking other transactions from progressing. They have the option to resend
+messages in face of network failures, but might no have the luxury to do so after a few retries.
+
+2PC isn't tolerant to failures of any of its participants: each worker / coordinator could be
+majority replicated a la Raft for availability.
